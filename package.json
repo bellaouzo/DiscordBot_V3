@@ -1,0 +1,27 @@
+{
+  "name": "discord-bot-v3",
+  "version": "1.0.0",
+  "description": "A clean Discord bot built with TypeScript",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js",
+    "b": "tsc",
+    "s": "node dist/index.js",
+    "clean": "rimraf dist"
+  },
+  "keywords": ["discord", "bot", "typescript"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "rimraf": "^5.0.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.2"
+  }
+}
