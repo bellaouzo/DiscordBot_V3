@@ -1,0 +1,2 @@
+export { PingCommand } from './PingCommand'
+
