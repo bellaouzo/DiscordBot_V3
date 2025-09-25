@@ -1,14 +1,7 @@
-import { PermissionFlagsBits, PermissionsBitField, GuildMember, EmbedBuilder, ChatInputCommandInteraction } from 'discord.js'
+import { PermissionFlagsBits, PermissionsBitField, GuildMember, ChatInputCommandInteraction } from 'discord.js'
 import { CommandMiddleware } from './index'
 import { ResponderSet } from '../../Responders'
-
-function CreatePermissionErrorEmbed(title: string, description: string): EmbedBuilder {
-  return new EmbedBuilder()
-    .setColor('#ff4444')
-    .setTitle(`❌ ${title}`)
-    .setDescription(description)
-    .setTimestamp()
-}
+import { CreateErrorMessage } from '../../Responders/MessageFactory'
 
 async function SendPermissionError(
   responders: ResponderSet,
@@ -16,9 +9,12 @@ async function SendPermissionError(
   title: string,
   description: string
 ): Promise<void> {
-  const embed = CreatePermissionErrorEmbed(title, description)
+  const message = CreateErrorMessage({
+    title: `❌ ${title}`,
+    description
+  })
   await responders.replyResponder.Send(interaction, {
-    embeds: [embed],
+    ...message,
     ephemeral: true
   })
 }

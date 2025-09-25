@@ -5,6 +5,7 @@ import { DmResponder } from './DmResponder'
 import { EditResponder } from './EditResponder'
 import { FollowUpResponder } from './FollowUpResponder'
 import { ReplyResponder } from './ReplyResponder'
+export type { ResponseOptions, ResponseResult, ResponseActionOptions, ResponderMessageOptions, ResponderEditOptions } from './ResponseTypes'
 
 export interface ResponderSet {
   readonly replyResponder: ReplyResponder

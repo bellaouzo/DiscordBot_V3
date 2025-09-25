@@ -1,11 +1,11 @@
-import { CommandInteraction, MessageFlags } from 'discord.js'
+import { ChatInputCommandInteraction, MessageFlags } from 'discord.js'
 import { ResponseOptions, ResponseResult } from './ResponseTypes'
 import { Logger } from '../Logging/Logger'
 
 export class ReplyResponder {
   constructor(private readonly logger: Logger) {}
 
-  async Send(interaction: CommandInteraction, options: ResponseOptions): Promise<ResponseResult> {
+  async Send(interaction: ChatInputCommandInteraction, options: ResponseOptions): Promise<ResponseResult> {
     if (interaction.replied || interaction.deferred) {
       return { success: false, message: 'Already replied to this interaction' }
     }

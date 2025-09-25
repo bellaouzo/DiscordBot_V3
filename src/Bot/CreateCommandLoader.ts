@@ -34,12 +34,13 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
         for (const command of commandExports) {
           commands.push(command.data)
           commandModules.set(command.data.name, command)
-          logger.Debug('Auto-loaded command', { name: command.data.name, group: command.group })
         }
       } catch (error) {
-        logger.Error('Failed to load command file', { file, error })
+        logger.Error('Failed to load command file', { file: String(file), error })
       }
     }
+
+    logger.Debug('Auto loaded all commands', { timestamp: new Date().toISOString() })
 
     return { commands, modules: commandModules }
   }

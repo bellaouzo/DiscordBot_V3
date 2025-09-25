@@ -19,7 +19,7 @@ async function ExecuteKick(interaction: ChatInputCommandInteraction, context: Co
     message: `Kicking ${targetUser.username}...`,
     followUp: `✅ Successfully kicked **${targetUser.username}** for: ${reason}`,
     action: async () => {
-      logger.Info('Attempting to kick user', { user: targetUser.id })
+      logger.Info('Attempting to kick user', { targetUserId: targetUser.id })
       const targetMember = await interaction.guild?.members.fetch(targetUser.id)
       if (!targetMember) {
         throw new Error('User not found in this server.')
@@ -29,7 +29,7 @@ async function ExecuteKick(interaction: ChatInputCommandInteraction, context: Co
       }
 
       await targetMember.kick(reason)
-      logger.Info('User kicked', { user: targetUser.id, reason })
+      logger.Info('User kicked', { targetUserId: targetUser.id, reason })
 
       if (notify) {
         await dmResponder.Send(targetUser, `You have been kicked from ${interaction.guild?.name ?? 'this server'} for: ${reason}`)

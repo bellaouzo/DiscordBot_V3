@@ -1,11 +1,11 @@
-import { CommandInteraction, MessageFlags } from 'discord.js'
+import { ChatInputCommandInteraction, MessageFlags } from 'discord.js'
 import { ResponseResult } from './ResponseTypes'
 import { Logger } from '../Logging/Logger'
 
 export class DeferResponder {
   constructor(private readonly logger: Logger) {}
 
-  async Send(interaction: CommandInteraction, ephemeral = false): Promise<ResponseResult> {
+  async Send(interaction: ChatInputCommandInteraction, ephemeral = false): Promise<ResponseResult> {
     try {
       await interaction.deferReply({
         flags: ephemeral ? [MessageFlags.Ephemeral] : undefined
