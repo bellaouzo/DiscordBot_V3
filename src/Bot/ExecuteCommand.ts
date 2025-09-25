@@ -1,28 +1,29 @@
-import { Interaction } from 'discord.js'
+import { ChatInputCommandInteraction } from 'discord.js'
 import { CommandDefinition, CommandContext } from '../Commands/CommandFactory'
 import { Logger } from '../Logging/Logger'
 import { ResponderSet } from '../Responders'
 import { MiddlewareContext, RunMiddlewareChain } from '../Commands/Middleware'
 
-export function CreateCommandExecutor(logger: Logger) {
-  return async (command: CommandDefinition, interaction: Interaction, responders: ResponderSet) => {
-    if (!interaction.isChatInputCommand()) {
-      return
-    }
-
+export function CreateCommandExecutor(_logger: Logger) {
+  return async (
+    command: CommandDefinition,
+    interaction: ChatInputCommandInteraction,
+    responders: ResponderSet,
+    commandLogger: Logger
+  ): Promise<void> => {
     const middleware = command.middleware?.before ?? []
     const afterMiddleware = command.middleware?.after ?? []
 
-        const context: MiddlewareContext = {
-          interaction,
-          command,
-          logger,
-          responders,
-          config: command.config ?? {}
-        }
+    const context: MiddlewareContext = {
+      interaction,
+      command,
+      logger: commandLogger,
+      responders,
+      config: command.config ?? {}
+    }
 
-    const finalHandler = async () => {
-      const commandContext: CommandContext = { responders, logger }
+    const finalHandler = async (): Promise<void> => {
+      const commandContext: CommandContext = { responders, logger: commandLogger }
       await command.execute(interaction, commandContext)
     }
 

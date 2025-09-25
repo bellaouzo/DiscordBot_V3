@@ -1,13 +1,20 @@
-import { CommandInteraction } from 'discord.js'
+import {
+  ActionRowData,
+  ChatInputCommandInteraction,
+  MessageCreateOptions,
+  MessageEditOptions,
+  ActionRowComponentData
+} from 'discord.js'
 import { CreateConsoleLogger, Logger } from '../Logging/Logger'
 
-export interface ResponseOptions {
-  readonly content?: string
+export type ResponderMessageOptions = Pick<MessageCreateOptions, 'content' | 'embeds' | 'files'> & {
   readonly ephemeral?: boolean
-  readonly components?: any[]
-  readonly embeds?: any[]
-  readonly files?: any[]
+  readonly components?: ActionRowData<ActionRowComponentData>[]
 }
+
+export type ResponderEditOptions = Pick<MessageEditOptions, 'content' | 'embeds' | 'files' | 'components'>
+
+export interface ResponseOptions extends ResponderMessageOptions {}
 
 export interface ResponseResult {
   readonly success: boolean
@@ -15,7 +22,7 @@ export interface ResponseResult {
 }
 
 export interface ResponseActionOptions {
-  readonly interaction: CommandInteraction
+  readonly interaction: ChatInputCommandInteraction
   readonly message: string
   readonly followUp?: string
   readonly error?: string

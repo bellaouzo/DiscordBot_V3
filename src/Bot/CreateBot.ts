@@ -1,4 +1,4 @@
-import { Client, Events, GatewayIntentBits } from 'discord.js'
+import { Client, GatewayIntentBits } from 'discord.js'
 import { Logger } from '../Logging/Logger'
 
 export interface BotDependencies {
@@ -16,16 +16,10 @@ export function CreateBot(dependencies: BotDependencies): BotLifecycle {
     intents: dependencies.intents ?? [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
   })
 
-  client.once(Events.ClientReady, () => {
-    dependencies.logger.Info('Bot is ready', { tag: client.user?.tag, id: client.user?.id })
-  })
-
   return {
     client,
     Start: async (token: string) => {
-      dependencies.logger.Info('Starting bot login')
       await client.login(token)
-      dependencies.logger.Info('Bot login successful')
     }
   }
 }
