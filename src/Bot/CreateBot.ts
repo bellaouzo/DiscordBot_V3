@@ -17,7 +17,7 @@ export function CreateBot(dependencies: BotDependencies): BotLifecycle {
   })
 
   client.once(Events.ClientReady, () => {
-    dependencies.logger.Info('Bot is ready', { tag: client.user?.tag })
+    dependencies.logger.Info('Bot is ready', { tag: client.user?.tag, id: client.user?.id })
   })
 
   return {

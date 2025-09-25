@@ -6,14 +6,12 @@ import { Config } from '../Middleware/CommandConfig'
 
 async function ExecutePing(interaction: ChatInputCommandInteraction, context: CommandContext): Promise<void> {
   const { actionResponder } = context.responders
-  const { logger } = context
 
   await actionResponder.Send({
     interaction,
     message: 'Pinging...',
     followUp: `Pong! Latency: ${Date.now() - interaction.createdTimestamp}ms`,
     action: async () => {
-      logger.Debug('Ping command simulated work')
       await new Promise(resolve => setTimeout(resolve, 100))
     }
   })
