@@ -15,19 +15,21 @@
   A modern, scalable Discord bot framework built with TypeScript and Discord.js v14.
 </p>
 
+> ⚠️ **EARLY TESTING STAGE** - This framework is currently in very early development and testing phases. Features may change, bugs may exist, and breaking changes are likely. Please report any issues you encounter.
+
 ---
 
 ## ✨ Features
 
 - **[🚀 Modern Tech Stack](#-quick-start)** - TypeScript + Discord.js v14
-- **[⚡ Slash Commands](#-architecture)** - Auto-deployment with validation
-- **[🏗️ Modular Architecture](#-architecture)** - Clean structure with auto-loading
+- **[⚡ Slash Commands](#️-architecture)** - Auto-deployment with validation
+- **[🏗️ Modular Architecture](#️-architecture)** - Clean structure with auto-loading
 - **[🔧 Middleware System](#-middleware)** - Logging, permissions, cooldowns
 - **[📱 Interactive UI](#-interactive-ui)** - Pagination, buttons, rich embeds
 - **[🎨 Utility System](#-utilities)** - Reusable factories for consistency
 - **[📊 Smart Logging](#-logging)** - Colored output with context tracking
-- **[⚙️ Event System](#-events)** - Comprehensive event handling
-- **[🛡️ Type Safety](#-type-safety)** - Full TypeScript coverage
+- **[⚙️ Event System](#️-events)** - Comprehensive event handling
+- **[🛡️ Type Safety](#️-type-safety)** - Full TypeScript coverage
 - **[📦 Performance](#-performance)** - Caching and optimization
 
 ---
