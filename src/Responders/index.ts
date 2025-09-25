@@ -5,6 +5,8 @@ import { DmResponder } from './DmResponder'
 import { EditResponder } from './EditResponder'
 import { FollowUpResponder } from './FollowUpResponder'
 import { ReplyResponder } from './ReplyResponder'
+import { PaginatedResponder } from './PaginatedResponder'
+import { ComponentRouter, CreateComponentRouter } from '../Interactions/ComponentRouter'
 export type { ResponseOptions, ResponseResult, ResponseActionOptions, ResponderMessageOptions, ResponderEditOptions } from './ResponseTypes'
 
 export interface ResponderSet {
@@ -14,10 +16,13 @@ export interface ResponderSet {
   readonly deferResponder: DeferResponder
   readonly actionResponder: ActionResponder
   readonly dmResponder: DmResponder
+  readonly paginatedResponder: PaginatedResponder
+  readonly componentRouter: ComponentRouter
 }
 
 export function CreateResponders(dependencies?: ResponderDependencies): ResponderSet {
   const logger = ResolveResponderLogger(dependencies)
+  const componentRouter = CreateComponentRouter(logger)
 
   const replyResponder = new ReplyResponder(logger)
   const editResponder = new EditResponder(logger)
@@ -25,6 +30,7 @@ export function CreateResponders(dependencies?: ResponderDependencies): Responde
   const deferResponder = new DeferResponder(logger)
   const actionResponder = new ActionResponder(replyResponder, editResponder, logger)
   const dmResponder = new DmResponder(logger)
+  const paginatedResponder = new PaginatedResponder(replyResponder, editResponder, componentRouter, logger)
 
   return {
     replyResponder,
@@ -32,7 +38,8 @@ export function CreateResponders(dependencies?: ResponderDependencies): Responde
     followUpResponder,
     deferResponder,
     actionResponder,
-    dmResponder
+    dmResponder,
+    paginatedResponder,
+    componentRouter
   }
 }
-

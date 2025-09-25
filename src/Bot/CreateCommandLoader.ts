@@ -3,6 +3,7 @@ import { readdirSync } from 'fs'
 import { join } from 'path'
 import { CommandDefinition } from '../Commands/CommandFactory'
 import { Logger } from '../Logging/Logger'
+import { RegisterCommand } from '../Commands/registry'
 
 export interface CommandLoaderResult {
   readonly commands: SlashCommandBuilder[]
@@ -34,6 +35,8 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
         for (const command of commandExports) {
           commands.push(command.data)
           commandModules.set(command.data.name, command)
+
+          RegisterCommand(command)
         }
       } catch (error) {
         logger.Error('Failed to load command file', { file: String(file), error })

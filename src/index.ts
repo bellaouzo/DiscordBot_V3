@@ -7,6 +7,7 @@ import { RegisterEvents } from './Bot/RegisterEvents'
 import { LoadAppConfig } from './Config/AppConfig'
 import { CreateConsoleLogger, Logger } from './Logging/Logger'
 import { CreateResponders } from './Responders'
+import { RegisterInteractionHandlers } from './interaction-handlers'
 
 async function Bootstrap(rootLogger: Logger): Promise<void> {
   const config = LoadAppConfig()
@@ -26,6 +27,12 @@ async function Bootstrap(rootLogger: Logger): Promise<void> {
     events,
     logger,
     responders
+  })
+
+  RegisterInteractionHandlers({
+    client: bot.client,
+    logger,
+    componentRouter: responders.componentRouter
   })
 
   bot.client.on('interactionCreate', async interaction => {

@@ -60,7 +60,11 @@ class ConsoleLogger implements Logger {
     const regularEntries = Object.entries(regularFields).filter(([, value]) => value !== undefined)
     const hasExtra = extra && Object.keys(extra).length > 0
     
-    let output = `[${timestamp}] [${level.toUpperCase()}] ${message}`
+    // Color the log level based on severity
+    const levelColor = this.GetLevelColor(level)
+    const levelText = `[${level.toUpperCase()}]`
+    
+    let output = `[${timestamp}] ${levelColor}${levelText}\x1b[0m ${message}`
     
     // Add regular context fields with spacing
     if (regularEntries.length > 0) {
@@ -74,6 +78,21 @@ class ConsoleLogger implements Logger {
     }
     
     console[level](output)
+  }
+
+  private GetLevelColor(level: LogLevel): string {
+    switch (level) {
+      case 'error':
+        return '\x1b[31m' // Red
+      case 'warn':
+        return '\x1b[33m' // Yellow
+      case 'info':
+        return '\x1b[34m' // Blue
+      case 'debug':
+        return '\x1b[90m' // Gray
+      default:
+        return '\x1b[0m' // Reset
+    }
   }
 }
 
