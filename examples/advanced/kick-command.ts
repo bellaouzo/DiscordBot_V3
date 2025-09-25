@@ -5,7 +5,7 @@ import {
   PermissionMiddleware,
   CooldownMiddleware,
   ErrorMiddleware,
-} from "../../src/Commands/Middleware";
+} from "../../src/Commands/Middleware/index";
 import { Config } from "../../src/Commands/Middleware/CommandConfig";
 
 /**

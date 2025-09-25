@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "../../src/Commands/CommandFactory";
-import { LoggingMiddleware, ErrorMiddleware } from "../../src/Commands/Middleware";
+import { LoggingMiddleware, ErrorMiddleware } from "../../src/Commands/Middleware/index";
 import { Config } from "../../src/Commands/Middleware/CommandConfig";
 import { PaginationPage } from "../../src/Pagination";
 import { AllCommands } from "../../src/Commands/registry";

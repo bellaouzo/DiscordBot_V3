@@ -19,8 +19,8 @@
 
 ## ✨ Features
 
-- **[🚀 Modern Tech Stack](#-tech-stack)** - TypeScript + Discord.js v14
-- **[⚡ Slash Commands](#-slash-commands)** - Auto-deployment with validation
+- **[🚀 Modern Tech Stack](#-quick-start)** - TypeScript + Discord.js v14
+- **[⚡ Slash Commands](#-architecture)** - Auto-deployment with validation
 - **[🏗️ Modular Architecture](#-architecture)** - Clean structure with auto-loading
 - **[🔧 Middleware System](#-middleware)** - Logging, permissions, cooldowns
 - **[📱 Interactive UI](#-interactive-ui)** - Pagination, buttons, rich embeds
