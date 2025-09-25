@@ -1,10 +1,10 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { CommandContext, CreateCommand } from "../../src/Commands/CommandFactory";
+import { CommandContext, CreateCommand } from "../../src/Commands";
 import { LoggingMiddleware, ErrorMiddleware } from "../../src/Commands/Middleware/index";
 import { Config } from "../../src/Commands/Middleware/CommandConfig";
 import { PaginationPage } from "../../src/Pagination";
-import { AllCommands } from "../../src/Commands/registry";
-import { EmbedFactory, ComponentFactory } from "../../src/Utilities";
+import { AllCommands } from "../../src/Commands";
+import { EmbedFactory } from "../../src/Utilities";
 
 /**
  * Interactive help command with pagination and buttons

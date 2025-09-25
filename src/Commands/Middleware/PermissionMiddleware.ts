@@ -96,9 +96,9 @@ async function CheckDiscordPermissions(
   const requireAny = config.permissions.requireAny ?? false
   
   const permissionValues = GetValidPermissionValues(requiredPermissions)
-  const memberPermissions = typeof context.member.permissions === 'string' 
-    ? new PermissionsBitField(BigInt(context.member.permissions))
-    : context.member.permissions
+  const memberPermissions = context.member.permissions instanceof PermissionsBitField
+      ? context.member.permissions
+      : new PermissionsBitField(context.member.permissions)
 
   const hasPermissions = requireAny
     ? permissionValues.some(permission => memberPermissions.has(permission))

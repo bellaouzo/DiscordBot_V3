@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { CommandContext, CreateCommand } from "../../src/Commands/CommandFactory";
+import { CommandContext, CreateCommand } from "../../src/Commands";
 import { LoggingMiddleware, ErrorMiddleware } from "../../src/Commands/Middleware/index";
 import { Config } from "../../src/Commands/Middleware/CommandConfig";
 

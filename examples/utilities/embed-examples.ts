@@ -1,4 +1,4 @@
-import { EmbedFactory } from "../../src/Utilities/EmbedBuilder";
+import { EmbedFactory } from "../../src/Utilities";
 
 /**
  * Examples of using the EmbedFactory utility

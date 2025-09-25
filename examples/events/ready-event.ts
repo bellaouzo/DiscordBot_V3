@@ -1,5 +1,5 @@
 import { Events } from "discord.js";
-import { CreateEvent } from "../../src/Events/EventFactory";
+import { CreateEvent } from "../../src/Events";
 
 /**
  * Bot ready event

@@ -1,6 +1,6 @@
 import { readdirSync } from 'fs'
 import { join } from 'path'
-import { EventDefinition } from '../Events/EventFactory'
+import { EventDefinition } from '../Events'
 import { Logger } from '../Logging/Logger'
 
 export type EventLoader = () => Promise<EventDefinition[]>

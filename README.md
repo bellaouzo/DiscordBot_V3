@@ -168,7 +168,7 @@ The bot includes middleware for common command needs:
 ```typescript
 middleware: {
   before: [LoggingMiddleware, PermissionMiddleware, CooldownMiddleware],
-  after: [ErrorMiddleware],
+  after: [ErrorMiddleware]
 }
 ```
 

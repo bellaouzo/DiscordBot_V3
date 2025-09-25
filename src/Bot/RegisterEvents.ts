@@ -1,5 +1,5 @@
 import { Client } from 'discord.js'
-import { EventDefinition, EventContext } from '../Events/EventFactory'
+import { EventDefinition, EventContext } from '../Events'
 import { Logger } from '../Logging/Logger'
 import { ResponderSet } from '../Responders'
 

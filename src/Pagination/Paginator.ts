@@ -1,9 +1,9 @@
-import { APIEmbed, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, ComponentType } from 'discord.js'
+import { APIEmbed, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, ComponentType, MessageFlags } from 'discord.js'
 import { ComponentRouter, RegisteredButton } from '../Interactions/ComponentRouter'
 import { Logger } from '../Logging/Logger'
 import { ReplyResponder } from '../Responders/ReplyResponder'
 import { EditResponder } from '../Responders/EditResponder'
-import { ResponderMessageOptions } from '../Responders/ResponseTypes'
+import { ResponderMessageOptions } from '../Responders'
 
 export interface PaginationPage {
   readonly embeds?: APIEmbed[]
@@ -19,6 +19,7 @@ export interface PaginationOptions {
   readonly componentRouter: ComponentRouter
   readonly logger: Logger
   readonly ephemeral?: boolean
+  readonly flags?: MessageFlags[]
   readonly ownerId?: string
   readonly timeoutMs?: number
   readonly idleTimeoutMs?: number
@@ -42,7 +43,8 @@ export class Paginator {
     if (this.options.pages.length === 0) {
       await this.options.replyResponder.Send(this.options.interaction, {
         content: 'No content available',
-        ephemeral: this.options.ephemeral
+        ephemeral: this.options.ephemeral,
+        flags: this.options.flags
       })
       return
     }
@@ -94,7 +96,8 @@ export class Paginator {
       content: page.content,
       embeds: page.embeds,
       components,
-      ephemeral: this.options.ephemeral
+      ephemeral: this.options.ephemeral,
+      flags: this.options.flags
     }
 
     if (update) {

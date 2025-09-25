@@ -4,18 +4,42 @@ import { LoggingMiddleware } from '../Middleware/LoggingMiddleware'
 import { CooldownMiddleware } from '../Middleware/CooldownMiddleware'
 import { ErrorMiddleware } from '../Middleware/ErrorMiddleware'
 import { Config } from '../Middleware/CommandConfig'
+import { EmbedFactory } from '../../Utilities/EmbedBuilder'
 
 async function ExecutePing(interaction: ChatInputCommandInteraction, context: CommandContext): Promise<void> {
-  const { actionResponder } = context.responders
+  const { replyResponder, editResponder } = context.responders
 
-  await actionResponder.Send({
-    interaction,
-    message: 'Pinging...',
-    followUp: `Pong! Latency: ${Date.now() - interaction.createdTimestamp}ms`,
-    action: async () => {
-      await new Promise(resolve => setTimeout(resolve, 100))
-    }
+  const initialEmbed = EmbedFactory.Create({
+    title: '🏓 Pong!',
+    description: 'Checking bot latency...',
+    color: 0x57F287,
+    footer: 'Discord Bot V3'
   })
+
+  await replyResponder.Send(interaction, { ephemeral: true, embeds: [initialEmbed] })
+  const latency = Date.now() - interaction.createdTimestamp
+  
+  const responseEmbed = EmbedFactory.Create({
+    title: '🏓 Pong!',
+    description: 'Here\'s the current latency information:',
+    color: latency < 100 ? 0x57F287 : latency < 200 ? 0xFEE75C : 0xED4245,
+    footer: 'Discord Bot V3'
+  })
+
+  responseEmbed.addFields(
+    {
+      name: '📡 Bot Latency',
+      value: `${latency}ms`,
+      inline: true
+    },
+    {
+      name: '⚡ Status',
+      value: latency < 100 ? 'Excellent' : latency < 200 ? 'Good' : 'Fair',
+      inline: true
+    }
+  )
+
+  await editResponder.Send(interaction, { embeds: [responseEmbed] })
 }
 
 export const PingCommand = CreateCommand({

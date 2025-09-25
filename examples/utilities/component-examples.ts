@@ -1,4 +1,4 @@
-import { ComponentFactory } from "../../src/Utilities/ComponentBuilder";
+import { ComponentFactory } from "../../src/Utilities";
 import { ButtonStyle } from "discord.js";
 
 /**

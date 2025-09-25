@@ -1,5 +1,5 @@
-import { ChatInputCommandInteraction, MessageFlags } from 'discord.js'
-import { ResponseOptions, ResponseResult } from './ResponseTypes'
+import { ChatInputCommandInteraction } from 'discord.js'
+import { ResponseOptions, ResponseResult, ConvertToInteractionFlags } from './ResponseTypes'
 import { Logger } from '../Logging/Logger'
 
 export class ReplyResponder {
@@ -13,7 +13,7 @@ export class ReplyResponder {
     try {
       await interaction.reply({
         content: options.content,
-        flags: options.ephemeral ? [MessageFlags.Ephemeral] : undefined,
+        flags: ConvertToInteractionFlags(options),
         components: options.components,
         embeds: options.embeds,
         files: options.files
