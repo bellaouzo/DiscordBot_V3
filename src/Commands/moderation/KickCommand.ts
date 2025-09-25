@@ -1,0 +1,57 @@
+import { ChatInputCommandInteraction } from 'discord.js'
+import { CommandContext, CreateCommand } from '../CommandFactory'
+import { LoggingMiddleware } from '../Middleware/LoggingMiddleware'
+import { PermissionMiddleware } from '../Middleware/PermissionMiddleware'
+import { CooldownMiddleware } from '../Middleware/CooldownMiddleware'
+import { ErrorMiddleware } from '../Middleware/ErrorMiddleware'
+import { Config } from '../Middleware/CommandConfig'
+
+async function ExecuteKick(interaction: ChatInputCommandInteraction, context: CommandContext): Promise<void> {
+  const { actionResponder, dmResponder } = context.responders
+  const { logger } = context
+
+  const targetUser = interaction.options.getUser('user', true)
+  const reason = interaction.options.getString('reason') ?? 'No reason provided'
+  const notify = interaction.options.getBoolean('notify') ?? false
+
+  await actionResponder.Send({
+    interaction,
+    message: `Kicking ${targetUser.username}...`,
+    followUp: `✅ Successfully kicked **${targetUser.username}** for: ${reason}`,
+    action: async () => {
+      logger.Info('Attempting to kick user', { user: targetUser.id })
+      const targetMember = await interaction.guild?.members.fetch(targetUser.id)
+      if (!targetMember) {
+        throw new Error('User not found in this server.')
+      }
+      if (!targetMember.kickable) {
+        throw new Error('I cannot kick this user. They may have higher permissions than me.')
+      }
+
+      await targetMember.kick(reason)
+      logger.Info('User kicked', { user: targetUser.id, reason })
+
+      if (notify) {
+        await dmResponder.Send(targetUser, `You have been kicked from ${interaction.guild?.name ?? 'this server'} for: ${reason}`)
+      }
+    }
+  })
+}
+
+export const KickCommand = CreateCommand({
+  name: 'kick',
+  description: 'Kick a user from the server',
+  group: 'moderation',
+  configure: builder => {
+    builder
+      .addUserOption(option => option.setName('user').setDescription('The user to kick').setRequired(true))
+      .addStringOption(option => option.setName('reason').setDescription('Reason for kicking').setRequired(true))
+      .addBooleanOption(option => option.setName('notify').setDescription('Send DM notification to user'))
+  },
+  middleware: {
+    before: [LoggingMiddleware, PermissionMiddleware, CooldownMiddleware],
+    after: [ErrorMiddleware]
+  },
+  config: Config.moderation(5),
+  execute: ExecuteKick
+})

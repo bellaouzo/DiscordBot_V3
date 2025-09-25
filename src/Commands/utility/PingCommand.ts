@@ -1,0 +1,32 @@
+import { ChatInputCommandInteraction } from 'discord.js'
+import { CommandContext, CreateCommand } from '../CommandFactory'
+import { LoggingMiddleware } from '../Middleware/LoggingMiddleware'
+import { CooldownMiddleware } from '../Middleware/CooldownMiddleware'
+import { Config } from '../Middleware/CommandConfig'
+
+async function ExecutePing(interaction: ChatInputCommandInteraction, context: CommandContext): Promise<void> {
+  const { actionResponder } = context.responders
+  const { logger } = context
+
+  await actionResponder.Send({
+    interaction,
+    message: 'Pinging...',
+    followUp: `Pong! Latency: ${Date.now() - interaction.createdTimestamp}ms`,
+    action: async () => {
+      logger.Debug('Ping command simulated work')
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+  })
+}
+
+export const PingCommand = CreateCommand({
+  name: 'ping',
+  description: 'Replies with Pong!',
+  group: 'utility',
+  middleware: {
+    before: [LoggingMiddleware, CooldownMiddleware]
+  },
+  config: Config.utility(1),
+  execute: ExecutePing
+})
+
