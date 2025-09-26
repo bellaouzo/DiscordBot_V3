@@ -123,6 +123,7 @@ npm start
 
 - **[Embed Factory](examples/utilities/embed-examples.ts)** - Creating rich embeds
 - **[Component Factory](examples/utilities/component-examples.ts)** - Building interactive components
+- **[Guild Resource Locator](examples/utilities/guild-resource-examples.ts)** - Fetching guild channels, roles, and members
 
 ---
 
@@ -210,6 +211,39 @@ const buttons = ComponentFactory.CreateHelpSectionButtons(
   interactionId,
   currentIndex
 );
+```
+
+**Guild Resource Locator:**
+
+```typescript
+import { CreateGuildResourceLocator } from "./Utilities";
+
+// Create a resource locator for a guild
+const locator = CreateGuildResourceLocator({
+  guild: interaction.guild,
+  logger: context.logger,
+});
+
+// Get channels easily
+const channel = await locator.GetChannel("123456789");
+const textChannel = await locator.GetTextChannel("123456789");
+const channelByName = await locator.GetChannelByName("general");
+
+// Get roles and members
+const role = await locator.GetRole("987654321");
+const member = await locator.GetMember("555666777");
+
+// Ensure resources exist (throws error if not found)
+const requiredChannel = await locator.EnsureTextChannel("123456789");
+const requiredRole = await locator.EnsureRole("987654321");
+
+// Channels are cached for 1 minute by default
+// Configure cache TTL:
+const locator = CreateGuildResourceLocator({
+  guild,
+  logger,
+  cacheTtlMs: 300_000, // 5 minutes
+});
 ```
 
 ### 📊 Logging
