@@ -5,7 +5,7 @@ import { CreateCommandExecutor } from './Bot/ExecuteCommand'
 import { CreateEventLoader } from './Bot/CreateEventLoader'
 import { RegisterEvents } from './Bot/RegisterEvents'
 import { LoadAppConfig } from './Config/AppConfig'
-import { CreateConsoleLogger, Logger } from './Logging/Logger'
+import { CreateConsoleLogger, Logger } from './Shared/Logger'
 import { CreateResponders } from './Responders'
 import { RegisterInteractionHandlers } from './interaction-handlers'
 

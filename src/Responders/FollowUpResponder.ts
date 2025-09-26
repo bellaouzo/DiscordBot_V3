@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from 'discord.js'
 import { ResponseOptions, ResponseResult, ConvertToInteractionFlags } from './ResponseTypes'
-import { Logger } from '../Logging/Logger'
+import { Logger } from '../Shared/Logger'
 
 export class FollowUpResponder {
   constructor(private readonly logger: Logger) {}

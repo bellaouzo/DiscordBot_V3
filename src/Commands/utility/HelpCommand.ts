@@ -1,9 +1,8 @@
-import { ChatInputCommandInteraction, ButtonInteraction } from 'discord.js'
+import { ActionRowComponentData, ActionRowData, APIEmbed, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction } from 'discord.js'
 import { CommandContext, CreateCommand } from '../CommandFactory'
 import { LoggingMiddleware } from '../Middleware/LoggingMiddleware'
 import { ErrorMiddleware } from '../Middleware/ErrorMiddleware'
 import { Config } from '../Middleware/CommandConfig'
-import { PaginationPage } from '../../Pagination'
 import { AllCommands } from '../registry'
 import { EmbedFactory, ComponentFactory } from '../../Utilities'
 
@@ -13,46 +12,58 @@ interface CommandInfo {
   readonly group: string
 }
 
-interface HelpSection {
+interface CategoryView {
+  readonly key: string
   readonly name: string
   readonly description: string
-  readonly commands: CommandInfo[]
   readonly icon: string
-  readonly color: number
+  readonly commands: CommandInfo[]
+  readonly pages: APIEmbed[]
 }
 
-// Cache for expensive operations
-const commandCache = new Map<string, { data: CommandInfo[], timestamp: number }>()
+interface OverviewPayload {
+  readonly content: string
+  readonly embeds: APIEmbed[]
+  readonly components: ActionRowData<ActionRowComponentData>[]
+}
+
 const CACHE_DURATION = 1000 * 60 * 5 // 5 minutes
+const commandCache = new Map<string, { data: CommandInfo[]; timestamp: number }>()
 
 async function ExecuteHelp(interaction: ChatInputCommandInteraction, context: CommandContext): Promise<void> {
-  const { paginatedResponder, componentRouter } = context.responders
+  const { replyResponder, componentRouter } = context.responders
   const { logger } = context
 
   try {
     const allCommands = await GetAllCommandsCached()
-    const sections = GroupCommandsBySection(allCommands)
+    const categories = BuildCategoryViews(allCommands)
 
-    // Create optimized pages
-    const pages = CreateOptimizedPages(sections)
+    const overview = CreateOverviewPayload(categories, interaction.id)
 
-    // Register optimized button handlers
-    RegisterOptimizedButtons(sections, componentRouter, interaction.id, interaction.user.id)
-
-    await paginatedResponder.Send({
+    RegisterHelpButtons({
+      categories,
+      componentRouter,
       interaction,
-      pages,
-      ephemeral: true,
-      ownerId: interaction.user.id,
-      timeoutMs: 1000 * 60 * 5
+      ownerId: interaction.user.id
     })
 
-    logger.Info('Help command executed', { 
-      extra: { 
+    const response = await replyResponder.Send(interaction, {
+      content: overview.content,
+      embeds: overview.embeds,
+      components: overview.components,
+      ephemeral: true
+    })
+
+    if (!response.success) {
+      logger.Warn('Help command failed to send reply', { userId: interaction.user.id })
+    }
+
+    logger.Info('Help command executed', {
+      extra: {
         userId: interaction.user.id,
         commandCount: allCommands.length,
-        sectionCount: sections.length
-      } 
+        categoryCount: categories.length
+      }
     })
   } catch (error) {
     logger.Error('Help command failed', { error })
@@ -63,7 +74,7 @@ async function ExecuteHelp(interaction: ChatInputCommandInteraction, context: Co
 async function GetAllCommandsCached(): Promise<CommandInfo[]> {
   const cacheKey = 'all-commands'
   const cached = commandCache.get(cacheKey)
-  
+
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return cached.data
   }
@@ -78,141 +89,353 @@ async function GetAllCommandsCached(): Promise<CommandInfo[]> {
   return commands
 }
 
-function GroupCommandsBySection(commands: CommandInfo[]): HelpSection[] {
+function BuildCategoryViews(commands: CommandInfo[]): CategoryView[] {
   const groups = new Map<string, CommandInfo[]>()
 
-  for (const command of commands) {
+  commands.forEach(command => {
     const group = command.group
     if (!groups.has(group)) {
       groups.set(group, [])
     }
     groups.get(group)!.push(command)
-  }
+  })
 
-  return Array.from(groups.entries()).map(([name, commands]) => ({
-    name: FormatGroupName(name),
-    description: GetGroupDescription(name),
-    commands,
-    icon: GetGroupIcon(name),
-    color: GetGroupColor(name)
-  }))
+  const categories: CategoryView[] = []
+
+  groups.forEach((groupCommands, key) => {
+    const sortedCommands = [...groupCommands].sort((a, b) => a.name.localeCompare(b.name))
+
+    categories.push({
+      key,
+      name: FormatGroupName(key),
+      description: GetGroupDescription(key),
+      icon: GetGroupIcon(key),
+      commands: sortedCommands,
+      pages: CreateCategoryPages({
+        key,
+        name: FormatGroupName(key),
+        description: GetGroupDescription(key),
+        icon: GetGroupIcon(key),
+        commands: sortedCommands
+      })
+    })
+  })
+
+  return categories.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-function CreateOptimizedPages(sections: HelpSection[]): PaginationPage[] {
-  // Create overview page
-  const overviewPage: PaginationPage = {
-    content: '📚 **Help Menu** - Use the buttons below to navigate between sections',
-    embeds: [CreateOverviewEmbed(sections).toJSON()]
-  }
+function CreateOverviewPayload(categories: CategoryView[], interactionId: string): OverviewPayload {
+  const totalCommands = categories.reduce((sum, category) => sum + category.commands.length, 0)
 
-  // Create section pages
-  const sectionPages: PaginationPage[] = sections.map(section => ({
-    embeds: [CreateSectionEmbed(section).toJSON()]
-  }))
+  const embed = EmbedFactory.CreateHelpOverview(totalCommands, categories.length)
 
-  return [overviewPage, ...sectionPages]
-}
-
-function CreateOverviewEmbed(sections: HelpSection[]) {
-  const totalCommands = sections.reduce((sum, section) => sum + section.commands.length, 0)
-  
-  const embed = EmbedFactory.CreateHelpOverview(totalCommands, sections.length)
-
-  // Add section fields
-  sections.forEach(section => {
+  categories.forEach(category => {
     embed.addFields({
-      name: `${section.icon} ${section.name}`,
-      value: `${section.description}\n**${section.commands.length} command${section.commands.length !== 1 ? 's' : ''} available**`,
+      name: `${category.icon} ${category.name}`,
+      value: `**${category.commands.length} commands**`,
       inline: true
     })
   })
 
-  // Add usage instructions
-  embed.addFields({
-    name: '📖 How to Use',
-    value: '• **Navigation buttons**: Jump between categories\n• **Pagination controls**: Navigate through pages\n• **Stop button**: Close the help menu',
-    inline: false
-  })
-
-  return embed
-}
-
-function CreateSectionEmbed(section: HelpSection) {
-  const embed = EmbedFactory.CreateHelpSection(section.name, section.description, section.commands.length)
-
-  if (section.commands.length === 0) {
-    embed.addFields({
-      name: '🚫 No Commands',
-      value: 'This section currently has no available commands.',
-      inline: false
-    })
-  } else {
-    // Chunk commands to avoid embed limits
-    const chunks = ChunkArray(section.commands, 8)
-    
-    chunks.forEach((chunk, index) => {
-      const commandList = chunk
-        .map(cmd => `\`/${cmd.name}\`\n${cmd.description}`)
-        .join('\n\n')
-      
-      embed.addFields({
-        name: index === 0 ? '📋 Available Commands' : '📋 Commands (continued)',
-        value: commandList,
-        inline: false
-      })
-    })
+  return {
+    content: `📚 **Help Menu** — ${totalCommands} commands available. Choose a category below.`,
+    embeds: [embed.toJSON()],
+    components: BuildCategoryRows(categories, interactionId)
   }
-
-  return embed
 }
 
-function RegisterOptimizedButtons(
-  sections: HelpSection[],
-  componentRouter: any,
-  interactionId: string,
-  ownerId: string
-): void {
-  // Register overview button
+function RegisterHelpButtons(options: {
+  readonly categories: CategoryView[]
+  readonly componentRouter: CommandContext['responders']['componentRouter']
+  readonly interaction: ChatInputCommandInteraction
+  readonly ownerId: string
+}): void {
+  const { categories, componentRouter, interaction, ownerId } = options
+  const interactionId = interaction.id
+
   componentRouter.RegisterButton({
-    customId: `help:${interactionId}:section:-1`,
+    customId: CreateOverviewCustomId(interactionId),
     ownerId,
-    handler: CreateButtonHandler(sections, -1),
+    handler: async (buttonInteraction: ButtonInteraction) => {
+      await buttonInteraction.deferUpdate()
+      const overview = CreateOverviewPayload(categories, interactionId)
+      await buttonInteraction.editReply({
+        content: overview.content,
+        embeds: overview.embeds,
+        components: overview.components
+      })
+    },
     expiresInMs: 1000 * 60 * 5
   })
 
-  // Register section buttons
-  sections.forEach((_, index) => {
+  categories.forEach(category => {
     componentRouter.RegisterButton({
-      customId: `help:${interactionId}:section:${index}`,
+      customId: CreateCategorySelectCustomId(interactionId, category.key),
       ownerId,
-      handler: CreateButtonHandler(sections, index),
+      handler: async (buttonInteraction: ButtonInteraction) => {
+        await ShowCategoryPage({
+          buttonInteraction,
+          categories,
+          category,
+          interactionId,
+          pageIndex: 0
+        })
+      },
+      expiresInMs: 1000 * 60 * 5
+    })
+
+    componentRouter.RegisterButton({
+      customId: CreateCategoryPageNavCustomId(interactionId, category.key, 'first', 0),
+      ownerId,
+      handler: async buttonInteraction => {
+        await ShowCategoryPage({
+          buttonInteraction,
+          categories,
+          category,
+          interactionId,
+          pageIndex: 0
+        })
+      },
+      expiresInMs: 1000 * 60 * 5
+    })
+
+    componentRouter.RegisterButton({
+      customId: CreateCategoryPageNavCustomId(interactionId, category.key, 'prev', 1),
+      ownerId,
+      handler: async buttonInteraction => {
+        const parsed = ParseCategoryPageNavCustomId(buttonInteraction.customId)
+        if (!parsed) {
+          return
+        }
+
+        await ShowCategoryPage({
+          buttonInteraction,
+          categories,
+          category,
+          interactionId,
+          pageIndex: Math.max(parsed.pageIndex - 1, 0)
+        })
+      },
+      expiresInMs: 1000 * 60 * 5
+    })
+
+    componentRouter.RegisterButton({
+      customId: CreateCategoryPageNavCustomId(interactionId, category.key, 'next', 0),
+      ownerId,
+      handler: async buttonInteraction => {
+        const parsed = ParseCategoryPageNavCustomId(buttonInteraction.customId)
+        if (!parsed) {
+          return
+        }
+
+        const totalPages = category.pages.length
+        await ShowCategoryPage({
+          buttonInteraction,
+          categories,
+          category,
+          interactionId,
+          pageIndex: Math.min(parsed.pageIndex + 1, totalPages - 1)
+        })
+      },
+      expiresInMs: 1000 * 60 * 5
+    })
+
+    componentRouter.RegisterButton({
+      customId: CreateCategoryPageNavCustomId(interactionId, category.key, 'last', category.pages.length - 1),
+      ownerId,
+      handler: async buttonInteraction => {
+        const totalPages = category.pages.length
+        await ShowCategoryPage({
+          buttonInteraction,
+          categories,
+          category,
+          interactionId,
+          pageIndex: totalPages - 1
+        })
+      },
       expiresInMs: 1000 * 60 * 5
     })
   })
 }
 
-function CreateButtonHandler(sections: HelpSection[], sectionIndex: number) {
-  return async (buttonInteraction: ButtonInteraction) => {
-    await buttonInteraction.deferUpdate()
-    
-    const embed = sectionIndex === -1 
-      ? CreateOverviewEmbed(sections)
-      : CreateSectionEmbed(sections[sectionIndex])
-    
-    const components = ComponentFactory.CreateHelpSectionButtons(
-      [{ name: 'Overview' }, ...sections], 
-      buttonInteraction.id,
-      sectionIndex
-    ).map(row => row.toJSON())
+async function ShowCategoryPage(options: {
+  readonly buttonInteraction: ButtonInteraction
+  readonly categories: CategoryView[]
+  readonly category: CategoryView
+  readonly interactionId: string
+  readonly pageIndex: number
+}): Promise<void> {
+  const { buttonInteraction, categories, category, interactionId, pageIndex } = options
 
-    await buttonInteraction.editReply({
-      embeds: [embed.toJSON()],
-      components
+  const totalPages = category.pages.length
+  const clampedIndex = Math.max(0, Math.min(pageIndex, totalPages - 1))
+
+  await buttonInteraction.deferUpdate()
+
+  await buttonInteraction.editReply({
+    content: `**${category.name} Commands** — Page ${clampedIndex + 1}/${totalPages}`,
+    embeds: [category.pages[clampedIndex]],
+    components: [
+      ...BuildCategoryRows(categories, interactionId, category.key),
+      BuildPaginationRow(interactionId, category.key, clampedIndex, totalPages)
+    ]
+  })
+}
+
+function BuildCategoryRows(
+  categories: CategoryView[],
+  interactionId: string,
+  activeKey?: string
+): ActionRowData<ActionRowComponentData>[] {
+  if (categories.length === 0) {
+    return []
+  }
+
+  const buttons = categories.map(category => ({
+    label: category.name,
+    style: category.key === activeKey ? ButtonStyle.Primary : ButtonStyle.Secondary,
+    emoji: category.icon || undefined,
+    customId: CreateCategorySelectCustomId(interactionId, category.key)
+  }))
+
+  return ChunkArray(buttons, 5).map(rowButtons =>
+    ComponentFactory.CreateActionRow({
+      buttons: rowButtons.map(button => ({
+        label: button.label,
+        style: button.style,
+        emoji: button.emoji
+      })),
+      customIds: rowButtons.map(button => button.customId)
+    }).toJSON() as ActionRowData<ActionRowComponentData>
+  )
+}
+
+function BuildPaginationRow(
+  interactionId: string,
+  categoryKey: string,
+  pageIndex: number,
+  totalPages: number
+): ActionRowData<ActionRowComponentData> {
+  const isFirst = pageIndex === 0
+  const isLast = pageIndex === totalPages - 1
+
+  const buttons = [
+    {
+      label: '⏮',
+      style: ButtonStyle.Secondary,
+      disabled: isFirst,
+      customId: CreateCategoryPageNavCustomId(interactionId, categoryKey, 'first')
+    },
+    {
+      label: '◀',
+      style: ButtonStyle.Secondary,
+      disabled: isFirst,
+      customId: CreateCategoryPageNavCustomId(interactionId, categoryKey, 'prev', pageIndex)
+    },
+    {
+      label: '🏠 Overview',
+      style: ButtonStyle.Primary,
+      disabled: false,
+      customId: CreateOverviewCustomId(interactionId)
+    },
+    {
+      label: '▶',
+      style: ButtonStyle.Secondary,
+      disabled: isLast,
+      customId: CreateCategoryPageNavCustomId(interactionId, categoryKey, 'next', pageIndex)
+    },
+    {
+      label: '⏭',
+      style: ButtonStyle.Secondary,
+      disabled: isLast,
+      customId: CreateCategoryPageNavCustomId(interactionId, categoryKey, 'last', totalPages - 1)
+    }
+  ]
+
+  return ComponentFactory.CreateActionRow({
+    buttons: buttons.map(button => ({
+      label: button.label,
+      style: button.style,
+      disabled: button.disabled
+    })),
+    customIds: buttons.map(button => button.customId)
+  }).toJSON() as ActionRowData<ActionRowComponentData>
+}
+
+function CreateCategoryPages(category: Pick<CategoryView, 'key' | 'name' | 'description' | 'icon' | 'commands'>): APIEmbed[] {
+  if (category.commands.length === 0) {
+    const emptyEmbed = EmbedFactory.CreateHelpSection(category.name, category.description, 0)
+    emptyEmbed.addFields({
+      name: '🚫 No Commands',
+      value: 'This category currently has no available commands.',
+      inline: false
     })
+    return [emptyEmbed.toJSON()]
+  }
+
+  const commandChunks = ChunkArray(category.commands, 8)
+
+  return commandChunks.map((chunk, index) => {
+    const embed = EmbedFactory.CreateHelpSection(
+      category.name,
+      category.description,
+      category.commands.length
+    )
+
+    const commandList = chunk
+      .map(command => `\`/${command.name}\` — ${command.description}`)
+      .join('\n')
+
+    embed.addFields({
+      name: index === 0 ? '📋 Available Commands' : '📋 Commands (continued)',
+      value: commandList,
+      inline: false
+    })
+
+    return embed.toJSON()
+  })
+}
+
+
+function CreateOverviewCustomId(interactionId: string): string {
+  return `help:${interactionId}:overview`
+}
+
+function CreateCategorySelectCustomId(interactionId: string, key: string): string {
+  return `help:${interactionId}:select:${key}`
+}
+
+function CreateCategoryPageNavCustomId(
+  interactionId: string,
+  key: string,
+  action: 'first' | 'prev' | 'next' | 'last',
+  currentPage = 0
+): string {
+  const targetPage = action === 'first'
+    ? 0
+    : action === 'last'
+      ? currentPage
+      : action === 'prev'
+        ? Math.max(currentPage - 1, 0)
+        : Math.max(currentPage + 1, 0)
+
+  return `help:${interactionId}:page:${key}:${action}:${targetPage}`
+}
+
+function ParseCategoryPageNavCustomId(customId: string): { interactionId: string; key: string; action: 'first' | 'prev' | 'next' | 'last'; pageIndex: number } | null {
+  const match = customId.match(/^help:(\d+):page:([\w-]+):(first|prev|next|last):(\d+)$/)
+  if (!match) {
+    return null
+  }
+
+  return {
+    interactionId: match[1],
+    key: match[2],
+    action: match[3] as 'first' | 'prev' | 'next' | 'last',
+    pageIndex: Number.parseInt(match[4], 10)
   }
 }
 
-// Utility functions
 function FormatGroupName(group: string): string {
   return group.charAt(0).toUpperCase() + group.slice(1)
 }
@@ -245,24 +468,10 @@ function GetGroupIcon(group: string): string {
   return icons[group] ?? '📦'
 }
 
-function GetGroupColor(group: string): number {
-  const colors: Record<string, number> = {
-    utility: 0x5865F2,
-    moderation: 0xED4245,
-    admin: 0xFEE75C,
-    fun: 0x57F287,
-    info: 0xEB459E,
-    music: 0x1ABC9C,
-    economy: 0xFFD700,
-    games: 0x9B59B6
-  }
-  return colors[group] ?? 0x5865F2
-}
-
-function ChunkArray<T>(array: T[], size: number): T[][] {
+function ChunkArray<T>(items: T[], chunkSize: number): T[][] {
   const chunks: T[][] = []
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size))
+  for (let index = 0; index < items.length; index += chunkSize) {
+    chunks.push(items.slice(index, index + chunkSize))
   }
   return chunks
 }

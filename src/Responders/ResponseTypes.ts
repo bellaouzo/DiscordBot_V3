@@ -6,7 +6,7 @@ import {
   ActionRowComponentData,
   MessageFlags
 } from 'discord.js'
-import { CreateConsoleLogger, Logger } from '../Logging/Logger'
+import { CreateConsoleLogger, Logger } from '../Shared/Logger'
 
 export type ResponderMessageOptions = Pick<MessageCreateOptions, 'content' | 'embeds' | 'files'> & {
   readonly ephemeral?: boolean

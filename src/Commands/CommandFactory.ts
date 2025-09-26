@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
-import { Logger } from '../Logging/Logger'
+import { Logger } from '../Shared/Logger'
 import { ResponderSet } from '../Responders'
 import { MiddlewareConfiguration } from './Middleware'
 import { CommandConfig } from './Middleware/CommandConfig'

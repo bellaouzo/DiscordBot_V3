@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from 'discord.js'
 import { CommandDefinition, CommandContext } from '../Commands'
-import { Logger } from '../Logging/Logger'
+import { Logger } from '../Shared/Logger'
 import { ResponderSet } from '../Responders'
 import { MiddlewareContext, RunMiddlewareChain } from '../Commands/Middleware'
 

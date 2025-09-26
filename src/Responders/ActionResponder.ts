@@ -1,7 +1,7 @@
 import { EditResponder } from './EditResponder'
 import { ReplyResponder } from './ReplyResponder'
 import { ResponseActionOptions } from './ResponseTypes'
-import { Logger } from '../Logging/Logger'
+import { Logger } from '../Shared/Logger'
 
 export class ActionResponder {
   constructor(

@@ -1,6 +1,6 @@
 import { Client } from 'discord.js'
 import { EventDefinition, EventContext } from '../Events'
-import { Logger } from '../Logging/Logger'
+import { Logger } from '../Shared/Logger'
 import { ResponderSet } from '../Responders'
 
 export interface RegisterEventsOptions {

@@ -1,5 +1,5 @@
 import { User } from 'discord.js'
-import { Logger } from '../Logging/Logger'
+import { Logger } from '../Shared/Logger'
 
 export class DmResponder {
   constructor(private readonly logger: Logger) {}

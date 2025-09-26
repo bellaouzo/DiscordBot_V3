@@ -1,6 +1,6 @@
 import { APIEmbed, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, ComponentType, MessageFlags } from 'discord.js'
-import { ComponentRouter, RegisteredButton } from '../Interactions/ComponentRouter'
-import { Logger } from '../Logging/Logger'
+import { ComponentRouter, RegisteredButton } from './ComponentRouter'
+import { Logger } from './Logger'
 import { ReplyResponder } from '../Responders/ReplyResponder'
 import { EditResponder } from '../Responders/EditResponder'
 import { ResponderMessageOptions } from '../Responders'
@@ -60,27 +60,22 @@ export class Paginator {
       componentRouter.RegisterButton({
         customId: this.CreateCustomId('first'),
         ownerId: this.ownerId,
-        handler: interaction => this.GoTo(0, interaction)
+        handler: (interaction: ButtonInteraction) => this.GoTo(0, interaction)
       }),
       componentRouter.RegisterButton({
         customId: this.CreateCustomId('prev'),
         ownerId: this.ownerId,
-        handler: interaction => this.GoTo(this.currentIndex - 1, interaction)
+        handler: (interaction: ButtonInteraction) => this.GoTo(this.currentIndex - 1, interaction)
       }),
       componentRouter.RegisterButton({
         customId: this.CreateCustomId('next'),
         ownerId: this.ownerId,
-        handler: interaction => this.GoTo(this.currentIndex + 1, interaction)
-      }),
-      componentRouter.RegisterButton({
-        customId: this.CreateCustomId('last'),
-        ownerId: this.ownerId,
-        handler: interaction => this.GoTo(this.options.pages.length - 1, interaction)
+        handler: (interaction: ButtonInteraction) => this.GoTo(this.currentIndex + 1, interaction)
       }),
       componentRouter.RegisterButton({
         customId: this.CreateCustomId('stop'),
         ownerId: this.ownerId,
-        handler: interaction => this.Stop(interaction),
+        handler: (interaction: ButtonInteraction) => this.Stop(interaction),
         singleUse: true
       })
     )
@@ -132,21 +127,21 @@ export class Paginator {
           },
           {
             type: ComponentType.Button,
-            customId: this.buttons[2].customId,
+            customId: this.CreateCustomId('current'),
             style: ButtonStyle.Secondary,
             label: `${this.currentIndex + 1}/${total}`,
             disabled: true
           },
           {
             type: ComponentType.Button,
-            customId: this.buttons[3].customId,
+            customId: this.buttons[2].customId,
             style: ButtonStyle.Secondary,
             label: '▶',
             disabled: isLast
           },
           {
             type: ComponentType.Button,
-            customId: this.buttons[4].customId,
+            customId: this.buttons[3].customId,
             style: ButtonStyle.Danger,
             label: '⏹'
           }

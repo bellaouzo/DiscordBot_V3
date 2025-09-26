@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from 'discord.js'
 import { readdirSync } from 'fs'
 import { join } from 'path'
 import { CommandDefinition, RegisterCommand } from '../Commands'
-import { Logger } from '../Logging/Logger'
+import { Logger } from '../Shared/Logger'
 
 export interface CommandLoaderResult {
   readonly commands: SlashCommandBuilder[]

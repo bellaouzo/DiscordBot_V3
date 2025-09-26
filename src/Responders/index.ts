@@ -6,7 +6,7 @@ import { EditResponder } from './EditResponder'
 import { FollowUpResponder } from './FollowUpResponder'
 import { ReplyResponder } from './ReplyResponder'
 import { PaginatedResponder } from './PaginatedResponder'
-import { ComponentRouter, CreateComponentRouter } from '../Interactions/ComponentRouter'
+import { ComponentRouter, CreateComponentRouter } from '../Shared/ComponentRouter'
 export type { ResponseOptions, ResponseResult, ResponseActionOptions, ResponderMessageOptions, ResponderEditOptions } from './ResponseTypes'
 export { ConvertToInteractionFlags } from './ResponseTypes'
 

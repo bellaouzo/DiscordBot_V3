@@ -1,5 +1,5 @@
 import { REST, Routes, SlashCommandBuilder } from 'discord.js'
-import { Logger } from '../Logging/Logger'
+import { Logger } from '../Shared/Logger'
 import { DeploymentConfig } from '../Config/AppConfig'
 
 export type CommandDeployer = (commands: SlashCommandBuilder[]) => Promise<void>

@@ -1,9 +1,9 @@
 import { ChatInputCommandInteraction } from 'discord.js'
-import { Logger } from '../Logging/Logger'
+import { Logger } from '../Shared/Logger'
 import { ReplyResponder } from './ReplyResponder'
 import { EditResponder } from './EditResponder'
-import { ComponentRouter } from '../Interactions/ComponentRouter'
-import { CreatePaginator, PaginationPage } from '../Pagination'
+import { ComponentRouter } from '../Shared/ComponentRouter'
+import { CreatePaginator, PaginationPage } from '../Shared/Paginator'
 
 export interface PaginatedMessageOptions {
   readonly interaction: ChatInputCommandInteraction

@@ -1,6 +1,6 @@
 import { ButtonInteraction, ChatInputCommandInteraction, Client, Events } from 'discord.js'
-import { Logger } from './Logging/Logger'
-import { ComponentRouter } from './Interactions/ComponentRouter'
+import { Logger } from './Shared/Logger'
+import { ComponentRouter } from './Shared/ComponentRouter'
 
 export interface InteractionHandlerDependencies {
   readonly client: Client

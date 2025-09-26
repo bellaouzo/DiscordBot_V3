@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto'
 import { ButtonInteraction, InteractionReplyOptions } from 'discord.js'
-import { Logger } from '../Logging/Logger'
+import { Logger } from './Logger'
 
 export type ButtonHandler = (interaction: ButtonInteraction) => Promise<void> | void
 

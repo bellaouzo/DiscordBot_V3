@@ -42,7 +42,7 @@ export class ComponentFactory {
   }
 
   static CreateHelpSectionButtons(
-    sections: Array<{ name: string }>,
+    sections: Array<{ name: string; icon?: string }>,
     interactionId: string,
     currentIndex = -1
   ): ActionRowBuilder<ButtonBuilder>[] {
@@ -60,6 +60,7 @@ export class ComponentFactory {
     const sectionButtons = sections.map((section, index) => 
       this.CreateButton({
         label: section.name,
+        emoji: section.icon,
         style: currentIndex === index ? ButtonStyle.Primary : ButtonStyle.Secondary,
         customId: `help:${interactionId}:section:${index}`
       })
