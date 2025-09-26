@@ -1,11 +1,12 @@
+import { CreateCommand } from "..";
 import { ChatInputCommandInteraction } from "discord.js";
-import { CommandContext, CreateCommand } from "../CommandFactory";
+import { CommandContext } from "../CommandFactory";
 import { LoggingMiddleware } from "../Middleware/LoggingMiddleware";
 import { PermissionMiddleware } from "../Middleware/PermissionMiddleware";
 import { ErrorMiddleware } from "../Middleware/ErrorMiddleware";
 import { Config } from "../Middleware/CommandConfig";
 
-async function ExecuteKick(
+async function ExecuteBan(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
@@ -18,24 +19,24 @@ async function ExecuteKick(
 
   await actionResponder.Send({
     interaction,
-    message: `Kicking ${targetUser.username}...`,
-    followUp: `✅ Successfully kicked **${targetUser.username}** for: ${reason}`,
+    message: `Banning ${targetUser.username}...`,
+    followUp: `✅ Successfully banned **${targetUser.username}** for: ${reason}`,
     action: async () => {
       const targetMember = await interaction.guild?.members.fetch(
         targetUser.id
       );
-      if (!targetMember?.kickable) {
+      if (!targetMember?.bannable) {
         throw new Error(
-          "I cannot kick this user. They may have higher permissions than me."
+          "I cannot ban this user. They may have higher permissions than me."
         );
       }
 
-      await targetMember.kick(reason);
+      await targetMember.ban({ reason: reason });
 
       if (notify) {
         await dmResponder.Send(
           targetUser,
-          `You have been kicked from ${
+          `You have been banned from ${
             interaction.guild?.name ?? "this server"
           } for: ${reason}`
         );
@@ -44,22 +45,22 @@ async function ExecuteKick(
   });
 }
 
-export const KickCommand = CreateCommand({
-  name: "kick",
-  description: "Kick a user from the server",
+export const BanCommand = CreateCommand({
+  name: "ban",
+  description: "Ban a user from the server",
   group: "moderation",
   configure: (builder) => {
     builder
       .addUserOption((option) =>
         option
           .setName("user")
-          .setDescription("The user to kick")
+          .setDescription("The user to ban")
           .setRequired(true)
       )
       .addStringOption((option) =>
         option
           .setName("reason")
-          .setDescription("Reason for kicking")
+          .setDescription("Reason for banning")
           .setRequired(true)
       )
       .addBooleanOption((option) =>
@@ -71,5 +72,5 @@ export const KickCommand = CreateCommand({
     after: [ErrorMiddleware],
   },
   config: Config.moderation(5),
-  execute: ExecuteKick,
+  execute: ExecuteBan,
 });
