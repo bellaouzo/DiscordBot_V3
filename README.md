@@ -82,20 +82,20 @@ npm start
 
 <div align="center">
 
-|        🚀 **Modern Stack**         |         ⚡ **Slash Commands**         |          🏗️ **Architecture**          |
-| :--------------------------------: | :-----------------------------------: | :-----------------------------------: |
-|    TypeScript + Discord.js v14     |     Auto-deployment & validation      |       Clean, modular structure        |
-| [Jump to section →](#-quick-start) | [Jump to section →](#🏗️-architecture) | [Jump to section →](#🏗️-architecture) |
+|        🚀 **Modern Stack**         |       ⚡ **Slash Commands**        |        🏗️ **Architecture**         |
+| :--------------------------------: | :--------------------------------: | :--------------------------------: |
+|    TypeScript + Discord.js v14     |    Auto-deployment & validation    |      Clean, modular structure      |
+| [Jump to section →](#-quick-start) | [Jump to section →](#architecture) | [Jump to section →](#architecture) |
 
-|          🔧 **Middleware**          |          📱 **Interactive UI**          |          🎨 **Utilities**          |
-| :---------------------------------: | :-------------------------------------: | :--------------------------------: |
-|   Logging, permissions, cooldowns   |       Pagination, buttons, embeds       |         Reusable factories         |
-| [Jump to section →](#🔧-middleware) | [Jump to section →](#📱-interactive-ui) | [Jump to section →](#🎨-utilities) |
+|        🔧 **Middleware**         |        📱 **Interactive UI**         |        🎨 **Utilities**         |
+| :------------------------------: | :----------------------------------: | :-----------------------------: |
+| Logging, permissions, cooldowns  |     Pagination, buttons, embeds      |       Reusable factories        |
+| [Jump to section →](#middleware) | [Jump to section →](#interactive-ui) | [Jump to section →](#utilities) |
 
-|          📊 **Logging**          |          ⚙️ **Events**          |          🛡️ **Type Safety**          |
-| :------------------------------: | :-----------------------------: | :----------------------------------: |
-|   Colored output with context    |  Comprehensive event handling   |       Full TypeScript coverage       |
-| [Jump to section →](#📊-logging) | [Jump to section →](#⚙️-events) | [Jump to section →](#🛡️-type-safety) |
+|        📊 **Logging**         |        ⚙️ **Events**         |        🛡️ **Type Safety**         |
+| :---------------------------: | :--------------------------: | :-------------------------------: |
+|  Colored output with context  | Comprehensive event handling |     Full TypeScript coverage      |
+| [Jump to section →](#logging) | [Jump to section →](#events) | [Jump to section →](#type-safety) |
 
 </div>
 
