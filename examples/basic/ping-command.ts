@@ -15,9 +15,9 @@ async function ExecutePing(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const { actionResponder } = context.responders;
+  const { interactionResponder } = context.responders;
 
-  await actionResponder.Send({
+  await interactionResponder.WithAction({
     interaction,
     message: "Pinging...",
     followUp: `Pong! Latency: ${Date.now() - interaction.createdTimestamp}ms`,

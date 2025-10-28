@@ -11,7 +11,7 @@ async function ExecuteHello(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const { replyResponder } = context.responders;
+  const { interactionResponder } = context.responders;
   const { logger } = context;
 
   const user = interaction.user;
@@ -20,7 +20,7 @@ async function ExecuteHello(
     extra: { userId: user.id, username: user.username } 
   });
   
-  await replyResponder.Send(interaction, { 
+  await interactionResponder.Reply(interaction, { 
     content: `Hello ${user.username}! 👋` 
   });
 }
