@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonStyle, ActionRowBuilder } from 'discord.js'
+import { ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from 'discord.js'
 
 export interface ButtonOptions {
   readonly label: string
@@ -10,6 +10,22 @@ export interface ButtonOptions {
 export interface ActionRowOptions {
   readonly buttons: ButtonOptions[]
   readonly customIds: string[]
+}
+
+export interface SelectMenuOption {
+  readonly label: string
+  readonly description?: string
+  readonly emoji?: string
+  readonly value: string
+}
+
+export interface SelectMenuOptions {
+  readonly customId: string
+  readonly placeholder?: string
+  readonly minValues?: number
+  readonly maxValues?: number
+  readonly options: SelectMenuOption[]
+  readonly disabled?: boolean
 }
 
 export class ComponentFactory {
@@ -118,5 +134,44 @@ export class ComponentFactory {
           customId: `page:${interactionId}:stop`
         })
       )
+  }
+
+  static CreateSelectMenuOption(options: SelectMenuOption): StringSelectMenuOptionBuilder {
+    const option = new StringSelectMenuOptionBuilder()
+      .setLabel(options.label)
+      .setValue(options.value)
+
+    if (options.description) {
+      option.setDescription(options.description)
+    }
+
+    if (options.emoji) {
+      option.setEmoji(options.emoji)
+    }
+
+    return option
+  }
+
+  static CreateSelectMenu(options: SelectMenuOptions): StringSelectMenuBuilder {
+    const menu = new StringSelectMenuBuilder()
+      .setCustomId(options.customId)
+      .setDisabled(options.disabled ?? false)
+
+    if (options.placeholder) {
+      menu.setPlaceholder(options.placeholder)
+    }
+
+    if (options.minValues !== undefined) {
+      menu.setMinValues(options.minValues)
+    }
+
+    if (options.maxValues !== undefined) {
+      menu.setMaxValues(options.maxValues)
+    }
+
+    const selectOptions = options.options.map(opt => this.CreateSelectMenuOption(opt))
+    menu.addOptions(selectOptions)
+
+    return menu
   }
 }

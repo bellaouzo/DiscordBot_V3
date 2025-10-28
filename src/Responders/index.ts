@@ -5,6 +5,10 @@ import {
   ComponentRouter,
   CreateComponentRouter,
 } from "../Shared/ComponentRouter";
+import {
+  SelectMenuRouter,
+  CreateSelectMenuRouter,
+} from "../Shared/SelectMenuRouter";
 export type {
   ResponseOptions,
   ResponseResult,
@@ -20,6 +24,7 @@ export interface ResponderSet {
   readonly interactionResponder: InteractionResponder;
   readonly paginatedResponder: PaginatedResponder;
   readonly componentRouter: ComponentRouter;
+  readonly selectMenuRouter: SelectMenuRouter;
 }
 
 export function CreateResponders(
@@ -27,6 +32,7 @@ export function CreateResponders(
 ): ResponderSet {
   const logger = ResolveResponderLogger(dependencies);
   const componentRouter = CreateComponentRouter(logger);
+  const selectMenuRouter = CreateSelectMenuRouter(logger);
   const interactionResponder = new InteractionResponder(logger);
   const paginatedResponder = new PaginatedResponder(
     interactionResponder,
@@ -38,5 +44,6 @@ export function CreateResponders(
     interactionResponder,
     paginatedResponder,
     componentRouter,
+    selectMenuRouter,
   };
 }
