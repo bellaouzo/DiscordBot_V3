@@ -9,6 +9,7 @@ import {
 import { ComponentRouter, RegisteredButton } from "./ComponentRouter";
 import { Logger } from "./Logger";
 import { InteractionResponder } from "../Responders/InteractionResponder";
+import { ButtonResponder } from "../Responders/ButtonResponder";
 import { ResponderMessageOptions } from "../Responders";
 
 export interface PaginationPage {
@@ -21,6 +22,7 @@ export interface PaginationOptions {
   readonly interaction: ChatInputCommandInteraction;
   readonly pages: PaginationPage[];
   readonly interactionResponder: InteractionResponder;
+  readonly buttonResponder: ButtonResponder;
   readonly componentRouter: ComponentRouter;
   readonly logger: Logger;
   readonly ephemeral?: boolean;
@@ -168,18 +170,18 @@ export class Paginator {
     interaction: ButtonInteraction
   ): Promise<void> {
     if (!this.active) {
-      await interaction.deferUpdate();
+      await this.options.buttonResponder.DeferUpdate(interaction);
       return;
     }
 
     this.lastInteractionAt = Date.now();
-    await interaction.deferUpdate();
+    await this.options.buttonResponder.DeferUpdate(interaction);
     await this.SendPage(index, true);
   }
 
   private async Stop(interaction: ButtonInteraction): Promise<void> {
     this.active = false;
-    await interaction.deferUpdate();
+    await this.options.buttonResponder.DeferUpdate(interaction);
     await this.options.interactionResponder.Edit(this.options.interaction, {
       embeds: this.options.pages[this.currentIndex].embeds,
       content: this.options.pages[this.currentIndex].content,
