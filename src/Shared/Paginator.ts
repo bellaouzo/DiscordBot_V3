@@ -1,8 +1,7 @@
 import { APIEmbed, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, ComponentType, MessageFlags } from 'discord.js'
 import { ComponentRouter, RegisteredButton } from './ComponentRouter'
 import { Logger } from './Logger'
-import { ReplyResponder } from '../Responders/ReplyResponder'
-import { EditResponder } from '../Responders/EditResponder'
+import { InteractionResponder } from '../Responders/InteractionResponder'
 import { ResponderMessageOptions } from '../Responders'
 
 export interface PaginationPage {
@@ -14,8 +13,7 @@ export interface PaginationPage {
 export interface PaginationOptions {
   readonly interaction: ChatInputCommandInteraction
   readonly pages: PaginationPage[]
-  readonly replyResponder: ReplyResponder
-  readonly editResponder: EditResponder
+  readonly interactionResponder: InteractionResponder
   readonly componentRouter: ComponentRouter
   readonly logger: Logger
   readonly ephemeral?: boolean
@@ -41,7 +39,7 @@ export class Paginator {
 
   async Start(): Promise<void> {
     if (this.options.pages.length === 0) {
-      await this.options.replyResponder.Send(this.options.interaction, {
+      await this.options.interactionResponder.Reply(this.options.interaction, {
         content: 'No content available',
         ephemeral: this.options.ephemeral,
         flags: this.options.flags
@@ -96,9 +94,9 @@ export class Paginator {
     }
 
     if (update) {
-      await this.options.editResponder.Send(this.options.interaction, payload)
+      await this.options.interactionResponder.Edit(this.options.interaction, payload)
     } else {
-      await this.options.replyResponder.Send(this.options.interaction, payload)
+      await this.options.interactionResponder.Reply(this.options.interaction, payload)
     }
   }
 
@@ -164,7 +162,7 @@ export class Paginator {
   private async Stop(interaction: ButtonInteraction): Promise<void> {
     this.active = false
     await interaction.deferUpdate()
-    await this.options.editResponder.Send(this.options.interaction, {
+    await this.options.interactionResponder.Edit(this.options.interaction, {
       embeds: this.options.pages[this.currentIndex].embeds,
       content: this.options.pages[this.currentIndex].content,
       components: []
@@ -201,7 +199,7 @@ export class Paginator {
     }
 
     this.active = false
-    void this.options.editResponder.Send(this.options.interaction, {
+    void this.options.interactionResponder.Edit(this.options.interaction, {
       embeds: this.options.pages[this.currentIndex].embeds,
       content: this.options.pages[this.currentIndex].content,
       components: []

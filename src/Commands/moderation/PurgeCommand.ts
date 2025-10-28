@@ -74,7 +74,7 @@ async function ExecutePurge(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const { actionResponder } = context.responders;
+  const { interactionResponder } = context.responders;
   const { logger } = context;
 
   if (!interaction.channel?.isTextBased()) {
@@ -97,7 +97,7 @@ async function ExecutePurge(
   let deletedCount = 0;
   let tooOldCount = 0;
 
-  await actionResponder.Send({
+  await interactionResponder.WithAction({
     interaction,
     message: {
       embeds: [

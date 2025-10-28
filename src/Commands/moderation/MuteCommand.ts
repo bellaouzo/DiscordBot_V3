@@ -60,7 +60,7 @@ async function ExecuteMute(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const { actionResponder, dmResponder, replyResponder } = context.responders;
+  const { interactionResponder } = context.responders;
 
   const targetUser = interaction.options.getUser("user", true);
   const reason =
@@ -80,7 +80,7 @@ async function ExecuteMute(
         title: "Invalid Duration",
         description: "Duration must be between 1 second and 28 days.",
       });
-      await replyResponder.Send(interaction, {
+      await interactionResponder.Reply(interaction, {
         embeds: [errorEmbed],
         ephemeral: true,
       });
@@ -89,7 +89,7 @@ async function ExecuteMute(
 
     let dmFailed = false;
 
-    await actionResponder.Send({
+    await interactionResponder.WithAction({
       interaction,
       message: {
         embeds: [
@@ -134,8 +134,8 @@ async function ExecuteMute(
         await targetMember.timeout(durationMs, reason);
 
         if (notify) {
-          dmResponder
-            .Send(
+          interactionResponder
+            .SendDm(
               targetUser,
               `You have been muted in ${
                 interaction.guild?.name ?? "this server"
@@ -143,7 +143,7 @@ async function ExecuteMute(
                 reason ? `: ${reason}` : ""
               }`
             )
-            .catch(() => {
+            .then(() => {}, () => {
               dmFailed = true;
               context.logger.Warn("Failed to send DM notification", {
                 userId: targetUser.id,
@@ -156,7 +156,7 @@ async function ExecuteMute(
   } else if (subcommand === "clear") {
     let dmFailed = false;
 
-    await actionResponder.Send({
+    await interactionResponder.WithAction({
       interaction,
       message: {
         embeds: [
@@ -199,14 +199,14 @@ async function ExecuteMute(
         await targetMember.timeout(null, reason || "Mute cleared");
 
         if (notify) {
-          dmResponder
-            .Send(
+          interactionResponder
+            .SendDm(
               targetUser,
               `Your mute has been removed in ${
                 interaction.guild?.name ?? "this server"
               }${reason ? `: ${reason}` : ""}`
             )
-            .catch(() => {
+            .then(() => {}, () => {
               dmFailed = true;
               context.logger.Warn("Failed to send DM notification", {
                 userId: targetUser.id,

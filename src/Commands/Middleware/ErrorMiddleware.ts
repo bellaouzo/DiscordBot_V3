@@ -35,12 +35,12 @@ export const ErrorMiddleware: CommandMiddleware = {
       });
 
       if (context.interaction.replied || context.interaction.deferred) {
-        await context.responders.editResponder.Send(
+        await context.responders.interactionResponder.Edit(
           context.interaction,
           message
         );
       } else {
-        await context.responders.replyResponder.Send(context.interaction, {
+        await context.responders.interactionResponder.Reply(context.interaction, {
           ...message,
           ephemeral: true,
         });

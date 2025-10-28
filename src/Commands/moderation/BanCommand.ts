@@ -10,14 +10,14 @@ async function ExecuteBan(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const { actionResponder, dmResponder } = context.responders;
+  const { interactionResponder } = context.responders;
 
   const targetUser = interaction.options.getUser("user", true);
   const reason =
     interaction.options.getString("reason") ?? "No reason provided";
   const notify = interaction.options.getBoolean("notify") ?? false;
 
-  await actionResponder.Send({
+  await interactionResponder.WithAction({
     interaction,
     message: `Banning ${targetUser.username}...`,
     followUp: `✅ Successfully banned **${targetUser.username}** for: ${reason}`,
@@ -34,7 +34,7 @@ async function ExecuteBan(
       await targetMember.ban({ reason: reason });
 
       if (notify) {
-        await dmResponder.Send(
+        await interactionResponder.SendDm(
           targetUser,
           `You have been banned from ${
             interaction.guild?.name ?? "this server"

@@ -31,7 +31,7 @@ const CACHE_DURATION = 1000 * 60 * 5 // 5 minutes
 const commandCache = new Map<string, { data: CommandInfo[]; timestamp: number }>()
 
 async function ExecuteHelp(interaction: ChatInputCommandInteraction, context: CommandContext): Promise<void> {
-  const { replyResponder, componentRouter } = context.responders
+  const { interactionResponder, componentRouter } = context.responders
   const { logger } = context
 
   try {
@@ -47,7 +47,7 @@ async function ExecuteHelp(interaction: ChatInputCommandInteraction, context: Co
       ownerId: interaction.user.id
     })
 
-    const response = await replyResponder.Send(interaction, {
+    const response = await interactionResponder.Reply(interaction, {
       content: overview.content,
       embeds: overview.embeds,
       components: overview.components,

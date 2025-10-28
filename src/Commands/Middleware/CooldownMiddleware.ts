@@ -1,4 +1,5 @@
 import { CommandMiddleware } from './index'
+import { CreateErrorMessage } from '../../Responders/MessageFactory'
 
 const cooldowns = new Map<string, number>() // Key: userId:commandName, Value: timestamp
 
@@ -37,8 +38,13 @@ export const CooldownMiddleware: CommandMiddleware = {
 
     if (lastUsed && (now - lastUsed) < cooldownMs) {
       const remaining = Math.ceil((cooldownMs - (now - lastUsed)) / 1000)
-      await context.responders.replyResponder.Send(context.interaction, {
-        content: `Please wait ${remaining} seconds before using this command again.`,
+      const message = CreateErrorMessage({
+        title: '⏱️ Command Cooldown',
+        description: `Please wait ${remaining} second${remaining !== 1 ? 's' : ''} before using this command again.`,
+        hint: 'This helps prevent command spam.'
+      })
+      await context.responders.interactionResponder.Reply(context.interaction, {
+        ...message,
         ephemeral: true
       })
       return

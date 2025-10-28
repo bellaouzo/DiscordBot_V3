@@ -1,7 +1,6 @@
 import { ChatInputCommandInteraction } from 'discord.js'
 import { Logger } from '../Shared/Logger'
-import { ReplyResponder } from './ReplyResponder'
-import { EditResponder } from './EditResponder'
+import { InteractionResponder } from './InteractionResponder'
 import { ComponentRouter } from '../Shared/ComponentRouter'
 import { CreatePaginator, PaginationPage } from '../Shared/Paginator'
 
@@ -18,8 +17,7 @@ export class PaginatedResponder {
   private activePaginators = new Map<string, ReturnType<typeof CreatePaginator>>()
 
   constructor(
-    private readonly replyResponder: ReplyResponder,
-    private readonly editResponder: EditResponder,
+    private readonly interactionResponder: InteractionResponder,
     private readonly componentRouter: ComponentRouter,
     private readonly logger: Logger
   ) {}
@@ -34,8 +32,7 @@ export class PaginatedResponder {
     const paginator = CreatePaginator({
       interaction: options.interaction,
       pages,
-      replyResponder: this.replyResponder,
-      editResponder: this.editResponder,
+      interactionResponder: this.interactionResponder,
       componentRouter: this.componentRouter,
       logger: this.logger,
       ephemeral: options.ephemeral,
