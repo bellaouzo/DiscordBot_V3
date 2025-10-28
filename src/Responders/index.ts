@@ -1,5 +1,6 @@
 import { PaginatedResponder } from "./PaginatedResponder";
 import { InteractionResponder } from "./InteractionResponder";
+import { ButtonResponder } from "./ButtonResponder";
 import { ResolveResponderLogger, ResponderDependencies } from "./ResponseTypes";
 import {
   ComponentRouter,
@@ -18,10 +19,12 @@ export type {
 } from "./ResponseTypes";
 export { ConvertToInteractionFlags } from "./ResponseTypes";
 export { InteractionResponder } from "./InteractionResponder";
+export { ButtonResponder } from "./ButtonResponder";
 export { PaginatedResponder } from "./PaginatedResponder";
 
 export interface ResponderSet {
   readonly interactionResponder: InteractionResponder;
+  readonly buttonResponder: ButtonResponder;
   readonly paginatedResponder: PaginatedResponder;
   readonly componentRouter: ComponentRouter;
   readonly selectMenuRouter: SelectMenuRouter;
@@ -34,14 +37,17 @@ export function CreateResponders(
   const componentRouter = CreateComponentRouter(logger);
   const selectMenuRouter = CreateSelectMenuRouter(logger);
   const interactionResponder = new InteractionResponder(logger);
+  const buttonResponder = new ButtonResponder(logger);
   const paginatedResponder = new PaginatedResponder(
     interactionResponder,
+    buttonResponder,
     componentRouter,
     logger
   );
 
   return {
     interactionResponder,
+    buttonResponder,
     paginatedResponder,
     componentRouter,
     selectMenuRouter,
