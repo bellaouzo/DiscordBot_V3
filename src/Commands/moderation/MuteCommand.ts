@@ -143,13 +143,16 @@ async function ExecuteMute(
                 reason ? `: ${reason}` : ""
               }`
             )
-            .then(() => {}, () => {
-              dmFailed = true;
-              context.logger.Warn("Failed to send DM notification", {
-                userId: targetUser.id,
-                reason: "User may have DMs disabled or the bot blocked",
-              });
-            });
+            .then(
+              () => {},
+              () => {
+                dmFailed = true;
+                context.logger.Warn("Failed to send DM notification", {
+                  userId: targetUser.id,
+                  reason: "User may have DMs disabled or the bot blocked",
+                });
+              }
+            );
         }
       },
     });
@@ -206,13 +209,16 @@ async function ExecuteMute(
                 interaction.guild?.name ?? "this server"
               }${reason ? `: ${reason}` : ""}`
             )
-            .then(() => {}, () => {
-              dmFailed = true;
-              context.logger.Warn("Failed to send DM notification", {
-                userId: targetUser.id,
-                reason: "User may have DMs disabled or the bot blocked",
-              });
-            });
+            .then(
+              () => {},
+              () => {
+                dmFailed = true;
+                context.logger.Warn("Failed to send DM notification", {
+                  userId: targetUser.id,
+                  reason: "User may have DMs disabled or the bot blocked",
+                });
+              }
+            );
         }
       },
     });

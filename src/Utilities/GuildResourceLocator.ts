@@ -157,30 +157,27 @@ export function CreateGuildResourceLocator(
   };
 }
 
-async function _FetchResource<T>(
+async function _FetchChannel(
   guild: Guild,
-  cache: ResourceCache<T>,
+  cache: ResourceCache<GuildBasedChannel>,
   logger: Logger | undefined,
-  id: Snowflake,
-  fetchFn: (guild: Guild, id: Snowflake) => Promise<T | null>,
-  resourceType: string,
-  cacheId: string
-): Promise<T | null> {
-  const cached = cache.Get(cacheId);
+  id: Snowflake
+): Promise<GuildBasedChannel | null> {
+  const cached = cache.Get(id);
   if (cached) {
     return cached;
   }
 
   try {
-    const resource = await fetchFn(guild, id);
-    if (!resource) {
+    const channel = await guild.channels.fetch(id);
+    if (!channel) {
       return null;
     }
 
-    cache.Set(cacheId, resource);
-    return resource;
+    cache.Set(id, channel);
+    return channel;
   } catch (error) {
-    logger?.Warn(`Failed to fetch guild ${resourceType}`, {
+    logger?.Warn(`Failed to fetch guild channel`, {
       guildId: guild.id,
       extra: { id },
       error,
@@ -189,53 +186,43 @@ async function _FetchResource<T>(
   }
 }
 
-async function _FetchResourceByName<T>(
+async function _FetchChannelByName(
   guild: Guild,
-  cache: ResourceCache<T>,
+  cache: ResourceCache<GuildBasedChannel>,
   logger: Logger | undefined,
-  name: string,
-  fetchAllFn: (guild: Guild) => Promise<Map<string, T>>,
-  cacheGetFn: (guild: Guild, id: string) => T | undefined,
-  getName: (resource: T) => string | undefined,
-  resourceType: string
-): Promise<T | null> {
+  name: string
+): Promise<GuildBasedChannel | null> {
   const normalized = name.toLowerCase();
 
-  const cached = cache.Find((item) => {
-    const itemName = getName(item);
-    return itemName?.toLowerCase() === normalized;
+  const cached = cache.Find((channel) => {
+    if (!channel) return false;
+    const channelName = "name" in channel ? channel.name : undefined;
+    return channelName?.toLowerCase() === normalized;
   });
   if (cached) {
     return cached;
   }
 
-  const existing = cacheGetFn(guild, "");
-  if (existing) {
-    const existingName = getName(existing);
-    if (existingName?.toLowerCase() === normalized) {
-      return existing;
-    }
-  }
-
   try {
-    const allResources = await fetchAllFn(guild);
-    const match = Array.from(allResources.values()).find((item) => {
-      const itemName = getName(item);
-      return itemName?.toLowerCase() === normalized;
+    const allChannels = await guild.channels.fetch();
+    const match = Array.from(allChannels.values()).find((channel) => {
+      if (!channel) return false;
+      const channelName = "name" in channel ? channel.name : undefined;
+      return channelName?.toLowerCase() === normalized;
     });
     if (!match) {
       return null;
     }
 
-    const matchId = Array.from(allResources.entries()).find(
-      ([, item]) => item === match
+    const matchId = Array.from(allChannels.entries()).find(
+      ([, channel]) => channel === match
     )?.[0];
     if (matchId) {
       cache.Set(matchId, match);
     }
     return match;
   } catch (error) {
-    logger?.Warn(`Failed to fetch guild ${resourceType} by name`, {
+    logger?.Warn(`Failed to fetch guild channel by name`, {
       guildId: guild.id,
       extra: { name },
       error,
@@ -244,66 +231,39 @@ async function _FetchResourceByName<T>(
   }
 }
 
-async function _FetchChannel(
-  guild: Guild,
-  cache: ResourceCache<GuildBasedChannel>,
-  logger: Logger | undefined,
-  id: Snowflake
-): Promise<GuildBasedChannel | null> {
-  return _FetchResource(
-    guild,
-    cache,
-    logger,
-    id,
-    async (g, i) => await g.channels.fetch(i),
-    "channel",
-    id
-  );
-}
-
-async function _FetchChannelByName(
-  guild: Guild,
-  cache: ResourceCache<GuildBasedChannel>,
-  logger: Logger | undefined,
-  name: string
-): Promise<GuildBasedChannel | null> {
-  return _FetchResourceByName(
-    guild,
-    cache,
-    logger,
-    name,
-    async (g) => await g.channels.fetch(),
-    () => undefined,
-    (channel): string | undefined => {
-      if (!channel) return undefined;
-      return "name" in channel ? channel.name : undefined;
-    },
-    "channel"
-  );
-}
-
 async function _FetchRole(
   guild: Guild,
   cache: ResourceCache<Role>,
   logger: Logger | undefined,
   id: Snowflake
 ): Promise<Role | null> {
-  return _FetchResource(
-    guild,
-    cache,
-    logger,
-    id,
-    async (g, i) => {
-      const existing = g.roles.cache.get(i);
-      if (existing) {
-        cache.Set(i, existing);
-        return existing;
-      }
-      return await g.roles.fetch(i);
-    },
-    "role",
-    id
-  );
+  const cached = cache.Get(id);
+  if (cached) {
+    return cached;
+  }
+
+  try {
+    const existing = guild.roles.cache.get(id);
+    if (existing) {
+      cache.Set(id, existing);
+      return existing;
+    }
+
+    const role = await guild.roles.fetch(id);
+    if (!role) {
+      return null;
+    }
+
+    cache.Set(id, role);
+    return role;
+  } catch (error) {
+    logger?.Warn(`Failed to fetch guild role`, {
+      guildId: guild.id,
+      extra: { id },
+      error,
+    });
+    return null;
+  }
 }
 
 async function _FetchRoleByName(
@@ -312,16 +272,37 @@ async function _FetchRoleByName(
   logger: Logger | undefined,
   name: string
 ): Promise<Role | null> {
-  return _FetchResourceByName(
-    guild,
-    cache,
-    logger,
-    name,
-    async (g) => await g.roles.fetch(),
-    () => undefined,
-    (role) => role.name,
-    "role"
-  );
+  const normalized = name.toLowerCase();
+
+  const cached = cache.Find((role) => role.name.toLowerCase() === normalized);
+  if (cached) {
+    return cached;
+  }
+
+  try {
+    const allRoles = await guild.roles.fetch();
+    const match = Array.from(allRoles.values()).find(
+      (role) => role.name.toLowerCase() === normalized
+    );
+    if (!match) {
+      return null;
+    }
+
+    const matchId = Array.from(allRoles.entries()).find(
+      ([, role]) => role === match
+    )?.[0];
+    if (matchId) {
+      cache.Set(matchId, match);
+    }
+    return match;
+  } catch (error) {
+    logger?.Warn(`Failed to fetch guild role by name`, {
+      guildId: guild.id,
+      extra: { name },
+      error,
+    });
+    return null;
+  }
 }
 
 async function _FetchMember(
@@ -330,22 +311,33 @@ async function _FetchMember(
   logger: Logger | undefined,
   id: Snowflake
 ): Promise<GuildMember | null> {
-  return _FetchResource(
-    guild,
-    cache,
-    logger,
-    id,
-    async (g, i) => {
-      const existing = g.members.cache.get(i);
-      if (existing) {
-        cache.Set(i, existing);
-        return existing;
-      }
-      return await g.members.fetch(i);
-    },
-    "member",
-    id
-  );
+  const cached = cache.Get(id);
+  if (cached) {
+    return cached;
+  }
+
+  try {
+    const existing = guild.members.cache.get(id);
+    if (existing) {
+      cache.Set(id, existing);
+      return existing;
+    }
+
+    const member = await guild.members.fetch(id);
+    if (!member) {
+      return null;
+    }
+
+    cache.Set(id, member);
+    return member;
+  } catch (error) {
+    logger?.Warn(`Failed to fetch guild member`, {
+      guildId: guild.id,
+      extra: { id },
+      error,
+    });
+    return null;
+  }
 }
 
 function _FilterChannel(

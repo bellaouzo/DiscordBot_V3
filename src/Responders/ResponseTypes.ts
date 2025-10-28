@@ -53,19 +53,9 @@ export function ResolveResponderLogger(
 export function ConvertToInteractionFlags(
   options: ResponderMessageOptions
 ): MessageFlags.Ephemeral | undefined {
-  // If explicit flags are provided, check for Ephemeral flag
-  if (options.flags !== undefined && options.flags.length > 0) {
-    const hasEphemeral = options.flags.some(
-      (flag) => flag === MessageFlags.Ephemeral
-    );
-    return hasEphemeral ? MessageFlags.Ephemeral : undefined;
-  }
-
-  // Convert legacy ephemeral property to flags
-  if (options.ephemeral === true) {
+  if (options.flags?.includes(MessageFlags.Ephemeral)) {
     return MessageFlags.Ephemeral;
   }
-
-  // Default to undefined (no flags)
-  return undefined;
+  
+  return options.ephemeral ? MessageFlags.Ephemeral : undefined;
 }
