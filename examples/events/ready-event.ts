@@ -1,4 +1,4 @@
-import { Events } from "discord.js";
+import { Events, ActivityType } from "discord.js";
 import { CreateEvent } from "../../src/Events";
 
 /**
@@ -20,6 +20,6 @@ export const ReadyEvent = CreateEvent({
     });
 
     // Set bot status
-    context.client.user?.setActivity("with Discord.js", { type: "PLAYING" });
+    context.client.user?.setActivity("with Discord.js", { type: ActivityType.Playing });
   },
 });

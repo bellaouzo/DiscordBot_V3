@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "../../src/Commands";
 import { LoggingMiddleware, ErrorMiddleware } from "../../src/Commands/Middleware/index";
 import { Config } from "../../src/Commands/Middleware/CommandConfig";
-import { PaginationPage } from "../../src/Pagination";
+import { PaginationPage } from "../../src/Shared/Paginator";
 import { AllCommands } from "../../src/Commands";
 import { EmbedFactory } from "../../src/Utilities";
 
@@ -51,14 +51,6 @@ async function ExecuteHelp(
 
     // Create paginated pages
     const pages = CreateOptimizedPages(sections);
-
-    // Register button handlers for navigation
-    RegisterOptimizedButtons(
-      sections,
-      componentRouter,
-      interaction.id,
-      interaction.user.id
-    );
 
     // Send paginated help menu
     await paginatedResponder.Send({
@@ -132,26 +124,6 @@ function CreateOptimizedPages(sections: HelpSection[]): PaginationPage[] {
   }));
 
   return [overviewPage, ...sectionPages];
-}
-
-function RegisterOptimizedButtons(
-  sections: HelpSection[],
-  componentRouter: any,
-  interactionId: string,
-  ownerId: string
-): void {
-  // Register section buttons for navigation
-  sections.forEach((_, index) => {
-    componentRouter.RegisterButton({
-      customId: `help:${interactionId}:section:${index}`,
-      ownerId,
-      handler: async (buttonInteraction: any) => {
-        await buttonInteraction.deferUpdate();
-        // Handle section navigation
-      },
-      expiresInMs: 1000 * 60 * 5,
-    });
-  });
 }
 
 export const HelpCommand = CreateCommand({

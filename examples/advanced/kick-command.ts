@@ -20,7 +20,7 @@ async function ExecuteKick(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const { actionResponder, dmResponder } = context.responders;
+  const { interactionResponder } = context.responders;
   const { logger } = context;
 
   // Get command options
@@ -28,7 +28,7 @@ async function ExecuteKick(
   const reason = interaction.options.getString("reason") ?? "No reason provided";
   const notify = interaction.options.getBoolean("notify") ?? false;
 
-  await actionResponder.Send({
+  await interactionResponder.WithAction({
     interaction,
     message: `Kicking ${targetUser.username}...`,
     followUp: `✅ Successfully kicked **${targetUser.username}** for: ${reason}`,
@@ -57,7 +57,7 @@ async function ExecuteKick(
 
       // Send DM notification if requested
       if (notify) {
-        await dmResponder.Send(
+        await interactionResponder.SendDm(
           targetUser,
           `You have been kicked from ${
             interaction.guild?.name ?? "this server"

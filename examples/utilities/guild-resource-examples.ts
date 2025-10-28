@@ -1,66 +1,94 @@
-import { SlashCommandBuilder } from 'discord.js'
-import { CreateCommand } from '../../src/Commands/CommandFactory'
 import { CreateGuildResourceLocator } from '../../src/Utilities'
 
-async function ExecuteGuildResources(interaction: any, context: any): Promise<void> {
-  const { replyResponder } = context.responders
-  const { logger } = context
+/**
+ * Examples of using the GuildResourceLocator utility
+ * Shows how to easily access guild channels, roles, and members
+ */
 
+// Example function showing how to use GuildResourceLocator
+export async function ExampleGuildResourceUsage(guild: any, logger: any) {
+  // Create a guild resource locator for easy access to guild resources
+  const locator = CreateGuildResourceLocator({
+    guild,
+    logger,
+    cacheTtlMs: 120_000 // Cache for 2 minutes
+  })
+
+  try {
+    // Get channels by ID or name
+    const channels = [
+      await locator.GetChannelByName('general'),
+      await locator.GetChannelByName('announcements'),
+      await locator.GetChannelByName('bot-commands')
+    ].filter(Boolean)
+
+    // Get roles by name
+    const adminRole = await locator.GetRoleByName('admin')
+    const moderatorRole = await locator.GetRoleByName('moderator')
+    const memberRole = await locator.GetRoleByName('member')
+
+    // Get members
+    const botMember = await locator.GetMember(guild.client.user?.id)
+    const ownerMember = await locator.GetMember(guild.ownerId)
+
+    // Ensure resources exist (throws error if not found)
+    const requiredChannel = await locator.EnsureTextChannel('general')
+    const requiredRole = await locator.EnsureRole('admin')
+
+    logger.Info('Guild resources gathered', {
+      extra: {
+        channelsFound: channels.length,
+        rolesFound: [adminRole, moderatorRole, memberRole].filter(Boolean).length,
+        membersFound: [botMember, ownerMember].filter(Boolean).length,
+        requiredChannel: requiredChannel?.name,
+        requiredRole: requiredRole?.name
+      }
+    })
+
+    return {
+      channels,
+      roles: { adminRole, moderatorRole, memberRole },
+      members: { botMember, ownerMember },
+      required: { channel: requiredChannel, role: requiredRole }
+    }
+
+  } catch (error) {
+    logger.Error('Failed to gather guild resources', {
+      guildId: guild.id,
+      error
+    })
+    throw error
+  }
+}
+
+// Example of using the locator in a command context
+export async function ExampleCommandUsage(interaction: any, context: any) {
   if (!interaction.guild) {
-    await replyResponder.Send(interaction, {
+    await context.responders.interactionResponder.Reply(interaction, {
       content: '❌ This command requires a guild context.',
       ephemeral: true
     })
     return
   }
 
-  try {
-    // Create a guild resource locator for easy access to guild resources
-    const locator = CreateGuildResourceLocator({
-      guild: interaction.guild,
-      logger,
-      cacheTtlMs: 120_000 // Cache for 2 minutes
-    })
+  const locator = CreateGuildResourceLocator({
+    guild: interaction.guild,
+    logger: context.logger,
+    cacheTtlMs: 60_000 // Cache for 1 minute
+  })
 
-    // Get channels by ID or name
-    const channels = [
-      await locator.GetChannelByName('general'),
-      await locator.GetTextChannel(interaction.channelId),
-      await locator.GetChannelByName('announcements')
-    ].filter(Boolean)
+  // Get current channel
+  const currentChannel = await locator.GetTextChannel(interaction.channelId)
+  
+  // Get user's roles
+  const member = await locator.GetMember(interaction.user.id)
+  const userRoles = member?.roles.cache.map(role => role.name) || []
 
-    // Get roles by name
-    const adminRole = await locator.GetRoleByName('admin')
-    const moderatorRole = await locator.GetRoleByName('moderator')
+  // Create response
+  const content = `📊 **Current Context**\n\n**Channel:** ${currentChannel?.name}\n**Your Roles:** ${userRoles.join(', ') || 'None'}`
 
-    // Get members
-    const member = await locator.GetMember(interaction.user.id)
-
-    // Create embed with resource information
-    const content = `📊 **Guild Resources Found**\n\n**Channels:** ${channels.length} found\n**Roles:** ${[adminRole, moderatorRole].filter(Boolean).length} found\n**Current Member:** ${member ? 'Found' : 'Not found'}`
-
-    await replyResponder.Send(interaction, {
-      content,
-      ephemeral: true
-    })
-
-  } catch (error) {
-    logger.Error('Failed to gather guild resources', {
-      guildId: interaction.guild?.id,
-      userId: interaction.user.id,
-      error
-    })
-
-    await replyResponder.Send(interaction, {
-      content: '❌ Failed to gather guild resources.',
-      ephemeral: true
-    })
-  }
+  await context.responders.interactionResponder.Reply(interaction, {
+    content,
+    ephemeral: true
+  })
 }
-
-export const GuildResourceExample = CreateCommand({
-  name: 'guild-resources',
-  description: 'Find channels, roles, and members in the current guild',
-  group: 'utility',
-  execute: ExecuteGuildResources
-})

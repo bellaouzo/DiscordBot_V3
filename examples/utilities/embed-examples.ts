@@ -28,7 +28,6 @@ export const warningEmbed = EmbedFactory.CreateWarning({
 export const errorEmbed = EmbedFactory.CreateError({
   title: "❌ Error",
   description: "Something went wrong",
-  hint: "Try again in a few minutes",
 });
 
 // Help section embed
