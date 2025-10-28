@@ -22,7 +22,7 @@ import {
 import { TranscriptGenerator } from "../../Utilities/TranscriptGenerator";
 import { ComponentRouter } from "../../Shared/ComponentRouter";
 import { Logger } from "../../Shared/Logger";
-import { InteractionResponder } from "../../Responders";
+import { InteractionResponder, ButtonResponder } from "../../Responders";
 
 const BUTTON_EXPIRATION_MS = 1000 * 60 * 60 * 24;
 
@@ -61,6 +61,7 @@ function CreateTicketServices(logger: Logger, guild: Guild): TicketServices {
 
 async function RegisterClaimButton(
   componentRouter: ComponentRouter,
+  buttonResponder: ButtonResponder,
   ticket: Ticket,
   logger: Logger,
   ticketDb: TicketDatabase
@@ -68,7 +69,7 @@ async function RegisterClaimButton(
   componentRouter.RegisterButton({
     customId: `ticket:claim:${ticket.id}`,
     handler: async (buttonInteraction: ButtonInteraction) => {
-      await buttonInteraction.deferUpdate();
+      await buttonResponder.DeferUpdate(buttonInteraction);
       if (!HasStaffPermissions(buttonInteraction.member)) {
         return;
       }
@@ -83,7 +84,7 @@ async function RegisterClaimButton(
         ticket.id,
         buttonInteraction.user.id
       );
-      await buttonInteraction.message.edit({
+      await buttonResponder.EditMessage(buttonInteraction, {
         embeds: [claimEmbed.toJSON()],
         components: [],
       });
@@ -98,6 +99,7 @@ async function RegisterClaimButton(
 
 async function RegisterCloseButton(
   componentRouter: ComponentRouter,
+  buttonResponder: ButtonResponder,
   ticket: Ticket,
   interactionId: string,
   logger: Logger,
@@ -107,13 +109,13 @@ async function RegisterCloseButton(
   componentRouter.RegisterButton({
     customId: `ticket:${interactionId}:close:${ticket.id}`,
     handler: async (buttonInteraction: ButtonInteraction) => {
-      await buttonInteraction.deferUpdate();
+      await buttonResponder.DeferUpdate(buttonInteraction);
 
       const closeEmbed = EmbedFactory.CreateTicketClosed(
         ticket.id,
         buttonInteraction.user.id
       );
-      await buttonInteraction.message.edit({
+      await buttonResponder.EditMessage(buttonInteraction, {
         embeds: [closeEmbed.toJSON()],
         components: [],
       });
@@ -254,8 +256,12 @@ async function HandleTicketCreate(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const { interactionResponder, selectMenuRouter, componentRouter } =
-    context.responders;
+  const {
+    interactionResponder,
+    selectMenuRouter,
+    componentRouter,
+    buttonResponder,
+  } = context.responders;
   const { logger } = context;
 
   if (!(await ValidateGuildOrReply(interaction, interactionResponder))) return;
@@ -287,6 +293,7 @@ async function HandleTicketCreate(
         selectInteraction,
         ticketManager,
         componentRouter,
+        buttonResponder,
         logger,
         ticketDb,
         interaction.guild!
@@ -317,6 +324,7 @@ async function HandleTicketCategorySelection(
   selectInteraction: StringSelectMenuInteraction,
   ticketManager: TicketManager,
   componentRouter: ComponentRouter,
+  buttonResponder: ButtonResponder,
   logger: Logger,
   ticketDb: TicketDatabase,
   guild: Guild
@@ -348,9 +356,16 @@ async function HandleTicketCategorySelection(
       selectInteraction.id
     );
 
-    await RegisterClaimButton(componentRouter, ticket, logger, ticketDb);
+    await RegisterClaimButton(
+      componentRouter,
+      buttonResponder,
+      ticket,
+      logger,
+      ticketDb
+    );
     await RegisterCloseButton(
       componentRouter,
+      buttonResponder,
       ticket,
       selectInteraction.id,
       logger,

@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { Logger } from "../Shared/Logger";
 import { InteractionResponder } from "./InteractionResponder";
+import { ButtonResponder } from "./ButtonResponder";
 import { ComponentRouter } from "../Shared/ComponentRouter";
 import { CreatePaginator, PaginationPage } from "../Shared/Paginator";
 
@@ -21,6 +22,7 @@ export class PaginatedResponder {
 
   constructor(
     private readonly interactionResponder: InteractionResponder,
+    private readonly buttonResponder: ButtonResponder,
     private readonly componentRouter: ComponentRouter,
     private readonly logger: Logger
   ) {}
@@ -36,6 +38,7 @@ export class PaginatedResponder {
       interaction: options.interaction,
       pages,
       interactionResponder: this.interactionResponder,
+      buttonResponder: this.buttonResponder,
       componentRouter: this.componentRouter,
       logger: this.logger,
       ephemeral: options.ephemeral,
