@@ -1,3 +1,5 @@
 export * from './EmbedBuilder'
 export * from './ComponentBuilder'
 export * from './GuildResourceLocator'
+export * from './TicketManager'
+export * from './TranscriptGenerator'

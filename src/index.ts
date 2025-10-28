@@ -32,7 +32,8 @@ async function Bootstrap(rootLogger: Logger): Promise<void> {
   RegisterInteractionHandlers({
     client: bot.client,
     logger,
-    componentRouter: responders.componentRouter
+    componentRouter: responders.componentRouter,
+    selectMenuRouter: responders.selectMenuRouter
   })
 
   bot.client.on('interactionCreate', async interaction => {
