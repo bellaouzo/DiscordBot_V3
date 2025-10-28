@@ -259,6 +259,22 @@ export class TicketManager {
       }
     }
 
+    if (updated && channel) {
+      setTimeout(async () => {
+        try {
+          await channel!.delete("Ticket closed (auto-delete)");
+          this.options.logger.Info("Ticket channel deleted", {
+            extra: { ticketId, channelId: channel!.id },
+          });
+        } catch (error) {
+          this.options.logger.Error("Failed to delete ticket channel", {
+            error,
+            extra: { ticketId, channelId: channel!.id },
+          });
+        }
+      }, 10000);
+    }
+
     return updated;
   }
 

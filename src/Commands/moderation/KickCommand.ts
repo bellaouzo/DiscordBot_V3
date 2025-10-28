@@ -4,26 +4,35 @@ import { LoggingMiddleware } from "../Middleware/LoggingMiddleware";
 import { PermissionMiddleware } from "../Middleware/PermissionMiddleware";
 import { ErrorMiddleware } from "../Middleware/ErrorMiddleware";
 import { Config } from "../Middleware/CommandConfig";
+import { CreateGuildResourceLocator } from "../../Utilities/GuildResourceLocator";
 
 async function ExecuteKick(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
+  const { logger } = context;
 
   const targetUser = interaction.options.getUser("user", true);
   const reason =
     interaction.options.getString("reason") ?? "No reason provided";
   const notify = interaction.options.getBoolean("notify") ?? false;
 
+  if (!interaction.guild) {
+    throw new Error("This command can only be used in a server.");
+  }
+
+  const locator = CreateGuildResourceLocator({
+    guild: interaction.guild,
+    logger,
+  });
+
   await interactionResponder.WithAction({
     interaction,
     message: `Kicking ${targetUser.username}...`,
     followUp: `✅ Successfully kicked **${targetUser.username}** for: ${reason}`,
     action: async () => {
-      const targetMember = await interaction.guild?.members.fetch(
-        targetUser.id
-      );
+      const targetMember = await locator.GetMember(targetUser.id);
       if (!targetMember?.kickable) {
         throw new Error(
           "I cannot kick this user. They may have higher permissions than me."

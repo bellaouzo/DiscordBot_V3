@@ -174,4 +174,8 @@ export class ComponentFactory {
 
     return menu
   }
+
+  static CreateSelectMenuRow(selectMenu: StringSelectMenuBuilder): ActionRowBuilder<StringSelectMenuBuilder> {
+    return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu)
+  }
 }

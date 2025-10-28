@@ -1,14 +1,16 @@
 import {
   ChatInputCommandInteraction,
   SlashCommandSubcommandBuilder,
-  ActionRowBuilder,
-  StringSelectMenuBuilder,
   GuildMember,
   APIInteractionGuildMember,
   ButtonInteraction,
   TextChannel,
   Guild,
   StringSelectMenuInteraction,
+  APIEmbed,
+  ActionRowData,
+  ActionRowComponentData,
+  ButtonStyle,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "../CommandFactory";
 import { LoggingMiddleware, ErrorMiddleware } from "../Middleware";
@@ -63,11 +65,12 @@ async function RegisterClaimButton(
   componentRouter: ComponentRouter,
   buttonResponder: ButtonResponder,
   ticket: Ticket,
+  interactionId: string,
   logger: Logger,
   ticketDb: TicketDatabase
 ): Promise<void> {
   componentRouter.RegisterButton({
-    customId: `ticket:claim:${ticket.id}`,
+    customId: `ticket:${interactionId}:claim:${ticket.id}`,
     handler: async (buttonInteraction: ButtonInteraction) => {
       await buttonResponder.DeferUpdate(buttonInteraction);
       if (!HasStaffPermissions(buttonInteraction.member)) {
@@ -302,9 +305,7 @@ async function HandleTicketCreate(
     expiresInMs: 60000,
   });
 
-  const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-    selectMenu
-  );
+  const row = ComponentFactory.CreateSelectMenuRow(selectMenu);
 
   await interactionResponder.Reply(interaction, {
     embeds: [
@@ -314,8 +315,7 @@ async function HandleTicketCreate(
         color: 0x5865f2,
       }).toJSON(),
     ],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    components: [row.toJSON() as any],
+    components: [row.toJSON()] as any,
     ephemeral: true,
   });
 }
@@ -360,6 +360,7 @@ async function HandleTicketCategorySelection(
       componentRouter,
       buttonResponder,
       ticket,
+      selectInteraction.id,
       logger,
       ticketDb
     );
@@ -418,7 +419,8 @@ async function HandleTicketList(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const { interactionResponder } = context.responders;
+  const { interactionResponder, componentRouter, buttonResponder } =
+    context.responders;
   const { logger } = context;
 
   if (!(await ValidateGuildOrReply(interaction, interactionResponder))) return;
@@ -429,15 +431,55 @@ async function HandleTicketList(
     interaction.guild!.id
   );
 
-  const embed = EmbedFactory.CreateTicketList(tickets);
+  const pageSize = 10;
+  const totalPages = Math.max(1, Math.ceil(tickets.length / pageSize));
 
+  if (tickets.length === 0) {
+    const embed = EmbedFactory.CreateTicketList(tickets);
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    logger.Info("Ticket list viewed", {
+      extra: { userId: interaction.user.id, ticketCount: 0 },
+    });
+    return;
+  }
+
+  if (totalPages === 1) {
+    const embed = EmbedFactory.CreateTicketList(tickets);
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    logger.Info("Ticket list viewed", {
+      extra: { userId: interaction.user.id, ticketCount: tickets.length },
+    });
+    return;
+  }
+
+  RegisterTicketListButtons(
+    componentRouter,
+    buttonResponder,
+    tickets,
+    interaction.user.id,
+    totalPages
+  );
+
+  const firstPage = CreateTicketListPage(tickets, 0, pageSize, totalPages);
   await interactionResponder.Reply(interaction, {
-    embeds: [embed.toJSON()],
+    content: firstPage.content,
+    embeds: firstPage.embeds,
+    components: firstPage.components,
     ephemeral: true,
   });
 
   logger.Info("Ticket list viewed", {
-    extra: { userId: interaction.user.id, ticketCount: tickets.length },
+    extra: {
+      userId: interaction.user.id,
+      ticketCount: tickets.length,
+      totalPages,
+    },
   });
 }
 
@@ -639,6 +681,247 @@ async function HandleTicketTranscript(
   logger.Info("Ticket transcript generated", {
     extra: { ticketId: ticket.id, generatedBy: interaction.user.id },
   });
+}
+
+interface TicketListPage {
+  readonly content: string;
+  readonly embeds: APIEmbed[];
+  readonly components: ActionRowData<ActionRowComponentData>[];
+}
+
+interface TicketInfo {
+  readonly id: number;
+  readonly category: string;
+  readonly status: string;
+  readonly created_at: number;
+}
+
+function CreateTicketListPage(
+  tickets: TicketInfo[],
+  pageIndex: number,
+  pageSize: number,
+  totalPages: number
+): TicketListPage {
+  const start = pageIndex * pageSize;
+  const end = start + pageSize;
+  const pageTickets = tickets.slice(start, end);
+
+  const embed = EmbedFactory.Create({
+    title: "🎫 Your Tickets",
+    description: `You have **${tickets.length}** ticket${
+      tickets.length !== 1 ? "s" : ""
+    }`,
+    color: 0x5865f2,
+  });
+
+  if (pageTickets.length > 0) {
+    const ticketList = pageTickets
+      .map((ticket) => {
+        const statusEmoji =
+          ticket.status === "closed"
+            ? "🔒"
+            : ticket.status === "claimed"
+            ? "📌"
+            : "📝";
+        const date = new Date(ticket.created_at).toLocaleDateString();
+        return `${statusEmoji} **Ticket #${ticket.id}** - ${ticket.category} (${ticket.status}) - ${date}`;
+      })
+      .join("\n");
+
+    embed.addFields({
+      name: `Page ${pageIndex + 1}/${totalPages}`,
+      value: ticketList,
+      inline: false,
+    });
+  }
+
+  return {
+    content: "",
+    embeds: [embed.toJSON()],
+    components: [BuildPaginationRow(pageIndex, totalPages)],
+  };
+}
+
+function BuildPaginationRow(
+  pageIndex: number,
+  totalPages: number
+): ActionRowData<ActionRowComponentData> {
+  const isFirst = pageIndex === 0;
+  const isLast = pageIndex === totalPages - 1;
+
+  const buttons = [
+    {
+      label: "⏮",
+      style: ButtonStyle.Secondary,
+      disabled: isFirst,
+      customId: `ticket-list:first:${pageIndex}`,
+    },
+    {
+      label: "◀",
+      style: ButtonStyle.Secondary,
+      disabled: isFirst,
+      customId: `ticket-list:prev:${pageIndex}`,
+    },
+    {
+      label: "▶",
+      style: ButtonStyle.Secondary,
+      disabled: isLast,
+      customId: `ticket-list:next:${pageIndex}`,
+    },
+    {
+      label: "⏭",
+      style: ButtonStyle.Secondary,
+      disabled: isLast,
+      customId: `ticket-list:last:${pageIndex}`,
+    },
+  ];
+
+  return ComponentFactory.CreateActionRow({
+    buttons: buttons.map((button) => ({
+      label: button.label,
+      style: button.style,
+      disabled: button.disabled,
+    })),
+    customIds: buttons.map((button) => button.customId),
+  }).toJSON() as ActionRowData<ActionRowComponentData>;
+}
+
+function RegisterTicketListButtons(
+  componentRouter: ComponentRouter,
+  buttonResponder: ButtonResponder,
+  tickets: TicketInfo[],
+  ownerId: string,
+  totalPages: number
+): void {
+  const pageSize = 10;
+
+  for (let i = 0; i < totalPages; i++) {
+    componentRouter.RegisterButton({
+      customId: `ticket-list:first:${i}`,
+      ownerId,
+      handler: async (buttonInteraction: ButtonInteraction) => {
+        await ShowTicketListPage({
+          buttonInteraction,
+          buttonResponder,
+          tickets,
+          pageIndex: 0,
+          pageSize,
+          totalPages,
+        });
+      },
+      expiresInMs: 1000 * 60 * 5,
+    });
+
+    componentRouter.RegisterButton({
+      customId: `ticket-list:prev:${i}`,
+      ownerId,
+      handler: async (buttonInteraction: ButtonInteraction) => {
+        const parsed = ParseTicketListPageNavCustomId(
+          buttonInteraction.customId
+        );
+        if (!parsed) {
+          return;
+        }
+
+        await ShowTicketListPage({
+          buttonInteraction,
+          buttonResponder,
+          tickets,
+          pageIndex: Math.max(parsed.pageIndex - 1, 0),
+          pageSize,
+          totalPages,
+        });
+      },
+      expiresInMs: 1000 * 60 * 5,
+    });
+
+    componentRouter.RegisterButton({
+      customId: `ticket-list:next:${i}`,
+      ownerId,
+      handler: async (buttonInteraction: ButtonInteraction) => {
+        const parsed = ParseTicketListPageNavCustomId(
+          buttonInteraction.customId
+        );
+        if (!parsed) {
+          return;
+        }
+
+        await ShowTicketListPage({
+          buttonInteraction,
+          buttonResponder,
+          tickets,
+          pageIndex: Math.min(parsed.pageIndex + 1, totalPages - 1),
+          pageSize,
+          totalPages,
+        });
+      },
+      expiresInMs: 1000 * 60 * 5,
+    });
+
+    componentRouter.RegisterButton({
+      customId: `ticket-list:last:${i}`,
+      ownerId,
+      handler: async (buttonInteraction: ButtonInteraction) => {
+        await ShowTicketListPage({
+          buttonInteraction,
+          buttonResponder,
+          tickets,
+          pageIndex: totalPages - 1,
+          pageSize,
+          totalPages,
+        });
+      },
+      expiresInMs: 1000 * 60 * 5,
+    });
+  }
+}
+
+async function ShowTicketListPage(options: {
+  readonly buttonInteraction: ButtonInteraction;
+  readonly buttonResponder: ButtonResponder;
+  readonly tickets: TicketInfo[];
+  readonly pageIndex: number;
+  readonly pageSize: number;
+  readonly totalPages: number;
+}): Promise<void> {
+  const {
+    buttonInteraction,
+    buttonResponder,
+    tickets,
+    pageIndex,
+    pageSize,
+    totalPages,
+  } = options;
+
+  const clampedIndex = Math.max(0, Math.min(pageIndex, totalPages - 1));
+  const page = CreateTicketListPage(
+    tickets,
+    clampedIndex,
+    pageSize,
+    totalPages
+  );
+
+  await buttonResponder.DeferUpdate(buttonInteraction);
+  await buttonResponder.EditReply(buttonInteraction, {
+    content: page.content,
+    embeds: page.embeds,
+    components: page.components,
+  });
+}
+
+function ParseTicketListPageNavCustomId(customId: string): {
+  action: "first" | "prev" | "next" | "last";
+  pageIndex: number;
+} | null {
+  const match = customId.match(/^ticket-list:(first|prev|next|last):(\d+)$/);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    action: match[1] as "first" | "prev" | "next" | "last",
+    pageIndex: Number.parseInt(match[2], 10),
+  };
 }
 
 export const TicketCommand = CreateCommand({

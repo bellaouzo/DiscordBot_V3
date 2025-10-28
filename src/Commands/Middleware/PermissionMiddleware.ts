@@ -7,6 +7,7 @@ import {
 import { CommandMiddleware } from "./index";
 import { ResponderSet } from "../../Responders";
 import { CreateErrorMessage } from "../../Responders/MessageFactory";
+import { CreateGuildResourceLocator } from "../../Utilities/GuildResourceLocator";
 
 async function SendPermissionError(
   responders: ResponderSet,
@@ -85,6 +86,7 @@ async function CheckRolePermission(context: {
   config: any;
   responders: ResponderSet;
   member: GuildMember;
+  logger?: any;
 }): Promise<boolean> {
   if (!context.config.role) return true;
 
@@ -92,10 +94,18 @@ async function CheckRolePermission(context: {
     ? Array.from(context.member.roles.cache.keys())
     : [];
   if (!memberRoles.includes(context.config.role)) {
-    const requiredRole = context.interaction.guild?.roles.cache.get(
-      context.config.role
-    );
-    const roleName = requiredRole?.name || `Role ID: ${context.config.role}`;
+    let roleName = `Role ID: ${context.config.role}`;
+    
+    if (context.interaction.guild) {
+      const locator = CreateGuildResourceLocator({
+        guild: context.interaction.guild,
+        logger: context.logger,
+      });
+      const requiredRole = await locator.GetRole(context.config.role);
+      if (requiredRole) {
+        roleName = requiredRole.name;
+      }
+    }
 
     await SendPermissionError(
       context.responders,
@@ -186,7 +196,7 @@ export const PermissionMiddleware: CommandMiddleware = {
 
     const checks = [
       () => CheckOwnerPermission(context),
-      () => CheckRolePermission({ ...context, member }),
+      () => CheckRolePermission({ ...context, member, logger: context.logger }),
       () => CheckDiscordPermissions({ ...context, member }),
     ];
 

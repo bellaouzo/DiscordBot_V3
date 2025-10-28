@@ -8,6 +8,7 @@ import {
 } from "../Middleware";
 import { Config } from "../Middleware/CommandConfig";
 import { EmbedFactory } from "../../Utilities/EmbedBuilder";
+import { CreateGuildResourceLocator } from "../../Utilities/GuildResourceLocator";
 
 function ConvertDurationToMs(length: number, unit: string): number {
   switch (unit.toLowerCase()) {
@@ -61,12 +62,22 @@ async function ExecuteMute(
   context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
+  const { logger } = context;
 
   const targetUser = interaction.options.getUser("user", true);
   const reason =
     interaction.options.getString("reason") ?? "No reason provided";
   const notify = interaction.options.getBoolean("notify") ?? false;
   const subcommand = interaction.options.getSubcommand();
+
+  if (!interaction.guild) {
+    throw new Error("This command can only be used in a server.");
+  }
+
+  const locator = CreateGuildResourceLocator({
+    guild: interaction.guild,
+    logger,
+  });
 
   if (subcommand === "set") {
     const length = interaction.options.getInteger("length", true);
@@ -123,9 +134,7 @@ async function ExecuteMute(
         };
       },
       action: async () => {
-        const targetMember = await interaction.guild?.members.fetch(
-          targetUser.id
-        );
+        const targetMember = await locator.GetMember(targetUser.id);
         if (!targetMember) {
           throw new Error("User is not a member of this server.");
         }
@@ -191,9 +200,7 @@ async function ExecuteMute(
         };
       },
       action: async () => {
-        const targetMember = await interaction.guild?.members.fetch(
-          targetUser.id
-        );
+        const targetMember = await locator.GetMember(targetUser.id);
 
         if (!targetMember) {
           throw new Error("User is not a member of this server.");
