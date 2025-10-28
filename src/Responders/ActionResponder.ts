@@ -1,28 +1,34 @@
-import { EditResponder } from './EditResponder'
-import { ReplyResponder } from './ReplyResponder'
-import { ResponseActionOptions } from './ResponseTypes'
-import { Logger } from '../Shared/Logger'
+import { EditResponder } from "./EditResponder";
+import { ReplyResponder } from "./ReplyResponder";
+import { ResponseActionOptions } from "./ResponseTypes";
 
 export class ActionResponder {
   constructor(
     private readonly replyResponder: ReplyResponder,
-    private readonly editResponder: EditResponder,
-    private readonly logger: Logger
+    private readonly editResponder: EditResponder
   ) {}
 
   async Send(options: ResponseActionOptions): Promise<void> {
-    await this.replyResponder.Send(options.interaction, { content: options.message })
+    await this.replyResponder.Send(
+      options.interaction,
+      typeof options.message === "string"
+        ? { content: options.message }
+        : { ...options.message, ephemeral: false }
+    );
 
-    try {
-      await options.action()
-      if (options.followUp) {
-        await this.editResponder.Send(options.interaction, { content: options.followUp })
-      }
-    } catch (error) {
-      this.logger.Error('Action failed', { error })
-      const finalError = options.error ?? 'Action failed'
-      await this.editResponder.Send(options.interaction, { content: finalError })
+    await options.action();
+
+    if (options.followUp) {
+      const followUp =
+        typeof options.followUp === "function"
+          ? options.followUp()
+          : options.followUp;
+      await this.editResponder.Send(
+        options.interaction,
+        typeof followUp === "string"
+          ? { content: followUp }
+          : { ...followUp, ephemeral: false }
+      );
     }
   }
 }
-
