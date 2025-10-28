@@ -51,7 +51,7 @@ async function ExecuteDebug(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const { replyResponder } = context.responders;
+  const { interactionResponder } = context.responders;
 
   const uptime = interaction.client.uptime;
   const memory = process.memoryUsage();
@@ -97,7 +97,7 @@ async function ExecuteDebug(
     }
   );
 
-  await replyResponder.Send(interaction, { embeds: [embed] });
+  await interactionResponder.Reply(interaction, { embeds: [embed] });
 }
 
 export const DebugCommand = CreateCommand({

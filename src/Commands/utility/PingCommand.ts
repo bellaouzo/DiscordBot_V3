@@ -7,7 +7,7 @@ import { Config } from '../Middleware/CommandConfig'
 import { EmbedFactory } from '../../Utilities/EmbedBuilder'
 
 async function ExecutePing(interaction: ChatInputCommandInteraction, context: CommandContext): Promise<void> {
-  const { replyResponder, editResponder } = context.responders
+  const { interactionResponder } = context.responders
 
   const initialEmbed = EmbedFactory.Create({
     title: '🏓 Pong!',
@@ -16,7 +16,7 @@ async function ExecutePing(interaction: ChatInputCommandInteraction, context: Co
     footer: 'Discord Bot V3'
   })
 
-  await replyResponder.Send(interaction, { ephemeral: true, embeds: [initialEmbed] })
+  await interactionResponder.Reply(interaction, { ephemeral: true, embeds: [initialEmbed] })
   const latency = Date.now() - interaction.createdTimestamp
   
   const responseEmbed = EmbedFactory.Create({
@@ -39,7 +39,7 @@ async function ExecutePing(interaction: ChatInputCommandInteraction, context: Co
     }
   )
 
-  await editResponder.Send(interaction, { embeds: [responseEmbed] })
+  await interactionResponder.Edit(interaction, { embeds: [responseEmbed] })
 }
 
 export const PingCommand = CreateCommand({
