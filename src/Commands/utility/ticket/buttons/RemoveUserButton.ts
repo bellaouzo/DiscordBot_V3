@@ -3,8 +3,7 @@ import { ComponentRouter } from "../../../../Shared/ComponentRouter";
 import { ButtonResponder } from "../../../../Responders";
 import { TicketDatabase, Ticket } from "../../../../Database";
 import { Logger } from "../../../../Shared/Logger";
-import { ComponentFactory } from "../../../../Utilities";
-import { CreateTicketManager } from "../../../../Utilities/TicketManager";
+import { ComponentFactory, CreateTicketManager } from "../../../../Utilities";
 import { UserSelectMenuRouter } from "../../../../Shared/UserSelectMenuRouter";
 import { BUTTON_EXPIRATION_MS } from "../types/TicketTypes";
 import { HandleUserRemoval } from "../components/UserSelectionMenu";
@@ -17,18 +16,20 @@ export async function RegisterRemoveUserButton(
   logger: Logger,
   ticketDb: TicketDatabase,
   guild: Guild,
-  userSelectMenuRouter: UserSelectMenuRouter
+  userSelectMenuRouter: UserSelectMenuRouter,
+  guildResourceLocator: any
 ): Promise<void> {
   componentRouter.RegisterButton({
     customId: `ticket:${interactionId}:remove:${ticket.id}`,
     handler: async (buttonInteraction: ButtonInteraction) => {
       await buttonResponder.DeferUpdate(buttonInteraction);
 
-      const member = await guild.members.fetch(buttonInteraction.user.id);
+      const member = await guildResourceLocator.GetMember(buttonInteraction.user.id);
       const ticketManager = CreateTicketManager({
         guild,
         logger,
         ticketDb,
+        guildResourceLocator,
       });
 
       if (
@@ -48,7 +49,7 @@ export async function RegisterRemoveUserButton(
         .map((p) => p.user_id);
 
       if (participantIds.length === 0) {
-        await buttonInteraction.followUp({
+        await buttonResponder.FollowUp(buttonInteraction, {
           content: "There are no users to remove from this ticket.",
           ephemeral: true,
         });

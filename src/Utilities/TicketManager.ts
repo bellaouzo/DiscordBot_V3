@@ -1,7 +1,6 @@
 import {
   Guild,
   TextChannel,
-  CategoryChannel,
   PermissionFlagsBits,
   GuildMember,
   OverwriteResolvable,
@@ -13,12 +12,13 @@ import {
 } from "discord.js";
 import { TicketDatabase, Ticket, TICKET_CATEGORIES } from "../Database";
 import { Logger } from "../Shared/Logger";
-import { EmbedFactory, ComponentFactory, CreateChannelManager } from "./";
+import { EmbedFactory, ComponentFactory, CreateChannelManager, GuildResourceLocator } from "./";
 
 export interface TicketManagerOptions {
   readonly guild: Guild;
   readonly logger: Logger;
   readonly ticketDb: TicketDatabase;
+  readonly guildResourceLocator: GuildResourceLocator;
 }
 
 export interface CreateTicketOptions {
@@ -43,9 +43,9 @@ export class TicketManager {
 
   async CreateTicket(options: CreateTicketOptions): Promise<TicketChannelInfo> {
     const { userId, category } = options;
-    const { guild, ticketDb, logger } = this.options;
+    const { guild, ticketDb, logger, guildResourceLocator } = this.options;
 
-    const member = await guild.members.fetch(userId);
+    const member = await guildResourceLocator.GetMember(userId);
     if (!member) {
       throw new Error(`User ${userId} not found in guild ${guild.id}`);
     }
@@ -258,7 +258,7 @@ export class TicketManager {
   }
 
   async EnsureGuildMember(userId: string): Promise<GuildMember> {
-    const member = await this.options.guild.members.fetch(userId);
+    const member = await this.options.guildResourceLocator.GetMember(userId);
     if (!member) {
       throw new Error(`User ${userId} not found in guild`);
     }
@@ -324,7 +324,7 @@ export class TicketManager {
       }
 
       const textChannel = channel as TextChannel;
-      const member = await this.options.guild.members.fetch(userId);
+      const member = await this.options.guildResourceLocator.GetMember(userId);
       if (!member) {
         return false;
       }
@@ -385,7 +385,7 @@ export class TicketManager {
       }
 
       const textChannel = channel as TextChannel;
-      const member = await this.options.guild.members.fetch(userId);
+      const member = await this.options.guildResourceLocator.GetMember(userId);
       if (!member) {
         return false;
       }

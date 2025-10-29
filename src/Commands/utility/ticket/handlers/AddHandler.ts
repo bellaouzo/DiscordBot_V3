@@ -14,7 +14,7 @@ export async function HandleTicketAdd(
   if (!(await ValidateTicketChannelOrReply(interaction, interactionResponder)))
     return;
 
-  const { ticketDb, ticketManager } = CreateTicketServices(
+  const { ticketDb, ticketManager, guildResourceLocator } = CreateTicketServices(
     logger,
     interaction.guild!
   );
@@ -27,7 +27,7 @@ export async function HandleTicketAdd(
 
   if (!ticket) return;
 
-  const member = await interaction.guild!.members.fetch(interaction.user.id);
+  const member = await guildResourceLocator.GetMember(interaction.user.id);
   if (
     !ticketManager.CanUserAddParticipants(ticket, interaction.user.id, member)
   ) {

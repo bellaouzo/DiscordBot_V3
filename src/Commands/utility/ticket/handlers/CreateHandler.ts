@@ -7,8 +7,7 @@ import {
 } from "discord.js";
 import { CommandContext } from "../../../CommandFactory";
 import { TICKET_CATEGORIES } from "../../../../Database";
-import { EmbedFactory, ComponentFactory } from "../../../../Utilities";
-import { CreateTicketManager } from "../../../../Utilities/TicketManager";
+import { EmbedFactory, ComponentFactory, CreateTicketManager } from "../../../../Utilities";
 import { Logger } from "../../../../Shared/Logger";
 import { ComponentRouter } from "../../../../Shared/ComponentRouter";
 import { ButtonResponder } from "../../../../Responders";
@@ -40,7 +39,7 @@ export async function HandleTicketCreate(
     return;
   }
 
-  const { ticketDb, ticketManager } = CreateTicketServices(
+  const { ticketDb, ticketManager, guildResourceLocator } = CreateTicketServices(
     logger,
     interaction.guild
   );
@@ -71,7 +70,8 @@ export async function HandleTicketCreate(
         logger,
         ticketDb,
         interaction.guild!,
-        userSelectMenuRouter
+        userSelectMenuRouter,
+        guildResourceLocator
       );
     },
     expiresInMs: 60000,
@@ -102,7 +102,8 @@ async function HandleTicketCategorySelection(
   logger: Logger,
   ticketDb: any,
   guild: Guild,
-  userSelectMenuRouter: UserSelectMenuRouter
+  userSelectMenuRouter: UserSelectMenuRouter,
+  guildResourceLocator: any
 ): Promise<void> {
   const selectedCategory = selectInteraction.values[0];
   const categoryInfo = TICKET_CATEGORIES.find(
@@ -147,7 +148,8 @@ async function HandleTicketCategorySelection(
       logger,
       ticketDb,
       guild,
-      userSelectMenuRouter
+      userSelectMenuRouter,
+      guildResourceLocator
     );
     await RegisterRemoveUserButton(
       componentRouter,
@@ -157,7 +159,8 @@ async function HandleTicketCategorySelection(
       logger,
       ticketDb,
       guild,
-      userSelectMenuRouter
+      userSelectMenuRouter,
+      guildResourceLocator
     );
     await RegisterCloseButton(
       componentRouter,
@@ -166,7 +169,8 @@ async function HandleTicketCategorySelection(
       selectInteraction.id,
       logger,
       ticketDb,
-      guild
+      guild,
+      guildResourceLocator
     );
 
     const logsChannel = await ticketManager.GetOrCreateTicketLogsChannel();

@@ -3,8 +3,7 @@ import { ComponentRouter } from "../../../../Shared/ComponentRouter";
 import { ButtonResponder } from "../../../../Responders";
 import { TicketDatabase, Ticket } from "../../../../Database";
 import { Logger } from "../../../../Shared/Logger";
-import { EmbedFactory, ComponentFactory } from "../../../../Utilities";
-import { CreateTicketManager } from "../../../../Utilities/TicketManager";
+import { EmbedFactory, ComponentFactory, CreateTicketManager } from "../../../../Utilities";
 import { UserSelectMenuRouter } from "../../../../Shared/UserSelectMenuRouter";
 import { BUTTON_EXPIRATION_MS } from "../types/TicketTypes";
 import { HandleUserSelection } from "../components/UserSelectionMenu";
@@ -17,18 +16,20 @@ export async function RegisterAddUserButton(
   logger: Logger,
   ticketDb: TicketDatabase,
   guild: Guild,
-  userSelectMenuRouter: UserSelectMenuRouter
+  userSelectMenuRouter: UserSelectMenuRouter,
+  guildResourceLocator: any
 ): Promise<void> {
   componentRouter.RegisterButton({
     customId: `ticket:${interactionId}:add:${ticket.id}`,
     handler: async (buttonInteraction: ButtonInteraction) => {
       await buttonResponder.DeferUpdate(buttonInteraction);
 
-      const member = await guild.members.fetch(buttonInteraction.user.id);
+      const member = await guildResourceLocator.GetMember(buttonInteraction.user.id);
       const ticketManager = CreateTicketManager({
         guild,
         logger,
         ticketDb,
+        guildResourceLocator,
       });
 
       if (
@@ -65,7 +66,7 @@ export async function RegisterAddUserButton(
 
       const row = ComponentFactory.CreateUserSelectMenuRow(userSelectMenu);
 
-      await buttonInteraction.followUp({
+      await buttonResponder.FollowUp(buttonInteraction, {
         embeds: [
           EmbedFactory.Create({
             title: "👥 Add Users to Ticket",

@@ -5,7 +5,7 @@ import {
 } from "discord.js";
 import { GuildMemberOrAPI } from "../types/TicketTypes";
 import { TicketDatabase, Ticket } from "../../../../Database";
-import { CreateTicketManager } from "../../../../Utilities/TicketManager";
+import { CreateTicketManager, CreateGuildResourceLocator } from "../../../../Utilities";
 import { Logger } from "../../../../Shared/Logger";
 import { InteractionResponder } from "../../../../Responders";
 
@@ -29,12 +29,17 @@ export function ValidateTicketChannel(
 
 export function CreateTicketServices(logger: Logger, guild: Guild) {
   const ticketDb = new TicketDatabase(logger);
+  const guildResourceLocator = CreateGuildResourceLocator({
+    guild,
+    logger,
+  });
   const ticketManager = CreateTicketManager({
     guild,
     logger,
     ticketDb,
+    guildResourceLocator,
   });
-  return { ticketDb, ticketManager };
+  return { ticketDb, ticketManager, guildResourceLocator };
 }
 
 export async function ValidateGuildOrReply(

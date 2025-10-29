@@ -1,7 +1,7 @@
 import { UserSelectMenuInteraction } from "discord.js";
 import { Ticket } from "../../../../Database";
 import { Logger } from "../../../../Shared/Logger";
-import { CreateTicketManager } from "../../../../Utilities/TicketManager";
+import { CreateTicketManager } from "../../../../Utilities";
 
 export async function HandleUserSelection(
   userSelectInteraction: UserSelectMenuInteraction,

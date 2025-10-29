@@ -4,7 +4,7 @@ import { LoggingMiddleware } from '../Middleware/LoggingMiddleware'
 import { CooldownMiddleware } from '../Middleware/CooldownMiddleware'
 import { ErrorMiddleware } from '../Middleware/ErrorMiddleware'
 import { Config } from '../Middleware/CommandConfig'
-import { EmbedFactory } from '../../Utilities/EmbedBuilder'
+import { EmbedFactory } from '../../Utilities'
 
 async function ExecutePing(interaction: ChatInputCommandInteraction, context: CommandContext): Promise<void> {
   const { interactionResponder } = context.responders

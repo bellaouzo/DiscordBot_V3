@@ -7,7 +7,7 @@ import {
   ErrorMiddleware,
 } from "../Middleware";
 import { Config } from "../Middleware/CommandConfig";
-import { EmbedFactory } from "../../Utilities/EmbedBuilder";
+import { EmbedFactory } from "../../Utilities";
 
 function ValidatePurgeOptions(
   amount: number,
@@ -219,7 +219,7 @@ async function ExecutePurge(
         ]);
       }
 
-      await interaction.followUp({ embeds: [embed] });
+      await interactionResponder.FollowUp(interaction, { embeds: [embed] });
     },
   });
 }

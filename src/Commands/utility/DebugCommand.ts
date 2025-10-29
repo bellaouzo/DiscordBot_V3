@@ -4,7 +4,7 @@ import { LoggingMiddleware } from "../Middleware/LoggingMiddleware";
 import { CooldownMiddleware } from "../Middleware/CooldownMiddleware";
 import { ErrorMiddleware } from "../Middleware/ErrorMiddleware";
 import { Config } from "../Middleware/CommandConfig";
-import { EmbedFactory } from "../../Utilities/EmbedBuilder";
+import { EmbedFactory } from "../../Utilities";
 import { AllCommands } from "../registry";
 import * as path from "path";
 import * as fs from "fs";

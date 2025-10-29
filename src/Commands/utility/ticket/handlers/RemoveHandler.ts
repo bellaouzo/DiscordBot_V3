@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, TextChannel, ActionRowData, ActionRowComponentData, UserSelectMenuInteraction } from "discord.js";
 import { CommandContext } from "../../../CommandFactory";
-import { ComponentFactory } from "../../../../Utilities";
+import { EmbedFactory, ComponentFactory } from "../../../../Utilities";
 import { CreateTicketServices, ValidateTicketChannelOrReply, GetTicketOrReply } from "../validation/TicketValidation";
 import { HandleUserRemoval } from "../components/UserSelectionMenu";
 
@@ -14,7 +14,7 @@ export async function HandleTicketRemove(
   if (!(await ValidateTicketChannelOrReply(interaction, interactionResponder)))
     return;
 
-  const { ticketDb, ticketManager } = CreateTicketServices(
+  const { ticketDb, ticketManager, guildResourceLocator } = CreateTicketServices(
     logger,
     interaction.guild!
   );
@@ -27,7 +27,7 @@ export async function HandleTicketRemove(
 
   if (!ticket) return;
 
-  const member = await interaction.guild!.members.fetch(interaction.user.id);
+  const member = await guildResourceLocator.GetMember(interaction.user.id);
   if (
     !ticketManager.CanUserRemoveParticipants(
       ticket,
@@ -81,7 +81,13 @@ export async function HandleTicketRemove(
   const row = ComponentFactory.CreateUserSelectMenuRow(userSelectMenu);
 
   await interactionResponder.Reply(interaction, {
-    content: "Select users to remove from this ticket:",
+    embeds: [
+      EmbedFactory.Create({
+        title: "👤 Remove Users from Ticket",
+        description: `Select users to remove from Ticket #${ticket.id}.`,
+        color: 0x5865f2,
+      }).toJSON(),
+    ],
     components: [
       row.toJSON(),
     ] as unknown as ActionRowData<ActionRowComponentData>[],

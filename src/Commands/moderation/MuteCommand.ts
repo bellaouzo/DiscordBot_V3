@@ -7,8 +7,7 @@ import {
   CooldownMiddleware,
 } from "../Middleware";
 import { Config } from "../Middleware/CommandConfig";
-import { EmbedFactory } from "../../Utilities/EmbedBuilder";
-import { CreateGuildResourceLocator } from "../../Utilities/GuildResourceLocator";
+import { EmbedFactory, CreateGuildResourceLocator } from "../../Utilities";
 
 function ConvertDurationToMs(length: number, unit: string): number {
   switch (unit.toLowerCase()) {

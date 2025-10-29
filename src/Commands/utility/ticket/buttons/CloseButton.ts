@@ -3,9 +3,7 @@ import { ComponentRouter } from "../../../../Shared/ComponentRouter";
 import { ButtonResponder } from "../../../../Responders";
 import { TicketDatabase, Ticket } from "../../../../Database";
 import { Logger } from "../../../../Shared/Logger";
-import { EmbedFactory } from "../../../../Utilities";
-import { CreateTicketManager } from "../../../../Utilities/TicketManager";
-import { TranscriptGenerator } from "../../../../Utilities/TranscriptGenerator";
+import { EmbedFactory, CreateTicketManager, TranscriptGenerator } from "../../../../Utilities";
 import { BUTTON_EXPIRATION_MS } from "../types/TicketTypes";
 
 export async function RegisterCloseButton(
@@ -15,7 +13,8 @@ export async function RegisterCloseButton(
   interactionId: string,
   logger: Logger,
   ticketDb: TicketDatabase,
-  guild: Guild
+  guild: Guild,
+  guildResourceLocator: any
 ): Promise<void> {
   componentRouter.RegisterButton({
     customId: `ticket:${interactionId}:close:${ticket.id}`,
@@ -35,10 +34,12 @@ export async function RegisterCloseButton(
         guild,
         logger,
         ticketDb,
+        guildResourceLocator,
       });
 
       const messages = ticketDb.GetTicketMessages(ticket.id);
-      const user = await buttonInteraction.client.users.fetch(ticket.user_id);
+      const member = await guildResourceLocator.GetMember(ticket.user_id);
+      const user = member?.user || await buttonInteraction.client.users.fetch(ticket.user_id);
       const participantHistory = ticketDb.GetParticipantHistory(ticket.id);
 
       const transcript = TranscriptGenerator.Generate({
