@@ -22,6 +22,16 @@ export interface TicketMessage {
   timestamp: number;
 }
 
+export interface TicketParticipant {
+  id: number;
+  ticket_id: number;
+  user_id: string;
+  added_by: string;
+  added_at: number;
+  removed_by?: string;
+  removed_at?: number;
+}
+
 export interface TicketCategory {
   value: string;
   label: string;
@@ -104,13 +114,53 @@ export class TicketDatabase {
         FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE
       );
 
+      CREATE TABLE IF NOT EXISTS ticket_participants (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ticket_id INTEGER NOT NULL,
+        user_id TEXT NOT NULL,
+        added_by TEXT NOT NULL,
+        added_at INTEGER NOT NULL,
+        removed_by TEXT,
+        removed_at INTEGER,
+        FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE
+      );
+
       CREATE INDEX IF NOT EXISTS idx_tickets_user ON tickets(user_id);
       CREATE INDEX IF NOT EXISTS idx_tickets_guild ON tickets(guild_id);
       CREATE INDEX IF NOT EXISTS idx_tickets_status ON tickets(status);
       CREATE INDEX IF NOT EXISTS idx_ticket_messages_ticket ON ticket_messages(ticket_id);
+      CREATE INDEX IF NOT EXISTS idx_ticket_participants_ticket ON ticket_participants(ticket_id);
+      CREATE INDEX IF NOT EXISTS idx_ticket_participants_user ON ticket_participants(user_id);
     `);
 
+    // Add migration for existing databases
+    this.MigrateDatabase();
+
     this.logger.Info("Database tables initialized");
+  }
+
+  private MigrateDatabase(): void {
+    try {
+      // Check if removed_by column exists, if not add it
+      const tableInfo = this.db
+        .prepare("PRAGMA table_info(ticket_participants)")
+        .all() as any[];
+      const hasRemovedBy = tableInfo.some(
+        (column) => column.name === "removed_by"
+      );
+
+      if (!hasRemovedBy) {
+        this.db.exec(`
+          ALTER TABLE ticket_participants ADD COLUMN removed_by TEXT;
+          ALTER TABLE ticket_participants ADD COLUMN removed_at INTEGER;
+        `);
+        this.logger.Info(
+          "Database migrated: added removed_by and removed_at columns to ticket_participants"
+        );
+      }
+    } catch (error) {
+      this.logger.Error("Failed to migrate database", { error });
+    }
   }
 
   CreateTicket(data: {
@@ -237,6 +287,63 @@ export class TicketDatabase {
   DeleteTicket(id: number): boolean {
     const stmt = this.db.prepare("DELETE FROM tickets WHERE id = ?");
     const result = stmt.run(id);
+    return result.changes > 0;
+  }
+
+  AddParticipant(
+    ticket_id: number,
+    user_id: string,
+    added_by: string
+  ): TicketParticipant {
+    const added_at = Date.now();
+    const stmt = this.db.prepare(`
+      INSERT INTO ticket_participants (ticket_id, user_id, added_by, added_at)
+      VALUES (?, ?, ?, ?)
+    `);
+
+    const id = stmt.run(ticket_id, user_id, added_by, added_at)
+      .lastInsertRowid as number;
+
+    return {
+      id,
+      ticket_id,
+      user_id,
+      added_by,
+      added_at,
+    };
+  }
+
+  GetParticipants(ticket_id: number): TicketParticipant[] {
+    const stmt = this.db.prepare(
+      "SELECT * FROM ticket_participants WHERE ticket_id = ? ORDER BY added_at ASC"
+    );
+    return stmt.all(ticket_id) as TicketParticipant[];
+  }
+
+  GetActiveParticipants(ticket_id: number): TicketParticipant[] {
+    const stmt = this.db.prepare(
+      "SELECT * FROM ticket_participants WHERE ticket_id = ? AND removed_by IS NULL ORDER BY added_at ASC"
+    );
+    return stmt.all(ticket_id) as TicketParticipant[];
+  }
+
+  GetParticipantHistory(ticket_id: number): TicketParticipant[] {
+    const stmt = this.db.prepare(
+      "SELECT * FROM ticket_participants WHERE ticket_id = ? ORDER BY added_at ASC"
+    );
+    return stmt.all(ticket_id) as TicketParticipant[];
+  }
+
+  RemoveParticipant(
+    ticket_id: number,
+    user_id: string,
+    removed_by: string
+  ): boolean {
+    const removed_at = Date.now();
+    const stmt = this.db.prepare(
+      "UPDATE ticket_participants SET removed_by = ?, removed_at = ? WHERE ticket_id = ? AND user_id = ? AND removed_by IS NULL"
+    );
+    const result = stmt.run(removed_by, removed_at, ticket_id, user_id);
     return result.changes > 0;
   }
 

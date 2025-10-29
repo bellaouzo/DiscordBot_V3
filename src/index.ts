@@ -33,7 +33,8 @@ async function Bootstrap(rootLogger: Logger): Promise<void> {
     client: bot.client,
     logger,
     componentRouter: responders.componentRouter,
-    selectMenuRouter: responders.selectMenuRouter
+    selectMenuRouter: responders.selectMenuRouter,
+    userSelectMenuRouter: responders.userSelectMenuRouter
   })
 
   bot.client.on('interactionCreate', async interaction => {

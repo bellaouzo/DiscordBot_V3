@@ -1,13 +1,15 @@
-import { ButtonInteraction, ChatInputCommandInteraction, Client, Events, StringSelectMenuInteraction } from 'discord.js'
+import { ButtonInteraction, ChatInputCommandInteraction, Client, Events, StringSelectMenuInteraction, UserSelectMenuInteraction } from 'discord.js'
 import { Logger } from './Shared/Logger'
 import { ComponentRouter } from './Shared/ComponentRouter'
 import { SelectMenuRouter } from './Shared/SelectMenuRouter'
+import { UserSelectMenuRouter } from './Shared/UserSelectMenuRouter'
 
 export interface InteractionHandlerDependencies {
   readonly client: Client
   readonly logger: Logger
   readonly componentRouter: ComponentRouter
   readonly selectMenuRouter: SelectMenuRouter
+  readonly userSelectMenuRouter: UserSelectMenuRouter
 }
 
 export function RegisterInteractionHandlers(dependencies: InteractionHandlerDependencies): void {
@@ -16,6 +18,8 @@ export function RegisterInteractionHandlers(dependencies: InteractionHandlerDepe
       await HandleButtonInteraction(interaction, dependencies.componentRouter, dependencies.logger)
     } else if (interaction.isStringSelectMenu()) {
       await HandleSelectMenuInteraction(interaction, dependencies.selectMenuRouter, dependencies.logger)
+    } else if (interaction.isUserSelectMenu()) {
+      await HandleUserSelectMenuInteraction(interaction, dependencies.userSelectMenuRouter, dependencies.logger)
     }
   })
 }
@@ -43,6 +47,21 @@ async function HandleSelectMenuInteraction(
   const handled = await router.HandleSelectMenu(interaction)
   if (!handled) {
     logger.Debug('Unhandled select menu interaction', {
+      extra: {
+        customId: interaction.customId
+      }
+    })
+  }
+}
+
+async function HandleUserSelectMenuInteraction(
+  interaction: UserSelectMenuInteraction,
+  router: UserSelectMenuRouter,
+  logger: Logger
+): Promise<void> {
+  const handled = await router.HandleUserSelectMenu(interaction)
+  if (!handled) {
+    logger.Debug('Unhandled user select menu interaction', {
       extra: {
         customId: interaction.customId
       }

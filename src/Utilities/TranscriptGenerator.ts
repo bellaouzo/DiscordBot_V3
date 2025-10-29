@@ -1,4 +1,4 @@
-import { Ticket, TicketMessage } from '../Database'
+import { Ticket, TicketMessage, TicketParticipant } from '../Database'
 import { Guild, User } from 'discord.js'
 
 export interface GenerateTranscriptOptions {
@@ -6,11 +6,12 @@ export interface GenerateTranscriptOptions {
   readonly messages: TicketMessage[]
   readonly user: User
   readonly guild: Guild
+  readonly participantHistory?: TicketParticipant[]
 }
 
 export class TranscriptGenerator {
   static Generate(options: GenerateTranscriptOptions): string {
-    const { ticket, messages, user, guild } = options
+    const { ticket, messages, user, guild, participantHistory } = options
 
     const createdAt = new Date(ticket.created_at).toISOString()
     const closedAt = ticket.closed_at ? new Date(ticket.closed_at).toISOString() : 'N/A'
@@ -29,6 +30,27 @@ export class TranscriptGenerator {
     transcript += `Created: ${createdAt}\n`
     transcript += `Closed: ${closedAt}\n`
     transcript += '\n' + '='.repeat(80) + '\n\n'
+
+    // Add participant history section if available
+    if (participantHistory && participantHistory.length > 0) {
+      transcript += 'PARTICIPANT HISTORY\n'
+      transcript += '='.repeat(80) + '\n\n'
+
+      for (const participant of participantHistory) {
+        const timestamp = new Date(participant.added_at).toISOString()
+        
+        if (participant.removed_by && participant.removed_at) {
+          const removedTimestamp = new Date(participant.removed_at).toISOString()
+          transcript += `[${timestamp}] User <@${participant.user_id}> ADDED by <@${participant.added_by}>\n`
+          transcript += `[${removedTimestamp}] User <@${participant.user_id}> REMOVED by <@${participant.removed_by}>\n`
+        } else {
+          transcript += `[${timestamp}] User <@${participant.user_id}> ADDED by <@${participant.added_by}>\n`
+        }
+      }
+
+      transcript += '\n' + '='.repeat(80) + '\n\n'
+    }
+
     transcript += 'CONVERSATION LOG\n'
     transcript += '='.repeat(80) + '\n\n'
 

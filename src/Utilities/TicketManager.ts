@@ -183,10 +183,14 @@ export class TicketManager {
     return ComponentFactory.CreateActionRow({
       buttons: [
         { label: "Claim Ticket", style: ButtonStyle.Primary, emoji: "📌" },
+        { label: "Add User", style: ButtonStyle.Secondary, emoji: "👥" },
+        { label: "Remove User", style: ButtonStyle.Secondary, emoji: "👤" },
         { label: "Close Ticket", style: ButtonStyle.Danger, emoji: "🔒" },
       ],
       customIds: [
         `ticket:${interactionId}:claim:${ticketId}`,
+        `ticket:${interactionId}:add:${ticketId}`,
+        `ticket:${interactionId}:remove:${ticketId}`,
         `ticket:${interactionId}:close:${ticketId}`,
       ],
     });
@@ -344,6 +348,165 @@ export class TicketManager {
       });
       return null;
     }
+  }
+
+  async AddUserToTicket(
+    ticketId: number,
+    userId: string,
+    addedBy: string
+  ): Promise<boolean> {
+    const ticket = this.options.ticketDb.GetTicket(ticketId);
+    if (!ticket || !ticket.channel_id) {
+      return false;
+    }
+
+    try {
+      const channel = await this.options.guild.channels.fetch(
+        ticket.channel_id
+      );
+      if (!channel || !channel.isTextBased()) {
+        return false;
+      }
+
+      // Ensure we have a TextChannel for permission overwrites
+      if (channel.type !== ChannelType.GuildText) {
+        return false;
+      }
+
+      const textChannel = channel as TextChannel;
+      const member = await this.options.guild.members.fetch(userId);
+      if (!member) {
+        return false;
+      }
+
+      await textChannel.permissionOverwrites.create(member, {
+        ViewChannel: true,
+        SendMessages: true,
+        ReadMessageHistory: true,
+      });
+
+      this.options.ticketDb.AddParticipant(ticketId, userId, addedBy);
+
+      this.options.logger.Info("User added to ticket", {
+        extra: {
+          ticketId,
+          userId,
+          addedBy,
+          channelId: ticket.channel_id,
+        },
+      });
+
+      return true;
+    } catch (error) {
+      this.options.logger.Error("Failed to add user to ticket", {
+        error,
+        extra: { ticketId, userId, addedBy },
+      });
+      return false;
+    }
+  }
+
+  async RemoveUserFromTicket(
+    ticketId: number,
+    userId: string,
+    removedBy: string
+  ): Promise<boolean> {
+    const ticket = this.options.ticketDb.GetTicket(ticketId);
+    if (!ticket || !ticket.channel_id) {
+      return false;
+    }
+
+    // Prevent removing the ticket owner
+    if (ticket.user_id === userId) {
+      return false;
+    }
+
+    try {
+      const channel = await this.options.guild.channels.fetch(
+        ticket.channel_id
+      );
+      if (!channel || !channel.isTextBased()) {
+        return false;
+      }
+
+      // Ensure we have a TextChannel for permission overwrites
+      if (channel.type !== ChannelType.GuildText) {
+        return false;
+      }
+
+      const textChannel = channel as TextChannel;
+      const member = await this.options.guild.members.fetch(userId);
+      if (!member) {
+        return false;
+      }
+
+      // Remove channel permissions
+      await textChannel.permissionOverwrites.delete(member);
+
+      // Mark participant as removed in database
+      const success = this.options.ticketDb.RemoveParticipant(
+        ticketId,
+        userId,
+        removedBy
+      );
+
+      if (success) {
+        this.options.logger.Info("User removed from ticket", {
+          extra: {
+            ticketId,
+            userId,
+            removedBy,
+            channelId: ticket.channel_id,
+          },
+        });
+      }
+
+      return success;
+    } catch (error) {
+      this.options.logger.Error("Failed to remove user from ticket", {
+        error,
+        extra: { ticketId, userId, removedBy },
+      });
+      return false;
+    }
+  }
+
+  CanUserAddParticipants(
+    ticket: Ticket,
+    userId: string,
+    member: GuildMember | null
+  ): boolean {
+    if (!member) {
+      return false;
+    }
+
+    if (ticket.user_id === userId) {
+      return true;
+    }
+
+    return (
+      member.permissions.has(PermissionFlagsBits.ManageGuild) ||
+      member.permissions.has(PermissionFlagsBits.Administrator)
+    );
+  }
+
+  CanUserRemoveParticipants(
+    ticket: Ticket,
+    userId: string,
+    member: GuildMember | null
+  ): boolean {
+    if (!member) {
+      return false;
+    }
+
+    if (ticket.user_id === userId) {
+      return true;
+    }
+
+    return (
+      member.permissions.has(PermissionFlagsBits.ManageGuild) ||
+      member.permissions.has(PermissionFlagsBits.Administrator)
+    );
   }
 }
 
