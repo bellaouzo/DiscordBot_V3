@@ -7,6 +7,7 @@ import {
   ErrorMiddleware,
 } from "../../src/Commands/Middleware/index";
 import { Config } from "../../src/Commands/Middleware/CommandConfig";
+import { CreateGuildResourceLocator, EmbedFactory } from "../../src/Utilities";
 
 /**
  * Advanced kick command with options and permissions
@@ -28,32 +29,39 @@ async function ExecuteKick(
   const reason = interaction.options.getString("reason") ?? "No reason provided";
   const notify = interaction.options.getBoolean("notify") ?? false;
 
+  if (!interaction.guild) {
+    throw new Error("This command can only be used in a server.");
+  }
+
+  const locator = CreateGuildResourceLocator({
+    guild: interaction.guild,
+    logger,
+  });
+
   await interactionResponder.WithAction({
     interaction,
     message: `Kicking ${targetUser.username}...`,
-    followUp: `✅ Successfully kicked **${targetUser.username}** for: ${reason}`,
-    action: async () => {
-      logger.Info("Attempting to kick user", {
-        extra: { targetUserId: targetUser.id },
+    followUp: () => {
+      const embed = EmbedFactory.CreateSuccess({
+        title: "User Kicked",
+        description: `Successfully kicked **${targetUser.username}**`,
       });
       
-      const targetMember = await interaction.guild?.members.fetch(
-        targetUser.id
-      );
-
-      if (!targetMember) {
-        throw new Error("User not found in this server.");
+      if (reason !== "No reason provided") {
+        embed.addFields([{ name: "Reason", value: reason, inline: false }]);
       }
-      if (!targetMember.kickable) {
+      
+      return { embeds: [embed.toJSON()] };
+    },
+    action: async () => {
+      const targetMember = await locator.GetMember(targetUser.id);
+      if (!targetMember?.kickable) {
         throw new Error(
           "I cannot kick this user. They may have higher permissions than me."
         );
       }
 
       await targetMember.kick(reason);
-      logger.Info("User kicked", {
-        extra: { targetUserId: targetUser.id, reason },
-      });
 
       // Send DM notification if requested
       if (notify) {

@@ -11,9 +11,15 @@ export interface DeploymentConfig {
   readonly guildId: string
 }
 
+export interface LoggingConfig {
+  readonly commandLogChannelName: string
+  readonly commandLogCategoryName: string
+}
+
 export interface AppConfig {
   readonly discord: DiscordConfig
   readonly deployment: DeploymentConfig
+  readonly logging: LoggingConfig
 }
 
 const ENVIRONMENT_PATHS = [
@@ -65,6 +71,10 @@ export function LoadAppConfig(): AppConfig {
     deployment: {
       clientId: RequireEnv('CLIENT_ID'),
       guildId: RequireEnv('GUILD_ID')
+    },
+    logging: {
+      commandLogChannelName: process.env.COMMAND_LOG_CHANNEL_NAME || 'command-logs',
+      commandLogCategoryName: process.env.COMMAND_LOG_CATEGORY_NAME || 'Bot Logs'
     }
   }
 }

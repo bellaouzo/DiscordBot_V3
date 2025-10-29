@@ -5,7 +5,7 @@ import { LoggingMiddleware } from "../Middleware/LoggingMiddleware";
 import { PermissionMiddleware } from "../Middleware/PermissionMiddleware";
 import { ErrorMiddleware } from "../Middleware/ErrorMiddleware";
 import { Config } from "../Middleware/CommandConfig";
-import { CreateGuildResourceLocator } from "../../Utilities/GuildResourceLocator";
+import { CreateGuildResourceLocator, EmbedFactory } from "../../Utilities";
 
 async function ExecuteBan(
   interaction: ChatInputCommandInteraction,
@@ -31,7 +31,18 @@ async function ExecuteBan(
   await interactionResponder.WithAction({
     interaction,
     message: `Banning ${targetUser.username}...`,
-    followUp: `✅ Successfully banned **${targetUser.username}** for: ${reason}`,
+    followUp: () => {
+      const embed = EmbedFactory.CreateSuccess({
+        title: "User Banned",
+        description: `Successfully banned **${targetUser.username}**`,
+      });
+      
+      if (reason !== "No reason provided") {
+        embed.addFields([{ name: "Reason", value: reason, inline: false }]);
+      }
+      
+      return { embeds: [embed.toJSON()] };
+    },
     action: async () => {
       const targetMember = await locator.GetMember(targetUser.id);
       if (!targetMember?.bannable) {

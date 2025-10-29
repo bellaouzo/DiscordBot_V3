@@ -13,7 +13,7 @@ import {
 } from "discord.js";
 import { TicketDatabase, Ticket, TICKET_CATEGORIES } from "../Database";
 import { Logger } from "../Shared/Logger";
-import { EmbedFactory, ComponentFactory } from "./";
+import { EmbedFactory, ComponentFactory, CreateChannelManager } from "./";
 
 export interface TicketManagerOptions {
   readonly guild: Guild;
@@ -32,10 +32,14 @@ export interface TicketChannelInfo {
 }
 
 export class TicketManager {
-  private readonly categoryCache = new Map<string, CategoryChannel | null>();
-  private readonly logsChannelCache = new Map<string, TextChannel | null>();
+  private readonly channelManager: ReturnType<typeof CreateChannelManager>;
 
-  constructor(private readonly options: TicketManagerOptions) {}
+  constructor(private readonly options: TicketManagerOptions) {
+    this.channelManager = CreateChannelManager({
+      guild: options.guild,
+      logger: options.logger,
+    });
+  }
 
   async CreateTicket(options: CreateTicketOptions): Promise<TicketChannelInfo> {
     const { userId, category } = options;
@@ -46,7 +50,7 @@ export class TicketManager {
       throw new Error(`User ${userId} not found in guild ${guild.id}`);
     }
 
-    const ticketCategory = await this.GetOrCreateTicketCategory();
+    const ticketCategory = await this.channelManager.GetOrCreateCategory("Support Tickets");
 
     const ticket = ticketDb.CreateTicket({
       user_id: userId,
@@ -82,43 +86,6 @@ export class TicketManager {
     return { ticket, channel };
   }
 
-  private async GetOrCreateTicketCategory(): Promise<CategoryChannel | null> {
-    const categoryName = "Support Tickets";
-    const cached = this.categoryCache.get(this.options.guild.id);
-
-    if (cached !== undefined) {
-      return cached;
-    }
-
-    const existingCategories = this.options.guild.channels.cache.filter(
-      (channel) =>
-        channel.type === ChannelType.GuildCategory &&
-        channel.name === categoryName
-    );
-
-    if (existingCategories.size > 0) {
-      const category = existingCategories.first() as CategoryChannel;
-      this.categoryCache.set(this.options.guild.id, category);
-      return category;
-    }
-
-    try {
-      const category = await this.options.guild.channels.create({
-        name: categoryName,
-        type: ChannelType.GuildCategory,
-      });
-
-      this.categoryCache.set(this.options.guild.id, category);
-      this.options.logger.Info("Created ticket category", {
-        extra: { guildId: this.options.guild.id, categoryId: category.id },
-      });
-
-      return category;
-    } catch (error) {
-      this.options.logger.Error("Failed to create ticket category", { error });
-      return null;
-    }
-  }
 
   private CreatePermissionOverwrites(
     member: GuildMember
@@ -299,22 +266,6 @@ export class TicketManager {
   }
 
   async GetOrCreateTicketLogsChannel(): Promise<TextChannel | null> {
-    const cached = this.logsChannelCache.get(this.options.guild.id);
-    if (cached !== undefined) {
-      return cached;
-    }
-
-    const existingChannels = this.options.guild.channels.cache.filter(
-      (channel) =>
-        channel.type === ChannelType.GuildText && channel.name === "ticket-logs"
-    );
-
-    if (existingChannels.size > 0) {
-      const logsChannel = existingChannels.first() as TextChannel;
-      this.logsChannelCache.set(this.options.guild.id, logsChannel);
-      return logsChannel;
-    }
-
     try {
       const botMember = await this.options.guild.members.fetchMe();
       const logsChannel = await this.options.guild.channels.create({
@@ -336,7 +287,6 @@ export class TicketManager {
         ],
       });
 
-      this.logsChannelCache.set(this.options.guild.id, logsChannel);
       this.options.logger.Info("Created ticket logs channel", {
         extra: { guildId: this.options.guild.id, channelId: logsChannel.id },
       });

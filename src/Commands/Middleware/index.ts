@@ -55,3 +55,4 @@ export { LoggingMiddleware } from "./LoggingMiddleware";
 export { PermissionMiddleware } from "./PermissionMiddleware";
 export { ErrorMiddleware } from "./ErrorMiddleware";
 export { CooldownMiddleware } from "./CooldownMiddleware";
+export { DiscordLoggingMiddleware } from "./DiscordLoggingMiddleware";

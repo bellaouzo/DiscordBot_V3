@@ -17,7 +17,7 @@ async function Bootstrap(rootLogger: Logger): Promise<void> {
   const loadCommands = CreateCommandLoader(logger)
   const loadEvents = CreateEventLoader(logger)
   const deployCommands = CreateCommandDeployer({ deployment: config.deployment, token: config.discord.token, logger })
-  const executeCommand = CreateCommandExecutor(logger)
+  const executeCommand = CreateCommandExecutor()
 
   const { commands, modules } = await loadCommands()
   const events = await loadEvents()
