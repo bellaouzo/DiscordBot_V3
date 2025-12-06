@@ -6,6 +6,7 @@ import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory } from "@utilities";
 import { RequestJson } from "@utilities/ApiClient";
+import { LoadApiConfig } from "@config/ApiConfig";
 
 type JokeType = "single" | "twopart";
 
@@ -25,14 +26,17 @@ interface Joke {
   readonly title?: string;
 }
 
-function BuildJokeUrl(category?: string | null): string {
-  const base = "https://v2.jokeapi.dev/joke";
+const apiConfig = LoadApiConfig();
+
+function BuildJokeUrl(baseUrl: string, category?: string | null): string {
   const chosen =
     category && category.trim().length > 0 ? category.trim() : "Any";
   const params = new URLSearchParams({
     "safe-mode": "true",
   });
-  return `${base}/${encodeURIComponent(chosen)}?${params.toString()}`;
+  return `${baseUrl.replace(/\/$/, "")}/${encodeURIComponent(
+    chosen
+  )}?${params.toString()}`;
 }
 
 function FormatJokeFromJokeApi(payload: JokeApiResponse): Joke | null {
@@ -68,9 +72,12 @@ async function FetchJoke(
   category?: string | null
 ): Promise<Joke> {
   // Primary: JokeAPI
-  const primary = await RequestJson<JokeApiResponse>(BuildJokeUrl(category), {
-    timeoutMs: 6000,
-  });
+  const primary = await RequestJson<JokeApiResponse>(
+    BuildJokeUrl(apiConfig.joke.url, category),
+    {
+      timeoutMs: apiConfig.joke.timeoutMs,
+    }
+  );
 
   if (primary.ok && primary.data) {
     const joke = FormatJokeFromJokeApi(primary.data);
@@ -82,13 +89,10 @@ async function FetchJoke(
   }
 
   // Secondary: icanhazdadjoke
-  const secondary = await RequestJson<DadJokeResponse>(
-    "https://icanhazdadjoke.com/",
-    {
-      headers: { Accept: "application/json" },
-      timeoutMs: 4000,
-    }
-  );
+  const secondary = await RequestJson<DadJokeResponse>(apiConfig.dadJoke.url, {
+    headers: { Accept: "application/json" },
+    timeoutMs: apiConfig.dadJoke.timeoutMs,
+  });
 
   if (secondary.ok && secondary.data) {
     const joke = FormatJokeFromDadJoke(secondary.data);

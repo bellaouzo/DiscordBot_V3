@@ -6,6 +6,7 @@ import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory } from "@utilities";
 import { RequestJson } from "@utilities/ApiClient";
+import { LoadApiConfig } from "@config/ApiConfig";
 
 interface QuoteResponse {
   readonly q?: string; // quote text
@@ -17,13 +18,12 @@ interface Quote {
   readonly author?: string;
 }
 
+const apiConfig = LoadApiConfig();
+
 async function FetchRandomQuote(): Promise<Quote> {
-  const response = await RequestJson<QuoteResponse[]>(
-    "https://zenquotes.io/api/random",
-    {
-      timeoutMs: 6000,
-    }
-  );
+  const response = await RequestJson<QuoteResponse[]>(apiConfig.quote.url, {
+    timeoutMs: apiConfig.quote.timeoutMs,
+  });
 
   if (!response.ok || !response.data || response.data.length === 0) {
     throw new Error(response.error ?? "Quote API request failed");

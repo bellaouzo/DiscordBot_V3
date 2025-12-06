@@ -6,6 +6,7 @@ import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory } from "@utilities";
 import { RequestJson } from "@utilities/ApiClient";
+import { LoadApiConfig } from "@config/ApiConfig";
 
 interface MemeResponse {
   readonly title?: string;
@@ -16,12 +17,14 @@ interface MemeResponse {
   readonly spoiler?: boolean;
 }
 
-function BuildMemeUrl(subreddit?: string | null): string {
+const apiConfig = LoadApiConfig();
+
+function BuildMemeUrl(baseUrl: string, subreddit?: string | null): string {
   const trimmed = subreddit?.trim();
   if (trimmed && trimmed.length > 0) {
-    return `https://meme-api.com/gimme/${encodeURIComponent(trimmed)}`;
+    return `${baseUrl.replace(/\/$/, "")}/${encodeURIComponent(trimmed)}`;
   }
-  return "https://meme-api.com/gimme";
+  return baseUrl;
 }
 
 function CreateMemeEmbed(payload: MemeResponse): EmbedBuilder | null {
@@ -46,9 +49,12 @@ async function ExecuteMeme(
   const { interactionResponder } = context.responders;
   const subreddit = interaction.options.getString("subreddit");
 
-  const response = await RequestJson<MemeResponse>(BuildMemeUrl(subreddit), {
-    timeoutMs: 5000,
-  });
+  const response = await RequestJson<MemeResponse>(
+    BuildMemeUrl(apiConfig.meme.url, subreddit),
+    {
+      timeoutMs: apiConfig.meme.timeoutMs,
+    }
+  );
 
   if (!response.ok || !response.data) {
     await interactionResponder.Reply(interaction, {

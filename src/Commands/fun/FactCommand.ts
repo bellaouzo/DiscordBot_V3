@@ -6,6 +6,7 @@ import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory } from "@utilities";
 import { RequestJson } from "@utilities/ApiClient";
+import { LoadApiConfig } from "@config/ApiConfig";
 
 interface FactResponse {
   readonly text?: string;
@@ -13,6 +14,8 @@ interface FactResponse {
   readonly source?: string;
   readonly source_url?: string;
 }
+
+const apiConfig = LoadApiConfig();
 
 function GetFactText(payload?: FactResponse): {
   text?: string;
@@ -31,13 +34,10 @@ async function ExecuteFact(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const response = await RequestJson<FactResponse>(
-    "https://uselessfacts.jsph.pl/random.json",
-    {
-      query: { language: "en" },
-      timeoutMs: 5000,
-    }
-  );
+  const response = await RequestJson<FactResponse>(apiConfig.fact.url, {
+    query: { language: "en" },
+    timeoutMs: apiConfig.fact.timeoutMs,
+  });
 
   if (!response.ok || !response.data) {
     throw new Error(response.error ?? "Fact API request failed");

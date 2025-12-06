@@ -6,6 +6,7 @@ import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory } from "@utilities";
 import { RequestJson } from "@utilities/ApiClient";
+import { LoadApiConfig } from "@config/ApiConfig";
 
 type TriviaDifficulty = "easy" | "medium" | "hard";
 
@@ -22,6 +23,8 @@ interface TriviaResponse {
   readonly response_code: number;
   readonly results: TriviaQuestion[];
 }
+
+const apiConfig = LoadApiConfig();
 
 function Shuffle<T>(items: T[]): T[] {
   const copy = [...items];
@@ -95,13 +98,10 @@ async function ExecuteTrivia(
     "difficulty"
   ) as TriviaDifficulty | null;
 
-  const response = await RequestJson<TriviaResponse>(
-    "https://opentdb.com/api.php",
-    {
-      query: BuildTriviaQuery({ category, difficulty }),
-      timeoutMs: 6000,
-    }
-  );
+  const response = await RequestJson<TriviaResponse>(apiConfig.trivia.url, {
+    query: BuildTriviaQuery({ category, difficulty }),
+    timeoutMs: apiConfig.trivia.timeoutMs,
+  });
 
   if (!response.ok || !response.data || response.data.response_code !== 0) {
     await interactionResponder.Reply(interaction, {

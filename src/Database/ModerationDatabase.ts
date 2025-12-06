@@ -1,6 +1,6 @@
 import Database from "better-sqlite3";
-import * as fs from "fs";
 import { join } from "path";
+import { ResolveDataDir } from "@config/DataConfig";
 import { Logger } from "@shared/Logger";
 
 export type TempActionType = "ban" | "mute";
@@ -138,14 +138,10 @@ export class ModerationDatabase {
   }
 
   private InitializeDatabase(): Database.Database {
-    const dataDir = join(process.cwd(), "data");
+    const dataDir = ResolveDataDir();
     const dbPath = join(dataDir, "moderation.db");
 
     try {
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-      }
-
       return new Database(dbPath);
     } catch (error) {
       this.logger.Error("Failed to initialize moderation database", { error });
