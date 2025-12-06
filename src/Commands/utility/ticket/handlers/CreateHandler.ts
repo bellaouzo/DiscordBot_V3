@@ -4,6 +4,7 @@ import {
   Guild,
   ActionRowData,
   ActionRowComponentData,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext } from "../../../CommandFactory";
 import { TICKET_CATEGORIES } from "../../../../Database";
@@ -117,7 +118,7 @@ async function HandleTicketCategorySelection(
   );
 
   if (!categoryInfo) {
-    await selectInteraction.deferReply({ ephemeral: true });
+    await selectInteraction.deferReply({ flags: MessageFlags.Ephemeral });
     await selectInteraction.editReply({
       embeds: [
         EmbedFactory.CreateError({
@@ -129,7 +130,7 @@ async function HandleTicketCategorySelection(
     return;
   }
 
-  await selectInteraction.deferReply({ ephemeral: true });
+  await selectInteraction.deferReply({ flags: MessageFlags.Ephemeral });
 
   try {
     const { ticket, channel } = await ticketManager.CreateTicket({

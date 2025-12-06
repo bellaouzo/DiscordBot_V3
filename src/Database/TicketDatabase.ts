@@ -15,6 +15,18 @@ export interface Ticket {
   closed_at: number | null;
 }
 
+export interface TicketReopenAudit {
+  id: number;
+  prior_ticket_id: number;
+  new_ticket_id: number;
+  guild_id: string;
+  reopened_by: string;
+  reason: string | null;
+  prior_status: string | null;
+  transcript_url: string | null;
+  created_at: number;
+}
+
 export interface TicketMessage {
   id: number;
   ticket_id: number;
@@ -131,6 +143,21 @@ export class TicketDatabase {
       CREATE INDEX IF NOT EXISTS idx_ticket_messages_ticket ON ticket_messages(ticket_id);
       CREATE INDEX IF NOT EXISTS idx_ticket_participants_ticket ON ticket_participants(ticket_id);
       CREATE INDEX IF NOT EXISTS idx_ticket_participants_user ON ticket_participants(user_id);
+
+      CREATE TABLE IF NOT EXISTS ticket_reopen_audits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        prior_ticket_id INTEGER NOT NULL,
+        new_ticket_id INTEGER NOT NULL,
+        guild_id TEXT NOT NULL,
+        reopened_by TEXT NOT NULL,
+        reason TEXT,
+        prior_status TEXT,
+        transcript_url TEXT,
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_ticket_reopen_prior ON ticket_reopen_audits(prior_ticket_id);
+      CREATE INDEX IF NOT EXISTS idx_ticket_reopen_new ON ticket_reopen_audits(new_ticket_id);
     `);
 
     // Add migration for existing databases
@@ -343,6 +370,53 @@ export class TicketDatabase {
     );
     const result = stmt.run(removed_by, removed_at, ticket_id, user_id);
     return result.changes > 0;
+  }
+
+  AddReopenAudit(data: {
+    prior_ticket_id: number;
+    new_ticket_id: number;
+    guild_id: string;
+    reopened_by: string;
+    reason?: string | null;
+    prior_status?: string | null;
+    transcript_url?: string | null;
+  }): TicketReopenAudit {
+    const created_at = Date.now();
+    const stmt = this.db.prepare(`
+      INSERT INTO ticket_reopen_audits (prior_ticket_id, new_ticket_id, guild_id, reopened_by, reason, prior_status, transcript_url, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const id = stmt.run(
+      data.prior_ticket_id,
+      data.new_ticket_id,
+      data.guild_id,
+      data.reopened_by,
+      data.reason ?? null,
+      data.prior_status ?? null,
+      data.transcript_url ?? null,
+      created_at
+    ).lastInsertRowid as number;
+
+    return {
+      id,
+      created_at,
+      prior_ticket_id: data.prior_ticket_id,
+      new_ticket_id: data.new_ticket_id,
+      guild_id: data.guild_id,
+      reopened_by: data.reopened_by,
+      reason: data.reason ?? null,
+      prior_status: data.prior_status ?? null,
+      transcript_url: data.transcript_url ?? null,
+    };
+  }
+
+  GetReopenAuditsForTicket(ticket_id: number): TicketReopenAudit[] {
+    const stmt = this.db.prepare(
+      "SELECT * FROM ticket_reopen_audits WHERE prior_ticket_id = ? ORDER BY created_at DESC"
+    );
+
+    return stmt.all(ticket_id) as TicketReopenAudit[];
   }
 
   Close(): void {

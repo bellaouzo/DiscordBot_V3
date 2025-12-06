@@ -5,3 +5,5 @@ export { UnbanCommand } from "./UnbanCommand";
 export { MuteCommand } from "./MuteCommand";
 export { PurgeCommand } from "./PurgeCommand";
 export { WarnCommand } from "./WarnCommand";
+export { LockdownCommand } from "./LockdownCommand";
+export { TempActionsCommand } from "./TempActionsCommand";

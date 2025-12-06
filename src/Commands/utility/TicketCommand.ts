@@ -2,9 +2,9 @@ import {
   ChatInputCommandInteraction,
   SlashCommandSubcommandBuilder,
 } from "discord.js";
-import { CommandContext, CreateCommand } from "../CommandFactory";
-import { LoggingMiddleware, ErrorMiddleware } from "../Middleware";
-import { Config } from "../Middleware/CommandConfig";
+import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import { LoggingMiddleware, ErrorMiddleware } from "@middleware";
+import { Config } from "@middleware/CommandConfig";
 
 // Import all handlers
 import { HandleTicketCreate } from "./ticket/handlers/CreateHandler";
@@ -14,10 +14,11 @@ import { HandleTicketClaim } from "./ticket/handlers/ClaimHandler";
 import { HandleTicketTranscript } from "./ticket/handlers/TranscriptHandler";
 import { HandleTicketAdd } from "./ticket/handlers/AddHandler";
 import { HandleTicketRemove } from "./ticket/handlers/RemoveHandler";
+import { HandleTicketReopen } from "./ticket/handlers/ReopenHandler";
 
 async function ExecuteTicket(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext,
+  context: CommandContext
 ): Promise<void> {
   const subcommand = interaction.options.getSubcommand(false);
 
@@ -35,6 +36,8 @@ async function ExecuteTicket(
     await HandleTicketAdd(interaction, context);
   } else if (subcommand === "remove") {
     await HandleTicketRemove(interaction, context);
+  } else if (subcommand === "reopen") {
+    await HandleTicketReopen(interaction, context);
   }
 }
 
@@ -49,43 +52,59 @@ export const TicketCommand = CreateCommand({
   config: Config.utility(3),
   configure: (builder) => {
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-      subcommand
-        .setName("create")
-        .setDescription("Create a new support ticket"),
+      subcommand.setName("create").setDescription("Create a new support ticket")
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-      subcommand.setName("list").setDescription("View your tickets"),
+      subcommand.setName("list").setDescription("View your tickets")
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-      subcommand.setName("close").setDescription("Close the current ticket"),
+      subcommand.setName("close").setDescription("Close the current ticket")
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
         .setName("claim")
-        .setDescription("Claim a ticket for handling (Staff only)"),
+        .setDescription("Claim a ticket for handling (Staff only)")
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
         .setName("transcript")
         .setDescription(
-          "Generate a transcript of the current ticket (Staff only)",
-        ),
+          "Generate a transcript of the current ticket (Staff only)"
+        )
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
         .setName("add")
-        .setDescription("Add users to the current ticket"),
+        .setDescription("Add users to the current ticket")
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
         .setName("remove")
-        .setDescription("Remove users from the current ticket"),
+        .setDescription("Remove users from the current ticket")
+    );
+
+    builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
+      subcommand
+        .setName("reopen")
+        .setDescription("Reopen a closed ticket into a new channel (Staff)")
+        .addIntegerOption((option) =>
+          option
+            .setName("ticket_id")
+            .setDescription("Closed ticket ID to reopen")
+            .setRequired(true)
+        )
+        .addStringOption((option) =>
+          option
+            .setName("reason")
+            .setDescription("Reason for reopening")
+            .setRequired(true)
+        )
     );
   },
   execute: ExecuteTicket,

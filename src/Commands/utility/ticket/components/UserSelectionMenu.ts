@@ -1,4 +1,4 @@
-import { UserSelectMenuInteraction } from "discord.js";
+import { MessageFlags, UserSelectMenuInteraction } from "discord.js";
 import { Ticket } from "../../../../Database";
 import { CreateTicketManager } from "../../../../Utilities";
 
@@ -7,7 +7,7 @@ export async function HandleUserSelection(
   ticket: Ticket,
   ticketManager: ReturnType<typeof CreateTicketManager>
 ): Promise<void> {
-  await userSelectInteraction.deferReply({ ephemeral: true });
+  await userSelectInteraction.deferReply({ flags: MessageFlags.Ephemeral });
 
   const selectedUsers = userSelectInteraction.users;
   const addedUsers: string[] = [];
@@ -45,7 +45,7 @@ export async function HandleUserRemoval(
   ticket: Ticket,
   ticketManager: ReturnType<typeof CreateTicketManager>
 ): Promise<void> {
-  await userSelectInteraction.deferReply({ ephemeral: true });
+  await userSelectInteraction.deferReply({ flags: MessageFlags.Ephemeral });
 
   const selectedUsers = userSelectInteraction.users;
   const removedUsers: string[] = [];

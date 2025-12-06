@@ -6,13 +6,16 @@ import { CreateCommandExecutor } from "@bot/ExecuteCommand";
 import { CreateEventLoader } from "@bot/CreateEventLoader";
 import { RegisterEvents } from "@bot/RegisterEvents";
 import { LoadAppConfig } from "@config/AppConfig";
+import { ModerationDatabase } from "@database";
 import { CreateConsoleLogger, Logger } from "@shared/Logger";
 import { CreateResponders } from "@responders";
 import { RegisterInteractionHandlers } from "./interaction-handlers";
+import { TempActionScheduler } from "./Moderation/TempActionScheduler";
 
 async function Bootstrap(rootLogger: Logger): Promise<void> {
   const config = LoadAppConfig();
   const logger = rootLogger.Child({ phase: "bootstrap" });
+  const moderationDb = new ModerationDatabase(logger.Child({ phase: "db" }));
   const responders = CreateResponders({ logger });
   const bot = CreateBot({ logger });
   const loadCommands = CreateCommandLoader(logger);
@@ -23,6 +26,11 @@ async function Bootstrap(rootLogger: Logger): Promise<void> {
     logger,
   });
   const executeCommand = CreateCommandExecutor();
+  const tempScheduler = new TempActionScheduler({
+    client: bot.client,
+    db: moderationDb,
+    logger: logger.Child({ phase: "temp-actions" }),
+  });
 
   const { commands, modules } = await loadCommands();
   const events = await loadEvents();
@@ -64,6 +72,7 @@ async function Bootstrap(rootLogger: Logger): Promise<void> {
 
   await deployCommands(commands);
   await bot.Start(config.discord.token);
+  tempScheduler.Start();
 }
 
 const bootstrapLogger = CreateConsoleLogger();

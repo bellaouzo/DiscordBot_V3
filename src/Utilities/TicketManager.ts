@@ -82,6 +82,64 @@ export class TicketManager {
     return { ticket, channel };
   }
 
+  async ReopenTicket(options: {
+    priorTicketId: number;
+    reopenedBy: string;
+    reason?: string | null;
+    transcriptUrl?: string | null;
+  }): Promise<TicketChannelInfo> {
+    const prior = this.options.ticketDb.GetTicket(options.priorTicketId);
+    if (!prior) {
+      throw new Error("Ticket not found.");
+    }
+    if (prior.status !== "closed") {
+      throw new Error("Ticket must be closed before reopening.");
+    }
+
+    const member = await this.options.guildResourceLocator.GetMember(
+      prior.user_id
+    );
+    if (!member) {
+      throw new Error("Ticket user is no longer in the guild.");
+    }
+
+    const ticketCategory =
+      await this.channelManager.GetOrCreateCategory("Support Tickets");
+
+    const ticket = this.options.ticketDb.CreateTicket({
+      user_id: prior.user_id,
+      guild_id: prior.guild_id,
+      channel_id: null,
+      category: prior.category,
+    });
+
+    const channelName = `ticket-${String(ticket.id).padStart(4, "0")}-${
+      member.user.username
+    }`;
+
+    const channel = await this.options.guild.channels.create({
+      name: channelName,
+      type: ChannelType.GuildText,
+      parent: ticketCategory,
+      permissionOverwrites: this.CreatePermissionOverwrites(member),
+    });
+
+    this.options.ticketDb.UpdateTicketChannelId(ticket.id, channel.id);
+    this.options.ticketDb.UpdateTicketStatus(ticket.id, "open");
+
+    this.options.ticketDb.AddReopenAudit({
+      prior_ticket_id: prior.id,
+      new_ticket_id: ticket.id,
+      guild_id: prior.guild_id,
+      reopened_by: options.reopenedBy,
+      reason: options.reason ?? null,
+      prior_status: prior.status,
+      transcript_url: options.transcriptUrl ?? null,
+    });
+
+    return { ticket, channel };
+  }
+
   private CreatePermissionOverwrites(
     member: GuildMember
   ): OverwriteResolvable[] {

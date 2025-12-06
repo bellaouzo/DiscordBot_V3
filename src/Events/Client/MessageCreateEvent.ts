@@ -4,7 +4,7 @@ import { TicketDatabase } from "../../Database";
 
 async function ExecuteMessageCreateEvent(
   context: EventContext,
-  message: unknown,
+  message: unknown
 ): Promise<void> {
   const msg = message as Message;
   if (!msg.guild || !msg.channel.isTextBased() || msg.author.bot) {
@@ -21,14 +21,6 @@ async function ExecuteMessageCreateEvent(
 
     const content = msg.content || "[Embed or Attachment]";
     ticketDb.AddMessage(ticket.id, msg.author.id, content);
-
-    context.logger.Debug("Ticket message logged", {
-      extra: {
-        ticketId: ticket.id,
-        channelId: msg.channel.id,
-        userId: msg.author.id,
-      },
-    });
   } catch (error) {
     context.logger.Error("Failed to log ticket message", { error });
   }

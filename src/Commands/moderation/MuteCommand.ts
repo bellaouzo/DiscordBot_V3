@@ -7,43 +7,22 @@ import {
   CooldownMiddleware,
 } from "../Middleware";
 import { Config } from "../Middleware/CommandConfig";
-import { EmbedFactory, CreateGuildResourceLocator } from "../../Utilities";
-
-function ConvertDurationToMs(length: number, unit: string): number {
-  switch (unit.toLowerCase()) {
-    case "seconds":
-      return length * 1000;
-    case "minutes":
-      return length * 60 * 1000;
-    case "hours":
-      return length * 60 * 60 * 1000;
-    case "days":
-      return length * 24 * 60 * 60 * 1000;
-    default:
-      return 0;
-  }
-}
-
-function FormatDuration(length: number, unit: string): string {
-  const unitName = unit.toLowerCase();
-  const isPlural = length !== 1;
-  const unitMap: Record<string, string> = {
-    days: isPlural ? "days" : "day",
-    hours: isPlural ? "hours" : "hour",
-    minutes: isPlural ? "minutes" : "minute",
-    seconds: isPlural ? "seconds" : "second",
-  };
-
-  return `${length} ${unitMap[unitName] ?? unitMap.seconds}`;
-}
+import {
+  EmbedFactory,
+  CreateGuildResourceLocator,
+  ConvertDurationToMs,
+  FormatDuration,
+  DurationUnit,
+} from "../../Utilities";
+import { ModerationDatabase } from "@database";
 
 function ValidateTargetMember(
   targetMember: GuildMember | null | undefined,
-  interaction: ChatInputCommandInteraction,
+  interaction: ChatInputCommandInteraction
 ): asserts targetMember is GuildMember {
   if (!targetMember?.moderatable) {
     throw new Error(
-      "I cannot timeout this user. They may be the server owner or have higher permissions than me.",
+      "I cannot timeout this user. They may be the server owner or have higher permissions than me."
     );
   }
 
@@ -58,7 +37,7 @@ function ValidateTargetMember(
 
 async function ExecuteMute(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext,
+  context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const { logger } = context;
@@ -72,6 +51,7 @@ async function ExecuteMute(
   if (!interaction.guild) {
     throw new Error("This command can only be used in a server.");
   }
+  const guild = interaction.guild;
 
   const locator = CreateGuildResourceLocator({
     guild: interaction.guild,
@@ -80,7 +60,7 @@ async function ExecuteMute(
 
   if (subcommand === "set") {
     const length = interaction.options.getInteger("length", true);
-    const unit = interaction.options.getString("unit", true);
+    const unit = interaction.options.getString("unit", true) as DurationUnit;
 
     const durationMs = ConvertDurationToMs(length, unit);
     const maxDuration = 28 * 24 * 60 * 60 * 1000;
@@ -141,6 +121,22 @@ async function ExecuteMute(
 
         await targetMember.timeout(durationMs, reason);
 
+        const db = new ModerationDatabase(
+          context.logger.Child({ phase: "db" })
+        );
+        try {
+          db.AddTempAction({
+            action: "mute",
+            guild_id: guild.id,
+            user_id: targetUser.id,
+            moderator_id: interaction.user.id,
+            reason,
+            expires_at: Date.now() + durationMs,
+          });
+        } finally {
+          db.Close();
+        }
+
         if (notify) {
           interactionResponder
             .SendDm(
@@ -149,7 +145,7 @@ async function ExecuteMute(
                 interaction.guild?.name ?? "this server"
               } for ${FormatDuration(length, unit)}${
                 reason ? `: ${reason}` : ""
-              }`,
+              }`
             )
             .then(
               () => {},
@@ -159,7 +155,7 @@ async function ExecuteMute(
                   userId: targetUser.id,
                   reason: "User may have DMs disabled or the bot blocked",
                 });
-              },
+              }
             );
         }
       },
@@ -205,6 +201,11 @@ async function ExecuteMute(
           throw new Error("User is not a member of this server.");
         }
 
+        const muteExpiresAt = targetMember.communicationDisabledUntilTimestamp;
+        if (!muteExpiresAt || muteExpiresAt <= Date.now()) {
+          throw new Error("User is not currently muted.");
+        }
+
         await targetMember.timeout(null, reason || "Mute cleared");
 
         if (notify) {
@@ -213,7 +214,7 @@ async function ExecuteMute(
               targetUser,
               `Your mute has been removed in ${
                 interaction.guild?.name ?? "this server"
-              }${reason ? `: ${reason}` : ""}`,
+              }${reason ? `: ${reason}` : ""}`
             )
             .then(
               () => {},
@@ -223,7 +224,7 @@ async function ExecuteMute(
                   userId: targetUser.id,
                   reason: "User may have DMs disabled or the bot blocked",
                 });
-              },
+              }
             );
         }
       },
@@ -245,14 +246,20 @@ export const MuteCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("The user to mute")
-              .setRequired(true),
+              .setRequired(true)
+          )
+          .addStringOption((option) =>
+            option
+              .setName("reason")
+              .setDescription("Reason for muting")
+              .setRequired(true)
           )
           .addIntegerOption((option) =>
             option
               .setName("length")
               .setDescription("Duration length")
               .setRequired(true)
-              .setMinValue(1),
+              .setMinValue(1)
           )
           .addStringOption((option) =>
             option
@@ -263,20 +270,14 @@ export const MuteCommand = CreateCommand({
                 { name: "Seconds", value: "seconds" },
                 { name: "Minutes", value: "minutes" },
                 { name: "Hours", value: "hours" },
-                { name: "Days", value: "days" },
-              ),
-          )
-          .addStringOption((option) =>
-            option
-              .setName("reason")
-              .setDescription("Reason for muting")
-              .setRequired(false),
+                { name: "Days", value: "days" }
+              )
           )
           .addBooleanOption((option) =>
             option
               .setName("notify")
-              .setDescription("Send DM notification to user"),
-          ),
+              .setDescription("Send DM notification to user")
+          )
       )
       .addSubcommand((subcommand) =>
         subcommand
@@ -286,19 +287,19 @@ export const MuteCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("The user to unmute")
-              .setRequired(true),
+              .setRequired(true)
           )
           .addStringOption((option) =>
             option
               .setName("reason")
               .setDescription("Reason for removing timeout")
-              .setRequired(false),
+              .setRequired(false)
           )
           .addBooleanOption((option) =>
             option
               .setName("notify")
-              .setDescription("Send DM notification to user"),
-          ),
+              .setDescription("Send DM notification to user")
+          )
       );
   },
   middleware: {
