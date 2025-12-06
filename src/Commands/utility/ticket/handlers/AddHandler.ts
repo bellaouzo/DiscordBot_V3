@@ -39,8 +39,12 @@ export async function HandleTicketAdd(
   if (
     !ticketManager.CanUserAddParticipants(ticket, interaction.user.id, member)
   ) {
+    const embed = EmbedFactory.CreateError({
+      title: "Permission Denied",
+      description: "You don't have permission to add users to this ticket.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "You don't have permission to add users to this ticket.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return;

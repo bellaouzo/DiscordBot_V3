@@ -7,6 +7,7 @@ import {
 } from "../../../../Utilities";
 import { Logger } from "../../../../Shared/Logger";
 import { InteractionResponder } from "../../../../Responders";
+import { EmbedFactory } from "../../../../Utilities";
 
 export function HasStaffPermissions(member: GuildMemberOrAPI): boolean {
   if (!member || typeof member.permissions === "string") {
@@ -19,7 +20,7 @@ export function HasStaffPermissions(member: GuildMemberOrAPI): boolean {
 }
 
 export function ValidateTicketChannel(
-  channel: ChatInputCommandInteraction["channel"],
+  channel: ChatInputCommandInteraction["channel"]
 ): boolean {
   return !!(channel && channel.isTextBased());
 }
@@ -41,11 +42,15 @@ export function CreateTicketServices(logger: Logger, guild: Guild) {
 
 export async function ValidateGuildOrReply(
   interaction: ChatInputCommandInteraction,
-  interactionResponder: InteractionResponder,
+  interactionResponder: InteractionResponder
 ): Promise<boolean> {
   if (!interaction.guild) {
+    const embed = EmbedFactory.CreateError({
+      title: "Guild Only",
+      description: "This command can only be used in a server.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "This command can only be used in a server.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return false;
@@ -55,11 +60,15 @@ export async function ValidateGuildOrReply(
 
 export async function ValidateTicketChannelOrReply(
   interaction: ChatInputCommandInteraction,
-  interactionResponder: InteractionResponder,
+  interactionResponder: InteractionResponder
 ): Promise<boolean> {
   if (!interaction.guild || !ValidateTicketChannel(interaction.channel)) {
+    const embed = EmbedFactory.CreateError({
+      title: "Ticket Channel Only",
+      description: "This command can only be used in a ticket channel.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "This command can only be used in a ticket channel.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return false;
@@ -71,12 +80,16 @@ export async function GetTicketOrReply(
   ticketDb: TicketDatabase,
   channel: TextChannel,
   interaction: ChatInputCommandInteraction,
-  interactionResponder: InteractionResponder,
+  interactionResponder: InteractionResponder
 ): Promise<Ticket | null> {
   const ticket = ticketDb.GetTicketByChannel(channel.id);
   if (!ticket) {
+    const embed = EmbedFactory.CreateError({
+      title: "Not a Ticket",
+      description: "This channel is not a ticket.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "This channel is not a ticket.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
   }

@@ -19,8 +19,12 @@ export async function HandleTicketClaim(
     return;
 
   if (!HasStaffPermissions(interaction.member)) {
+    const embed = EmbedFactory.CreateError({
+      title: "Permission Required",
+      description: "You need staff permissions to claim tickets.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "You need staff permissions to claim tickets.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return;
@@ -43,8 +47,12 @@ export async function HandleTicketClaim(
   );
 
   if (success) {
+    const replyEmbed = EmbedFactory.CreateSuccess({
+      title: "Ticket Claimed",
+      description: `Ticket claimed by ${interaction.user.tag}.`,
+    });
     await interactionResponder.Reply(interaction, {
-      content: `Ticket claimed by ${interaction.user.tag}.`,
+      embeds: [replyEmbed.toJSON()],
     });
 
     const embed = EmbedFactory.CreateTicketClaimed(
@@ -57,8 +65,12 @@ export async function HandleTicketClaim(
       });
     }
   } else {
+    const embed = EmbedFactory.CreateError({
+      title: "Claim Failed",
+      description: "Failed to claim ticket.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "Failed to claim ticket.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
   }

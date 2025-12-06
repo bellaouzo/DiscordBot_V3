@@ -14,7 +14,7 @@ import { Logger } from "../../../../Shared/Logger";
 
 export async function HandleTicketClose(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext,
+  context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const { logger } = context;
@@ -28,7 +28,7 @@ export async function HandleTicketClose(
     ticketDb,
     interaction.channel as TextChannel,
     interaction,
-    interactionResponder,
+    interactionResponder
   );
 
   if (!ticket) return;
@@ -62,11 +62,16 @@ export async function HandleTicketClose(
     transcript,
     filename,
     `Ticket #${ticket.id} closed by <@${interaction.user.id}>`,
-    logger,
+    logger
   );
 
+  const replyEmbed = EmbedFactory.CreateSuccess({
+    title: "Ticket Closed",
+    description: "Ticket closed successfully.",
+  });
+
   await interactionResponder.Reply(interaction, {
-    content: "Ticket closed successfully.",
+    embeds: [replyEmbed.toJSON()],
   });
 
   await ticketManager.CloseTicket(ticket.id, interaction.user.id, false);
@@ -77,13 +82,17 @@ async function SendTicketLogs(
   transcript: string,
   filename: string,
   message: string,
-  logger: Logger,
+  logger: Logger
 ): Promise<void> {
   try {
     const logsChannel = await ticketManager.GetOrCreateTicketLogsChannel();
     if (logsChannel) {
+      const embed = EmbedFactory.CreateSuccess({
+        title: "Ticket Closed",
+        description: message,
+      });
       await logsChannel.send({
-        content: message,
+        embeds: [embed.toJSON()],
         files: [
           { name: filename, attachment: Buffer.from(transcript, "utf-8") },
         ],

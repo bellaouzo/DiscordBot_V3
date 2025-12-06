@@ -1,5 +1,5 @@
 import { CreateCommand } from "..";
-import { ChatInputCommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction, User } from "discord.js";
 import { CommandContext } from "../CommandFactory";
 import { LoggingMiddleware } from "../Middleware/LoggingMiddleware";
 import { PermissionMiddleware } from "../Middleware/PermissionMiddleware";
@@ -14,13 +14,35 @@ async function ExecuteBan(
   const { interactionResponder } = context.responders;
   const { logger } = context;
 
-  const targetUser = interaction.options.getUser("user", true);
+  const targetUser = interaction.options.getUser("user");
+  const targetUserId =
+    targetUser?.id ?? interaction.options.getString("user_id");
   const reason =
     interaction.options.getString("reason") ?? "No reason provided";
   const notify = interaction.options.getBoolean("notify") ?? false;
 
   if (!interaction.guild) {
-    throw new Error("This command can only be used in a server.");
+    const embed = EmbedFactory.CreateError({
+      title: "Guild Only",
+      description: "This command can only be used in a server.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
+
+  if (!targetUserId) {
+    const embed = EmbedFactory.CreateError({
+      title: "Missing User",
+      description: "You must provide a user or a user ID to ban.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
   }
 
   const locator = CreateGuildResourceLocator({
@@ -28,20 +50,39 @@ async function ExecuteBan(
     logger,
   });
 
+  const targetMember = targetUser
+    ? await locator.GetMember(targetUser.id)
+    : null;
+
+  if (targetMember && !targetMember.bannable) {
+    const embed = EmbedFactory.CreateError({
+      title: "Cannot Ban User",
+      description:
+        "I cannot ban this user. They may have higher permissions than me.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
+
+  const displayName = targetUser?.tag ?? targetUserId;
+
   await interactionResponder.WithAction({
     interaction,
     message: {
       embeds: [
         EmbedFactory.Create({
           title: "Processing Ban",
-          description: `Banning **${targetUser.tag}**...`,
+          description: `Banning **${displayName}**...`,
         }).toJSON(),
       ],
     },
     followUp: () => {
       const embed = EmbedFactory.CreateSuccess({
         title: "User Banned",
-        description: `Successfully banned **${targetUser.username}**`,
+        description: `Successfully banned **${displayName}**`,
       });
 
       if (reason !== "No reason provided") {
@@ -51,22 +92,26 @@ async function ExecuteBan(
       return { embeds: [embed.toJSON()] };
     },
     action: async () => {
-      const targetMember = await locator.GetMember(targetUser.id);
-      if (!targetMember?.bannable) {
-        throw new Error(
-          "I cannot ban this user. They may have higher permissions than me."
-        );
-      }
-
-      await targetMember.ban({ reason: reason });
+      await interaction.guild?.bans.create(targetUserId, { reason });
 
       if (notify) {
-        await interactionResponder.SendDm(
-          targetUser,
-          `You have been banned from ${
-            interaction.guild?.name ?? "this server"
-          } for: ${reason}`
-        );
+        let userToNotify: User | null = targetUser ?? null;
+        if (!userToNotify) {
+          try {
+            userToNotify = await interaction.client.users.fetch(targetUserId);
+          } catch {
+            userToNotify = null;
+          }
+        }
+
+        if (userToNotify) {
+          await interactionResponder.SendDm(
+            userToNotify,
+            `You have been banned from ${
+              interaction.guild?.name ?? "this server"
+            } for: ${reason}`
+          );
+        }
       }
     },
   });
@@ -78,17 +123,24 @@ export const BanCommand = CreateCommand({
   group: "moderation",
   configure: (builder) => {
     builder
-      .addUserOption((option) =>
-        option
-          .setName("user")
-          .setDescription("The user to ban")
-          .setRequired(true)
-      )
+      // Required options must be defined before optional ones
       .addStringOption((option) =>
         option
           .setName("reason")
           .setDescription("Reason for banning")
           .setRequired(true)
+      )
+      .addUserOption((option) =>
+        option
+          .setName("user")
+          .setDescription("The user to ban (if in server)")
+          .setRequired(false)
+      )
+      .addStringOption((option) =>
+        option
+          .setName("user_id")
+          .setDescription("Ban by user ID (not in server)")
+          .setRequired(false)
       )
       .addBooleanOption((option) =>
         option.setName("notify").setDescription("Send DM notification to user")

@@ -36,8 +36,12 @@ export async function HandleTicketCreate(
   const { logger } = context;
 
   if (!interaction.guild) {
+    const embed = EmbedFactory.CreateError({
+      title: "Guild Only",
+      description: "This command can only be used in a server.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "This command can only be used in a server.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return;
@@ -115,7 +119,12 @@ async function HandleTicketCategorySelection(
   if (!categoryInfo) {
     await selectInteraction.deferReply({ ephemeral: true });
     await selectInteraction.editReply({
-      content: "Invalid category selected.",
+      embeds: [
+        EmbedFactory.CreateError({
+          title: "Invalid Category",
+          description: "Invalid category selected.",
+        }).toJSON(),
+      ],
     });
     return;
   }
@@ -192,7 +201,12 @@ async function HandleTicketCategorySelection(
   } catch (error) {
     logger.Error("Failed to create ticket", { error });
     await selectInteraction.editReply({
-      content: "Failed to create ticket. Please try again later.",
+      embeds: [
+        EmbedFactory.CreateError({
+          title: "Ticket Creation Failed",
+          description: "Failed to create ticket. Please try again later.",
+        }).toJSON(),
+      ],
     });
   }
 }

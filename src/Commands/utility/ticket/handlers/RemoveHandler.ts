@@ -43,8 +43,13 @@ export async function HandleTicketRemove(
       member
     )
   ) {
+    const embed = EmbedFactory.CreateError({
+      title: "Permission Denied",
+      description:
+        "You don't have permission to remove users from this ticket.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "You don't have permission to remove users from this ticket.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return;
@@ -57,8 +62,12 @@ export async function HandleTicketRemove(
     .map((p) => p.user_id);
 
   if (participantIds.length === 0) {
+    const embed = EmbedFactory.CreateWarning({
+      title: "No Participants",
+      description: "There are no users to remove from this ticket.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "There are no users to remove from this ticket.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return;

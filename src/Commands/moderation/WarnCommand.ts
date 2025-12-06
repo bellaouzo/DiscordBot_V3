@@ -9,7 +9,7 @@ import { PermissionMiddleware } from "../Middleware/PermissionMiddleware";
 import { ErrorMiddleware } from "../Middleware/ErrorMiddleware";
 import { Config } from "../Middleware/CommandConfig";
 import { EmbedFactory, CreateWarnManager } from "../../Utilities";
-import { TicketDatabase } from "../../Database";
+import { UserDatabase } from "../../Database";
 
 function IsModerator(member: GuildMember | null): boolean {
   if (!member) return false;
@@ -30,10 +30,10 @@ async function ExecuteWarn(
     throw new Error("This command can only be used in a server.");
   }
 
-  const ticketDb = new TicketDatabase(context.logger);
+  const userDb = new UserDatabase(context.logger);
   const warnManager = CreateWarnManager({
     guildId: interaction.guild.id,
-    ticketDb,
+    userDb,
     logger: context.logger,
   });
 
@@ -57,7 +57,7 @@ async function ExecuteWarn(
       return;
     }
   } finally {
-    ticketDb.Close();
+    userDb.Close();
   }
 }
 
@@ -70,8 +70,12 @@ async function HandleAdd(
   const { interactionResponder } = context.responders;
 
   if (!isModerator) {
+    const embed = EmbedFactory.CreateError({
+      title: "Permission Denied",
+      description: "You do not have permission to warn users.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "You do not have permission to warn users.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return;
@@ -93,15 +97,13 @@ async function HandleAdd(
     footer: `Total warnings: ${totalWarnings}`,
   });
 
+  const warningNumber = totalWarnings;
+  embed.addFields([
+    { name: "Warning #", value: `${warningNumber}`, inline: true },
+  ]);
+
   if (warning.reason) {
-    embed.addFields([
-      { name: "Reason", value: warning.reason, inline: false },
-      { name: "Warning ID", value: `${warning.id}`, inline: true },
-    ]);
-  } else {
-    embed.addFields([
-      { name: "Warning ID", value: `${warning.id}`, inline: true },
-    ]);
+    embed.addFields([{ name: "Reason", value: warning.reason, inline: false }]);
   }
 
   await interactionResponder.Reply(interaction, {
@@ -119,8 +121,12 @@ async function HandleRemove(
   const { interactionResponder } = context.responders;
 
   if (!isModerator) {
+    const embed = EmbedFactory.CreateError({
+      title: "Permission Denied",
+      description: "You do not have permission to remove warnings.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "You do not have permission to remove warnings.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return;
@@ -130,27 +136,30 @@ async function HandleRemove(
   const warningId = interaction.options.getInteger("warning_id");
 
   if (warningId) {
-    const warning = warnManager.GetWarningById(warningId);
-    if (!warning) {
+    const warnings = warnManager.GetUserWarnings(targetUser.id);
+
+    if (warningId < 1 || warningId > warnings.length) {
+      const embed = EmbedFactory.CreateWarning({
+        title: "Warning Not Found",
+        description: `No warning found with number ${warningId}.`,
+      });
       await interactionResponder.Reply(interaction, {
-        content: `No warning found with ID ${warningId}.`,
+        embeds: [embed.toJSON()],
         ephemeral: true,
       });
       return;
     }
 
-    if (warning.user_id !== targetUser.id) {
-      await interactionResponder.Reply(interaction, {
-        content: "That warning does not belong to the specified user.",
-        ephemeral: true,
-      });
-      return;
-    }
+    const warning = warnings[warningId - 1];
 
-    const removed = warnManager.RemoveWarningById(warningId);
+    const removed = warnManager.RemoveWarningById(warning.id);
     if (!removed) {
+      const embed = EmbedFactory.CreateError({
+        title: "Removal Failed",
+        description: "Failed to remove the warning.",
+      });
       await interactionResponder.Reply(interaction, {
-        content: "Failed to remove the warning.",
+        embeds: [embed.toJSON()],
         ephemeral: true,
       });
       return;
@@ -170,8 +179,12 @@ async function HandleRemove(
 
   const removedWarning = warnManager.RemoveLatestWarning(targetUser.id);
   if (!removedWarning) {
+    const embed = EmbedFactory.CreateWarning({
+      title: "No Warnings",
+      description: `${targetUser.tag} has no warnings to remove.`,
+    });
     await interactionResponder.Reply(interaction, {
-      content: `${targetUser.tag} has no warnings to remove.`,
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return;
@@ -182,9 +195,7 @@ async function HandleRemove(
     description: `Removed latest warning for **${targetUser.tag}**.`,
   });
 
-  embed.addFields([
-    { name: "Warning ID", value: `${removedWarning.id}`, inline: true },
-  ]);
+  embed.addFields([{ name: "Warning #", value: "1 (latest)", inline: true }]);
 
   await interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
@@ -202,8 +213,12 @@ async function HandleList(
   const targetUser = interaction.options.getUser("user") ?? interaction.user;
 
   if (targetUser.id !== interaction.user.id && !isModerator) {
+    const embed = EmbedFactory.CreateError({
+      title: "Permission Denied",
+      description: "You can only view your own warnings.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "You can only view your own warnings.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return;
@@ -212,8 +227,12 @@ async function HandleList(
   const warnings = warnManager.GetUserWarnings(targetUser.id);
 
   if (warnings.length === 0) {
+    const embed = EmbedFactory.CreateWarning({
+      title: "No Warnings",
+      description: `${targetUser.tag} has no warnings.`,
+    });
     await interactionResponder.Reply(interaction, {
-      content: `${targetUser.tag} has no warnings.`,
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return;
@@ -223,10 +242,11 @@ async function HandleList(
     title: `Warnings for ${targetUser.tag}`,
     description: warnings
       .slice(0, 10)
-      .map((warning) => {
+      .map((warning, index) => {
         const date = new Date(warning.created_at).toLocaleDateString();
         const reason = warning.reason ?? "No reason provided";
-        return `• ID ${warning.id} — ${date} — Mod: <@${warning.moderator_id}>\n  Reason: ${reason}`;
+        const warningNumber = index + 1;
+        return `• Warning #${warningNumber} — ${date} — Mod: <@${warning.moderator_id}>\n  Reason: ${reason}`;
       })
       .join("\n\n"),
     footer:
@@ -278,7 +298,7 @@ export const WarnCommand = CreateCommand({
             option
               .setName("warning_id")
               .setDescription(
-                "Specific warning ID to remove (latest if omitted)"
+                "Specific warning number to remove (latest if omitted)"
               )
               .setRequired(false)
           )

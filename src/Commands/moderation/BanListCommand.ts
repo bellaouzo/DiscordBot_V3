@@ -16,7 +16,15 @@ async function ExecuteBanList(
   const subcommand = interaction.options.getSubcommand(false) ?? "list";
 
   if (!interaction.guild) {
-    throw new Error("This command can only be used in a server.");
+    const embed = EmbedFactory.CreateError({
+      title: "Guild Only",
+      description: "This command can only be used in a server.",
+    });
+    await context.responders.interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
   }
 
   if (subcommand === "check") {
@@ -38,8 +46,12 @@ async function ExecuteBanListPages(
     const banEntries = Array.from(bans.values());
 
     if (banEntries.length === 0) {
+      const embed = EmbedFactory.CreateWarning({
+        title: "Ban List Empty",
+        description: "There are no banned users for this server.",
+      });
       await interactionResponder.Reply(interaction, {
-        content: "There are no banned users for this server.",
+        embeds: [embed.toJSON()],
         ephemeral: true,
       });
       return;
@@ -74,8 +86,12 @@ async function ExecuteBanCheck(
     const ban = bans.get(userId);
 
     if (!ban) {
+      const embed = EmbedFactory.CreateWarning({
+        title: "User Not Banned",
+        description: `User \`${userId}\` is **not** banned.`,
+      });
       await interactionResponder.Reply(interaction, {
-        content: `User \`${userId}\` is **not** banned.`,
+        embeds: [embed.toJSON()],
         ephemeral: true,
       });
       return;

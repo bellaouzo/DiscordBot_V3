@@ -16,8 +16,12 @@ export async function HandleTicketList(
   const { logger } = context;
 
   if (!interaction.guild) {
+    const embed = EmbedFactory.CreateError({
+      title: "Guild Only",
+      description: "This command can only be used in a server.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "This command can only be used in a server.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return;
@@ -60,7 +64,6 @@ export async function HandleTicketList(
 
   const firstPage = CreateTicketListPage(tickets, 0, pageSize, totalPages);
   await interactionResponder.Reply(interaction, {
-    content: firstPage.content,
     embeds: firstPage.embeds,
     components: firstPage.components,
     ephemeral: true,

@@ -1,9 +1,9 @@
-import { TicketDatabase, Warning } from "../Database";
+import { UserDatabase, Warning } from "../Database";
 import { Logger } from "../Shared/Logger";
 
 export interface WarnManagerOptions {
   readonly guildId: string;
-  readonly ticketDb: TicketDatabase;
+  readonly userDb: UserDatabase;
   readonly logger: Logger;
 }
 
@@ -16,7 +16,7 @@ export class WarnManager {
     reason?: string | null;
   }): Warning {
     try {
-      return this.options.ticketDb.AddWarning({
+      return this.options.userDb.AddWarning({
         user_id: data.userId,
         guild_id: this.options.guildId,
         moderator_id: data.moderatorId,
@@ -32,15 +32,11 @@ export class WarnManager {
   }
 
   GetUserWarnings(userId: string, limit?: number): Warning[] {
-    return this.options.ticketDb.GetWarnings(
-      userId,
-      this.options.guildId,
-      limit
-    );
+    return this.options.userDb.GetWarnings(userId, this.options.guildId, limit);
   }
 
   CountWarnings(userId: string): number {
-    const warnings = this.options.ticketDb.GetWarnings(
+    const warnings = this.options.userDb.GetWarnings(
       userId,
       this.options.guildId
     );
@@ -48,21 +44,18 @@ export class WarnManager {
   }
 
   GetWarningById(warningId: number): Warning | null {
-    return this.options.ticketDb.GetWarningById(
-      warningId,
-      this.options.guildId
-    );
+    return this.options.userDb.GetWarningById(warningId, this.options.guildId);
   }
 
   RemoveWarningById(warningId: number): boolean {
-    return this.options.ticketDb.RemoveWarningById(
+    return this.options.userDb.RemoveWarningById(
       warningId,
       this.options.guildId
     );
   }
 
   RemoveLatestWarning(userId: string): Warning | null {
-    return this.options.ticketDb.RemoveLatestWarning(
+    return this.options.userDb.RemoveLatestWarning(
       userId,
       this.options.guildId
     );

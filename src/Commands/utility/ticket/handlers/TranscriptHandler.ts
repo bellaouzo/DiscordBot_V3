@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, TextChannel } from "discord.js";
 import { CommandContext } from "../../../CommandFactory";
-import { TranscriptGenerator } from "../../../../Utilities";
+import { EmbedFactory, TranscriptGenerator } from "../../../../Utilities";
 import {
   CreateTicketServices,
   ValidateTicketChannelOrReply,
@@ -19,8 +19,12 @@ export async function HandleTicketTranscript(
     return;
 
   if (!HasStaffPermissions(interaction.member)) {
+    const embed = EmbedFactory.CreateError({
+      title: "Permission Required",
+      description: "You need staff permissions to generate transcripts.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "You need staff permissions to generate transcripts.",
+      embeds: [embed.toJSON()],
       ephemeral: true,
     });
     return;
@@ -56,18 +60,30 @@ export async function HandleTicketTranscript(
   const logsChannel = await ticketManager.GetOrCreateTicketLogsChannel();
 
   if (logsChannel) {
+    const logEmbed = EmbedFactory.CreateSuccess({
+      title: "Ticket Transcript",
+      description: `Transcript for Ticket #${ticket.id}`,
+    });
     await logsChannel.send({
-      content: `Transcript for Ticket #${ticket.id}`,
+      embeds: [logEmbed.toJSON()],
       files: [{ name: filename, attachment: Buffer.from(transcript, "utf-8") }],
     });
 
+    const replyEmbed = EmbedFactory.CreateSuccess({
+      title: "Transcript Generated",
+      description: "Transcript generated and sent to ticket-logs channel.",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "Transcript generated and sent to ticket-logs channel.",
+      embeds: [replyEmbed.toJSON()],
       ephemeral: true,
     });
   } else {
+    const replyEmbed = EmbedFactory.CreateWarning({
+      title: "Transcript Generated",
+      description: "Generated ticket transcript:",
+    });
     await interactionResponder.Reply(interaction, {
-      content: "Generated ticket transcript:",
+      embeds: [replyEmbed.toJSON()],
       files: [{ name: filename, attachment: Buffer.from(transcript, "utf-8") }],
       ephemeral: true,
     });

@@ -3,7 +3,11 @@ import { ComponentRouter } from "../../../../Shared/ComponentRouter";
 import { ButtonResponder } from "../../../../Responders";
 import { TicketDatabase, Ticket } from "../../../../Database";
 import { Logger } from "../../../../Shared/Logger";
-import { ComponentFactory, CreateTicketManager } from "../../../../Utilities";
+import {
+  ComponentFactory,
+  CreateTicketManager,
+  EmbedFactory,
+} from "../../../../Utilities";
 import { UserSelectMenuRouter } from "../../../../Shared/UserSelectMenuRouter";
 import { BUTTON_EXPIRATION_MS } from "../types/TicketTypes";
 import { HandleUserRemoval } from "../components/UserSelectionMenu";
@@ -52,7 +56,12 @@ export async function RegisterRemoveUserButton(
 
       if (participantIds.length === 0) {
         await buttonResponder.FollowUp(buttonInteraction, {
-          content: "There are no users to remove from this ticket.",
+          embeds: [
+            EmbedFactory.CreateWarning({
+              title: "No Participants",
+              description: "There are no users to remove from this ticket.",
+            }).toJSON(),
+          ],
           ephemeral: true,
         });
         return;
@@ -78,7 +87,12 @@ export async function RegisterRemoveUserButton(
       const row = ComponentFactory.CreateUserSelectMenuRow(userSelectMenu);
 
       await buttonInteraction.followUp({
-        content: "Select users to remove from this ticket:",
+        embeds: [
+          EmbedFactory.Create({
+            title: "Remove Participants",
+            description: "Select users to remove from this ticket:",
+          }).toJSON(),
+        ],
         components: [row.toJSON()],
         ephemeral: true,
       });
