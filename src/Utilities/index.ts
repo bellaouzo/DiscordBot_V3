@@ -5,3 +5,4 @@ export * from "./TicketManager";
 export * from "./TranscriptGenerator";
 export * from "./ChannelManager";
 export * from "./DiscordLogger";
+export * from "./WarnManager";
