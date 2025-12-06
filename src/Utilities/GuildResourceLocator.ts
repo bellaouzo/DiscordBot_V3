@@ -9,7 +9,7 @@ import {
   TextChannel,
   VoiceChannel,
 } from "discord.js";
-import { Logger } from "../Shared/Logger";
+import { Logger } from "@shared/Logger";
 
 interface CacheEntry<T> {
   readonly value: T;
@@ -99,7 +99,7 @@ export interface GuildResourceLocator {
 }
 
 export function CreateGuildResourceLocator(
-  options: GuildResourceLocatorOptions,
+  options: GuildResourceLocatorOptions
 ): GuildResourceLocator {
   const cacheTtl = options.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
   const channelCache = new ResourceCache<GuildBasedChannel>(cacheTtl);
@@ -114,17 +114,17 @@ export function CreateGuildResourceLocator(
     GetTextChannel: async (id) =>
       _FilterChannel(
         await _FetchChannel(options.guild, channelCache, options.logger, id),
-        ChannelType.GuildText,
+        ChannelType.GuildText
       ) as TextChannel | null,
     GetVoiceChannel: async (id) =>
       _FilterChannel(
         await _FetchChannel(options.guild, channelCache, options.logger, id),
-        ChannelType.GuildVoice,
+        ChannelType.GuildVoice
       ) as VoiceChannel | null,
     GetCategoryChannel: async (id) =>
       _FilterChannel(
         await _FetchChannel(options.guild, channelCache, options.logger, id),
-        ChannelType.GuildCategory,
+        ChannelType.GuildCategory
       ) as CategoryChannel | null,
     GetRole: (id) => _FetchRole(options.guild, roleCache, options.logger, id),
     GetRoleByName: (name) =>
@@ -134,25 +134,25 @@ export function CreateGuildResourceLocator(
     EnsureChannel: async (id) =>
       _EnsureResource(
         await _FetchChannel(options.guild, channelCache, options.logger, id),
-        `Channel ${id} was not found in guild ${options.guild.id}`,
+        `Channel ${id} was not found in guild ${options.guild.id}`
       ),
     EnsureTextChannel: async (id) =>
       _EnsureResource(
         await _FilterChannel(
           await _FetchChannel(options.guild, channelCache, options.logger, id),
-          ChannelType.GuildText,
+          ChannelType.GuildText
         ),
-        `Text channel ${id} was not found in guild ${options.guild.id}`,
+        `Text channel ${id} was not found in guild ${options.guild.id}`
       ) as TextChannel,
     EnsureRole: async (id) =>
       _EnsureResource(
         await _FetchRole(options.guild, roleCache, options.logger, id),
-        `Role ${id} was not found in guild ${options.guild.id}`,
+        `Role ${id} was not found in guild ${options.guild.id}`
       ),
     EnsureMember: async (id) =>
       _EnsureResource(
         await _FetchMember(options.guild, memberCache, options.logger, id),
-        `Member ${id} was not found in guild ${options.guild.id}`,
+        `Member ${id} was not found in guild ${options.guild.id}`
       ),
   };
 }
@@ -161,7 +161,7 @@ async function _FetchChannel(
   guild: Guild,
   cache: ResourceCache<GuildBasedChannel>,
   logger: Logger | undefined,
-  id: Snowflake,
+  id: Snowflake
 ): Promise<GuildBasedChannel | null> {
   const cached = cache.Get(id);
   if (cached) {
@@ -190,7 +190,7 @@ async function _FetchChannelByName(
   guild: Guild,
   cache: ResourceCache<GuildBasedChannel>,
   logger: Logger | undefined,
-  name: string,
+  name: string
 ): Promise<GuildBasedChannel | null> {
   const normalized = name.toLowerCase();
 
@@ -215,7 +215,7 @@ async function _FetchChannelByName(
     }
 
     const matchId = Array.from(allChannels.entries()).find(
-      ([, channel]) => channel === match,
+      ([, channel]) => channel === match
     )?.[0];
     if (matchId) {
       cache.Set(matchId, match);
@@ -235,7 +235,7 @@ async function _FetchRole(
   guild: Guild,
   cache: ResourceCache<Role>,
   logger: Logger | undefined,
-  id: Snowflake,
+  id: Snowflake
 ): Promise<Role | null> {
   const cached = cache.Get(id);
   if (cached) {
@@ -270,7 +270,7 @@ async function _FetchRoleByName(
   guild: Guild,
   cache: ResourceCache<Role>,
   logger: Logger | undefined,
-  name: string,
+  name: string
 ): Promise<Role | null> {
   const normalized = name.toLowerCase();
 
@@ -282,14 +282,14 @@ async function _FetchRoleByName(
   try {
     const allRoles = await guild.roles.fetch();
     const match = Array.from(allRoles.values()).find(
-      (role) => role.name.toLowerCase() === normalized,
+      (role) => role.name.toLowerCase() === normalized
     );
     if (!match) {
       return null;
     }
 
     const matchId = Array.from(allRoles.entries()).find(
-      ([, role]) => role === match,
+      ([, role]) => role === match
     )?.[0];
     if (matchId) {
       cache.Set(matchId, match);
@@ -309,7 +309,7 @@ async function _FetchMember(
   guild: Guild,
   cache: ResourceCache<GuildMember>,
   logger: Logger | undefined,
-  id: Snowflake,
+  id: Snowflake
 ): Promise<GuildMember | null> {
   const cached = cache.Get(id);
   if (cached) {
@@ -342,7 +342,7 @@ async function _FetchMember(
 
 function _FilterChannel(
   channel: GuildBasedChannel | null,
-  expectedType: ChannelType,
+  expectedType: ChannelType
 ): GuildBasedChannel | null {
   if (!channel) {
     return null;

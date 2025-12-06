@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import * as fs from "fs";
 import { join } from "path";
-import { Logger } from "../Shared/Logger";
+import { Logger } from "@shared/Logger";
 
 export type TempActionType = "ban" | "mute";
 

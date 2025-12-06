@@ -1,6 +1,6 @@
 import Database from "better-sqlite3";
 import * as fs from "fs";
-import { Logger } from "../Shared/Logger";
+import { Logger } from "@shared/Logger";
 import { join } from "path";
 
 export interface Ticket {

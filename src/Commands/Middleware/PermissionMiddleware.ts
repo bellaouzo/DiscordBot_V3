@@ -8,7 +8,7 @@ import { CommandMiddleware } from "./index";
 import { ResponderSet } from "@responders";
 import { CreateErrorMessage } from "@responders/MessageFactory";
 import { CreateGuildResourceLocator } from "@utilities/GuildResourceLocator";
-import { CommandConfig } from "./CommandConfig";
+import { CommandConfig } from "@commands/Middleware/CommandConfig";
 import { Logger } from "@shared/Logger";
 
 async function SendPermissionError(

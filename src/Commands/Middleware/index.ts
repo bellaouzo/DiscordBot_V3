@@ -1,8 +1,8 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { CommandDefinition } from "../CommandFactory";
+import { CommandDefinition } from "@commands/CommandFactory";
 import { Logger } from "@shared/Logger";
 import { ResponderSet } from "@responders";
-import { CommandConfig } from "./CommandConfig";
+import { CommandConfig } from "@commands/Middleware/CommandConfig";
 
 export interface MiddlewareContext {
   readonly interaction: ChatInputCommandInteraction;

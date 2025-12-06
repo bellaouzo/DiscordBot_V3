@@ -7,7 +7,10 @@ import {
 import { ComponentRouter } from "@shared/ComponentRouter";
 import { ButtonResponder } from "@responders";
 import { EmbedFactory, ComponentFactory } from "@utilities";
-import { TicketInfo, TicketListPage } from "../types/TicketTypes";
+import {
+  TicketInfo,
+  TicketListPage,
+} from "@commands/utility/ticket/types/TicketTypes";
 
 export function CreateTicketListPage(
   tickets: TicketInfo[],

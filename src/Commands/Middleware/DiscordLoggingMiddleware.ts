@@ -1,8 +1,5 @@
 import { CommandMiddleware } from "./index";
-import {
-  CreateDiscordLogger,
-  DiscordLogger,
-} from "../../Utilities/DiscordLogger";
+import { CreateDiscordLogger, DiscordLogger } from "@utilities/DiscordLogger";
 import { Guild } from "discord.js";
 
 let discordLogger: DiscordLogger | null = null;
@@ -33,7 +30,7 @@ export const DiscordLoggingMiddleware: CommandMiddleware = {
 
       await discordLogger.LogCommandExecution(
         context.interaction,
-        context.command,
+        context.command
       );
     } catch (error) {
       context.logger.Error("Discord logging middleware failed", {

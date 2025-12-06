@@ -11,7 +11,7 @@ export interface CommandContext {
 
 export type CommandExecutor = (
   interaction: ChatInputCommandInteraction,
-  context: CommandContext,
+  context: CommandContext
 ) => Promise<void>;
 
 export interface CommandDefinition {
@@ -33,7 +33,7 @@ export interface CommandFactoryOptions {
 }
 
 export function CreateCommand(
-  options: CommandFactoryOptions,
+  options: CommandFactoryOptions
 ): CommandDefinition {
   const data = new SlashCommandBuilder()
     .setName(options.name)

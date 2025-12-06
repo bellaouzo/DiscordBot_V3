@@ -123,7 +123,11 @@ async function ExecuteBan(
 
       if (durationMs > 0 && length && unit) {
         embed.addFields([
-          { name: "Duration", value: FormatDuration(length, unit), inline: true },
+          {
+            name: "Duration",
+            value: FormatDuration(length, unit),
+            inline: true,
+          },
           {
             name: "Expires",
             value: `<t:${Math.floor((Date.now() + durationMs) / 1000)}:R>`,

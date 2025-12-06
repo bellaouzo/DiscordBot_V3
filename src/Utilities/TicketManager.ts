@@ -10,14 +10,14 @@ import {
   ButtonStyle,
   ChannelType,
 } from "discord.js";
-import { TicketDatabase, Ticket, TICKET_CATEGORIES } from "../Database";
-import { Logger } from "../Shared/Logger";
+import { TicketDatabase, Ticket, TICKET_CATEGORIES } from "@database";
+import { Logger } from "@shared/Logger";
 import {
   EmbedFactory,
   ComponentFactory,
   CreateChannelManager,
   GuildResourceLocator,
-} from "./";
+} from "@utilities";
 
 export interface TicketManagerOptions {
   readonly guild: Guild;

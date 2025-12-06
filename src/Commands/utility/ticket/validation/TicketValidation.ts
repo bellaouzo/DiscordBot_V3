@@ -1,13 +1,10 @@
 import { ChatInputCommandInteraction, TextChannel, Guild } from "discord.js";
-import { GuildMemberOrAPI } from "../types/TicketTypes";
-import { TicketDatabase, Ticket } from "../../../../Database";
-import {
-  CreateTicketManager,
-  CreateGuildResourceLocator,
-} from "../../../../Utilities";
-import { Logger } from "../../../../Shared/Logger";
-import { InteractionResponder } from "../../../../Responders";
-import { EmbedFactory } from "../../../../Utilities";
+import { GuildMemberOrAPI } from "@commands/utility/ticket/types/TicketTypes";
+import { TicketDatabase, Ticket } from "@database";
+import { CreateTicketManager, CreateGuildResourceLocator } from "@utilities";
+import { Logger } from "@shared/Logger";
+import { InteractionResponder } from "@responders";
+import { EmbedFactory } from "@utilities";
 
 export function HasStaffPermissions(member: GuildMemberOrAPI): boolean {
   if (!member || typeof member.permissions === "string") {

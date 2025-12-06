@@ -3,13 +3,13 @@ import { CommandContext } from "@commands/CommandFactory";
 import {
   CreateTicketServices,
   ValidateGuildOrReply,
-} from "../validation/TicketValidation";
+} from "@commands/utility/ticket/validation/TicketValidation";
 import {
   EmbedFactory,
   TranscriptGenerator,
   CreateGuildResourceLocator,
 } from "@utilities";
-import { HasStaffPermissions } from "../validation/TicketValidation";
+import { HasStaffPermissions } from "@commands/utility/ticket/validation/TicketValidation";
 
 export async function HandleTicketReopen(
   interaction: ChatInputCommandInteraction,

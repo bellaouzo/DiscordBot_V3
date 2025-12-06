@@ -11,8 +11,8 @@ import {
   CreateTicketServices,
   ValidateTicketChannelOrReply,
   GetTicketOrReply,
-} from "../validation/TicketValidation";
-import { HandleUserRemoval } from "../components/UserSelectionMenu";
+} from "@commands/utility/ticket/validation/TicketValidation";
+import { HandleUserRemoval } from "@commands/utility/ticket/components/UserSelectionMenu";
 
 export async function HandleTicketRemove(
   interaction: ChatInputCommandInteraction,

@@ -6,15 +6,14 @@ import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { LoggingMiddleware, ErrorMiddleware } from "@middleware";
 import { Config } from "@middleware/CommandConfig";
 
-// Import all handlers
-import { HandleTicketCreate } from "./ticket/handlers/CreateHandler";
-import { HandleTicketList } from "./ticket/handlers/ListHandler";
-import { HandleTicketClose } from "./ticket/handlers/CloseHandler";
-import { HandleTicketClaim } from "./ticket/handlers/ClaimHandler";
-import { HandleTicketTranscript } from "./ticket/handlers/TranscriptHandler";
-import { HandleTicketAdd } from "./ticket/handlers/AddHandler";
-import { HandleTicketRemove } from "./ticket/handlers/RemoveHandler";
-import { HandleTicketReopen } from "./ticket/handlers/ReopenHandler";
+import { HandleTicketCreate } from "@commands/utility/ticket/handlers/CreateHandler";
+import { HandleTicketList } from "@commands/utility/ticket/handlers/ListHandler";
+import { HandleTicketClose } from "@commands/utility/ticket/handlers/CloseHandler";
+import { HandleTicketClaim } from "@commands/utility/ticket/handlers/ClaimHandler";
+import { HandleTicketTranscript } from "@commands/utility/ticket/handlers/TranscriptHandler";
+import { HandleTicketAdd } from "@commands/utility/ticket/handlers/AddHandler";
+import { HandleTicketRemove } from "@commands/utility/ticket/handlers/RemoveHandler";
+import { HandleTicketReopen } from "@commands/utility/ticket/handlers/ReopenHandler";
 
 async function ExecuteTicket(
   interaction: ChatInputCommandInteraction,

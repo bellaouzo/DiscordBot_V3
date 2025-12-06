@@ -1,5 +1,5 @@
-import { UserDatabase, Warning } from "../Database";
-import { Logger } from "../Shared/Logger";
+import { UserDatabase, Warning } from "@database";
+import { Logger } from "@shared/Logger";
 
 export interface WarnManagerOptions {
   readonly guildId: string;

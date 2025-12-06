@@ -1,10 +1,10 @@
 import { ButtonInteraction } from "discord.js";
-import { ComponentRouter } from "../../../../Shared/ComponentRouter";
-import { ButtonResponder } from "../../../../Responders";
-import { TicketDatabase, Ticket } from "../../../../Database";
-import { EmbedFactory } from "../../../../Utilities";
-import { HasStaffPermissions } from "../validation/TicketValidation";
-import { BUTTON_EXPIRATION_MS } from "../types/TicketTypes";
+import { ComponentRouter } from "@shared/ComponentRouter";
+import { ButtonResponder } from "@responders";
+import { TicketDatabase, Ticket } from "@database";
+import { EmbedFactory } from "@utilities";
+import { HasStaffPermissions } from "@commands/utility/ticket/validation/TicketValidation";
+import { BUTTON_EXPIRATION_MS } from "@commands/utility/ticket/types/TicketTypes";
 
 export async function RegisterClaimButton(
   componentRouter: ComponentRouter,

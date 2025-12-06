@@ -6,7 +6,7 @@ import {
   PermissionFlagsBits,
   OverwriteResolvable,
 } from "discord.js";
-import { Logger } from "../Shared/Logger";
+import { Logger } from "@shared/Logger";
 
 export interface ChannelManagerOptions {
   readonly guild: Guild;

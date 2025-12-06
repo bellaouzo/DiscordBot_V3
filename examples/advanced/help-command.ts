@@ -1,6 +1,9 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "../../src/Commands";
-import { LoggingMiddleware, ErrorMiddleware } from "../../src/Commands/Middleware/index";
+import {
+  LoggingMiddleware,
+  ErrorMiddleware,
+} from "../../src/Commands/Middleware/index";
 import { Config } from "../../src/Commands/Middleware/CommandConfig";
 import { PaginationPage } from "../../src/Shared/Paginator";
 import { AllCommands } from "../../src/Commands";
@@ -41,7 +44,7 @@ async function ExecuteHelp(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const { paginatedResponder, componentRouter } = context.responders;
+  const { paginatedResponder } = context.responders;
   const { logger } = context;
 
   try {
@@ -120,7 +123,13 @@ function CreateOptimizedPages(sections: HelpSection[]): PaginationPage[] {
   };
 
   const sectionPages: PaginationPage[] = sections.map((section) => ({
-    embeds: [EmbedFactory.CreateHelpSection(section.name, section.description, section.commands.length).toJSON()],
+    embeds: [
+      EmbedFactory.CreateHelpSection(
+        section.name,
+        section.description,
+        section.commands.length
+      ).toJSON(),
+    ],
   }));
 
   return [overviewPage, ...sectionPages];
