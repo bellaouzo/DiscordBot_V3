@@ -18,7 +18,29 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@commands": ["Commands/index"],
+      "@commands/*": ["Commands/*"],
+      "@middleware": ["Commands/Middleware/index"],
+      "@middleware/*": ["Commands/Middleware/*"],
+      "@bot": ["Bot/index"],
+      "@bot/*": ["Bot/*"],
+      "@database": ["Database/index"],
+      "@database/*": ["Database/*"],
+      "@utilities": ["Utilities/index"],
+      "@utilities/*": ["Utilities/*"],
+      "@shared": ["Shared/index"],
+      "@shared/*": ["Shared/*"],
+      "@responders": ["Responders/index"],
+      "@responders/*": ["Responders/*"],
+      "@events": ["Events/index"],
+      "@events/*": ["Events/*"],
+      "@config": ["Config/AppConfig"],
+      "@config/*": ["Config/*"],
+      "events": ["../node_modules/@types/node/events"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

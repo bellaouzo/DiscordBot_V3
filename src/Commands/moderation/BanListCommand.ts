@@ -1,11 +1,11 @@
 import { ChatInputCommandInteraction, GuildBan } from "discord.js";
-import { CommandContext, CreateCommand } from "../CommandFactory";
-import { LoggingMiddleware } from "../Middleware/LoggingMiddleware";
-import { PermissionMiddleware } from "../Middleware/PermissionMiddleware";
-import { ErrorMiddleware } from "../Middleware/ErrorMiddleware";
-import { Config } from "../Middleware/CommandConfig";
-import { EmbedFactory } from "../../Utilities";
-import { PaginationPage } from "../../Shared/Paginator";
+import { CommandContext, CreateCommand } from "@commands";
+import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
+import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
+import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
+import { Config } from "@middleware/CommandConfig";
+import { EmbedFactory } from "@utilities";
+import { PaginationPage } from "@shared/Paginator";
 
 const PAGE_SIZE = 10;
 

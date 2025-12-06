@@ -3,13 +3,13 @@ import {
   GuildMember,
   PermissionFlagsBits,
 } from "discord.js";
-import { CommandContext, CreateCommand } from "../CommandFactory";
-import { LoggingMiddleware } from "../Middleware/LoggingMiddleware";
-import { PermissionMiddleware } from "../Middleware/PermissionMiddleware";
-import { ErrorMiddleware } from "../Middleware/ErrorMiddleware";
-import { Config } from "../Middleware/CommandConfig";
-import { EmbedFactory, CreateWarnManager } from "../../Utilities";
-import { UserDatabase } from "../../Database";
+import { CommandContext, CreateCommand } from "@commands";
+import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
+import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
+import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
+import { Config } from "@middleware/CommandConfig";
+import { EmbedFactory, CreateWarnManager } from "@utilities";
+import { UserDatabase } from "@database";
 
 function IsModerator(member: GuildMember | null): boolean {
   if (!member) return false;

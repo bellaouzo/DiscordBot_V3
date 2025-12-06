@@ -1,11 +1,10 @@
-import { CreateCommand } from "..";
 import { ChatInputCommandInteraction, User } from "discord.js";
-import { CommandContext } from "../CommandFactory";
-import { LoggingMiddleware } from "../Middleware/LoggingMiddleware";
-import { PermissionMiddleware } from "../Middleware/PermissionMiddleware";
-import { ErrorMiddleware } from "../Middleware/ErrorMiddleware";
-import { Config } from "../Middleware/CommandConfig";
-import { CreateGuildResourceLocator, EmbedFactory } from "../../Utilities";
+import { CommandContext, CreateCommand } from "@commands";
+import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
+import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
+import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
+import { Config } from "@middleware/CommandConfig";
+import { CreateGuildResourceLocator, EmbedFactory } from "@utilities";
 
 async function ExecuteBan(
   interaction: ChatInputCommandInteraction,

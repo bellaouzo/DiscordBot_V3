@@ -20,7 +20,8 @@
   "license": "MIT",
   "dependencies": {
     "discord.js": "^14.14.1",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "module-alias": "^2.2.3"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
@@ -28,5 +29,16 @@
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.1",
     "typescript": "^5.3.2"
+  },
+  "_moduleAliases": {
+    "@commands": "dist/Commands",
+    "@middleware": "dist/Commands/Middleware",
+    "@bot": "dist/Bot",
+    "@database": "dist/Database",
+    "@utilities": "dist/Utilities",
+    "@shared": "dist/Shared",
+    "@responders": "dist/Responders",
+    "@events": "dist/Events",
+    "@config": "dist/Config"
   }
 }

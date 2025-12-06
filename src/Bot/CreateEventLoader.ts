@@ -1,7 +1,7 @@
 import { readdirSync } from "fs";
 import { join } from "path";
-import { EventDefinition } from "../Events";
-import { Logger } from "../Shared/Logger";
+import { EventDefinition } from "@events";
+import { Logger } from "@shared/Logger";
 
 export type EventLoader = () => Promise<EventDefinition[]>;
 
@@ -16,7 +16,7 @@ export function CreateEventLoader(logger: Logger): EventLoader {
         file.endsWith(".js") &&
         !file.includes("index.js") &&
         !file.includes("registry.js") &&
-        !file.includes("EventFactory.js"),
+        !file.includes("EventFactory.js")
     );
 
     for (const file of eventFiles) {
@@ -26,7 +26,7 @@ export function CreateEventLoader(logger: Logger): EventLoader {
 
         const eventExports = Object.values(module).filter(
           (exp) =>
-            exp && typeof exp === "object" && "name" in exp && "execute" in exp,
+            exp && typeof exp === "object" && "name" in exp && "execute" in exp
         ) as EventDefinition[];
 
         for (const event of eventExports) {

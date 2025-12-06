@@ -1,12 +1,13 @@
-import { CreateBot } from "./Bot/CreateBot";
-import { CreateCommandDeployer } from "./Bot/CreateCommandDeployer";
-import { CreateCommandLoader } from "./Bot/CreateCommandLoader";
-import { CreateCommandExecutor } from "./Bot/ExecuteCommand";
-import { CreateEventLoader } from "./Bot/CreateEventLoader";
-import { RegisterEvents } from "./Bot/RegisterEvents";
-import { LoadAppConfig } from "./Config/AppConfig";
-import { CreateConsoleLogger, Logger } from "./Shared/Logger";
-import { CreateResponders } from "./Responders";
+import "module-alias/register";
+import { CreateBot } from "@bot/CreateBot";
+import { CreateCommandDeployer } from "@bot/CreateCommandDeployer";
+import { CreateCommandLoader } from "@bot/CreateCommandLoader";
+import { CreateCommandExecutor } from "@bot/ExecuteCommand";
+import { CreateEventLoader } from "@bot/CreateEventLoader";
+import { RegisterEvents } from "@bot/RegisterEvents";
+import { LoadAppConfig } from "@config/AppConfig";
+import { CreateConsoleLogger, Logger } from "@shared/Logger";
+import { CreateResponders } from "@responders";
 import { RegisterInteractionHandlers } from "./interaction-handlers";
 
 async function Bootstrap(rootLogger: Logger): Promise<void> {
