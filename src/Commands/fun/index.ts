@@ -1,0 +1,5 @@
+export { QuoteCommand } from "./QuoteCommand";
+export { MemeCommand } from "./MemeCommand";
+export { JokeCommand } from "./JokeCommand";
+export { FactCommand } from "./FactCommand";
+export { TriviaCommand } from "./TriviaCommand";

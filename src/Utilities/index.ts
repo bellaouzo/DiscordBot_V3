@@ -7,3 +7,4 @@ export * from "./ChannelManager";
 export * from "./DiscordLogger";
 export * from "./WarnManager";
 export * from "./Duration";
+export * from "./ApiClient";
