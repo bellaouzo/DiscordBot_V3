@@ -5,8 +5,8 @@ import {
   ActionRowComponentData,
   UserSelectMenuInteraction,
 } from "discord.js";
-import { CommandContext } from "../../../CommandFactory";
-import { EmbedFactory, ComponentFactory } from "../../../../Utilities";
+import { CommandContext } from "@commands/CommandFactory";
+import { EmbedFactory, ComponentFactory } from "@utilities";
 import {
   CreateTicketServices,
   ValidateTicketChannelOrReply,

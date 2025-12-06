@@ -1,19 +1,19 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { CommandDefinition, CommandContext } from "../Commands";
-import { Logger } from "../Shared/Logger";
-import { ResponderSet } from "../Responders";
+import { CommandDefinition, CommandContext } from "@commands";
+import { Logger } from "@shared/Logger";
+import { ResponderSet } from "@responders";
 import {
   MiddlewareContext,
   RunMiddlewareChain,
   DiscordLoggingMiddleware,
-} from "../Commands/Middleware";
+} from "@middleware";
 
 export function CreateCommandExecutor() {
   return async (
     command: CommandDefinition,
     interaction: ChatInputCommandInteraction,
     responders: ResponderSet,
-    commandLogger: Logger,
+    commandLogger: Logger
   ): Promise<void> => {
     const middleware = command.middleware?.before ?? [];
     const afterMiddleware = [

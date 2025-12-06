@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, GuildMember } from "discord.js";
-import { CommandContext } from "../../../CommandFactory";
+import { CommandContext } from "@commands/CommandFactory";
 import {
   CreateTicketServices,
   ValidateGuildOrReply,

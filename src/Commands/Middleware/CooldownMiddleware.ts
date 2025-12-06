@@ -1,5 +1,5 @@
 import { CommandMiddleware } from "./index";
-import { CreateErrorMessage } from "../../Responders/MessageFactory";
+import { CreateErrorMessage } from "@responders/MessageFactory";
 
 const cooldowns = new Map<string, number>(); // Key: userId:commandName, Value: timestamp
 

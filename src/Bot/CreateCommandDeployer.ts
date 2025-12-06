@@ -1,6 +1,6 @@
 import { REST, Routes, SlashCommandBuilder } from "discord.js";
-import { Logger } from "../Shared/Logger";
-import { DeploymentConfig } from "../Config/AppConfig";
+import { Logger } from "@shared/Logger";
+import { DeploymentConfig } from "@config/AppConfig";
 
 export type CommandDeployer = (
   commands: SlashCommandBuilder[]

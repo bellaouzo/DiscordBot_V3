@@ -4,16 +4,17 @@ import {
   ActionRowData,
   ActionRowComponentData,
 } from "discord.js";
-import { ComponentRouter } from "../../../../Shared/ComponentRouter";
-import { ButtonResponder } from "../../../../Responders";
-import { TicketDatabase, Ticket } from "../../../../Database";
-import { Logger } from "../../../../Shared/Logger";
+import { ComponentRouter } from "@shared/ComponentRouter";
+import { ButtonResponder } from "@responders";
+import { TicketDatabase, Ticket } from "@database";
+import { Logger } from "@shared/Logger";
 import {
   EmbedFactory,
   ComponentFactory,
   CreateTicketManager,
-} from "../../../../Utilities";
-import { UserSelectMenuRouter } from "../../../../Shared/UserSelectMenuRouter";
+  GuildResourceLocator,
+} from "@utilities";
+import { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
 import { BUTTON_EXPIRATION_MS } from "../types/TicketTypes";
 import { HandleUserSelection } from "../components/UserSelectionMenu";
 
@@ -26,7 +27,7 @@ export async function RegisterAddUserButton(
   ticketDb: TicketDatabase,
   guild: Guild,
   userSelectMenuRouter: UserSelectMenuRouter,
-  guildResourceLocator: any
+  guildResourceLocator: GuildResourceLocator
 ): Promise<void> {
   componentRouter.RegisterButton({
     customId: `ticket:${interactionId}:add:${ticket.id}`,

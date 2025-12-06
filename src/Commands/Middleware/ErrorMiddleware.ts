@@ -1,5 +1,5 @@
 import { CommandMiddleware } from "./index";
-import { CreateErrorMessage } from "../../Responders/MessageFactory";
+import { CreateErrorMessage } from "@responders/MessageFactory";
 
 export const ErrorMiddleware: CommandMiddleware = {
   name: "error-handler",
@@ -37,7 +37,7 @@ export const ErrorMiddleware: CommandMiddleware = {
       if (context.interaction.replied || context.interaction.deferred) {
         await context.responders.interactionResponder.Edit(
           context.interaction,
-          message,
+          message
         );
       } else {
         await context.responders.interactionResponder.Reply(
@@ -45,7 +45,7 @@ export const ErrorMiddleware: CommandMiddleware = {
           {
             ...message,
             ephemeral: true,
-          },
+          }
         );
       }
     }

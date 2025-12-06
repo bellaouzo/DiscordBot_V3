@@ -6,17 +6,18 @@ import {
   ActionRowComponentData,
   MessageFlags,
 } from "discord.js";
-import { CommandContext } from "../../../CommandFactory";
-import { TICKET_CATEGORIES } from "../../../../Database";
+import { CommandContext } from "@commands/CommandFactory";
+import { TICKET_CATEGORIES, TicketDatabase } from "@database";
 import {
   EmbedFactory,
   ComponentFactory,
   CreateTicketManager,
-} from "../../../../Utilities";
-import { Logger } from "../../../../Shared/Logger";
-import { ComponentRouter } from "../../../../Shared/ComponentRouter";
-import { ButtonResponder } from "../../../../Responders";
-import { UserSelectMenuRouter } from "../../../../Shared/UserSelectMenuRouter";
+  GuildResourceLocator,
+} from "@utilities";
+import { Logger } from "@shared/Logger";
+import { ComponentRouter } from "@shared/ComponentRouter";
+import { ButtonResponder } from "@responders";
+import { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
 import { CreateTicketServices } from "../validation/TicketValidation";
 import { RegisterClaimButton } from "../buttons/ClaimButton";
 import { RegisterAddUserButton } from "../buttons/AddUserButton";
@@ -107,10 +108,10 @@ async function HandleTicketCategorySelection(
   componentRouter: ComponentRouter,
   buttonResponder: ButtonResponder,
   logger: Logger,
-  ticketDb: any,
+  ticketDb: TicketDatabase,
   guild: Guild,
   userSelectMenuRouter: UserSelectMenuRouter,
-  guildResourceLocator: any
+  guildResourceLocator: GuildResourceLocator
 ): Promise<void> {
   const selectedCategory = selectInteraction.values[0];
   const categoryInfo = TICKET_CATEGORIES.find(

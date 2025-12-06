@@ -6,13 +6,13 @@ import {
   ButtonStyle,
   ChatInputCommandInteraction,
 } from "discord.js";
-import { CommandContext, CreateCommand } from "../CommandFactory";
-import { LoggingMiddleware } from "../Middleware/LoggingMiddleware";
-import { ErrorMiddleware } from "../Middleware/ErrorMiddleware";
-import { Config } from "../Middleware/CommandConfig";
-import { AllCommands } from "../registry";
-import { EmbedFactory, ComponentFactory } from "../../Utilities";
-import { ButtonResponder } from "../../Responders";
+import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
+import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
+import { Config } from "@middleware/CommandConfig";
+import { AllCommands } from "@commands/registry";
+import { EmbedFactory, ComponentFactory } from "@utilities";
+import { ButtonResponder } from "@responders";
 
 interface CommandInfo {
   readonly name: string;

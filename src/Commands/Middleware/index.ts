@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandDefinition } from "../CommandFactory";
-import { Logger } from "../../Shared/Logger";
-import { ResponderSet } from "../../Responders";
+import { Logger } from "@shared/Logger";
+import { ResponderSet } from "@responders";
 import { CommandConfig } from "./CommandConfig";
 
 export interface MiddlewareContext {
@@ -16,7 +16,7 @@ export interface CommandMiddleware {
   readonly name: string;
   readonly execute: (
     context: MiddlewareContext,
-    next: () => Promise<void>,
+    next: () => Promise<void>
   ) => Promise<void>;
 }
 
@@ -28,7 +28,7 @@ export interface MiddlewareConfiguration {
 export async function RunMiddlewareChain(
   middleware: CommandMiddleware[],
   context: MiddlewareContext,
-  finalHandler: () => Promise<void>,
+  finalHandler: () => Promise<void>
 ): Promise<void> {
   let index = -1;
 

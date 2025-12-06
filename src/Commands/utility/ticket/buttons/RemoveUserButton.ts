@@ -1,14 +1,15 @@
 import { ButtonInteraction, Guild } from "discord.js";
-import { ComponentRouter } from "../../../../Shared/ComponentRouter";
-import { ButtonResponder } from "../../../../Responders";
-import { TicketDatabase, Ticket } from "../../../../Database";
-import { Logger } from "../../../../Shared/Logger";
+import { ComponentRouter } from "@shared/ComponentRouter";
+import { ButtonResponder } from "@responders";
+import { TicketDatabase, Ticket } from "@database";
+import { Logger } from "@shared/Logger";
 import {
   ComponentFactory,
   CreateTicketManager,
   EmbedFactory,
-} from "../../../../Utilities";
-import { UserSelectMenuRouter } from "../../../../Shared/UserSelectMenuRouter";
+  GuildResourceLocator,
+} from "@utilities";
+import { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
 import { BUTTON_EXPIRATION_MS } from "../types/TicketTypes";
 import { HandleUserRemoval } from "../components/UserSelectionMenu";
 
@@ -21,7 +22,7 @@ export async function RegisterRemoveUserButton(
   ticketDb: TicketDatabase,
   guild: Guild,
   userSelectMenuRouter: UserSelectMenuRouter,
-  guildResourceLocator: any
+  guildResourceLocator: GuildResourceLocator
 ): Promise<void> {
   componentRouter.RegisterButton({
     customId: `ticket:${interactionId}:remove:${ticket.id}`,

@@ -6,8 +6,8 @@ import {
   ActionRowComponentData,
   TextChannel,
 } from "discord.js";
-import { TicketDatabase, Ticket } from "../../../../Database";
-import { CreateTicketManager } from "../../../../Utilities/TicketManager";
+import { TicketDatabase, Ticket } from "@database";
+import { CreateTicketManager } from "@utilities/TicketManager";
 
 export const BUTTON_EXPIRATION_MS = 1000 * 60 * 60 * 24;
 

@@ -1,14 +1,14 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { CommandContext, CreateCommand } from "../CommandFactory";
-import { LoggingMiddleware } from "../Middleware/LoggingMiddleware";
-import { PermissionMiddleware } from "../Middleware/PermissionMiddleware";
-import { ErrorMiddleware } from "../Middleware/ErrorMiddleware";
-import { Config } from "../Middleware/CommandConfig";
-import { CreateGuildResourceLocator, EmbedFactory } from "../../Utilities";
+import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
+import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
+import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
+import { Config } from "@middleware/CommandConfig";
+import { CreateGuildResourceLocator, EmbedFactory } from "@utilities";
 
 async function ExecuteKick(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext,
+  context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const { logger } = context;
@@ -46,7 +46,7 @@ async function ExecuteKick(
       const targetMember = await locator.GetMember(targetUser.id);
       if (!targetMember?.kickable) {
         throw new Error(
-          "I cannot kick this user. They may have higher permissions than me.",
+          "I cannot kick this user. They may have higher permissions than me."
         );
       }
 
@@ -57,7 +57,7 @@ async function ExecuteKick(
           targetUser,
           `You have been kicked from ${
             interaction.guild?.name ?? "this server"
-          } for: ${reason}`,
+          } for: ${reason}`
         );
       }
     },
@@ -74,16 +74,16 @@ export const KickCommand = CreateCommand({
         option
           .setName("user")
           .setDescription("The user to kick")
-          .setRequired(true),
+          .setRequired(true)
       )
       .addStringOption((option) =>
         option
           .setName("reason")
           .setDescription("Reason for kicking")
-          .setRequired(true),
+          .setRequired(true)
       )
       .addBooleanOption((option) =>
-        option.setName("notify").setDescription("Send DM notification to user"),
+        option.setName("notify").setDescription("Send DM notification to user")
       );
   },
   middleware: {

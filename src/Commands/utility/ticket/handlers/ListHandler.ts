@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { CommandContext } from "../../../CommandFactory";
-import { EmbedFactory } from "../../../../Utilities";
+import { CommandContext } from "@commands/CommandFactory";
+import { EmbedFactory } from "@utilities";
 import { CreateTicketServices } from "../validation/TicketValidation";
 import {
   RegisterTicketListButtons,

@@ -1,8 +1,8 @@
 import { SlashCommandBuilder } from "discord.js";
 import { readdirSync } from "fs";
 import { join } from "path";
-import { CommandDefinition, RegisterCommand } from "../Commands";
-import { Logger } from "../Shared/Logger";
+import { CommandDefinition, RegisterCommand } from "@commands";
+import { Logger } from "@shared/Logger";
 
 export interface CommandLoaderResult {
   readonly commands: SlashCommandBuilder[];
@@ -25,7 +25,7 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
         !file.includes("index.js") &&
         !file.includes("registry.js") &&
         !file.includes("CommandFactory.js") &&
-        !file.includes("CommandOptions.js"),
+        !file.includes("CommandOptions.js")
     );
 
     for (const file of commandFiles) {
@@ -40,7 +40,7 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
             typeof exp === "object" &&
             "data" in exp &&
             "execute" in exp &&
-            "group" in exp,
+            "group" in exp
         ) as CommandDefinition[];
 
         for (const command of commandExports) {

@@ -1,13 +1,13 @@
 import { ChatInputCommandInteraction, TextChannel, Message } from "discord.js";
-import { CommandContext, CreateCommand } from "../CommandFactory";
+import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import {
   LoggingMiddleware,
   PermissionMiddleware,
   CooldownMiddleware,
   ErrorMiddleware,
-} from "../Middleware";
-import { Config } from "../Middleware/CommandConfig";
-import { EmbedFactory } from "../../Utilities";
+} from "@middleware";
+import { Config } from "@middleware/CommandConfig";
+import { EmbedFactory } from "@utilities";
 
 function ValidatePurgeOptions(
   amount: number,

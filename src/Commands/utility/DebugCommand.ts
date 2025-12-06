@@ -1,11 +1,11 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { CommandContext, CreateCommand } from "../CommandFactory";
-import { LoggingMiddleware } from "../Middleware/LoggingMiddleware";
-import { CooldownMiddleware } from "../Middleware/CooldownMiddleware";
-import { ErrorMiddleware } from "../Middleware/ErrorMiddleware";
-import { Config } from "../Middleware/CommandConfig";
-import { EmbedFactory } from "../../Utilities";
-import { AllCommands } from "../registry";
+import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
+import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
+import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
+import { Config } from "@middleware/CommandConfig";
+import { EmbedFactory } from "@utilities";
+import { AllCommands } from "@commands/registry";
 import * as path from "path";
 import * as fs from "fs";
 
@@ -49,7 +49,7 @@ function GetDiscordJsVersion(): string {
 
 async function ExecuteDebug(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext,
+  context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -94,7 +94,7 @@ async function ExecuteDebug(
       name: "🔧 Commands",
       value: `${commandCount} registered`,
       inline: true,
-    },
+    }
   );
 
   await interactionResponder.Reply(interaction, { embeds: [embed] });

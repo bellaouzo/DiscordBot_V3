@@ -1,16 +1,16 @@
 import { ChatInputCommandInteraction, TextChannel } from "discord.js";
-import { CommandContext } from "../../../CommandFactory";
+import { CommandContext } from "@commands/CommandFactory";
 import {
   EmbedFactory,
   CreateTicketManager,
   TranscriptGenerator,
-} from "../../../../Utilities";
+} from "@utilities";
 import {
   CreateTicketServices,
   ValidateTicketChannelOrReply,
   GetTicketOrReply,
 } from "../validation/TicketValidation";
-import { Logger } from "../../../../Shared/Logger";
+import { Logger } from "@shared/Logger";
 
 export async function HandleTicketClose(
   interaction: ChatInputCommandInteraction,

@@ -1,10 +1,10 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { CommandContext, CreateCommand } from "../CommandFactory";
-import { LoggingMiddleware } from "../Middleware/LoggingMiddleware";
-import { PermissionMiddleware } from "../Middleware/PermissionMiddleware";
-import { ErrorMiddleware } from "../Middleware/ErrorMiddleware";
-import { Config } from "../Middleware/CommandConfig";
-import { EmbedFactory } from "../../Utilities";
+import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
+import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
+import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
+import { Config } from "@middleware/CommandConfig";
+import { EmbedFactory } from "@utilities";
 
 async function ExecuteUnban(
   interaction: ChatInputCommandInteraction,

@@ -1,14 +1,14 @@
 import { ButtonInteraction, Guild } from "discord.js";
-import { ComponentRouter } from "../../../../Shared/ComponentRouter";
-import { ButtonResponder } from "../../../../Responders";
-import { TicketDatabase, Ticket } from "../../../../Database";
-import { Logger } from "../../../../Shared/Logger";
+import { ComponentRouter } from "@shared/ComponentRouter";
+import { ButtonResponder } from "@responders";
+import { TicketDatabase, Ticket } from "@database";
+import { Logger } from "@shared/Logger";
 import {
   EmbedFactory,
   CreateTicketManager,
   TranscriptGenerator,
   GuildResourceLocator,
-} from "../../../../Utilities";
+} from "@utilities";
 import { BUTTON_EXPIRATION_MS } from "../types/TicketTypes";
 
 export async function RegisterCloseButton(

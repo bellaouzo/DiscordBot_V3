@@ -1,19 +1,19 @@
 import { ChatInputCommandInteraction, GuildMember } from "discord.js";
-import { CommandContext, CreateCommand } from "../CommandFactory";
+import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import {
   LoggingMiddleware,
   PermissionMiddleware,
   ErrorMiddleware,
   CooldownMiddleware,
-} from "../Middleware";
-import { Config } from "../Middleware/CommandConfig";
+} from "@middleware";
+import { Config } from "@middleware/CommandConfig";
 import {
   EmbedFactory,
   CreateGuildResourceLocator,
   ConvertDurationToMs,
   FormatDuration,
   DurationUnit,
-} from "../../Utilities";
+} from "@utilities";
 import { ModerationDatabase } from "@database";
 
 function ValidateTargetMember(

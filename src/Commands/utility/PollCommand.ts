@@ -4,7 +4,7 @@ import {
   MessageFlags,
   TextChannel,
 } from "discord.js";
-import { CommandContext, CreateCommand } from "../CommandFactory";
+import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import {
   LoggingMiddleware,
   CooldownMiddleware,
