@@ -11,6 +11,7 @@ import { CreateConsoleLogger, Logger } from "@shared/Logger";
 import { CreateResponders } from "@responders";
 import { RegisterInteractionHandlers } from "./interaction-handlers";
 import { TempActionScheduler } from "./Moderation/TempActionScheduler";
+import { RaidModeScheduler } from "./Moderation/RaidModeScheduler";
 
 async function Bootstrap(rootLogger: Logger): Promise<void> {
   const config = LoadAppConfig();
@@ -30,6 +31,11 @@ async function Bootstrap(rootLogger: Logger): Promise<void> {
     client: bot.client,
     db: moderationDb,
     logger: logger.Child({ phase: "temp-actions" }),
+  });
+  const raidScheduler = new RaidModeScheduler({
+    client: bot.client,
+    db: moderationDb,
+    logger: logger.Child({ phase: "raid-mode" }),
   });
 
   const { commands, modules } = await loadCommands();
@@ -73,6 +79,7 @@ async function Bootstrap(rootLogger: Logger): Promise<void> {
   await deployCommands(commands);
   await bot.Start(config.discord.token);
   tempScheduler.Start();
+  raidScheduler.Start();
 }
 
 const bootstrapLogger = CreateConsoleLogger();

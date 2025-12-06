@@ -45,6 +45,13 @@ export interface TicketParticipant {
   removed_at?: number;
 }
 
+export interface TicketTag {
+  id: number;
+  ticket_id: number;
+  tag: string;
+  created_at: number;
+}
+
 export interface TicketCategory {
   value: string;
   label: string;
@@ -143,6 +150,17 @@ export class TicketDatabase {
       CREATE INDEX IF NOT EXISTS idx_ticket_messages_ticket ON ticket_messages(ticket_id);
       CREATE INDEX IF NOT EXISTS idx_ticket_participants_ticket ON ticket_participants(ticket_id);
       CREATE INDEX IF NOT EXISTS idx_ticket_participants_user ON ticket_participants(user_id);
+
+      CREATE TABLE IF NOT EXISTS ticket_tags (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ticket_id INTEGER NOT NULL,
+        tag TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        UNIQUE(ticket_id, tag),
+        FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_ticket_tags_ticket ON ticket_tags(ticket_id);
 
       CREATE TABLE IF NOT EXISTS ticket_reopen_audits (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -313,6 +331,62 @@ export class TicketDatabase {
     const stmt = this.db.prepare("DELETE FROM tickets WHERE id = ?");
     const result = stmt.run(id);
     return result.changes > 0;
+  }
+
+  AddTicketTag(ticket_id: number, tag: string): boolean {
+    const normalized = tag.trim().toLowerCase();
+    if (!normalized) {
+      return false;
+    }
+
+    const created_at = Date.now();
+    const stmt = this.db.prepare(`
+      INSERT OR IGNORE INTO ticket_tags (ticket_id, tag, created_at)
+      VALUES (?, ?, ?)
+    `);
+    const result = stmt.run(ticket_id, normalized, created_at);
+    return result.changes > 0;
+  }
+
+  RemoveTicketTag(ticket_id: number, tag: string): boolean {
+    const normalized = tag.trim().toLowerCase();
+    const stmt = this.db.prepare(
+      "DELETE FROM ticket_tags WHERE ticket_id = ? AND tag = ?"
+    );
+    const result = stmt.run(ticket_id, normalized);
+    return result.changes > 0;
+  }
+
+  ListTicketTags(ticket_id: number): string[] {
+    const stmt = this.db.prepare(
+      "SELECT tag FROM ticket_tags WHERE ticket_id = ? ORDER BY tag ASC"
+    );
+    const rows = stmt.all(ticket_id) as Array<{ tag: string }>;
+    return rows.map((row) => row.tag);
+  }
+
+  GetTagsForTickets(ticketIds: number[]): Record<number, string[]> {
+    if (ticketIds.length === 0) {
+      return {};
+    }
+
+    const placeholders = ticketIds.map(() => "?").join(", ");
+    const stmt = this.db.prepare(
+      `SELECT ticket_id, tag FROM ticket_tags WHERE ticket_id IN (${placeholders}) ORDER BY tag ASC`
+    );
+    const rows = stmt.all(...ticketIds) as Array<{
+      ticket_id: number;
+      tag: string;
+    }>;
+
+    const map: Record<number, string[]> = {};
+    for (const row of rows) {
+      if (!map[row.ticket_id]) {
+        map[row.ticket_id] = [];
+      }
+      map[row.ticket_id].push(row.tag);
+    }
+    return map;
   }
 
   AddParticipant(

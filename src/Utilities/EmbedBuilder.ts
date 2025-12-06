@@ -84,6 +84,7 @@ export class EmbedFactory {
       category: string;
       status: string;
       created_at: number;
+      tags?: string[];
     }>,
   ): EmbedBuilder {
     const embed = this.Create({
@@ -108,7 +109,11 @@ export class EmbedFactory {
                 ? "📌"
                 : "📝";
           const date = new Date(ticket.created_at).toLocaleDateString();
-          return `${statusEmoji} **Ticket #${ticket.id}** - ${ticket.category} (${ticket.status}) - ${date}`;
+          const tags =
+            ticket.tags && ticket.tags.length > 0
+              ? ` — tags: ${ticket.tags.join(", ")}`
+              : "";
+          return `${statusEmoji} **Ticket #${ticket.id}** - ${ticket.category} (${ticket.status}) - ${date}${tags}`;
         })
         .join("\n");
 

@@ -14,6 +14,7 @@ import { HandleTicketTranscript } from "@commands/utility/ticket/handlers/Transc
 import { HandleTicketAdd } from "@commands/utility/ticket/handlers/AddHandler";
 import { HandleTicketRemove } from "@commands/utility/ticket/handlers/RemoveHandler";
 import { HandleTicketReopen } from "@commands/utility/ticket/handlers/ReopenHandler";
+import { HandleTicketTag } from "@commands/utility/ticket/handlers/TagHandler";
 
 async function ExecuteTicket(
   interaction: ChatInputCommandInteraction,
@@ -37,6 +38,8 @@ async function ExecuteTicket(
     await HandleTicketRemove(interaction, context);
   } else if (subcommand === "reopen") {
     await HandleTicketReopen(interaction, context);
+  } else if (subcommand === "tag") {
+    await HandleTicketTag(interaction, context);
   }
 }
 
@@ -103,6 +106,29 @@ export const TicketCommand = CreateCommand({
             .setName("reason")
             .setDescription("Reason for reopening")
             .setRequired(true)
+        )
+    );
+
+    builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
+      subcommand
+        .setName("tag")
+        .setDescription("Add, remove, or list tags on this ticket")
+        .addStringOption((option) =>
+          option
+            .setName("action")
+            .setDescription("Action to perform")
+            .setRequired(true)
+            .addChoices(
+              { name: "add", value: "add" },
+              { name: "remove", value: "remove" },
+              { name: "list", value: "list" }
+            )
+        )
+        .addStringOption((option) =>
+          option
+            .setName("tag")
+            .setDescription("Tag text (required for add/remove)")
+            .setRequired(false)
         )
     );
   },

@@ -94,48 +94,52 @@ function CreateCommandLogEmbed(
   ]);
 
   const options = interaction.options.data;
-  if (options.length > 0) {
-    const argumentFields = options.map((option) => {
-      let value: string;
-
-      if (option.type === 1) {
-        // Subcommand
-        value = `Subcommand: ${option.name}`;
-        if (option.options && option.options.length > 0) {
-          const subOptions = option.options
-            .map(
-              (subOpt) => `${subOpt.name}: ${FormatOptionValue(subOpt.value)}`
-            )
-            .join(", ");
-          value += ` (${subOptions})`;
-        }
-      } else {
-        value = FormatOptionValue(option.value);
-      }
-
-      return {
-        name: option.name,
-        value: value.length > 1024 ? value.substring(0, 1021) + "..." : value,
-        inline: false,
-      };
-    });
-
+  if (options.length === 0) {
     embed.addFields([
       {
         name: "Arguments",
         value: "No arguments provided",
         inline: false,
       },
-      ...argumentFields,
     ]);
   } else {
-    embed.addFields([
-      {
-        name: "Arguments",
-        value: "No arguments provided",
-        inline: false,
-      },
-    ]);
+    const first = options[0];
+    // Subcommand
+    if (first.type === 1) {
+      const subOptions =
+        first.options?.map(
+          (subOpt) => `${subOpt.name}: ${FormatOptionValue(subOpt.value)}`
+        ) ?? [];
+
+      embed.addFields([
+        {
+          name: "Subcommand",
+          value: first.name,
+          inline: false,
+        },
+        {
+          name: "Arguments",
+          value:
+            subOptions.length > 0
+              ? subOptions.join("\n")
+              : "No arguments provided",
+          inline: false,
+        },
+      ]);
+    } else {
+      // Top-level options without subcommand
+      const argLines = options.map(
+        (opt) => `${opt.name}: ${FormatOptionValue(opt.value)}`
+      );
+
+      embed.addFields([
+        {
+          name: "Arguments",
+          value: argLines.join("\n"),
+          inline: false,
+        },
+      ]);
+    }
   }
 
   return embed;

@@ -40,7 +40,11 @@ export function CreateTicketListPage(
               ? "📌"
               : "📝";
         const date = new Date(ticket.created_at).toLocaleDateString();
-        return `${statusEmoji} **Ticket #${ticket.id}** - ${ticket.category} (${ticket.status}) - ${date}`;
+        const tags =
+          ticket.tags && ticket.tags.length > 0
+            ? ` — tags: ${ticket.tags.join(", ")}`
+            : "";
+        return `${statusEmoji} **Ticket #${ticket.id}** - ${ticket.category} (${ticket.status}) - ${date}${tags}`;
       })
       .join("\n");
 

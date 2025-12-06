@@ -7,3 +7,5 @@ export { PurgeCommand } from "./PurgeCommand";
 export { WarnCommand } from "./WarnCommand";
 export { LockdownCommand } from "./LockdownCommand";
 export { TempActionsCommand } from "./TempActionsCommand";
+export { LinkFilterCommand } from "./LinkFilterCommand";
+export { RaidModeCommand } from "./RaidModeCommand";

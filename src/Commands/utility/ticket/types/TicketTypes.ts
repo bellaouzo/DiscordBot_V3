@@ -27,6 +27,7 @@ export interface TicketInfo {
   readonly category: string;
   readonly status: string;
   readonly created_at: number;
+  readonly tags?: string[];
 }
 
 export interface CreateTicketOptions {

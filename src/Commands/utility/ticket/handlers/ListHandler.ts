@@ -32,12 +32,17 @@ export async function HandleTicketList(
     interaction.user.id,
     interaction.guild.id
   );
+  const tagMap = ticketDb.GetTagsForTickets(tickets.map((t) => t.id));
+  const ticketsWithTags = tickets.map((ticket) => ({
+    ...ticket,
+    tags: tagMap[ticket.id] ?? [],
+  }));
 
   const pageSize = 10;
   const totalPages = Math.max(1, Math.ceil(tickets.length / pageSize));
 
   if (tickets.length === 0) {
-    const embed = EmbedFactory.CreateTicketList(tickets);
+    const embed = EmbedFactory.CreateTicketList(ticketsWithTags);
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
       ephemeral: true,
@@ -46,7 +51,7 @@ export async function HandleTicketList(
   }
 
   if (totalPages === 1) {
-    const embed = EmbedFactory.CreateTicketList(tickets);
+    const embed = EmbedFactory.CreateTicketList(ticketsWithTags);
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
       ephemeral: true,
@@ -57,12 +62,17 @@ export async function HandleTicketList(
   RegisterTicketListButtons(
     componentRouter,
     buttonResponder,
-    tickets,
+      ticketsWithTags,
     interaction.user.id,
     totalPages
   );
 
-  const firstPage = CreateTicketListPage(tickets, 0, pageSize, totalPages);
+  const firstPage = CreateTicketListPage(
+    ticketsWithTags,
+    0,
+    pageSize,
+    totalPages
+  );
   await interactionResponder.Reply(interaction, {
     embeds: firstPage.embeds,
     components: firstPage.components,
