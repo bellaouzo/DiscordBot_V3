@@ -13,7 +13,7 @@ async function SendPermissionError(
   responders: ResponderSet,
   interaction: ChatInputCommandInteraction,
   title: string,
-  description: string
+  description: string,
 ): Promise<void> {
   const message = CreateErrorMessage({
     title: `❌ ${title}`,
@@ -35,7 +35,7 @@ function FormatPermissionName(permission: string): string {
 function GetValidPermissionValues(permissions: string[]): bigint[] {
   return permissions
     .map(
-      (perm) => PermissionFlagsBits[perm as keyof typeof PermissionFlagsBits]
+      (perm) => PermissionFlagsBits[perm as keyof typeof PermissionFlagsBits],
     )
     .filter((value): value is bigint => Boolean(value));
 }
@@ -43,13 +43,13 @@ function GetValidPermissionValues(permissions: string[]): bigint[] {
 function GetMissingPermissions(
   requiredPermissions: string[],
   memberPermissions: PermissionsBitField,
-  requireAny: boolean
+  requireAny: boolean,
 ): string[] {
   const permissionValues = GetValidPermissionValues(requiredPermissions);
 
   if (requireAny) {
     const hasAny = permissionValues.some((permission) =>
-      memberPermissions.has(permission)
+      memberPermissions.has(permission),
     );
     return hasAny ? [] : requiredPermissions;
   } else {
@@ -74,7 +74,7 @@ async function CheckOwnerPermission(context: {
       context.responders,
       context.interaction,
       "Owner Only Command",
-      "Only the server owner can use this command."
+      "Only the server owner can use this command.",
     );
     return false;
   }
@@ -95,7 +95,7 @@ async function CheckRolePermission(context: {
     : [];
   if (!memberRoles.includes(context.config.role)) {
     let roleName = `Role ID: ${context.config.role}`;
-    
+
     if (context.interaction.guild) {
       const locator = CreateGuildResourceLocator({
         guild: context.interaction.guild,
@@ -111,7 +111,7 @@ async function CheckRolePermission(context: {
       context.responders,
       context.interaction,
       "Missing Required Role",
-      `You need the **${roleName}** role to use this command.`
+      `You need the **${roleName}** role to use this command.`,
     );
     return false;
   }
@@ -145,7 +145,7 @@ async function CheckDiscordPermissions(context: {
     const missingPermissions = GetMissingPermissions(
       requiredPermissions,
       memberPermissions,
-      requireAny
+      requireAny,
     );
     const formattedPermissions = missingPermissions.map(FormatPermissionName);
 
@@ -156,14 +156,14 @@ async function CheckDiscordPermissions(context: {
     let description: string;
     if (requireAny) {
       description = `You need at least one of these permissions:\n• ${formattedPermissions.join(
-        "\n• "
+        "\n• ",
       )}`;
     } else {
       description =
         formattedPermissions.length === 1
           ? `You need the **${formattedPermissions[0]}** permission to use this command.`
           : `You need these permissions:\n• ${formattedPermissions.join(
-              "\n• "
+              "\n• ",
             )}`;
     }
 
@@ -171,7 +171,7 @@ async function CheckDiscordPermissions(context: {
       context.responders,
       context.interaction,
       title,
-      description
+      description,
     );
     return false;
   }
@@ -189,7 +189,7 @@ export const PermissionMiddleware: CommandMiddleware = {
         context.responders,
         context.interaction,
         "Permission Check Failed",
-        "Unable to determine your permissions for this command."
+        "Unable to determine your permissions for this command.",
       );
       return;
     }

@@ -24,7 +24,7 @@ export class PaginatedResponder {
     private readonly interactionResponder: InteractionResponder,
     private readonly buttonResponder: ButtonResponder,
     private readonly componentRouter: ComponentRouter,
-    private readonly logger: Logger
+    private readonly logger: Logger,
   ) {}
 
   async Send(options: PaginatedMessageOptions): Promise<void> {

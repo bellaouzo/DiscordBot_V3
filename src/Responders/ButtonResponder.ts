@@ -12,7 +12,7 @@ export class ButtonResponder {
 
   async Update(
     interaction: ButtonInteraction,
-    options: InteractionUpdateOptions
+    options: InteractionUpdateOptions,
   ): Promise<ResponseResult> {
     if (interaction.replied || interaction.deferred) {
       return {
@@ -50,7 +50,7 @@ export class ButtonResponder {
 
   async EditMessage(
     interaction: ButtonInteraction,
-    options: ResponderEditOptions
+    options: ResponderEditOptions,
   ): Promise<ResponseResult> {
     try {
       await interaction.message.edit({
@@ -69,7 +69,7 @@ export class ButtonResponder {
 
   async EditReply(
     interaction: ButtonInteraction,
-    options: ResponderEditOptions
+    options: ResponderEditOptions,
   ): Promise<ResponseResult> {
     if (!interaction.deferred && !interaction.replied) {
       return {
@@ -95,7 +95,7 @@ export class ButtonResponder {
 
   async Reply(
     interaction: ButtonInteraction,
-    options: ResponseOptions
+    options: ResponseOptions,
   ): Promise<ResponseResult> {
     if (interaction.replied || interaction.deferred) {
       return {
@@ -122,7 +122,7 @@ export class ButtonResponder {
 
   async FollowUp(
     interaction: ButtonInteraction,
-    options: ResponseOptions
+    options: ResponseOptions,
   ): Promise<ResponseResult> {
     try {
       await interaction.followUp({

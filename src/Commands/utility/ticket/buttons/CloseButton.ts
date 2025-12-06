@@ -3,7 +3,12 @@ import { ComponentRouter } from "../../../../Shared/ComponentRouter";
 import { ButtonResponder } from "../../../../Responders";
 import { TicketDatabase, Ticket } from "../../../../Database";
 import { Logger } from "../../../../Shared/Logger";
-import { EmbedFactory, CreateTicketManager, TranscriptGenerator } from "../../../../Utilities";
+import {
+  EmbedFactory,
+  CreateTicketManager,
+  TranscriptGenerator,
+  GuildResourceLocator,
+} from "../../../../Utilities";
 import { BUTTON_EXPIRATION_MS } from "../types/TicketTypes";
 
 export async function RegisterCloseButton(
@@ -14,7 +19,7 @@ export async function RegisterCloseButton(
   logger: Logger,
   ticketDb: TicketDatabase,
   guild: Guild,
-  guildResourceLocator: any
+  guildResourceLocator: GuildResourceLocator
 ): Promise<void> {
   componentRouter.RegisterButton({
     customId: `ticket:${interactionId}:close:${ticket.id}`,
@@ -39,7 +44,9 @@ export async function RegisterCloseButton(
 
       const messages = ticketDb.GetTicketMessages(ticket.id);
       const member = await guildResourceLocator.GetMember(ticket.user_id);
-      const user = member?.user || await buttonInteraction.client.users.fetch(ticket.user_id);
+      const user =
+        member?.user ||
+        (await buttonInteraction.client.users.fetch(ticket.user_id));
       const participantHistory = ticketDb.GetParticipantHistory(ticket.id);
 
       const transcript = TranscriptGenerator.Generate({
@@ -65,10 +72,6 @@ export async function RegisterCloseButton(
         buttonInteraction.user.id,
         false
       );
-
-      logger.Info("Ticket closed via button", {
-        extra: { ticketId: ticket.id, closedBy: buttonInteraction.user.id },
-      });
     },
     expiresInMs: BUTTON_EXPIRATION_MS,
   });
@@ -89,9 +92,6 @@ async function SendTicketLogs(
         files: [
           { name: filename, attachment: Buffer.from(transcript, "utf-8") },
         ],
-      });
-      logger.Info("Ticket logs sent successfully", {
-        extra: { logsChannelId: logsChannel.id },
       });
     } else {
       logger.Error("Failed to get or create logs channel", {

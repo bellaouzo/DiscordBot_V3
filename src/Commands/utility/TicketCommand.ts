@@ -17,7 +17,7 @@ import { HandleTicketRemove } from "./ticket/handlers/RemoveHandler";
 
 async function ExecuteTicket(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const subcommand = interaction.options.getSubcommand(false);
 
@@ -49,41 +49,43 @@ export const TicketCommand = CreateCommand({
   config: Config.utility(3),
   configure: (builder) => {
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-      subcommand.setName("create").setDescription("Create a new support ticket")
+      subcommand
+        .setName("create")
+        .setDescription("Create a new support ticket"),
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-      subcommand.setName("list").setDescription("View your tickets")
+      subcommand.setName("list").setDescription("View your tickets"),
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-      subcommand.setName("close").setDescription("Close the current ticket")
+      subcommand.setName("close").setDescription("Close the current ticket"),
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
         .setName("claim")
-        .setDescription("Claim a ticket for handling (Staff only)")
+        .setDescription("Claim a ticket for handling (Staff only)"),
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
         .setName("transcript")
         .setDescription(
-          "Generate a transcript of the current ticket (Staff only)"
-        )
+          "Generate a transcript of the current ticket (Staff only)",
+        ),
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
         .setName("add")
-        .setDescription("Add users to the current ticket")
+        .setDescription("Add users to the current ticket"),
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
         .setName("remove")
-        .setDescription("Remove users from the current ticket")
+        .setDescription("Remove users from the current ticket"),
     );
   },
   execute: ExecuteTicket,

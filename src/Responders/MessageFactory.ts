@@ -8,7 +8,7 @@ interface ErrorMessageOptions {
 }
 
 export function CreateErrorMessage(
-  options: ErrorMessageOptions
+  options: ErrorMessageOptions,
 ): ResponseOptions {
   const embed = EmbedFactory.CreateError({
     title: options.title,

@@ -75,14 +75,6 @@ async function ExecuteHelp(
         userId: interaction.user.id,
       });
     }
-
-    logger.Info("Help command executed", {
-      extra: {
-        userId: interaction.user.id,
-        commandCount: allCommands.length,
-        categoryCount: categories.length,
-      },
-    });
   } catch (error) {
     logger.Error("Help command failed", { error });
     throw error;
@@ -513,10 +505,10 @@ function CreateCategoryPageNavCustomId(
     action === "first"
       ? 0
       : action === "last"
-      ? currentPage
-      : action === "prev"
-      ? Math.max(currentPage - 1, 0)
-      : Math.max(currentPage + 1, 0);
+        ? currentPage
+        : action === "prev"
+          ? Math.max(currentPage - 1, 0)
+          : Math.max(currentPage + 1, 0);
 
   return `help:${interactionId}:page:${key}:${action}:${targetPage}`;
 }

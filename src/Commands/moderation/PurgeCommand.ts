@@ -75,7 +75,6 @@ async function ExecutePurge(
   context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-  const { logger } = context;
 
   if (!interaction.channel?.isTextBased()) {
     throw new Error("This command can only be used in text channels.");
@@ -109,16 +108,6 @@ async function ExecutePurge(
       ],
     },
     action: async () => {
-      logger.Info("Fetching messages to purge", {
-        extra: {
-          channelId: channel.id,
-          amount,
-          userId: targetUser?.id,
-          beforeHours,
-          afterHours,
-        },
-      });
-
       const { messages } = await FetchMessagesToDelete(
         channel,
         amount,
@@ -130,12 +119,6 @@ async function ExecutePurge(
       if (messages.length === 0) {
         throw new Error("No messages found matching the specified criteria.");
       }
-
-      logger.Info("Found messages to delete", {
-        extra: {
-          count: messages.length,
-        },
-      });
 
       const messagesToDelete = messages.filter((msg) => {
         const age = Date.now() - msg.createdTimestamp;
@@ -154,13 +137,6 @@ async function ExecutePurge(
       await channel.bulkDelete(messagesToDelete, true);
 
       deletedCount = messagesToDelete.length;
-
-      logger.Info("Messages purged", {
-        extra: {
-          deleted: deletedCount,
-          tooOld: tooOldCount,
-        },
-      });
 
       const embed = EmbedFactory.CreateSuccess({
         title: "✅ Messages Purged",

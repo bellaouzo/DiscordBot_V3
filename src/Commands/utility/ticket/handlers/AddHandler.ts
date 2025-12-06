@@ -1,7 +1,17 @@
-import { ChatInputCommandInteraction, TextChannel, ActionRowData, ActionRowComponentData, UserSelectMenuInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  TextChannel,
+  ActionRowData,
+  ActionRowComponentData,
+  UserSelectMenuInteraction,
+} from "discord.js";
 import { CommandContext } from "../../../CommandFactory";
 import { EmbedFactory, ComponentFactory } from "../../../../Utilities";
-import { CreateTicketServices, ValidateTicketChannelOrReply, GetTicketOrReply } from "../validation/TicketValidation";
+import {
+  CreateTicketServices,
+  ValidateTicketChannelOrReply,
+  GetTicketOrReply,
+} from "../validation/TicketValidation";
 import { HandleUserSelection } from "../components/UserSelectionMenu";
 
 export async function HandleTicketAdd(
@@ -14,10 +24,8 @@ export async function HandleTicketAdd(
   if (!(await ValidateTicketChannelOrReply(interaction, interactionResponder)))
     return;
 
-  const { ticketDb, ticketManager, guildResourceLocator } = CreateTicketServices(
-    logger,
-    interaction.guild!
-  );
+  const { ticketDb, ticketManager, guildResourceLocator } =
+    CreateTicketServices(logger, interaction.guild!);
   const ticket = await GetTicketOrReply(
     ticketDb,
     interaction.channel as TextChannel,
@@ -50,12 +58,7 @@ export async function HandleTicketAdd(
     ownerId: interaction.user.id,
     singleUse: true,
     handler: async (userSelectInteraction: UserSelectMenuInteraction) => {
-      await HandleUserSelection(
-        userSelectInteraction,
-        ticket,
-        ticketManager,
-        logger
-      );
+      await HandleUserSelection(userSelectInteraction, ticket, ticketManager);
     },
     expiresInMs: 60000,
   });

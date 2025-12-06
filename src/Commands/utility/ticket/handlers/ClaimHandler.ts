@@ -1,7 +1,12 @@
 import { ChatInputCommandInteraction, TextChannel } from "discord.js";
 import { CommandContext } from "../../../CommandFactory";
 import { EmbedFactory } from "../../../../Utilities";
-import { CreateTicketServices, ValidateTicketChannelOrReply, GetTicketOrReply, HasStaffPermissions } from "../validation/TicketValidation";
+import {
+  CreateTicketServices,
+  ValidateTicketChannelOrReply,
+  GetTicketOrReply,
+  HasStaffPermissions,
+} from "../validation/TicketValidation";
 
 export async function HandleTicketClaim(
   interaction: ChatInputCommandInteraction,
@@ -51,10 +56,6 @@ export async function HandleTicketClaim(
         embeds: [embed.toJSON()],
       });
     }
-
-    logger.Info("Ticket claimed", {
-      extra: { ticketId: ticket.id, claimedBy: interaction.user.id },
-    });
   } else {
     await interactionResponder.Reply(interaction, {
       content: "Failed to claim ticket.",

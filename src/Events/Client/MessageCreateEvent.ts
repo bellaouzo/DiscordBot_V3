@@ -4,7 +4,7 @@ import { TicketDatabase } from "../../Database";
 
 async function ExecuteMessageCreateEvent(
   context: EventContext,
-  message: unknown
+  message: unknown,
 ): Promise<void> {
   const msg = message as Message;
   if (!msg.guild || !msg.channel.isTextBased() || msg.author.bot) {

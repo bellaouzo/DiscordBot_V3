@@ -1,4 +1,3 @@
-export * from './EventFactory'
-export * from './registry'
-export * from './Client'
-
+export * from "./EventFactory";
+export * from "./registry";
+export * from "./Client";

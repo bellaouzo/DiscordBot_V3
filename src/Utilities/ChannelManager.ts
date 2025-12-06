@@ -54,14 +54,6 @@ export function CreateChannelManager(
         });
 
         categoryCache.set(name, category);
-        options.logger.Info("Created category", {
-          extra: {
-            guildId: options.guild.id,
-            categoryId: category.id,
-            categoryName: name,
-          },
-        });
-
         return category;
       } catch (error) {
         options.logger.Error("Failed to create category", {
@@ -97,9 +89,10 @@ export function CreateChannelManager(
       try {
         let parent: CategoryChannel | null = null;
         if (categoryName) {
-          parent = await CreateChannelManager(options).GetOrCreateCategory(
-            categoryName
-          );
+          parent =
+            await CreateChannelManager(options).GetOrCreateCategory(
+              categoryName
+            );
         }
 
         const channel = await options.guild.channels.create({
@@ -112,14 +105,6 @@ export function CreateChannelManager(
         });
 
         channelCache.set(cacheKey, channel);
-        options.logger.Info("Created text channel", {
-          extra: {
-            guildId: options.guild.id,
-            channelId: channel.id,
-            channelName: name,
-            categoryId: parent?.id,
-          },
-        });
 
         return channel;
       } catch (error) {

@@ -37,13 +37,16 @@ export const ErrorMiddleware: CommandMiddleware = {
       if (context.interaction.replied || context.interaction.deferred) {
         await context.responders.interactionResponder.Edit(
           context.interaction,
-          message
+          message,
         );
       } else {
-        await context.responders.interactionResponder.Reply(context.interaction, {
-          ...message,
-          ephemeral: true,
-        });
+        await context.responders.interactionResponder.Reply(
+          context.interaction,
+          {
+            ...message,
+            ephemeral: true,
+          },
+        );
       }
     }
   },

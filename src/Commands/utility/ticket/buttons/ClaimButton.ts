@@ -2,7 +2,6 @@ import { ButtonInteraction } from "discord.js";
 import { ComponentRouter } from "../../../../Shared/ComponentRouter";
 import { ButtonResponder } from "../../../../Responders";
 import { TicketDatabase, Ticket } from "../../../../Database";
-import { Logger } from "../../../../Shared/Logger";
 import { EmbedFactory } from "../../../../Utilities";
 import { HasStaffPermissions } from "../validation/TicketValidation";
 import { BUTTON_EXPIRATION_MS } from "../types/TicketTypes";
@@ -12,7 +11,6 @@ export async function RegisterClaimButton(
   buttonResponder: ButtonResponder,
   ticket: Ticket,
   interactionId: string,
-  logger: Logger,
   ticketDb: TicketDatabase
 ): Promise<void> {
   componentRouter.RegisterButton({
@@ -36,10 +34,6 @@ export async function RegisterClaimButton(
       await buttonResponder.EditMessage(buttonInteraction, {
         embeds: [claimEmbed.toJSON()],
         components: [],
-      });
-
-      logger.Info("Ticket claimed via button", {
-        extra: { ticketId: ticket.id, claimedBy: buttonInteraction.user.id },
       });
     },
     expiresInMs: BUTTON_EXPIRATION_MS,

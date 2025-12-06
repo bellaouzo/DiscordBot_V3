@@ -45,17 +45,17 @@ export interface ResponderDependencies {
 }
 
 export function ResolveResponderLogger(
-  dependencies?: ResponderDependencies
+  dependencies?: ResponderDependencies,
 ): Logger {
   return dependencies?.logger ?? CreateConsoleLogger();
 }
 
 export function ConvertToInteractionFlags(
-  options: ResponderMessageOptions
+  options: ResponderMessageOptions,
 ): MessageFlags.Ephemeral | undefined {
   if (options.flags?.includes(MessageFlags.Ephemeral)) {
     return MessageFlags.Ephemeral;
   }
-  
+
   return options.ephemeral ? MessageFlags.Ephemeral : undefined;
 }

@@ -86,7 +86,7 @@ export class Paginator {
         ownerId: this.ownerId,
         handler: (interaction: ButtonInteraction) => this.Stop(interaction),
         singleUse: true,
-      })
+      }),
     );
   }
 
@@ -107,12 +107,12 @@ export class Paginator {
     if (update) {
       await this.options.interactionResponder.Edit(
         this.options.interaction,
-        payload
+        payload,
       );
     } else {
       await this.options.interactionResponder.Reply(
         this.options.interaction,
-        payload
+        payload,
       );
     }
   }
@@ -167,7 +167,7 @@ export class Paginator {
 
   private async GoTo(
     index: number,
-    interaction: ButtonInteraction
+    interaction: ButtonInteraction,
   ): Promise<void> {
     if (!this.active) {
       await this.options.buttonResponder.DeferUpdate(interaction);

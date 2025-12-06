@@ -50,15 +50,6 @@ export function CreateDiscordLogger(
         const embed = CreateCommandLogEmbed(interaction, command);
 
         await channel.send({ embeds: [embed] });
-
-        options.logger.Debug("Command logged to Discord", {
-          extra: {
-            commandName: command.data.name,
-            userId: interaction.user.id,
-            guildId: interaction.guildId,
-            channelId: channel.id,
-          },
-        });
       } catch (error) {
         options.logger.Error("Failed to log command to Discord", {
           error,

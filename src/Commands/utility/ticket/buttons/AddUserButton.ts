@@ -1,9 +1,18 @@
-import { ButtonInteraction, Guild, ActionRowData, ActionRowComponentData } from "discord.js";
+import {
+  ButtonInteraction,
+  Guild,
+  ActionRowData,
+  ActionRowComponentData,
+} from "discord.js";
 import { ComponentRouter } from "../../../../Shared/ComponentRouter";
 import { ButtonResponder } from "../../../../Responders";
 import { TicketDatabase, Ticket } from "../../../../Database";
 import { Logger } from "../../../../Shared/Logger";
-import { EmbedFactory, ComponentFactory, CreateTicketManager } from "../../../../Utilities";
+import {
+  EmbedFactory,
+  ComponentFactory,
+  CreateTicketManager,
+} from "../../../../Utilities";
 import { UserSelectMenuRouter } from "../../../../Shared/UserSelectMenuRouter";
 import { BUTTON_EXPIRATION_MS } from "../types/TicketTypes";
 import { HandleUserSelection } from "../components/UserSelectionMenu";
@@ -24,7 +33,9 @@ export async function RegisterAddUserButton(
     handler: async (buttonInteraction: ButtonInteraction) => {
       await buttonResponder.DeferUpdate(buttonInteraction);
 
-      const member = await guildResourceLocator.GetMember(buttonInteraction.user.id);
+      const member = await guildResourceLocator.GetMember(
+        buttonInteraction.user.id
+      );
       const ticketManager = CreateTicketManager({
         guild,
         logger,
@@ -57,8 +68,7 @@ export async function RegisterAddUserButton(
           await HandleUserSelection(
             userSelectInteraction,
             ticket,
-            ticketManager,
-            logger
+            ticketManager
           );
         },
         expiresInMs: 60000,
@@ -78,10 +88,6 @@ export async function RegisterAddUserButton(
           row.toJSON(),
         ] as unknown as ActionRowData<ActionRowComponentData>[],
         ephemeral: true,
-      });
-
-      logger.Info("Add user button clicked", {
-        extra: { ticketId: ticket.id, clickedBy: buttonInteraction.user.id },
       });
     },
     expiresInMs: BUTTON_EXPIRATION_MS,

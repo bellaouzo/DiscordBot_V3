@@ -30,17 +30,24 @@ async function ExecuteBan(
 
   await interactionResponder.WithAction({
     interaction,
-    message: `Banning ${targetUser.username}...`,
+    message: {
+      embeds: [
+        EmbedFactory.Create({
+          title: "Processing Ban",
+          description: `Banning **${targetUser.tag}**...`,
+        }).toJSON(),
+      ],
+    },
     followUp: () => {
       const embed = EmbedFactory.CreateSuccess({
         title: "User Banned",
         description: `Successfully banned **${targetUser.username}**`,
       });
-      
+
       if (reason !== "No reason provided") {
         embed.addFields([{ name: "Reason", value: reason, inline: false }]);
       }
-      
+
       return { embeds: [embed.toJSON()] };
     },
     action: async () => {

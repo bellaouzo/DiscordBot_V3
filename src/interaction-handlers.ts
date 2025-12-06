@@ -1,74 +1,97 @@
-import { ButtonInteraction, ChatInputCommandInteraction, Client, Events, StringSelectMenuInteraction, UserSelectMenuInteraction } from 'discord.js'
-import { Logger } from './Shared/Logger'
-import { ComponentRouter } from './Shared/ComponentRouter'
-import { SelectMenuRouter } from './Shared/SelectMenuRouter'
-import { UserSelectMenuRouter } from './Shared/UserSelectMenuRouter'
+import {
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  Client,
+  Events,
+  StringSelectMenuInteraction,
+  UserSelectMenuInteraction,
+} from "discord.js";
+import { Logger } from "./Shared/Logger";
+import { ComponentRouter } from "./Shared/ComponentRouter";
+import { SelectMenuRouter } from "./Shared/SelectMenuRouter";
+import { UserSelectMenuRouter } from "./Shared/UserSelectMenuRouter";
 
 export interface InteractionHandlerDependencies {
-  readonly client: Client
-  readonly logger: Logger
-  readonly componentRouter: ComponentRouter
-  readonly selectMenuRouter: SelectMenuRouter
-  readonly userSelectMenuRouter: UserSelectMenuRouter
+  readonly client: Client;
+  readonly logger: Logger;
+  readonly componentRouter: ComponentRouter;
+  readonly selectMenuRouter: SelectMenuRouter;
+  readonly userSelectMenuRouter: UserSelectMenuRouter;
 }
 
-export function RegisterInteractionHandlers(dependencies: InteractionHandlerDependencies): void {
-  dependencies.client.on(Events.InteractionCreate, async interaction => {
+export function RegisterInteractionHandlers(
+  dependencies: InteractionHandlerDependencies,
+): void {
+  dependencies.client.on(Events.InteractionCreate, async (interaction) => {
     if (interaction.isButton()) {
-      await HandleButtonInteraction(interaction, dependencies.componentRouter, dependencies.logger)
+      await HandleButtonInteraction(
+        interaction,
+        dependencies.componentRouter,
+        dependencies.logger,
+      );
     } else if (interaction.isStringSelectMenu()) {
-      await HandleSelectMenuInteraction(interaction, dependencies.selectMenuRouter, dependencies.logger)
+      await HandleSelectMenuInteraction(
+        interaction,
+        dependencies.selectMenuRouter,
+        dependencies.logger,
+      );
     } else if (interaction.isUserSelectMenu()) {
-      await HandleUserSelectMenuInteraction(interaction, dependencies.userSelectMenuRouter, dependencies.logger)
+      await HandleUserSelectMenuInteraction(
+        interaction,
+        dependencies.userSelectMenuRouter,
+        dependencies.logger,
+      );
     }
-  })
+  });
 }
 
 async function HandleButtonInteraction(
   interaction: ButtonInteraction,
   router: ComponentRouter,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> {
-  const handled = await router.HandleButton(interaction)
+  const handled = await router.HandleButton(interaction);
   if (!handled) {
-    logger.Debug('Unhandled button interaction', {
+    logger.Debug("Unhandled button interaction", {
       extra: {
-        customId: interaction.customId
-      }
-    })
+        customId: interaction.customId,
+      },
+    });
   }
 }
 
 async function HandleSelectMenuInteraction(
   interaction: StringSelectMenuInteraction,
   router: SelectMenuRouter,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> {
-  const handled = await router.HandleSelectMenu(interaction)
+  const handled = await router.HandleSelectMenu(interaction);
   if (!handled) {
-    logger.Debug('Unhandled select menu interaction', {
+    logger.Debug("Unhandled select menu interaction", {
       extra: {
-        customId: interaction.customId
-      }
-    })
+        customId: interaction.customId,
+      },
+    });
   }
 }
 
 async function HandleUserSelectMenuInteraction(
   interaction: UserSelectMenuInteraction,
   router: UserSelectMenuRouter,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> {
-  const handled = await router.HandleUserSelectMenu(interaction)
+  const handled = await router.HandleUserSelectMenu(interaction);
   if (!handled) {
-    logger.Debug('Unhandled user select menu interaction', {
+    logger.Debug("Unhandled user select menu interaction", {
       extra: {
-        customId: interaction.customId
-      }
-    })
+        customId: interaction.customId,
+      },
+    });
   }
 }
 
-export function HandleCommandInteraction(interaction: ChatInputCommandInteraction): boolean {
-  return interaction.isChatInputCommand()
+export function HandleCommandInteraction(
+  interaction: ChatInputCommandInteraction,
+): boolean {
+  return interaction.isChatInputCommand();
 }

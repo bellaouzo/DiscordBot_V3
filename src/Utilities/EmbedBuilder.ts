@@ -53,7 +53,7 @@ export class EmbedFactory {
   static CreateHelpSection(
     sectionName: string,
     description: string,
-    commandCount: number
+    commandCount: number,
   ): EmbedBuilder {
     return this.Create({
       title: `📁 ${sectionName} Commands`,
@@ -67,7 +67,7 @@ export class EmbedFactory {
 
   static CreateHelpOverview(
     totalCommands: number,
-    categoryCount: number
+    categoryCount: number,
   ): EmbedBuilder {
     return this.Create({
       title: "🤖 Bot Command Overview",
@@ -84,7 +84,7 @@ export class EmbedFactory {
       category: string;
       status: string;
       created_at: number;
-    }>
+    }>,
   ): EmbedBuilder {
     const embed = this.Create({
       title: "🎫 Your Tickets",
@@ -105,8 +105,8 @@ export class EmbedFactory {
             ticket.status === "closed"
               ? "🔒"
               : ticket.status === "claimed"
-              ? "📌"
-              : "📝";
+                ? "📌"
+                : "📝";
           const date = new Date(ticket.created_at).toLocaleDateString();
           return `${statusEmoji} **Ticket #${ticket.id}** - ${ticket.category} (${ticket.status}) - ${date}`;
         })
@@ -132,7 +132,7 @@ export class EmbedFactory {
 
   static CreateTicketClaimed(
     ticketId: number,
-    claimedBy: string
+    claimedBy: string,
   ): EmbedBuilder {
     return this.CreateSuccess({
       title: "📌 Ticket Claimed",

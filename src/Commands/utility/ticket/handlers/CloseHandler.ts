@@ -1,11 +1,20 @@
 import { ChatInputCommandInteraction, TextChannel } from "discord.js";
 import { CommandContext } from "../../../CommandFactory";
-import { EmbedFactory, CreateTicketManager, TranscriptGenerator } from "../../../../Utilities";
-import { CreateTicketServices, ValidateTicketChannelOrReply, GetTicketOrReply } from "../validation/TicketValidation";
+import {
+  EmbedFactory,
+  CreateTicketManager,
+  TranscriptGenerator,
+} from "../../../../Utilities";
+import {
+  CreateTicketServices,
+  ValidateTicketChannelOrReply,
+  GetTicketOrReply,
+} from "../validation/TicketValidation";
+import { Logger } from "../../../../Shared/Logger";
 
 export async function HandleTicketClose(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const { logger } = context;
@@ -13,15 +22,13 @@ export async function HandleTicketClose(
   if (!(await ValidateTicketChannelOrReply(interaction, interactionResponder)))
     return;
 
-  const { ticketDb, ticketManager, guildResourceLocator } = CreateTicketServices(
-    logger,
-    interaction.guild!
-  );
+  const { ticketDb, ticketManager, guildResourceLocator } =
+    CreateTicketServices(logger, interaction.guild!);
   const ticket = await GetTicketOrReply(
     ticketDb,
     interaction.channel as TextChannel,
     interaction,
-    interactionResponder
+    interactionResponder,
   );
 
   if (!ticket) return;
@@ -36,7 +43,8 @@ export async function HandleTicketClose(
 
   const messages = ticketDb.GetTicketMessages(ticket.id);
   const member = await guildResourceLocator.GetMember(ticket.user_id);
-  const user = member?.user || await interaction.client.users.fetch(ticket.user_id);
+  const user =
+    member?.user || (await interaction.client.users.fetch(ticket.user_id));
   const participantHistory = ticketDb.GetParticipantHistory(ticket.id);
 
   const transcript = TranscriptGenerator.Generate({
@@ -54,28 +62,14 @@ export async function HandleTicketClose(
     transcript,
     filename,
     `Ticket #${ticket.id} closed by <@${interaction.user.id}>`,
-    logger
+    logger,
   );
 
   await interactionResponder.Reply(interaction, {
     content: "Ticket closed successfully.",
   });
 
-  const success = await ticketManager.CloseTicket(
-    ticket.id,
-    interaction.user.id,
-    false
-  );
-
-  if (success) {
-    logger.Info("Ticket closed", {
-      extra: { ticketId: ticket.id, closedBy: interaction.user.id },
-    });
-  } else {
-    logger.Error("Failed to close ticket", {
-      extra: { ticketId: ticket.id, closedBy: interaction.user.id },
-    });
-  }
+  await ticketManager.CloseTicket(ticket.id, interaction.user.id, false);
 }
 
 async function SendTicketLogs(
@@ -83,7 +77,7 @@ async function SendTicketLogs(
   transcript: string,
   filename: string,
   message: string,
-  logger: any
+  logger: Logger,
 ): Promise<void> {
   try {
     const logsChannel = await ticketManager.GetOrCreateTicketLogsChannel();
@@ -93,13 +87,6 @@ async function SendTicketLogs(
         files: [
           { name: filename, attachment: Buffer.from(transcript, "utf-8") },
         ],
-      });
-      logger.Info("Ticket logs sent successfully", {
-        extra: { logsChannelId: logsChannel.id },
-      });
-    } else {
-      logger.Error("Failed to get or create logs channel", {
-        extra: { guildId: ticketManager },
       });
     }
   } catch (error) {

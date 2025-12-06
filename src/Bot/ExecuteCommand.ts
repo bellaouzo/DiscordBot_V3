@@ -13,7 +13,7 @@ export function CreateCommandExecutor() {
     command: CommandDefinition,
     interaction: ChatInputCommandInteraction,
     responders: ResponderSet,
-    commandLogger: Logger
+    commandLogger: Logger,
   ): Promise<void> => {
     const middleware = command.middleware?.before ?? [];
     const afterMiddleware = [

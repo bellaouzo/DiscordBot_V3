@@ -1,4 +1,9 @@
-import { ButtonInteraction, ButtonStyle, ActionRowData, ActionRowComponentData } from "discord.js";
+import {
+  ButtonInteraction,
+  ButtonStyle,
+  ActionRowData,
+  ActionRowComponentData,
+} from "discord.js";
 import { ComponentRouter } from "../../../../Shared/ComponentRouter";
 import { ButtonResponder } from "../../../../Responders";
 import { EmbedFactory, ComponentFactory } from "../../../../Utilities";
@@ -8,7 +13,7 @@ export function CreateTicketListPage(
   tickets: TicketInfo[],
   pageIndex: number,
   pageSize: number,
-  totalPages: number
+  totalPages: number,
 ): TicketListPage {
   const start = pageIndex * pageSize;
   const end = start + pageSize;
@@ -29,8 +34,8 @@ export function CreateTicketListPage(
           ticket.status === "closed"
             ? "🔒"
             : ticket.status === "claimed"
-            ? "📌"
-            : "📝";
+              ? "📌"
+              : "📝";
         const date = new Date(ticket.created_at).toLocaleDateString();
         return `${statusEmoji} **Ticket #${ticket.id}** - ${ticket.category} (${ticket.status}) - ${date}`;
       })
@@ -52,7 +57,7 @@ export function CreateTicketListPage(
 
 function BuildPaginationRow(
   pageIndex: number,
-  totalPages: number
+  totalPages: number,
 ): ActionRowData<ActionRowComponentData> {
   const isFirst = pageIndex === 0;
   const isLast = pageIndex === totalPages - 1;
@@ -99,7 +104,7 @@ export function RegisterTicketListButtons(
   buttonResponder: ButtonResponder,
   tickets: TicketInfo[],
   ownerId: string,
-  totalPages: number
+  totalPages: number,
 ): void {
   const pageSize = 10;
 
@@ -125,7 +130,7 @@ export function RegisterTicketListButtons(
       ownerId,
       handler: async (buttonInteraction: ButtonInteraction) => {
         const parsed = ParseTicketListPageNavCustomId(
-          buttonInteraction.customId
+          buttonInteraction.customId,
         );
         if (!parsed) {
           return;
@@ -148,7 +153,7 @@ export function RegisterTicketListButtons(
       ownerId,
       handler: async (buttonInteraction: ButtonInteraction) => {
         const parsed = ParseTicketListPageNavCustomId(
-          buttonInteraction.customId
+          buttonInteraction.customId,
         );
         if (!parsed) {
           return;
@@ -206,7 +211,7 @@ async function ShowTicketListPage(options: {
     tickets,
     clampedIndex,
     pageSize,
-    totalPages
+    totalPages,
   );
 
   await buttonResponder.DeferUpdate(buttonInteraction);

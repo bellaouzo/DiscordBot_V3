@@ -1,13 +1,11 @@
 import { UserSelectMenuInteraction } from "discord.js";
 import { Ticket } from "../../../../Database";
-import { Logger } from "../../../../Shared/Logger";
 import { CreateTicketManager } from "../../../../Utilities";
 
 export async function HandleUserSelection(
   userSelectInteraction: UserSelectMenuInteraction,
   ticket: Ticket,
-  ticketManager: ReturnType<typeof CreateTicketManager>,
-  logger: Logger
+  ticketManager: ReturnType<typeof CreateTicketManager>
 ): Promise<void> {
   await userSelectInteraction.deferReply({ ephemeral: true });
 
@@ -40,22 +38,12 @@ export async function HandleUserSelection(
   await userSelectInteraction.editReply({
     content: message || "No users were added.",
   });
-
-  logger.Info("Users added to ticket", {
-    extra: {
-      ticketId: ticket.id,
-      addedBy: userSelectInteraction.user.id,
-      addedUsers: addedUsers.length,
-      failedUsers: failedUsers.length,
-    },
-  });
 }
 
 export async function HandleUserRemoval(
   userSelectInteraction: UserSelectMenuInteraction,
   ticket: Ticket,
-  ticketManager: ReturnType<typeof CreateTicketManager>,
-  logger: Logger
+  ticketManager: ReturnType<typeof CreateTicketManager>
 ): Promise<void> {
   await userSelectInteraction.deferReply({ ephemeral: true });
 
@@ -93,14 +81,5 @@ export async function HandleUserRemoval(
 
   await userSelectInteraction.editReply({
     content: message || "No users were removed.",
-  });
-
-  logger.Info("Users removed from ticket", {
-    extra: {
-      ticketId: ticket.id,
-      removedBy: userSelectInteraction.user.id,
-      removedUsers: removedUsers.length,
-      failedUsers: failedUsers.length,
-    },
   });
 }

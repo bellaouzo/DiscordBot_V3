@@ -13,7 +13,7 @@ export class InteractionResponder {
 
   async Reply(
     interaction: ChatInputCommandInteraction,
-    options: ResponseOptions
+    options: ResponseOptions,
   ): Promise<ResponseResult> {
     if (interaction.replied || interaction.deferred) {
       return { success: false, message: "Already replied to this interaction" };
@@ -37,7 +37,7 @@ export class InteractionResponder {
 
   async Edit(
     interaction: ChatInputCommandInteraction,
-    options: ResponseOptions
+    options: ResponseOptions,
   ): Promise<ResponseResult> {
     if (!interaction.replied) {
       return { success: false, message: "No reply to edit" };
@@ -60,7 +60,7 @@ export class InteractionResponder {
 
   async FollowUp(
     interaction: ChatInputCommandInteraction,
-    options: ResponseOptions
+    options: ResponseOptions,
   ): Promise<ResponseResult> {
     try {
       await interaction.followUp({
@@ -80,7 +80,7 @@ export class InteractionResponder {
 
   async Defer(
     interaction: ChatInputCommandInteraction,
-    options: ResponderMessageOptions | boolean = false
+    options: ResponderMessageOptions | boolean = false,
   ): Promise<ResponseResult> {
     try {
       const flags =
@@ -106,7 +106,7 @@ export class InteractionResponder {
       options.interaction,
       typeof options.message === "string"
         ? { content: options.message }
-        : { ...options.message, ephemeral: false }
+        : { ...options.message, ephemeral: false },
     );
 
     await options.action();
@@ -120,7 +120,7 @@ export class InteractionResponder {
         options.interaction,
         typeof followUp === "string"
           ? { content: followUp }
-          : { ...followUp, ephemeral: false }
+          : { ...followUp, ephemeral: false },
       );
     }
   }

@@ -1,7 +1,12 @@
 import { ChatInputCommandInteraction, TextChannel } from "discord.js";
 import { CommandContext } from "../../../CommandFactory";
 import { TranscriptGenerator } from "../../../../Utilities";
-import { CreateTicketServices, ValidateTicketChannelOrReply, GetTicketOrReply, HasStaffPermissions } from "../validation/TicketValidation";
+import {
+  CreateTicketServices,
+  ValidateTicketChannelOrReply,
+  GetTicketOrReply,
+  HasStaffPermissions,
+} from "../validation/TicketValidation";
 
 export async function HandleTicketTranscript(
   interaction: ChatInputCommandInteraction,
@@ -21,10 +26,8 @@ export async function HandleTicketTranscript(
     return;
   }
 
-  const { ticketDb, ticketManager, guildResourceLocator } = CreateTicketServices(
-    logger,
-    interaction.guild!
-  );
+  const { ticketDb, ticketManager, guildResourceLocator } =
+    CreateTicketServices(logger, interaction.guild!);
   const ticket = await GetTicketOrReply(
     ticketDb,
     interaction.channel as TextChannel,
@@ -36,7 +39,8 @@ export async function HandleTicketTranscript(
 
   const messages = ticketDb.GetTicketMessages(ticket.id);
   const member = await guildResourceLocator.GetMember(ticket.user_id);
-  const user = member?.user || await interaction.client.users.fetch(ticket.user_id);
+  const user =
+    member?.user || (await interaction.client.users.fetch(ticket.user_id));
   const participantHistory = ticketDb.GetParticipantHistory(ticket.id);
 
   const transcript = TranscriptGenerator.Generate({
@@ -68,8 +72,4 @@ export async function HandleTicketTranscript(
       ephemeral: true,
     });
   }
-
-  logger.Info("Ticket transcript generated", {
-    extra: { ticketId: ticket.id, generatedBy: interaction.user.id },
-  });
 }

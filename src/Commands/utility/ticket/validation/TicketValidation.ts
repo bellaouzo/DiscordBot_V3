@@ -1,17 +1,14 @@
-import {
-  ChatInputCommandInteraction,
-  TextChannel,
-  Guild,
-} from "discord.js";
+import { ChatInputCommandInteraction, TextChannel, Guild } from "discord.js";
 import { GuildMemberOrAPI } from "../types/TicketTypes";
 import { TicketDatabase, Ticket } from "../../../../Database";
-import { CreateTicketManager, CreateGuildResourceLocator } from "../../../../Utilities";
+import {
+  CreateTicketManager,
+  CreateGuildResourceLocator,
+} from "../../../../Utilities";
 import { Logger } from "../../../../Shared/Logger";
 import { InteractionResponder } from "../../../../Responders";
 
-export function HasStaffPermissions(
-  member: GuildMemberOrAPI
-): boolean {
+export function HasStaffPermissions(member: GuildMemberOrAPI): boolean {
   if (!member || typeof member.permissions === "string") {
     return false;
   }
@@ -22,7 +19,7 @@ export function HasStaffPermissions(
 }
 
 export function ValidateTicketChannel(
-  channel: ChatInputCommandInteraction["channel"]
+  channel: ChatInputCommandInteraction["channel"],
 ): boolean {
   return !!(channel && channel.isTextBased());
 }
@@ -44,7 +41,7 @@ export function CreateTicketServices(logger: Logger, guild: Guild) {
 
 export async function ValidateGuildOrReply(
   interaction: ChatInputCommandInteraction,
-  interactionResponder: InteractionResponder
+  interactionResponder: InteractionResponder,
 ): Promise<boolean> {
   if (!interaction.guild) {
     await interactionResponder.Reply(interaction, {
@@ -58,7 +55,7 @@ export async function ValidateGuildOrReply(
 
 export async function ValidateTicketChannelOrReply(
   interaction: ChatInputCommandInteraction,
-  interactionResponder: InteractionResponder
+  interactionResponder: InteractionResponder,
 ): Promise<boolean> {
   if (!interaction.guild || !ValidateTicketChannel(interaction.channel)) {
     await interactionResponder.Reply(interaction, {
@@ -74,7 +71,7 @@ export async function GetTicketOrReply(
   ticketDb: TicketDatabase,
   channel: TextChannel,
   interaction: ChatInputCommandInteraction,
-  interactionResponder: InteractionResponder
+  interactionResponder: InteractionResponder,
 ): Promise<Ticket | null> {
   const ticket = ticketDb.GetTicketByChannel(channel.id);
   if (!ticket) {

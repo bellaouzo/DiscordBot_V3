@@ -12,7 +12,12 @@ import {
 } from "discord.js";
 import { TicketDatabase, Ticket, TICKET_CATEGORIES } from "../Database";
 import { Logger } from "../Shared/Logger";
-import { EmbedFactory, ComponentFactory, CreateChannelManager, GuildResourceLocator } from "./";
+import {
+  EmbedFactory,
+  ComponentFactory,
+  CreateChannelManager,
+  GuildResourceLocator,
+} from "./";
 
 export interface TicketManagerOptions {
   readonly guild: Guild;
@@ -43,14 +48,15 @@ export class TicketManager {
 
   async CreateTicket(options: CreateTicketOptions): Promise<TicketChannelInfo> {
     const { userId, category } = options;
-    const { guild, ticketDb, logger, guildResourceLocator } = this.options;
+    const { guild, ticketDb, guildResourceLocator } = this.options;
 
     const member = await guildResourceLocator.GetMember(userId);
     if (!member) {
       throw new Error(`User ${userId} not found in guild ${guild.id}`);
     }
 
-    const ticketCategory = await this.channelManager.GetOrCreateCategory("Support Tickets");
+    const ticketCategory =
+      await this.channelManager.GetOrCreateCategory("Support Tickets");
 
     const ticket = ticketDb.CreateTicket({
       user_id: userId,
@@ -73,19 +79,8 @@ export class TicketManager {
     ticketDb.UpdateTicketChannelId(ticket.id, channel.id);
     ticketDb.UpdateTicketStatus(ticket.id, "open");
 
-    logger.Info("Ticket created", {
-      extra: {
-        ticketId: ticket.id,
-        userId,
-        guildId: guild.id,
-        channelId: channel.id,
-        category,
-      },
-    });
-
     return { ticket, channel };
   }
-
 
   private CreatePermissionOverwrites(
     member: GuildMember
@@ -179,12 +174,6 @@ export class TicketManager {
       staffId
     );
 
-    if (updated) {
-      this.options.logger.Info("Ticket claimed", {
-        extra: { ticketId, staffId },
-      });
-    }
-
     return updated;
   }
 
@@ -234,9 +223,6 @@ export class TicketManager {
       setTimeout(async () => {
         try {
           await channel!.delete("Ticket closed (auto-delete)");
-          this.options.logger.Info("Ticket channel deleted", {
-            extra: { ticketId, channelId: channel!.id },
-          });
         } catch (error) {
           this.options.logger.Error("Failed to delete ticket channel", {
             error,
@@ -267,6 +253,28 @@ export class TicketManager {
 
   async GetOrCreateTicketLogsChannel(): Promise<TextChannel | null> {
     try {
+      const cachedChannel = this.options.guild.channels.cache.find(
+        (channel) =>
+          channel.type === ChannelType.GuildText &&
+          channel.name.toLowerCase() === "ticket-logs"
+      );
+
+      if (cachedChannel) {
+        return cachedChannel as TextChannel;
+      }
+
+      const fetchedChannels = await this.options.guild.channels.fetch();
+      const existingChannel = fetchedChannels.find(
+        (channel) =>
+          channel &&
+          channel.type === ChannelType.GuildText &&
+          channel.name.toLowerCase() === "ticket-logs"
+      );
+
+      if (existingChannel) {
+        return existingChannel as TextChannel;
+      }
+
       const botMember = await this.options.guild.members.fetchMe();
       const logsChannel = await this.options.guild.channels.create({
         name: "ticket-logs",
@@ -285,10 +293,6 @@ export class TicketManager {
             ],
           },
         ],
-      });
-
-      this.options.logger.Info("Created ticket logs channel", {
-        extra: { guildId: this.options.guild.id, channelId: logsChannel.id },
       });
 
       return logsChannel;
@@ -336,15 +340,6 @@ export class TicketManager {
       });
 
       this.options.ticketDb.AddParticipant(ticketId, userId, addedBy);
-
-      this.options.logger.Info("User added to ticket", {
-        extra: {
-          ticketId,
-          userId,
-          addedBy,
-          channelId: ticket.channel_id,
-        },
-      });
 
       return true;
     } catch (error) {
@@ -399,17 +394,6 @@ export class TicketManager {
         userId,
         removedBy
       );
-
-      if (success) {
-        this.options.logger.Info("User removed from ticket", {
-          extra: {
-            ticketId,
-            userId,
-            removedBy,
-            channelId: ticket.channel_id,
-          },
-        });
-      }
 
       return success;
     } catch (error) {

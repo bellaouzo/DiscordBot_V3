@@ -24,7 +24,9 @@ export async function RegisterRemoveUserButton(
     handler: async (buttonInteraction: ButtonInteraction) => {
       await buttonResponder.DeferUpdate(buttonInteraction);
 
-      const member = await guildResourceLocator.GetMember(buttonInteraction.user.id);
+      const member = await guildResourceLocator.GetMember(
+        buttonInteraction.user.id
+      );
       const ticketManager = CreateTicketManager({
         guild,
         logger,
@@ -68,12 +70,7 @@ export async function RegisterRemoveUserButton(
         ownerId: buttonInteraction.user.id,
         singleUse: true,
         handler: async (userSelectInteraction) => {
-          await HandleUserRemoval(
-            userSelectInteraction,
-            ticket,
-            ticketManager,
-            logger
-          );
+          await HandleUserRemoval(userSelectInteraction, ticket, ticketManager);
         },
         expiresInMs: 60000,
       });

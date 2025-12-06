@@ -16,7 +16,7 @@ export interface CommandMiddleware {
   readonly name: string;
   readonly execute: (
     context: MiddlewareContext,
-    next: () => Promise<void>
+    next: () => Promise<void>,
   ) => Promise<void>;
 }
 
@@ -28,7 +28,7 @@ export interface MiddlewareConfiguration {
 export async function RunMiddlewareChain(
   middleware: CommandMiddleware[],
   context: MiddlewareContext,
-  finalHandler: () => Promise<void>
+  finalHandler: () => Promise<void>,
 ): Promise<void> {
   let index = -1;
 

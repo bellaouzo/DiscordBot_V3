@@ -7,7 +7,11 @@ import {
 } from "discord.js";
 import { CommandContext } from "../../../CommandFactory";
 import { TICKET_CATEGORIES } from "../../../../Database";
-import { EmbedFactory, ComponentFactory, CreateTicketManager } from "../../../../Utilities";
+import {
+  EmbedFactory,
+  ComponentFactory,
+  CreateTicketManager,
+} from "../../../../Utilities";
 import { Logger } from "../../../../Shared/Logger";
 import { ComponentRouter } from "../../../../Shared/ComponentRouter";
 import { ButtonResponder } from "../../../../Responders";
@@ -39,10 +43,8 @@ export async function HandleTicketCreate(
     return;
   }
 
-  const { ticketDb, ticketManager, guildResourceLocator } = CreateTicketServices(
-    logger,
-    interaction.guild
-  );
+  const { ticketDb, ticketManager, guildResourceLocator } =
+    CreateTicketServices(logger, interaction.guild);
 
   const selectMenu = ComponentFactory.CreateSelectMenu({
     customId: `ticket-create:${interaction.id}`,
@@ -137,7 +139,6 @@ async function HandleTicketCategorySelection(
       buttonResponder,
       ticket,
       selectInteraction.id,
-      logger,
       ticketDb
     );
     await RegisterAddUserButton(
@@ -173,22 +174,12 @@ async function HandleTicketCategorySelection(
       guildResourceLocator
     );
 
-    const logsChannel = await ticketManager.GetOrCreateTicketLogsChannel();
-
     if ("send" in channel) {
       await channel.send({
         embeds: [embed.toJSON()],
         components: [buttons.toJSON()],
       });
     }
-
-    logger.Info("Ticket logs channel ready", {
-      extra: {
-        guildId: guild.id,
-        logsChannelId: logsChannel?.id,
-        ticketId: ticket.id,
-      },
-    });
 
     await selectInteraction.editReply({
       embeds: [
@@ -197,14 +188,6 @@ async function HandleTicketCategorySelection(
           description: `Your ticket has been created! View it in ${channel}.`,
         }).toJSON(),
       ],
-    });
-
-    logger.Info("Ticket created via command", {
-      extra: {
-        ticketId: ticket.id,
-        userId: selectInteraction.user.id,
-        category: selectedCategory,
-      },
     });
   } catch (error) {
     logger.Error("Failed to create ticket", { error });

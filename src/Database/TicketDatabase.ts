@@ -135,8 +135,6 @@ export class TicketDatabase {
 
     // Add migration for existing databases
     this.MigrateDatabase();
-
-    this.logger.Info("Database tables initialized");
   }
 
   private MigrateDatabase(): void {
@@ -154,9 +152,6 @@ export class TicketDatabase {
           ALTER TABLE ticket_participants ADD COLUMN removed_by TEXT;
           ALTER TABLE ticket_participants ADD COLUMN removed_at INTEGER;
         `);
-        this.logger.Info(
-          "Database migrated: added removed_by and removed_at columns to ticket_participants"
-        );
       }
     } catch (error) {
       this.logger.Error("Failed to migrate database", { error });
@@ -349,6 +344,5 @@ export class TicketDatabase {
 
   Close(): void {
     this.db.close();
-    this.logger.Info("Database connection closed");
   }
 }

@@ -2,7 +2,10 @@ import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "../../../CommandFactory";
 import { EmbedFactory } from "../../../../Utilities";
 import { CreateTicketServices } from "../validation/TicketValidation";
-import { RegisterTicketListButtons, CreateTicketListPage } from "../components/TicketListPagination";
+import {
+  RegisterTicketListButtons,
+  CreateTicketListPage,
+} from "../components/TicketListPagination";
 
 export async function HandleTicketList(
   interaction: ChatInputCommandInteraction,
@@ -35,9 +38,6 @@ export async function HandleTicketList(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-    logger.Info("Ticket list viewed", {
-      extra: { userId: interaction.user.id, ticketCount: 0 },
-    });
     return;
   }
 
@@ -46,9 +46,6 @@ export async function HandleTicketList(
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
       ephemeral: true,
-    });
-    logger.Info("Ticket list viewed", {
-      extra: { userId: interaction.user.id, ticketCount: tickets.length },
     });
     return;
   }
@@ -67,13 +64,5 @@ export async function HandleTicketList(
     embeds: firstPage.embeds,
     components: firstPage.components,
     ephemeral: true,
-  });
-
-  logger.Info("Ticket list viewed", {
-    extra: {
-      userId: interaction.user.id,
-      ticketCount: tickets.length,
-      totalPages,
-    },
   });
 }
