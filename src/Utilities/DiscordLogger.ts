@@ -82,11 +82,6 @@ function CreateCommandLogEmbed(
       inline: true,
     },
     {
-      name: "Guild",
-      value: interaction.guild?.name || "DM",
-      inline: true,
-    },
-    {
       name: "Channel",
       value: interaction.channel?.toString() || "Unknown",
       inline: true,

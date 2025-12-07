@@ -4,6 +4,9 @@ import { LoggingMiddleware, ErrorMiddleware } from "@middleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory } from "@utilities";
 import { ServerDatabase } from "@database";
+import { PaginationPage } from "@shared/Paginator";
+
+const EVENT_LIST_PAGE_SIZE = 8;
 
 function ParseTime(input: string): number | null {
   const numeric = Number(input);
@@ -80,7 +83,7 @@ async function ExecuteEventCreate(
 
     const embed = EmbedFactory.CreateSuccess({
       title: "Event Created",
-      description: `Scheduled **${event.title}** for <t:${Math.floor(
+      description: `Scheduled **${event.title}** as #${event.guild_event_id} for <t:${Math.floor(
         event.scheduled_at / 1000
       )}:F> (relative: <t:${Math.floor(event.scheduled_at / 1000)}:R>).`,
     });
@@ -115,7 +118,7 @@ async function ExecuteEventList(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const { interactionResponder } = context.responders;
+  const { interactionResponder, paginatedResponder } = context.responders;
 
   if (!interaction.guild) {
     const embed = EmbedFactory.CreateError({
@@ -138,31 +141,27 @@ async function ExecuteEventList(
       .ListUpcomingEvents(interaction.guild.id)
       .slice(0, safeLimit);
 
-    const embed = EmbedFactory.Create({
-      title: "📅 Upcoming Events",
-      description:
-        events.length === 0
-          ? "No upcoming events scheduled."
-          : `Showing up to ${safeLimit} upcoming event${
-              safeLimit === 1 ? "" : "s"
-            }.`,
-    });
-
-    if (events.length > 0) {
-      embed.addFields(
-        events.map((event) => ({
-          name: `#${event.id} — ${event.title}`,
-          value: `<t:${Math.floor(event.scheduled_at / 1000)}:F> (<t:${Math.floor(
-            event.scheduled_at / 1000
-          )}:R>)${event.should_notify ? " • will notify" : ""}`,
-          inline: false,
-        }))
-      );
+    if (events.length === 0) {
+      const embed = EmbedFactory.CreateWarning({
+        title: "No Upcoming Events",
+        description: "No upcoming events scheduled.",
+      });
+      await interactionResponder.Reply(interaction, {
+        embeds: [embed.toJSON()],
+        ephemeral: true,
+      });
+      return;
     }
 
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
+    const pages = BuildEventPages(events);
+
+    await paginatedResponder.Send({
+      interaction,
+      pages,
       ephemeral: true,
+      ownerId: interaction.user.id,
+      timeoutMs: 1000 * 60 * 3,
+      idleTimeoutMs: 1000 * 60 * 2,
     });
   } catch (error) {
     context.logger.Error("Failed to list events", { error });
@@ -177,6 +176,43 @@ async function ExecuteEventList(
   } finally {
     db.Close();
   }
+}
+
+function BuildEventPages(
+  events: Array<{
+    id: number;
+    guild_event_id: number;
+    title: string;
+    scheduled_at: number;
+    should_notify: boolean;
+  }>
+): PaginationPage[] {
+  const pages: PaginationPage[] = [];
+
+  for (let index = 0; index < events.length; index += EVENT_LIST_PAGE_SIZE) {
+    const slice = events.slice(index, index + EVENT_LIST_PAGE_SIZE);
+    const start = index + 1;
+    const end = index + slice.length;
+
+    const embed = EmbedFactory.Create({
+      title: "📅 Upcoming Events",
+      description: `Showing events ${start} - ${end} of ${events.length}`,
+    });
+
+    embed.addFields(
+      slice.map((event) => ({
+        name: `#${event.guild_event_id} — ${event.title}`,
+        value: `<t:${Math.floor(event.scheduled_at / 1000)}:F> (<t:${Math.floor(
+          event.scheduled_at / 1000
+        )}:R>)${event.should_notify ? " • will notify" : ""}`,
+        inline: false,
+      }))
+    );
+
+    pages.push({ embeds: [embed.toJSON()] });
+  }
+
+  return pages;
 }
 
 async function ExecuteEventCancel(

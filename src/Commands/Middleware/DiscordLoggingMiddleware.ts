@@ -24,6 +24,8 @@ export const DiscordLoggingMiddleware: CommandMiddleware = {
               process.env.COMMAND_LOG_CHANNEL_NAME || "command-logs",
             commandLogCategoryName:
               process.env.COMMAND_LOG_CATEGORY_NAME || "Bot Logs",
+            messageDeleteChannelName:
+              process.env.MESSAGE_DELETE_LOG_CHANNEL_NAME || "deleted-logs",
           },
         });
       }

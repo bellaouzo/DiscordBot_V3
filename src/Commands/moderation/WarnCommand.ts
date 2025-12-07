@@ -10,6 +10,9 @@ import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory, CreateWarnManager } from "@utilities";
 import { UserDatabase } from "@database";
+import { PaginationPage } from "@shared/Paginator";
+
+const WARN_LIST_PAGE_SIZE = 6;
 
 function IsModerator(member: GuildMember | null): boolean {
   if (!member) return false;
@@ -209,7 +212,7 @@ async function HandleList(
   warnManager: ReturnType<typeof CreateWarnManager>,
   isModerator: boolean
 ): Promise<void> {
-  const { interactionResponder } = context.responders;
+  const { interactionResponder, paginatedResponder } = context.responders;
   const targetUser = interaction.options.getUser("user") ?? interaction.user;
 
   if (targetUser.id !== interaction.user.id && !isModerator) {
@@ -238,27 +241,51 @@ async function HandleList(
     return;
   }
 
-  const embed = EmbedFactory.Create({
-    title: `Warnings for ${targetUser.tag}`,
-    description: warnings
-      .slice(0, 10)
-      .map((warning, index) => {
+  const pages = BuildWarningPages(warnings, targetUser.tag);
+
+  await paginatedResponder.Send({
+    interaction,
+    pages,
+    ephemeral: true,
+    ownerId: interaction.user.id,
+    timeoutMs: 1000 * 60 * 3,
+    idleTimeoutMs: 1000 * 60 * 2,
+  });
+}
+
+function BuildWarningPages(
+  warnings: ReturnType<ReturnType<typeof CreateWarnManager>["GetUserWarnings"]>,
+  userTag: string
+): PaginationPage[] {
+  const pages: PaginationPage[] = [];
+
+  for (let index = 0; index < warnings.length; index += WARN_LIST_PAGE_SIZE) {
+    const slice = warnings.slice(index, index + WARN_LIST_PAGE_SIZE);
+    const start = index + 1;
+    const end = index + slice.length;
+
+    const embed = EmbedFactory.Create({
+      title: `Warnings for ${userTag}`,
+      description: `Showing warnings ${start} - ${end} of ${warnings.length}`,
+    });
+
+    embed.addFields(
+      slice.map((warning, sliceIndex) => {
         const date = new Date(warning.created_at).toLocaleDateString();
         const reason = warning.reason ?? "No reason provided";
-        const warningNumber = index + 1;
-        return `• Warning #${warningNumber} — ${date} — Mod: <@${warning.moderator_id}>\n  Reason: ${reason}`;
+        const warningNumber = start + sliceIndex;
+        return {
+          name: `#${warningNumber} — ${date}`,
+          value: `Mod: <@${warning.moderator_id}>\nReason: ${reason}`,
+          inline: false,
+        };
       })
-      .join("\n\n"),
-    footer:
-      warnings.length > 10
-        ? `Showing 10 of ${warnings.length} warnings`
-        : `Total warnings: ${warnings.length}`,
-  });
+    );
 
-  await interactionResponder.Reply(interaction, {
-    embeds: [embed.toJSON()],
-    ephemeral: true,
-  });
+    pages.push({ embeds: [embed.toJSON()] });
+  }
+
+  return pages;
 }
 
 export const WarnCommand = CreateCommand({

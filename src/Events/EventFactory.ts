@@ -1,6 +1,6 @@
 import { Client } from "discord.js";
-import { Logger } from "../Shared/Logger";
-import { ResponderSet } from "../Responders";
+import { Logger } from "@shared/Logger";
+import { ResponderSet } from "@responders";
 
 export interface EventContext {
   readonly client: Client;
