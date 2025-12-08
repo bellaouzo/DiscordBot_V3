@@ -24,6 +24,7 @@
     "module-alias": "^2.2.3"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20.10.0",
     "prettier": "^3.7.4",
     "rimraf": "^5.0.5",
