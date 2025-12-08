@@ -68,8 +68,8 @@ async function AnnounceDeploy(context: EventContext): Promise<void> {
     }
 
     const embed = EmbedFactory.CreateSuccess({
-      title: "🚀 ProductionDeployment Updated",
-      description: `Deployed commit **${info.hash}**\n“${info.message}”`,
+      title: "🚀 Production Deployment Updated",
+      description: `Deployed commit **${info.hash}**\nCommit Message: “${info.message}”`,
     }).setTimestamp(new Date(info.timestamp));
 
     try {
