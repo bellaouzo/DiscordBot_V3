@@ -15,6 +15,7 @@ export interface LoggingConfig {
   readonly commandLogChannelName: string;
   readonly commandLogCategoryName: string;
   readonly messageDeleteChannelName: string;
+  readonly deployLogChannelName: string;
 }
 
 export interface AppConfig {
@@ -80,6 +81,8 @@ export function LoadAppConfig(): AppConfig {
         process.env.COMMAND_LOG_CATEGORY_NAME || "Bot Logs",
       messageDeleteChannelName:
         process.env.MESSAGE_DELETE_LOG_CHANNEL_NAME || "deleted-logs",
+      deployLogChannelName:
+        process.env.DEPLOY_LOG_CHANNEL_NAME || "deployment-logs",
     },
   };
 }
