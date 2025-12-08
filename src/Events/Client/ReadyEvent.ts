@@ -49,6 +49,9 @@ async function AnnounceDeploy(context: EventContext): Promise<void> {
     return;
   }
 
+  const truncate = (text: string, max = 300): string =>
+    text.length <= max ? text : `${text.slice(0, max - 1)}…`;
+
   const config = LoadAppConfig();
   const sentGuilds: string[] = [];
 
@@ -69,8 +72,16 @@ async function AnnounceDeploy(context: EventContext): Promise<void> {
 
     const embed = EmbedFactory.CreateSuccess({
       title: "🚀 Production Deployment Updated",
-      description: `Deployed commit **${info.hash}**\nCommit Message: “${info.message}”`,
-    }).setTimestamp(new Date(info.timestamp));
+    })
+      .addFields(
+        { name: "Commit", value: `\`${info.hash}\`` },
+        { name: "Message", value: truncate(info.message) || "No message" },
+        {
+          name: "Deployed At",
+          value: `<t:${Math.floor(new Date(info.timestamp).getTime() / 1000)}:F>`,
+        }
+      )
+      .setTimestamp(new Date(info.timestamp));
 
     try {
       await channel.send({ embeds: [embed.toJSON()] });
