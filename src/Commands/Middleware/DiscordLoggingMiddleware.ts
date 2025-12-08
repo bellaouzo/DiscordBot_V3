@@ -1,6 +1,7 @@
 import { CommandMiddleware } from "./index";
 import { CreateDiscordLogger, DiscordLogger } from "@utilities/DiscordLogger";
 import { Guild } from "discord.js";
+import { LoadAppConfig } from "@config/AppConfig";
 
 let discordLogger: DiscordLogger | null = null;
 
@@ -16,17 +17,11 @@ export const DiscordLoggingMiddleware: CommandMiddleware = {
     try {
       if (!discordLogger) {
         const guild = context.interaction.guild as Guild;
+        const appConfig = LoadAppConfig();
         discordLogger = CreateDiscordLogger({
           guild,
           logger: context.logger,
-          config: {
-            commandLogChannelName:
-              process.env.COMMAND_LOG_CHANNEL_NAME || "command-logs",
-            commandLogCategoryName:
-              process.env.COMMAND_LOG_CATEGORY_NAME || "Bot Logs",
-            messageDeleteChannelName:
-              process.env.MESSAGE_DELETE_LOG_CHANNEL_NAME || "deleted-logs",
-          },
+          config: appConfig.logging,
         });
       }
 
