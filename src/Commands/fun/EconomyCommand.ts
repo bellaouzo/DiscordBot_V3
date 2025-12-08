@@ -16,6 +16,7 @@ import { HandleScratch } from "@commands/fun/economy/handlers/ScratchHandler";
 import { HandleBlackjack } from "@commands/fun/economy/handlers/BlackjackHandler";
 import { HandleLeaderboard } from "@commands/fun/economy/handlers/LeaderboardHandler";
 import { HandleGift } from "@commands/fun/economy/handlers/GiftHandler";
+import { HandleSlots } from "@commands/fun/economy/handlers/SlotsHandler";
 import {
   HandleInventory,
   HandleMarketBuy,
@@ -109,6 +110,19 @@ export const EconomyCommand = CreateCommand({
         sub
           .setName("scratch")
           .setDescription("Play an interactive scratch card")
+          .addIntegerOption((option) =>
+            option
+              .setName("bet")
+              .setDescription("Bet amount (1-1000)")
+              .setRequired(false)
+              .setMinValue(MIN_BET)
+              .setMaxValue(MAX_BET)
+          )
+      )
+      .addSubcommand((sub) =>
+        sub
+          .setName("slots")
+          .setDescription("Spin the slots and test your luck")
           .addIntegerOption((option) =>
             option
               .setName("bet")
@@ -287,6 +301,11 @@ export const EconomyCommand = CreateCommand({
 
     if (!subcommandGroup && subcommand === "scratch") {
       await HandleScratch(interaction, context);
+      return;
+    }
+
+    if (!subcommandGroup && subcommand === "slots") {
+      await HandleSlots(interaction, context);
       return;
     }
 

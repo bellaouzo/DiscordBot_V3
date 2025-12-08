@@ -59,8 +59,16 @@ async function AnnounceDeploy(context: EventContext): Promise<void> {
     }
     const parts = cleaned
       .split(" - ")
-      .map((part, idx) => (idx === 0 ? part.trim() : `• ${part.trim()}`));
-    return truncate(parts.join("\n"));
+      .map((p) => p.trim())
+      .filter(Boolean);
+    if (parts.length === 0) return "No message";
+    const [headline, ...rest] = parts;
+    const lines: string[] = [`**${headline}**`];
+    if (rest.length) {
+      lines.push(""); // blank line between headline and bullets
+      lines.push(...rest.map((p) => `• ${p}`));
+    }
+    return truncate(lines.join("\n"));
   };
 
   const config = LoadAppConfig();
