@@ -5,6 +5,7 @@ import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
 import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 import { Config } from "@middleware/CommandConfig";
 import { CreateGuildResourceLocator, EmbedFactory } from "@utilities";
+import { ModerationDatabase } from "@database";
 
 async function ExecuteKick(
   interaction: ChatInputCommandInteraction,
@@ -26,10 +27,18 @@ async function ExecuteKick(
     guild: interaction.guild,
     logger,
   });
+  const modDb = new ModerationDatabase(context.logger);
 
   await interactionResponder.WithAction({
     interaction,
-    message: `Kicking ${targetUser.username}...`,
+    message: {
+      embeds: [
+        EmbedFactory.Create({
+          title: "Processing Kick",
+          description: `Kicking **${targetUser.username}**...`,
+        }).toJSON(),
+      ],
+    },
     followUp: () => {
       const embed = EmbedFactory.CreateSuccess({
         title: "User Kicked",
@@ -52,6 +61,15 @@ async function ExecuteKick(
 
       await targetMember.kick(reason);
 
+      modDb.AddModerationEvent({
+        guild_id: interaction.guild!.id,
+        user_id: targetUser.id,
+        moderator_id: interaction.user.id,
+        action: "kick",
+        reason,
+        duration_ms: null,
+      });
+
       if (notify) {
         await interactionResponder.SendDm(
           targetUser,
@@ -62,6 +80,8 @@ async function ExecuteKick(
       }
     },
   });
+
+  modDb.Close();
 }
 
 export const KickCommand = CreateCommand({

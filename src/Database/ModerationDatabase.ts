@@ -221,6 +221,20 @@ export class ModerationDatabase {
         CREATE UNIQUE INDEX IF NOT EXISTS idx_raid_mode_active ON raid_modes(guild_id) WHERE active = 1;
         CREATE INDEX IF NOT EXISTS idx_raid_mode_expires ON raid_modes(expires_at);
         CREATE INDEX IF NOT EXISTS idx_raid_mode_channels_raid ON raid_mode_channels(raid_id);
+
+        CREATE TABLE IF NOT EXISTS moderation_events (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          guild_id TEXT NOT NULL,
+          user_id TEXT NOT NULL,
+          moderator_id TEXT NOT NULL,
+          action TEXT NOT NULL,
+          reason TEXT,
+          duration_ms INTEGER,
+          created_at INTEGER NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_mod_events_user ON moderation_events(guild_id, user_id, action);
+        CREATE INDEX IF NOT EXISTS idx_mod_events_created ON moderation_events(created_at);
       `);
     } catch (error) {
       this.logger.Error("Failed to create moderation tables", { error });
@@ -307,6 +321,31 @@ export class ModerationDatabase {
     );
     const result = stmt.run(updated_at, id);
     return result.changes > 0;
+  }
+
+  GetActiveTempActionForUser(options: {
+    guild_id: string;
+    user_id: string;
+    action: TempActionType;
+  }): TempAction | null {
+    const stmt = this.db.prepare(
+      `
+      SELECT *
+      FROM temp_actions
+      WHERE processed = 0
+        AND guild_id = ?
+        AND user_id = ?
+        AND action = ?
+      ORDER BY expires_at DESC
+      LIMIT 1
+    `
+    );
+
+    const row = stmt.get(options.guild_id, options.user_id, options.action) as
+      | Record<string, unknown>
+      | undefined;
+
+    return row ? this.MapTempAction(row) : null;
   }
 
   AddLockdown(data: {
@@ -533,6 +572,134 @@ export class ModerationDatabase {
       "DELETE FROM raid_mode_channels WHERE raid_id = ?"
     );
     stmt.run(raid_id);
+  }
+
+  AddModerationEvent(data: {
+    guild_id: string;
+    user_id: string;
+    moderator_id: string;
+    action: "kick" | "ban";
+    reason?: string | null;
+    duration_ms?: number | null;
+  }): void {
+    const created_at = Date.now();
+    const stmt = this.db.prepare(`
+      INSERT INTO moderation_events (guild_id, user_id, moderator_id, action, reason, duration_ms, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    stmt.run(
+      data.guild_id,
+      data.user_id,
+      data.moderator_id,
+      data.action,
+      data.reason ?? null,
+      data.duration_ms ?? null,
+      created_at
+    );
+  }
+
+  ListModerationEvents(options: {
+    guild_id: string;
+    user_id: string;
+    action: "kick" | "ban";
+    limit?: number;
+  }): {
+    id: number;
+    guild_id: string;
+    user_id: string;
+    moderator_id: string;
+    action: "kick" | "ban";
+    reason: string | null;
+    duration_ms: number | null;
+    created_at: number;
+  }[] {
+    const stmt = this.db.prepare(
+      `
+      SELECT id, guild_id, user_id, moderator_id, action, reason, duration_ms, created_at
+      FROM moderation_events
+      WHERE guild_id = ? AND user_id = ? AND action = ?
+      ORDER BY created_at DESC
+      ${options.limit ? "LIMIT ?" : ""}
+    `
+    );
+
+    const rows = options.limit
+      ? (stmt.all(
+          options.guild_id,
+          options.user_id,
+          options.action,
+          options.limit
+        ) as Record<string, unknown>[])
+      : (stmt.all(options.guild_id, options.user_id, options.action) as Record<
+          string,
+          unknown
+        >[]);
+
+    return rows.map((row) => ({
+      id: Number(row.id),
+      guild_id: String(row.guild_id),
+      user_id: String(row.user_id),
+      moderator_id: String(row.moderator_id),
+      action: row.action as "kick" | "ban",
+      reason: row.reason ? String(row.reason) : null,
+      duration_ms:
+        row.duration_ms === null || row.duration_ms === undefined
+          ? null
+          : Number(row.duration_ms),
+      created_at: Number(row.created_at),
+    }));
+  }
+
+  CountModerationEvents(options: {
+    guild_id: string;
+    user_id: string;
+    action: "kick" | "ban";
+  }): number {
+    const stmt = this.db.prepare(
+      `
+      SELECT COUNT(*) as count
+      FROM moderation_events
+      WHERE guild_id = ? AND user_id = ? AND action = ?
+    `
+    );
+
+    const row = stmt.get(options.guild_id, options.user_id, options.action) as
+      | { count: number }
+      | undefined;
+
+    return row?.count ?? 0;
+  }
+
+  ListUserTempActions(options: {
+    guild_id: string;
+    user_id: string;
+    action: TempActionType;
+    limit?: number;
+  }): TempAction[] {
+    const stmt = this.db.prepare(
+      `
+      SELECT *
+      FROM temp_actions
+      WHERE guild_id = ? AND user_id = ? AND action = ?
+      ORDER BY created_at DESC
+      ${options.limit ? "LIMIT ?" : ""}
+    `
+    );
+
+    const rows = options.limit
+      ? (stmt.all(
+          options.guild_id,
+          options.user_id,
+          options.action,
+          options.limit
+        ) as Record<string, unknown>[])
+      : (stmt.all(options.guild_id, options.user_id, options.action) as Record<
+          string,
+          unknown
+        >[]);
+
+    return rows.map((row) => this.MapTempAction(row));
   }
 
   Close(): void {

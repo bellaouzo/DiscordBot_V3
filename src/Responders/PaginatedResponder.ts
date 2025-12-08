@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction, ButtonInteraction } from "discord.js";
 import { Logger } from "../Shared/Logger";
 import { InteractionResponder } from "./InteractionResponder";
 import { ButtonResponder } from "./ButtonResponder";
@@ -6,7 +6,7 @@ import { ComponentRouter } from "../Shared/ComponentRouter";
 import { CreatePaginator, PaginationPage } from "../Shared/Paginator";
 
 export interface PaginatedMessageOptions {
-  readonly interaction: ChatInputCommandInteraction;
+  readonly interaction: ChatInputCommandInteraction | ButtonInteraction;
   readonly pages: PaginationPage[];
   readonly ephemeral?: boolean;
   readonly ownerId?: string;
@@ -24,7 +24,7 @@ export class PaginatedResponder {
     private readonly interactionResponder: InteractionResponder,
     private readonly buttonResponder: ButtonResponder,
     private readonly componentRouter: ComponentRouter,
-    private readonly logger: Logger,
+    private readonly logger: Logger
   ) {}
 
   async Send(options: PaginatedMessageOptions): Promise<void> {

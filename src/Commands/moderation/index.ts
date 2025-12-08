@@ -9,3 +9,5 @@ export { LockdownCommand } from "./LockdownCommand";
 export { TempActionsCommand } from "./TempActionsCommand";
 export { LinkFilterCommand } from "./LinkFilterCommand";
 export { RaidModeCommand } from "./RaidModeCommand";
+export { NoteCommand } from "./NoteCommand";
+export { CasefileCommand } from "./CasefileCommand";

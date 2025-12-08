@@ -14,6 +14,8 @@ import { HandleCrash } from "@commands/fun/economy/handlers/CrashHandler";
 import { HandleHorseRace } from "@commands/fun/economy/handlers/HorseRaceHandler";
 import { HandleScratch } from "@commands/fun/economy/handlers/ScratchHandler";
 import { HandleBlackjack } from "@commands/fun/economy/handlers/BlackjackHandler";
+import { HandleLeaderboard } from "@commands/fun/economy/handlers/LeaderboardHandler";
+import { HandleGift } from "@commands/fun/economy/handlers/GiftHandler";
 import {
   HandleInventory,
   HandleMarketBuy,
@@ -30,7 +32,15 @@ export const EconomyCommand = CreateCommand({
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>
-        sub.setName("balance").setDescription("Check your coin balance")
+        sub
+          .setName("balance")
+          .setDescription("Check your coin balance")
+          .addUserOption((option) =>
+            option
+              .setName("user")
+              .setDescription("User to check (optional)")
+              .setRequired(false)
+          )
       )
       .addSubcommand((sub) =>
         sub.setName("daily").setDescription("Claim your daily coins")
@@ -132,6 +142,30 @@ export const EconomyCommand = CreateCommand({
               .setRequired(false)
               .setMinValue(MIN_BET)
               .setMaxValue(MAX_BET)
+          )
+      )
+      .addSubcommand((sub) =>
+        sub
+          .setName("leaderboard")
+          .setDescription("View the top coin balances in this server")
+      )
+      .addSubcommand((sub) =>
+        sub
+          .setName("gift")
+          .setDescription("Send coins to another user")
+          .addUserOption((option) =>
+            option
+              .setName("user")
+              .setDescription("The user to gift coins to")
+              .setRequired(true)
+          )
+          .addIntegerOption((option) =>
+            option
+              .setName("amount")
+              .setDescription("Amount of coins to send")
+              .setRequired(true)
+              .setMinValue(1)
+              .setMaxValue(100000)
           )
       )
       .addSubcommandGroup((group) =>
@@ -263,6 +297,16 @@ export const EconomyCommand = CreateCommand({
 
     if (!subcommandGroup && subcommand === "rps") {
       await HandleRps(interaction, context);
+      return;
+    }
+
+    if (!subcommandGroup && subcommand === "leaderboard") {
+      await HandleLeaderboard(interaction, context);
+      return;
+    }
+
+    if (!subcommandGroup && subcommand === "gift") {
+      await HandleGift(interaction, context);
       return;
     }
 

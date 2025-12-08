@@ -20,10 +20,14 @@ function BuildGridDisplay(values: string[], columns: number): string {
 export function BuildBalanceEmbed(options: {
   balance: number;
   updatedAt?: number;
+  label?: string;
 }): ReturnType<typeof EmbedFactory.Create> {
+  const label = options.label ?? "You";
+  const possessive = label === "You" ? "You have" : `${label} has`;
+
   return EmbedFactory.Create({
-    title: "💰 Your Coins",
-    description: `You have **${options.balance}** coins.`,
+    title: label === "You" ? "💰 Your Coins" : "💰 Coins",
+    description: `${possessive} **${options.balance}** coins.`,
     footer: options.updatedAt
       ? `Updated ${new Date(options.updatedAt).toLocaleString()}`
       : undefined,
@@ -872,5 +876,45 @@ export function BuildMarketErrorEmbed(options: {
   return EmbedFactory.CreateWarning({
     title: "Market Error",
     description: options.message,
+  });
+}
+
+export function BuildLeaderboardEmbed(options: {
+  entries: Array<{
+    rank: number;
+    userId: string;
+    balance: number;
+    name?: string;
+  }>;
+}): ReturnType<typeof EmbedFactory.Create> {
+  if (options.entries.length === 0) {
+    return EmbedFactory.Create({
+      title: "🏆 Coin Leaderboard",
+      description: "No balances recorded yet.",
+    });
+  }
+
+  const lines = options.entries.map((entry) => {
+    const label = entry.name ? entry.name : `<@${entry.userId}>`;
+    return `#${entry.rank} — ${label}: **${entry.balance}** coins`;
+  });
+
+  return EmbedFactory.Create({
+    title: "🏆 Coin Leaderboard",
+    description: lines.join("\n"),
+  });
+}
+
+export function BuildGiftSuccessEmbed(options: {
+  senderId: string;
+  recipientId: string;
+  amount: number;
+  senderBalance: number;
+  recipientBalance: number;
+}): ReturnType<typeof EmbedFactory.CreateSuccess> {
+  return EmbedFactory.CreateSuccess({
+    title: "🎁 Gift Sent",
+    description: `You sent **${options.amount}** coins to <@${options.recipientId}>.\nYour balance: **${options.senderBalance}**\nRecipient balance: **${options.recipientBalance}**`,
+    footer: `Sender: ${options.senderId}`,
   });
 }

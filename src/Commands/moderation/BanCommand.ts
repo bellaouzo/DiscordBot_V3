@@ -81,6 +81,7 @@ async function ExecuteBan(
     guild: interaction.guild,
     logger,
   });
+  const modDb = new ModerationDatabase(context.logger);
 
   const targetMember = targetUser
     ? await locator.GetMember(targetUser.id)
@@ -141,6 +142,15 @@ async function ExecuteBan(
     action: async () => {
       await interaction.guild?.bans.create(targetUserId, { reason });
 
+      modDb.AddModerationEvent({
+        guild_id: interaction.guild!.id,
+        user_id: targetUserId,
+        moderator_id: interaction.user.id,
+        action: "ban",
+        reason,
+        duration_ms: durationMs > 0 ? durationMs : null,
+      });
+
       if (notify) {
         let userToNotify: User | null = targetUser ?? null;
         if (!userToNotify) {
@@ -178,6 +188,8 @@ async function ExecuteBan(
       }
     },
   });
+
+  modDb.Close();
 }
 
 export const BanCommand = CreateCommand({

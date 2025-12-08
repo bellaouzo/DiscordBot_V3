@@ -37,6 +37,38 @@ export class EconomyManager {
     }).balance;
   }
 
+  GetTopBalances(limit = 10): { userId: string; balance: number; updatedAt: number }[] {
+    return this.userDb.GetTopBalances(this.guildId, limit);
+  }
+
+  TransferBalance(options: {
+    fromUserId: string;
+    toUserId: string;
+    amount: number;
+    minBalance?: number;
+  }):
+    | { success: true; fromBalance: number; toBalance: number }
+    | { success: false; reason: "insufficient" } {
+    const result = this.userDb.TransferBalance({
+      from_user_id: options.fromUserId,
+      to_user_id: options.toUserId,
+      guild_id: this.guildId,
+      amount: options.amount,
+      minBalance: options.minBalance ?? 0,
+      startingBalance: STARTING_BALANCE,
+    });
+
+    if (!result.success) {
+      return { success: false, reason: "insufficient" };
+    }
+
+    return {
+      success: true,
+      fromBalance: result.from.balance,
+      toBalance: result.to.balance,
+    };
+  }
+
   ClaimDaily(userId: string): DailyClaimResult {
     const result = this.userDb.ClaimDaily({
       user_id: userId,

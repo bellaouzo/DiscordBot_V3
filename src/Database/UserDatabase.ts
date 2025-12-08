@@ -16,6 +16,15 @@ export interface Warning {
   created_at: number;
 }
 
+export interface Note {
+  id: number;
+  user_id: string;
+  guild_id: string;
+  moderator_id: string;
+  content: string;
+  created_at: number;
+}
+
 export interface Balance {
   user_id: string;
   guild_id: string;
@@ -61,6 +70,18 @@ export class UserDatabase {
       CREATE INDEX IF NOT EXISTS idx_warnings_user_guild ON warnings(user_id, guild_id);
       CREATE INDEX IF NOT EXISTS idx_warnings_guild ON warnings(guild_id);
 
+      CREATE TABLE IF NOT EXISTS notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
+        guild_id TEXT NOT NULL,
+        moderator_id TEXT NOT NULL,
+        content TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_notes_user_guild ON notes(user_id, guild_id);
+      CREATE INDEX IF NOT EXISTS idx_notes_guild ON notes(guild_id);
+
       CREATE TABLE IF NOT EXISTS balances (
         user_id TEXT NOT NULL,
         guild_id TEXT NOT NULL,
@@ -98,6 +119,82 @@ export class UserDatabase {
         expires_at INTEGER NOT NULL
       );
     `);
+  }
+
+  AddNote(data: {
+    user_id: string;
+    guild_id: string;
+    moderator_id: string;
+    content: string;
+  }): Note {
+    const created_at = Date.now();
+    const stmt = this.db.prepare(`
+      INSERT INTO notes (user_id, guild_id, moderator_id, content, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+
+    const id = stmt.run(
+      data.user_id,
+      data.guild_id,
+      data.moderator_id,
+      data.content,
+      created_at
+    ).lastInsertRowid as number;
+
+    const note = this.GetNoteById(id, data.guild_id);
+    if (!note) {
+      throw new Error("Failed to create note");
+    }
+
+    return note;
+  }
+
+  GetNotes(user_id: string, guild_id: string, limit?: number): Note[] {
+    const stmt = this.db.prepare(`
+      SELECT * FROM notes
+      WHERE user_id = ? AND guild_id = ?
+      ORDER BY created_at ASC
+      ${limit ? "LIMIT ?" : ""}
+    `);
+
+    if (limit) {
+      return stmt.all(user_id, guild_id, limit) as Note[];
+    }
+
+    return stmt.all(user_id, guild_id) as Note[];
+  }
+
+  GetNoteById(id: number, guild_id: string): Note | null {
+    const stmt = this.db.prepare(
+      "SELECT * FROM notes WHERE id = ? AND guild_id = ?"
+    );
+    return stmt.get(id, guild_id) as Note | null;
+  }
+
+  RemoveNoteById(id: number, guild_id: string): boolean {
+    const stmt = this.db.prepare("DELETE FROM notes WHERE id = ? AND guild_id = ?");
+    const result = stmt.run(id, guild_id);
+    return result.changes > 0;
+  }
+
+  RemoveLatestNote(user_id: string, guild_id: string): Note | null {
+    const note = this.db
+      .prepare(
+        `
+        SELECT * FROM notes
+        WHERE user_id = ? AND guild_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+      `
+      )
+      .get(user_id, guild_id) as Note | null;
+
+    if (!note) {
+      return null;
+    }
+
+    const removed = this.RemoveNoteById(note.id, guild_id);
+    return removed ? note : null;
   }
 
   AddWarning(data: {
@@ -246,6 +343,109 @@ export class UserDatabase {
       }
 
       return updated;
+    });
+
+    return transaction();
+  }
+
+  GetTopBalances(
+    guild_id: string,
+    limit = 10
+  ): { userId: string; balance: number; updatedAt: number }[] {
+    const stmt = this.db.prepare(
+      `
+      SELECT user_id, balance, updated_at
+      FROM balances
+      WHERE guild_id = ?
+      ORDER BY balance DESC, updated_at ASC
+      LIMIT ?
+    `
+    );
+
+    const rows = stmt.all(guild_id, limit) as {
+      user_id: string;
+      balance: number;
+      updated_at: number;
+    }[];
+
+    return rows.map((row) => ({
+      userId: row.user_id,
+      balance: row.balance,
+      updatedAt: row.updated_at,
+    }));
+  }
+
+  TransferBalance(options: {
+    from_user_id: string;
+    to_user_id: string;
+    guild_id: string;
+    amount: number;
+    minBalance?: number;
+    startingBalance?: number;
+  }):
+    | {
+        success: true;
+        from: Balance;
+        to: Balance;
+      }
+    | {
+        success: false;
+        reason: "insufficient";
+      } {
+    if (options.amount <= 0) {
+      throw new Error("Transfer amount must be positive");
+    }
+
+    const transaction = this.db.transaction(() => {
+      const fromBalance = this.EnsureBalance(
+        options.from_user_id,
+        options.guild_id,
+        options.startingBalance ?? 100
+      );
+      const toBalance = this.EnsureBalance(
+        options.to_user_id,
+        options.guild_id,
+        options.startingBalance ?? 100
+      );
+
+      const minBalance = options.minBalance ?? 0;
+      if (fromBalance.balance - options.amount < minBalance) {
+        return { success: false as const, reason: "insufficient" as const };
+      }
+
+      const updated_at = Date.now();
+      const updateStmt = this.db.prepare(
+        `
+        UPDATE balances
+        SET balance = ?, updated_at = ?
+        WHERE user_id = ? AND guild_id = ?
+      `
+      );
+
+      updateStmt.run(
+        fromBalance.balance - options.amount,
+        updated_at,
+        options.from_user_id,
+        options.guild_id
+      );
+      updateStmt.run(
+        toBalance.balance + options.amount,
+        updated_at,
+        options.to_user_id,
+        options.guild_id
+      );
+
+      const updatedFrom = this.GetBalance(
+        options.from_user_id,
+        options.guild_id
+      );
+      const updatedTo = this.GetBalance(options.to_user_id, options.guild_id);
+
+      if (!updatedFrom || !updatedTo) {
+        throw new Error("Failed to update balances");
+      }
+
+      return { success: true as const, from: updatedFrom, to: updatedTo };
     });
 
     return transaction();
