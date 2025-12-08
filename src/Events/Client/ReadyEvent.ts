@@ -52,6 +52,17 @@ async function AnnounceDeploy(context: EventContext): Promise<void> {
   const truncate = (text: string, max = 300): string =>
     text.length <= max ? text : `${text.slice(0, max - 1)}…`;
 
+  const formatMessage = (raw: string): string => {
+    const cleaned = raw.trim();
+    if (!cleaned.includes(" - ")) {
+      return truncate(cleaned);
+    }
+    const parts = cleaned
+      .split(" - ")
+      .map((part, idx) => (idx === 0 ? part.trim() : `• ${part.trim()}`));
+    return truncate(parts.join("\n"));
+  };
+
   const config = LoadAppConfig();
   const sentGuilds: string[] = [];
 
@@ -75,7 +86,7 @@ async function AnnounceDeploy(context: EventContext): Promise<void> {
     })
       .addFields(
         { name: "Commit", value: `\`${info.hash}\`` },
-        { name: "Message", value: truncate(info.message) || "No message" },
+        { name: "Message", value: formatMessage(info.message) || "No message" },
         {
           name: "Deployed At",
           value: `<t:${Math.floor(new Date(info.timestamp).getTime() / 1000)}:F>`,
