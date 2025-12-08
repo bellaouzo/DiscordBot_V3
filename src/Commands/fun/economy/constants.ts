@@ -19,3 +19,4 @@ export const DICE_PAYOUT_MULTIPLIER = 6;
 export const MARKET_ROTATION_MS = 6 * 60 * 60 * 1000;
 export const MARKET_ROTATION_SIZE = 6;
 export const SLOTS_TIMEOUT_MS = 30_000;
+export const WHEEL_TIMEOUT_MS = 30_000;

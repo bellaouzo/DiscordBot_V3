@@ -17,6 +17,7 @@ import { HandleBlackjack } from "@commands/fun/economy/handlers/BlackjackHandler
 import { HandleLeaderboard } from "@commands/fun/economy/handlers/LeaderboardHandler";
 import { HandleGift } from "@commands/fun/economy/handlers/GiftHandler";
 import { HandleSlots } from "@commands/fun/economy/handlers/SlotsHandler";
+import { HandleWheel } from "@commands/fun/economy/handlers/WheelHandler";
 import {
   HandleInventory,
   HandleMarketBuy,
@@ -123,6 +124,19 @@ export const EconomyCommand = CreateCommand({
         sub
           .setName("slots")
           .setDescription("Spin the slots and test your luck")
+          .addIntegerOption((option) =>
+            option
+              .setName("bet")
+              .setDescription("Bet amount (1-1000)")
+              .setRequired(false)
+              .setMinValue(MIN_BET)
+              .setMaxValue(MAX_BET)
+          )
+      )
+      .addSubcommand((sub) =>
+        sub
+          .setName("wheel")
+          .setDescription("Spin a prize wheel with multipliers")
           .addIntegerOption((option) =>
             option
               .setName("bet")
@@ -306,6 +320,11 @@ export const EconomyCommand = CreateCommand({
 
     if (!subcommandGroup && subcommand === "slots") {
       await HandleSlots(interaction, context);
+      return;
+    }
+
+    if (!subcommandGroup && subcommand === "wheel") {
+      await HandleWheel(interaction, context);
       return;
     }
 
