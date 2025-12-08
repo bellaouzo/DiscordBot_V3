@@ -1,4 +1,3 @@
-// Test push
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
