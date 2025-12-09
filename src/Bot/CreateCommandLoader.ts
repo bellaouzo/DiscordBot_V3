@@ -16,24 +16,33 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
     const commands: SlashCommandBuilder[] = [];
     const commandModules = new Map<string, CommandDefinition>();
 
-    // Auto-discover commands from compiled JS files
     const commandsPath = join(__dirname, "..", "Commands");
-    const commandFiles = readdirSync(commandsPath, { recursive: true }).filter(
-      (file) =>
-        typeof file === "string" &&
-        file.endsWith(".js") &&
-        !file.includes("index.js") &&
-        !file.includes("registry.js") &&
-        !file.includes("CommandFactory.js") &&
-        !file.includes("CommandOptions.js")
+
+    const isCommandFile = (file: string): boolean => {
+      if (typeof file !== "string") return false;
+      if (!/Command\.(js|ts)$/.test(file)) return false;
+      if (file.endsWith(".d.ts")) return false;
+      if (
+        file.includes("CommandFactory.") ||
+        file.includes("CommandOptions.")
+      ) {
+        return false;
+      }
+      if (file.includes("registry.") || file.includes("index.")) {
+        return false;
+      }
+      return true;
+    };
+
+    const files = readdirSync(commandsPath, { recursive: true }).filter(
+      (file) => isCommandFile(file as string)
     );
 
-    for (const file of commandFiles) {
+    for (const file of files) {
+      const filePath = join(commandsPath, file as string);
       try {
-        const modulePath = join(commandsPath, file as string);
-        const module = await import(modulePath);
+        const module = await import(filePath);
 
-        // Look for exported command definitions
         const commandExports = Object.values(module).filter(
           (exp) =>
             exp &&
@@ -46,7 +55,6 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
         for (const command of commandExports) {
           commands.push(command.data);
           commandModules.set(command.data.name, command);
-
           RegisterCommand(command);
         }
       } catch (error) {
@@ -59,6 +67,9 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
 
     logger.Debug("Loaded all commands", {
       timestamp: new Date().toISOString(),
+      extra: {
+        command_count: commands.length,
+      },
     });
 
     return { commands, modules: commandModules };
