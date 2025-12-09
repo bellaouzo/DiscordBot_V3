@@ -9,6 +9,10 @@ interface ApodConfig extends EndpointConfig {
   readonly apiKey: string;
 }
 
+interface NewsConfig extends EndpointConfig {
+  readonly apiKey: string;
+}
+
 export interface ApiConfig {
   readonly quote: EndpointConfig;
   readonly meme: EndpointConfig;
@@ -17,6 +21,7 @@ export interface ApiConfig {
   readonly fact: EndpointConfig;
   readonly trivia: EndpointConfig;
   readonly apod: ApodConfig;
+  readonly news: NewsConfig;
 }
 
 const DEFAULTS: ApiConfig = {
@@ -30,6 +35,11 @@ const DEFAULTS: ApiConfig = {
     url: "https://api.nasa.gov/planetary/apod",
     timeoutMs: 8000,
     apiKey: "KuUCs835dtn1U03B930ggRRxNVoBE1mb00vXVYxF",
+  },
+  news: {
+    url: "https://newsapi.org/v2",
+    timeoutMs: 7000,
+    apiKey: "797ad4f3fa334d5e968f59127c41e929",
   },
 };
 
@@ -97,6 +107,14 @@ export function LoadApiConfig(): ApiConfig {
         DEFAULTS.apod.timeoutMs
       ),
       apiKey: process.env.API_APOD_KEY || DEFAULTS.apod.apiKey,
+    },
+    news: {
+      url: process.env.API_NEWS_URL || DEFAULTS.news.url,
+      timeoutMs: toNumber(
+        process.env.API_NEWS_TIMEOUT_MS,
+        DEFAULTS.news.timeoutMs
+      ),
+      apiKey: process.env.API_NEWS_KEY || DEFAULTS.news.apiKey,
     },
   };
 }
