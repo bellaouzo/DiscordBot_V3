@@ -113,9 +113,14 @@ export async function HandleWheel(
       balance = manager.AdjustBalance(interaction.user.id, bet, 0);
     }
 
+    const refundLine =
+      bet > 0
+        ? `Bet refunded: **${bet}**`
+        : "No bet was placed; nothing to refund.";
+
     const embed = EmbedFactory.CreateWarning({
       title: "⌛ Wheel Timed Out",
-      description: `Spin request expired. Bet refunded: **${bet}**\nBalance: **${balance}**`,
+      description: `Spin request expired. ${refundLine}\nBalance: **${balance}**`,
     });
 
     try {
