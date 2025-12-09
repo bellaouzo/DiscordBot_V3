@@ -112,7 +112,7 @@ export async function HandleBlackjack(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.logger);
+  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
   let balance = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
   const charm = ITEM_MAP["dealer-charm"];
@@ -144,7 +144,6 @@ export async function HandleBlackjack(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-    manager.Close();
     return;
   }
 
@@ -258,8 +257,6 @@ export async function HandleBlackjack(
     } else {
       await interaction.editReply(payload);
     }
-
-    manager.Close();
   };
 
   const finalizeTimeout = async (): Promise<void> => {
@@ -281,7 +278,6 @@ export async function HandleBlackjack(
         components: [BuildDisabledBlackjackButtons(customIds)],
       });
     } finally {
-      manager.Close();
     }
   };
 
@@ -314,8 +310,6 @@ export async function HandleBlackjack(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-
-    manager.Close();
   };
 
   // Natural blackjack check BEFORE registering buttons
@@ -443,8 +437,6 @@ export async function HandleBlackjack(
       embeds: [embed.toJSON()],
       components: [BuildDisabledBlackjackButtons(customIds)],
     });
-
-    manager.Close();
   };
 
   const hitRegistration = componentRouter.RegisterButton({
@@ -521,7 +513,6 @@ export async function HandleBlackjack(
     if (bet > 0) {
       manager.AdjustBalance(interaction.user.id, wager);
     }
-    manager.Close();
     return;
   }
 
@@ -529,3 +520,5 @@ export async function HandleBlackjack(
     void finalizeTimeout();
   }, BJ_TIMEOUT_MS);
 }
+
+

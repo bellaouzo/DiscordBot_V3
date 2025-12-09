@@ -30,7 +30,7 @@ export async function HandleTicketClaim(
     return;
   }
 
-  const { ticketDb } = CreateTicketServices(logger, interaction.guild!);
+  const { ticketDb } = CreateTicketServices(logger, interaction.guild!, context.databases.ticketDb);
   const ticket = await GetTicketOrReply(
     ticketDb,
     interaction.channel as TextChannel,
@@ -75,3 +75,6 @@ export async function HandleTicketClaim(
     });
   }
 }
+
+
+

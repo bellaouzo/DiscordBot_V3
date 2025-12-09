@@ -52,7 +52,7 @@ export async function HandleHorseRace(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.logger);
+  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
   let balance = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
   const spurItem = ITEM_MAP["speed-spur"];
@@ -87,7 +87,6 @@ export async function HandleHorseRace(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-    manager.Close();
     return;
   }
 
@@ -129,7 +128,6 @@ export async function HandleHorseRace(
       if (intervalHandle) {
         clearInterval(intervalHandle);
       }
-      manager.Close();
     }
   };
 
@@ -170,8 +168,6 @@ export async function HandleHorseRace(
       embeds: [embed.toJSON()],
       components: BuildDisabledHorseButtons(customIds, horseLabels),
     });
-
-    manager.Close();
   };
 
   const startRace = async (
@@ -313,8 +309,6 @@ export async function HandleHorseRace(
             components: BuildDisabledHorseButtons(customIds, horseLabels),
           })
           .catch(() => {});
-
-        manager.Close();
       }
     }, HORSE_TICK_MS);
   };
@@ -389,3 +383,5 @@ export async function HandleHorseRace(
     void finalizeTimeout();
   }, HORSE_TIMEOUT_MS);
 }
+
+

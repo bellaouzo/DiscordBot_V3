@@ -55,7 +55,7 @@ export async function HandleMarketView(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const manager = new MarketManager(interaction.guildId!, context.logger);
+  const manager = new MarketManager(interaction.guildId!, context.databases.userDb);
 
   try {
     const offers = manager.GetOffers();
@@ -72,7 +72,6 @@ export async function HandleMarketView(
     });
     await paginator.Start();
   } finally {
-    manager.Close();
   }
 }
 
@@ -80,7 +79,7 @@ export async function HandleMarketRefresh(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const manager = new MarketManager(interaction.guildId!, context.logger);
+  const manager = new MarketManager(interaction.guildId!, context.databases.userDb);
 
   try {
     const offers = manager.RefreshOffers();
@@ -97,7 +96,6 @@ export async function HandleMarketRefresh(
     });
     await paginator.Start();
   } finally {
-    manager.Close();
   }
 }
 
@@ -108,7 +106,7 @@ export async function HandleMarketBuy(
   const itemId = interaction.options.getString("item", true);
   const quantity = interaction.options.getInteger("quantity") ?? 1;
 
-  const manager = new MarketManager(interaction.guildId!, context.logger);
+  const manager = new MarketManager(interaction.guildId!, context.databases.userDb);
 
   try {
     const { balance, inventory } = manager.BuyItem({
@@ -140,7 +138,6 @@ export async function HandleMarketBuy(
       ephemeral: true,
     });
   } finally {
-    manager.Close();
   }
 }
 
@@ -151,7 +148,7 @@ export async function HandleMarketSell(
   const itemId = interaction.options.getString("item", true);
   const quantity = interaction.options.getInteger("quantity") ?? 1;
 
-  const manager = new MarketManager(interaction.guildId!, context.logger);
+  const manager = new MarketManager(interaction.guildId!, context.databases.userDb);
 
   try {
     const { balance, inventory } = manager.SellItem({
@@ -183,7 +180,6 @@ export async function HandleMarketSell(
       ephemeral: true,
     });
   } finally {
-    manager.Close();
   }
 }
 
@@ -191,7 +187,7 @@ export async function HandleInventory(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const manager = new EconomyManager(interaction.guildId!, context.logger);
+  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
 
   try {
     const entries = manager.GetInventory(interaction.user.id);
@@ -202,6 +198,7 @@ export async function HandleInventory(
       ephemeral: true,
     });
   } finally {
-    manager.Close();
   }
 }
+
+

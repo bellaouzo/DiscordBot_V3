@@ -123,7 +123,7 @@ export async function HandleSlots(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.logger);
+  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
   let balance = manager.EnsureBalance(interaction.user.id);
 
   if (bet > balance) {
@@ -135,7 +135,6 @@ export async function HandleSlots(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-    manager.Close();
     return;
   }
 
@@ -205,7 +204,6 @@ export async function HandleSlots(
         components: [BuildDisabledSlotsButtons(customIds)],
       });
     } finally {
-      manager.Close();
     }
   };
 
@@ -348,8 +346,6 @@ export async function HandleSlots(
       embeds: [resultEmbed.toJSON()],
       components: [BuildDisabledSlotsButtons(customIds)],
     });
-
-    manager.Close();
   };
 
   const spinRegistration = componentRouter.RegisterButton({
@@ -377,7 +373,6 @@ export async function HandleSlots(
       manager.AdjustBalance(interaction.user.id, bet, 0);
     }
     disposeAll();
-    manager.Close();
     return;
   }
 
@@ -385,3 +380,5 @@ export async function HandleSlots(
     void finalizeTimeout();
   }, SLOTS_TIMEOUT_MS);
 }
+
+

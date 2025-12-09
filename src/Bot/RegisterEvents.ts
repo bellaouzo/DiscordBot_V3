@@ -2,12 +2,14 @@ import { Client } from "discord.js";
 import { EventDefinition, EventContext } from "@events";
 import { Logger } from "@shared/Logger";
 import { ResponderSet } from "@responders";
+import { DatabaseSet } from "@database";
 
 export interface RegisterEventsOptions {
   readonly client: Client;
   readonly events: EventDefinition[];
   readonly logger: Logger;
   readonly responders: ResponderSet;
+  readonly databases: DatabaseSet;
 }
 
 export function RegisterEvents(options: RegisterEventsOptions): void {
@@ -20,6 +22,7 @@ export function RegisterEvents(options: RegisterEventsOptions): void {
         client: options.client,
         logger: eventLogger,
         responders: options.responders,
+        databases: options.databases,
       };
 
       try {

@@ -9,7 +9,6 @@ import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
 import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory, CreateWarnManager } from "@utilities";
-import { UserDatabase } from "@database";
 import { PaginationPage } from "@shared/Paginator";
 
 const WARN_LIST_PAGE_SIZE = 6;
@@ -33,34 +32,29 @@ async function ExecuteWarn(
     throw new Error("This command can only be used in a server.");
   }
 
-  const userDb = new UserDatabase(context.logger);
   const warnManager = CreateWarnManager({
     guildId: interaction.guild.id,
-    userDb,
+    userDb: context.databases.userDb,
     logger: context.logger,
   });
 
-  try {
-    const subcommand = interaction.options.getSubcommand(true);
-    const member = interaction.member as GuildMember | null;
-    const isModerator = IsModerator(member);
+  const subcommand = interaction.options.getSubcommand(true);
+  const member = interaction.member as GuildMember | null;
+  const isModerator = IsModerator(member);
 
-    if (subcommand === "add") {
-      await HandleAdd(interaction, context, warnManager, isModerator);
-      return;
-    }
+  if (subcommand === "add") {
+    await HandleAdd(interaction, context, warnManager, isModerator);
+    return;
+  }
 
-    if (subcommand === "remove") {
-      await HandleRemove(interaction, context, warnManager, isModerator);
-      return;
-    }
+  if (subcommand === "remove") {
+    await HandleRemove(interaction, context, warnManager, isModerator);
+    return;
+  }
 
-    if (subcommand === "list") {
-      await HandleList(interaction, context, warnManager, isModerator);
-      return;
-    }
-  } finally {
-    userDb.Close();
+  if (subcommand === "list") {
+    await HandleList(interaction, context, warnManager, isModerator);
+    return;
   }
 }
 
@@ -351,3 +345,5 @@ export const WarnCommand = CreateCommand({
   config: Config.utility(2),
   execute: ExecuteWarn,
 });
+
+

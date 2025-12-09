@@ -16,8 +16,8 @@ import {
   EmbedFactory,
   CreateGuildResourceLocator,
 } from "@utilities";
-import { UserDatabase, ModerationDatabase } from "@database";
 import { PaginationPage } from "@shared/Paginator";
+import { ModerationDatabase } from "@database";
 
 function IsModerator(member: GuildMember | null): boolean {
   if (!member) return false;
@@ -211,21 +211,19 @@ async function ExecuteCasefile(
   }
 
   const targetUser = interaction.options.getUser("user", true);
-  const userDb = new UserDatabase(context.logger);
   const warnManager = CreateWarnManager({
     guildId: interaction.guild.id,
-    userDb,
+    userDb: context.databases.userDb,
     logger: context.logger,
   });
   const noteManager = CreateNoteManager({
     guildId: interaction.guild.id,
-    userDb,
+    userDb: context.databases.userDb,
     logger: context.logger,
   });
-  const modDb = new ModerationDatabase(context.logger);
+  const modDb = context.databases.moderationDb;
 
-  try {
-    const warnings = warnManager.GetUserWarnings(targetUser.id);
+  const warnings = warnManager.GetUserWarnings(targetUser.id);
     const notes = noteManager.GetUserNotes(targetUser.id);
     const kickEvents = modDb.ListModerationEvents({
       guild_id: interaction.guild.id,
@@ -515,10 +513,6 @@ async function ExecuteCasefile(
       components: [buttonsRow.toJSON() as never],
       ephemeral: true,
     });
-  } finally {
-    userDb.Close();
-    modDb.Close();
-  }
 }
 
 export const CasefileCommand = CreateCommand({
@@ -537,3 +531,5 @@ export const CasefileCommand = CreateCommand({
   config: Config.moderation(5),
   execute: ExecuteCasefile,
 });
+
+

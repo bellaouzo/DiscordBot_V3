@@ -9,7 +9,7 @@ import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
 import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory, CreateNoteManager } from "@utilities";
-import { Note, UserDatabase } from "@database";
+import { Note } from "@database";
 import { PaginationPage } from "@shared/Paginator";
 
 const NOTE_LIST_PAGE_SIZE = 6;
@@ -33,34 +33,29 @@ async function ExecuteNote(
     throw new Error("This command can only be used in a server.");
   }
 
-  const userDb = new UserDatabase(context.logger);
   const noteManager = CreateNoteManager({
     guildId: interaction.guild.id,
-    userDb,
+    userDb: context.databases.userDb,
     logger: context.logger,
   });
 
-  try {
-    const subcommand = interaction.options.getSubcommand(true);
-    const member = interaction.member as GuildMember | null;
-    const isModerator = IsModerator(member);
+  const subcommand = interaction.options.getSubcommand(true);
+  const member = interaction.member as GuildMember | null;
+  const isModerator = IsModerator(member);
 
-    if (subcommand === "add") {
-      await HandleAdd(interaction, context, noteManager, isModerator);
-      return;
-    }
+  if (subcommand === "add") {
+    await HandleAdd(interaction, context, noteManager, isModerator);
+    return;
+  }
 
-    if (subcommand === "remove") {
-      await HandleRemove(interaction, context, noteManager, isModerator);
-      return;
-    }
+  if (subcommand === "remove") {
+    await HandleRemove(interaction, context, noteManager, isModerator);
+    return;
+  }
 
-    if (subcommand === "list") {
-      await HandleList(interaction, context, noteManager, isModerator);
-      return;
-    }
-  } finally {
-    userDb.Close();
+  if (subcommand === "list") {
+    await HandleList(interaction, context, noteManager, isModerator);
+    return;
   }
 }
 
@@ -333,3 +328,5 @@ export const NoteCommand = CreateCommand({
   config: Config.moderation(5),
   execute: ExecuteNote,
 });
+
+

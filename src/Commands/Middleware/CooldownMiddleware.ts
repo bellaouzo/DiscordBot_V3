@@ -1,7 +1,7 @@
 import { CommandMiddleware } from "./index";
 import { CreateErrorMessage } from "@responders/MessageFactory";
 
-const cooldowns = new Map<string, number>(); // Key: userId:commandName, Value: timestamp
+const cooldowns = new Map<string, number>();
 
 export const CooldownMiddleware: CommandMiddleware = {
   name: "cooldown",
@@ -17,7 +17,6 @@ export const CooldownMiddleware: CommandMiddleware = {
     const userId = context.interaction.user.id;
     const commandName = context.command.data.name;
 
-    // Calculate cooldown in milliseconds
     let cooldownMs = 0;
     if (cooldownConfig.milliseconds) {
       cooldownMs = cooldownConfig.milliseconds;
@@ -33,11 +32,11 @@ export const CooldownMiddleware: CommandMiddleware = {
     }
 
     const key = `${userId}:${commandName}`;
-    const lastUsed = cooldowns.get(key);
+    const expiresAt = cooldowns.get(key);
     const now = Date.now();
 
-    if (lastUsed && now - lastUsed < cooldownMs) {
-      const remaining = Math.ceil((cooldownMs - (now - lastUsed)) / 1000);
+    if (expiresAt && now < expiresAt) {
+      const remaining = Math.ceil((expiresAt - now) / 1000);
       const message = CreateErrorMessage({
         title: "⏱️ Command Cooldown",
         description: `Please wait ${remaining} second${
@@ -52,11 +51,11 @@ export const CooldownMiddleware: CommandMiddleware = {
       return;
     }
 
-    cooldowns.set(key, now);
+    cooldowns.set(key, now + cooldownMs);
 
     if (cooldowns.size > 100) {
-      for (const [k, timestamp] of cooldowns.entries()) {
-        if (now - timestamp >= cooldownMs) {
+      for (const [k, expiry] of cooldowns.entries()) {
+        if (now >= expiry) {
           cooldowns.delete(k);
         }
       }
@@ -65,3 +64,4 @@ export const CooldownMiddleware: CommandMiddleware = {
     await next();
   },
 };
+

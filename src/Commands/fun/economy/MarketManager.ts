@@ -1,4 +1,4 @@
-import { Logger } from "@shared/Logger";
+import { UserDatabase } from "@database";
 import { EconomyManager } from "./EconomyManager";
 import { MARKET_ROTATION_MS, MARKET_ROTATION_SIZE } from "./constants";
 import { ITEM_MAP, DEFAULT_ROTATION_IDS } from "./items";
@@ -18,9 +18,9 @@ export class MarketManager {
 
   constructor(
     private readonly guildId: string,
-    logger: Logger
+    userDb: UserDatabase
   ) {
-    this.economy = new EconomyManager(guildId, logger);
+    this.economy = new EconomyManager(guildId, userDb);
   }
 
   GetOffers(): MarketOffer[] {
@@ -118,10 +118,6 @@ export class MarketManager {
     return { balance, inventory };
   }
 
-  Close(): void {
-    this.economy.Close();
-  }
-
   private ensureRotation(force = false) {
     const now = Date.now();
     const existing = this.economy.GetMarketRotation();
@@ -140,3 +136,4 @@ export class MarketManager {
     return rotation;
   }
 }
+

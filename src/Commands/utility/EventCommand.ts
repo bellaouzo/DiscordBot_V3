@@ -3,7 +3,6 @@ import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { LoggingMiddleware, ErrorMiddleware } from "@middleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory } from "@utilities";
-import { ServerDatabase } from "@database";
 import { PaginationPage } from "@shared/Paginator";
 
 const EVENT_LIST_PAGE_SIZE = 8;
@@ -71,7 +70,7 @@ async function ExecuteEventCreate(
     return;
   }
 
-  const db = new ServerDatabase(context.logger.Child({ phase: "events-db" }));
+  const db = context.databases.serverDb;
   try {
     const event = db.CreateEvent({
       guild_id: interaction.guild.id,
@@ -110,7 +109,6 @@ async function ExecuteEventCreate(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -135,7 +133,7 @@ async function ExecuteEventList(
   const limit = interaction.options.getInteger("limit") ?? 10;
   const safeLimit = Math.min(Math.max(limit, 1), 25);
 
-  const db = new ServerDatabase(context.logger.Child({ phase: "events-db" }));
+  const db = context.databases.serverDb;
   try {
     const events = db
       .ListUpcomingEvents(interaction.guild.id)
@@ -174,7 +172,6 @@ async function ExecuteEventList(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -235,7 +232,7 @@ async function ExecuteEventCancel(
 
   const eventId = interaction.options.getInteger("id", true);
 
-  const db = new ServerDatabase(context.logger.Child({ phase: "events-db" }));
+  const db = context.databases.serverDb;
   try {
     const event = db.GetEventById(eventId, interaction.guild.id);
     if (!event) {
@@ -282,7 +279,6 @@ async function ExecuteEventCancel(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -354,3 +350,5 @@ export const EventCommand = CreateCommand({
     }
   },
 });
+
+

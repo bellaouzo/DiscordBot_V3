@@ -1,13 +1,14 @@
-// Test push
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { Logger } from "../Shared/Logger";
 import { ResponderSet } from "../Responders";
 import { MiddlewareConfiguration } from "./Middleware";
 import { CommandConfig } from "./Middleware/CommandConfig";
+import { DatabaseSet } from "../Database";
 
 export interface CommandContext {
   readonly responders: ResponderSet;
   readonly logger: Logger;
+  readonly databases: DatabaseSet;
 }
 
 export type CommandExecutor = (
@@ -52,3 +53,4 @@ export function CreateCommand(
     config: options.config,
   };
 }
+

@@ -39,7 +39,7 @@ export async function HandleDice(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.logger);
+  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
   let balance = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
   const loadedDie = ITEM_MAP["loaded-die"];
@@ -70,7 +70,6 @@ export async function HandleDice(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-    manager.Close();
     return;
   }
 
@@ -134,6 +133,6 @@ export async function HandleDice(
     embeds: [embed.toJSON()],
     ephemeral: false,
   });
-
-  manager.Close();
 }
+
+

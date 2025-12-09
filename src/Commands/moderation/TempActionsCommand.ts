@@ -7,7 +7,6 @@ import {
 } from "@middleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory } from "@utilities";
-import { ModerationDatabase } from "@database";
 
 async function ExecuteTempActions(
   interaction: ChatInputCommandInteraction,
@@ -25,7 +24,7 @@ async function ExecuteTempActions(
     return;
   }
 
-  const db = new ModerationDatabase(context.logger.Child({ phase: "db" }));
+  const db = context.databases.moderationDb;
   try {
     const pending = db.ListPendingTempActions(interaction.guild.id);
 
@@ -64,7 +63,6 @@ async function ExecuteTempActions(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -82,3 +80,5 @@ export const TempActionsCommand = CreateCommand({
   config: Config.moderation(3),
   execute: ExecuteTempActions,
 });
+
+

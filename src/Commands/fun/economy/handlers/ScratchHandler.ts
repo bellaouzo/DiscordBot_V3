@@ -63,7 +63,7 @@ export async function HandleScratch(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.logger);
+  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
   let balance = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
   const lensItem = ITEM_MAP["scratch-lens"];
@@ -94,7 +94,6 @@ export async function HandleScratch(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-    manager.Close();
     return;
   }
 
@@ -151,7 +150,6 @@ export async function HandleScratch(
         ),
       });
     } finally {
-      manager.Close();
     }
   };
 
@@ -256,8 +254,6 @@ export async function HandleScratch(
         SCRATCH_COLUMNS
       ),
     });
-
-    manager.Close();
   };
 
   const handleScratch = async (
@@ -347,8 +343,6 @@ export async function HandleScratch(
         SCRATCH_COLUMNS
       ),
     });
-
-    manager.Close();
   };
 
   const slotRegistrations = Array.from({ length: SCRATCH_SLOTS }, (_, idx) =>
@@ -409,7 +403,6 @@ export async function HandleScratch(
       manager.AdjustBalance(interaction.user.id, bet);
     }
     disposeAll();
-    manager.Close();
     return;
   }
 
@@ -417,3 +410,5 @@ export async function HandleScratch(
     void finalizeTimeout();
   }, SCRATCH_TIMEOUT_MS);
 }
+
+

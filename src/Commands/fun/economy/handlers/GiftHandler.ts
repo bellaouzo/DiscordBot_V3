@@ -60,7 +60,7 @@ export async function HandleGift(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId, context.logger);
+  const manager = new EconomyManager(interaction.guildId, context.databases.userDb);
 
   try {
     const transfer = manager.TransferBalance({
@@ -95,6 +95,7 @@ export async function HandleGift(
       ephemeral: false,
     });
   } finally {
-    manager.Close();
   }
 }
+
+

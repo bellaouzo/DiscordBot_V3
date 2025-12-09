@@ -26,7 +26,7 @@ export async function HandleTicketTag(
   }
 
   const { logger } = context;
-  const { ticketDb } = CreateTicketServices(logger, interaction.guild!);
+  const { ticketDb } = CreateTicketServices(logger, interaction.guild!, context.databases.ticketDb);
 
   const channel = interaction.channel as TextChannel;
   const ticket = await GetTicketOrReply(
@@ -105,3 +105,6 @@ export async function HandleTicketTag(
     });
   }
 }
+
+
+

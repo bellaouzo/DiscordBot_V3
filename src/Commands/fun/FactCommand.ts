@@ -70,3 +70,4 @@ export const FactCommand = CreateCommand({
   config: Config.utility(3),
   execute: ExecuteFact,
 });
+

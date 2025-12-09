@@ -25,7 +25,7 @@ export async function HandleTicketAdd(
     return;
 
   const { ticketDb, ticketManager, guildResourceLocator } =
-    CreateTicketServices(logger, interaction.guild!);
+    CreateTicketServices(logger, interaction.guild!, context.databases.ticketDb);
   const ticket = await GetTicketOrReply(
     ticketDb,
     interaction.channel as TextChannel,
@@ -83,3 +83,6 @@ export async function HandleTicketAdd(
     ephemeral: true,
   });
 }
+
+
+

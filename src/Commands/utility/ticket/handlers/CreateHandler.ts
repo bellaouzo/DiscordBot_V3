@@ -50,7 +50,7 @@ export async function HandleTicketCreate(
   }
 
   const { ticketDb, ticketManager, guildResourceLocator } =
-    CreateTicketServices(logger, interaction.guild);
+    CreateTicketServices(logger, interaction.guild, context.databases.ticketDb);
 
   const selectMenu = ComponentFactory.CreateSelectMenu({
     customId: `ticket-create:${interaction.id}`,
@@ -212,3 +212,6 @@ async function HandleTicketCategorySelection(
     });
   }
 }
+
+
+

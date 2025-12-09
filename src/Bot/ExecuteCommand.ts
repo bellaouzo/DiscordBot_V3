@@ -2,13 +2,18 @@ import { ChatInputCommandInteraction } from "discord.js";
 import { CommandDefinition, CommandContext } from "@commands";
 import { Logger } from "@shared/Logger";
 import { ResponderSet } from "@responders";
+import { DatabaseSet } from "@database";
 import {
   MiddlewareContext,
   RunMiddlewareChain,
   DiscordLoggingMiddleware,
 } from "@middleware";
 
-export function CreateCommandExecutor() {
+export interface CommandExecutorDependencies {
+  readonly databases: DatabaseSet;
+}
+
+export function CreateCommandExecutor(deps: CommandExecutorDependencies) {
   return async (
     command: CommandDefinition,
     interaction: ChatInputCommandInteraction,
@@ -33,6 +38,7 @@ export function CreateCommandExecutor() {
       const commandContext: CommandContext = {
         responders,
         logger: commandLogger,
+        databases: deps.databases,
       };
       await command.execute(interaction, commandContext);
     };

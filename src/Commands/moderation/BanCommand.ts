@@ -6,7 +6,6 @@ import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 import { Config } from "@middleware/CommandConfig";
 import { CreateGuildResourceLocator, EmbedFactory } from "@utilities";
 import { ConvertDurationToMs, DurationUnit, FormatDuration } from "@utilities";
-import { ModerationDatabase } from "@database";
 
 async function ExecuteBan(
   interaction: ChatInputCommandInteraction,
@@ -81,7 +80,7 @@ async function ExecuteBan(
     guild: interaction.guild,
     logger,
   });
-  const modDb = new ModerationDatabase(context.logger);
+  const modDb = context.databases.moderationDb;
 
   const targetMember = targetUser
     ? await locator.GetMember(targetUser.id)
@@ -172,24 +171,17 @@ async function ExecuteBan(
       }
 
       if (durationMs > 0 && interaction.guild) {
-        const db = new ModerationDatabase(logger.Child({ phase: "db" }));
-        try {
-          db.AddTempAction({
-            action: "ban",
-            guild_id: interaction.guild.id,
-            user_id: targetUserId,
-            moderator_id: interaction.user.id,
-            reason,
-            expires_at: Date.now() + durationMs,
-          });
-        } finally {
-          db.Close();
-        }
+        context.databases.moderationDb.AddTempAction({
+          action: "ban",
+          guild_id: interaction.guild.id,
+          user_id: targetUserId,
+          moderator_id: interaction.user.id,
+          reason,
+          expires_at: Date.now() + durationMs,
+        });
       }
     },
   });
-
-  modDb.Close();
 }
 
 export const BanCommand = CreateCommand({
@@ -247,3 +239,5 @@ export const BanCommand = CreateCommand({
   config: Config.moderation(5),
   execute: ExecuteBan,
 });
+
+

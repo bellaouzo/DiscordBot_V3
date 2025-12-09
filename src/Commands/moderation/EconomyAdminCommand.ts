@@ -65,7 +65,11 @@ function BuildItemEmbed(options: {
 
   embed.addFields(
     { name: "Item ID", value: options.itemId, inline: true },
-    { name: "Change", value: `${options.delta > 0 ? "+" : ""}${options.delta}`, inline: true },
+    {
+      name: "Change",
+      value: `${options.delta > 0 ? "+" : ""}${options.delta}`,
+      inline: true,
+    },
     { name: "New Quantity", value: `${options.quantity}`, inline: true }
   );
 
@@ -82,9 +86,8 @@ async function ExecuteEconomyAdmin(
   const targetUser = interaction.options.getUser("user", true);
   const subcommand = interaction.options.getSubcommand();
 
-  const manager = new EconomyManager(interaction.guildId, context.logger);
-  try {
-    if (subcommand === "setbalance") {
+  const manager = new EconomyManager(interaction.guildId, context.databases.userDb);
+  if (subcommand === "setbalance") {
       const amount = interaction.options.getInteger("amount", true);
       if (amount < 0) {
         throw new Error("Amount must be 0 or higher.");
@@ -188,10 +191,7 @@ async function ExecuteEconomyAdmin(
       return;
     }
 
-    throw new Error("Unsupported subcommand.");
-  } finally {
-    manager.Close();
-  }
+  throw new Error("Unsupported subcommand.");
 }
 
 export const EconomyAdminCommand = CreateCommand({
@@ -210,7 +210,10 @@ export const EconomyAdminCommand = CreateCommand({
           .setName("setbalance")
           .setDescription("Set a user's balance to a specific amount")
           .addUserOption((option) =>
-            option.setName("user").setDescription("Target user").setRequired(true)
+            option
+              .setName("user")
+              .setDescription("Target user")
+              .setRequired(true)
           )
           .addIntegerOption((option) =>
             option
@@ -225,7 +228,10 @@ export const EconomyAdminCommand = CreateCommand({
           .setName("addbalance")
           .setDescription("Add coins to a user's balance")
           .addUserOption((option) =>
-            option.setName("user").setDescription("Target user").setRequired(true)
+            option
+              .setName("user")
+              .setDescription("Target user")
+              .setRequired(true)
           )
           .addIntegerOption((option) =>
             option
@@ -240,7 +246,10 @@ export const EconomyAdminCommand = CreateCommand({
           .setName("removebalance")
           .setDescription("Remove coins from a user's balance")
           .addUserOption((option) =>
-            option.setName("user").setDescription("Target user").setRequired(true)
+            option
+              .setName("user")
+              .setDescription("Target user")
+              .setRequired(true)
           )
           .addIntegerOption((option) =>
             option
@@ -255,7 +264,10 @@ export const EconomyAdminCommand = CreateCommand({
           .setName("giveitem")
           .setDescription("Grant an economy item to a user")
           .addUserOption((option) =>
-            option.setName("user").setDescription("Target user").setRequired(true)
+            option
+              .setName("user")
+              .setDescription("Target user")
+              .setRequired(true)
           )
           .addStringOption((option) =>
             option
@@ -276,7 +288,10 @@ export const EconomyAdminCommand = CreateCommand({
           .setName("takeitem")
           .setDescription("Remove an economy item from a user")
           .addUserOption((option) =>
-            option.setName("user").setDescription("Target user").setRequired(true)
+            option
+              .setName("user")
+              .setDescription("Target user")
+              .setRequired(true)
           )
           .addStringOption((option) =>
             option
@@ -295,4 +310,5 @@ export const EconomyAdminCommand = CreateCommand({
   },
   execute: ExecuteEconomyAdmin,
 });
+
 

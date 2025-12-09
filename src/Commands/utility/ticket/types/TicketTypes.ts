@@ -41,3 +41,5 @@ export interface TicketChannelInfo {
 }
 
 export type GuildMemberOrAPI = GuildMember | APIInteractionGuildMember | null;
+
+

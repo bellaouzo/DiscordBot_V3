@@ -65,7 +65,7 @@ export async function HandleRps(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.logger);
+  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
   let balanceValue = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
   const rerollItem = ITEM_MAP["reroll-token"];
@@ -99,7 +99,6 @@ export async function HandleRps(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-    manager.Close();
     return;
   }
 
@@ -138,7 +137,6 @@ export async function HandleRps(
         components: [BuildDisabledRpsButtons(customIds)],
       });
     } finally {
-      manager.Close();
     }
   };
 
@@ -220,8 +218,6 @@ export async function HandleRps(
       embeds: [resultEmbed.toJSON()],
       components: [BuildDisabledRpsButtons(customIds)],
     });
-
-    manager.Close();
   };
 
   const handleCancel = async (
@@ -254,8 +250,6 @@ export async function HandleRps(
       embeds: [embed.toJSON()],
       components: [BuildDisabledRpsButtons(customIds)],
     });
-
-    manager.Close();
   };
 
   if (bet > 0) {
@@ -310,7 +304,6 @@ export async function HandleRps(
       manager.AdjustBalance(interaction.user.id, bet);
     }
     disposeAll();
-    manager.Close();
     return;
   }
 
@@ -318,3 +311,5 @@ export async function HandleRps(
     void finalizeTimeout();
   }, RPS_TIMEOUT_MS);
 }
+
+

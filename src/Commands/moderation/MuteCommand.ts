@@ -14,7 +14,6 @@ import {
   FormatDuration,
   DurationUnit,
 } from "@utilities";
-import { ModerationDatabase } from "@database";
 
 function ValidateTargetMember(
   targetMember: GuildMember | null | undefined,
@@ -121,21 +120,14 @@ async function ExecuteMute(
 
         await targetMember.timeout(durationMs, reason);
 
-        const db = new ModerationDatabase(
-          context.logger.Child({ phase: "db" })
-        );
-        try {
-          db.AddTempAction({
-            action: "mute",
-            guild_id: guild.id,
-            user_id: targetUser.id,
-            moderator_id: interaction.user.id,
-            reason,
-            expires_at: Date.now() + durationMs,
-          });
-        } finally {
-          db.Close();
-        }
+        context.databases.moderationDb.AddTempAction({
+          action: "mute",
+          guild_id: guild.id,
+          user_id: targetUser.id,
+          moderator_id: interaction.user.id,
+          reason,
+          expires_at: Date.now() + durationMs,
+        });
 
         if (notify) {
           interactionResponder
@@ -312,3 +304,5 @@ export const MuteCommand = CreateCommand({
     .build(),
   execute: ExecuteMute,
 });
+
+

@@ -23,7 +23,7 @@ export async function HandleTicketClose(
     return;
 
   const { ticketDb, ticketManager, guildResourceLocator } =
-    CreateTicketServices(logger, interaction.guild!);
+    CreateTicketServices(logger, interaction.guild!, context.databases.ticketDb);
   const ticket = await GetTicketOrReply(
     ticketDb,
     interaction.channel as TextChannel,
@@ -102,3 +102,6 @@ async function SendTicketLogs(
     logger.Error("Failed to send ticket logs", { error });
   }
 }
+
+
+

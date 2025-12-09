@@ -102,3 +102,4 @@ export interface DailyClaimResultCooldown {
 export type DailyClaimResult =
   | DailyClaimResultSuccess
   | DailyClaimResultCooldown;
+

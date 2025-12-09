@@ -5,7 +5,6 @@ import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
 import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 import { Config } from "@middleware/CommandConfig";
 import { CreateGuildResourceLocator, EmbedFactory } from "@utilities";
-import { ModerationDatabase } from "@database";
 
 async function ExecuteKick(
   interaction: ChatInputCommandInteraction,
@@ -27,7 +26,7 @@ async function ExecuteKick(
     guild: interaction.guild,
     logger,
   });
-  const modDb = new ModerationDatabase(context.logger);
+  const modDb = context.databases.moderationDb;
 
   await interactionResponder.WithAction({
     interaction,
@@ -80,8 +79,6 @@ async function ExecuteKick(
       }
     },
   });
-
-  modDb.Close();
 }
 
 export const KickCommand = CreateCommand({
@@ -113,3 +110,5 @@ export const KickCommand = CreateCommand({
   config: Config.moderation(5),
   execute: ExecuteKick,
 });
+
+

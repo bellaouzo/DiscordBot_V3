@@ -77,8 +77,7 @@ async function ExecuteSlowmode(
   }
 
   const reason =
-    interaction.options.getString("reason") ??
-    `Set by ${interaction.user.tag}`;
+    interaction.options.getString("reason") ?? `Set by ${interaction.user.tag}`;
 
   await channel.setRateLimitPerUser(seconds, reason);
 
@@ -131,4 +130,5 @@ export const SlowmodeCommand = CreateCommand({
   },
   execute: ExecuteSlowmode,
 });
+
 

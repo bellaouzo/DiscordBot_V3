@@ -9,7 +9,7 @@ export async function HandleLeaderboard(
   context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-  const manager = new EconomyManager(interaction.guildId!, context.logger);
+  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
 
   try {
     const top = manager.GetTopBalances(10);
@@ -61,6 +61,7 @@ export async function HandleLeaderboard(
     });
     context.logger.Error("Failed to build leaderboard", { error });
   } finally {
-    manager.Close();
   }
 }
+
+

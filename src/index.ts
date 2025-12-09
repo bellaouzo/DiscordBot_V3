@@ -6,17 +6,39 @@ import { CreateCommandExecutor } from "@bot/ExecuteCommand";
 import { CreateEventLoader } from "@bot/CreateEventLoader";
 import { RegisterEvents } from "@bot/RegisterEvents";
 import { LoadAppConfig } from "@config/AppConfig";
-import { ModerationDatabase } from "@database";
+import {
+  ModerationDatabase,
+  UserDatabase,
+  ServerDatabase,
+  TicketDatabase,
+  DatabaseSet,
+} from "@database";
 import { CreateConsoleLogger, Logger } from "@shared/Logger";
 import { CreateResponders } from "@responders";
 import { RegisterInteractionHandlers } from "./interaction-handlers";
 import { TempActionScheduler } from "./Moderation/TempActionScheduler";
 import { RaidModeScheduler } from "./Moderation/RaidModeScheduler";
+import { Client } from "discord.js";
 
-async function Bootstrap(rootLogger: Logger): Promise<void> {
+interface AppResources {
+  client: Client;
+  databases: DatabaseSet;
+  tempScheduler: TempActionScheduler;
+  raidScheduler: RaidModeScheduler;
+}
+
+async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
   const config = LoadAppConfig();
   const logger = rootLogger.Child({ phase: "bootstrap" });
-  const moderationDb = new ModerationDatabase(logger.Child({ phase: "db" }));
+
+  // Create shared database instances
+  const databases: DatabaseSet = {
+    userDb: new UserDatabase(logger.Child({ phase: "user-db" })),
+    moderationDb: new ModerationDatabase(logger.Child({ phase: "mod-db" })),
+    serverDb: new ServerDatabase(logger.Child({ phase: "server-db" })),
+    ticketDb: new TicketDatabase(logger.Child({ phase: "ticket-db" })),
+  };
+
   const responders = CreateResponders({ logger });
   const bot = CreateBot({ logger });
   const loadCommands = CreateCommandLoader(logger);
@@ -26,15 +48,15 @@ async function Bootstrap(rootLogger: Logger): Promise<void> {
     token: config.discord.token,
     logger,
   });
-  const executeCommand = CreateCommandExecutor();
+  const executeCommand = CreateCommandExecutor({ databases });
   const tempScheduler = new TempActionScheduler({
     client: bot.client,
-    db: moderationDb,
+    db: databases.moderationDb,
     logger: logger.Child({ phase: "temp-actions" }),
   });
   const raidScheduler = new RaidModeScheduler({
     client: bot.client,
-    db: moderationDb,
+    db: databases.moderationDb,
     logger: logger.Child({ phase: "raid-mode" }),
   });
 
@@ -46,6 +68,7 @@ async function Bootstrap(rootLogger: Logger): Promise<void> {
     events,
     logger,
     responders,
+    databases,
   });
 
   RegisterInteractionHandlers({
@@ -80,13 +103,72 @@ async function Bootstrap(rootLogger: Logger): Promise<void> {
   await bot.Start(config.discord.token);
   tempScheduler.Start();
   raidScheduler.Start();
+
+  return { client: bot.client, databases, tempScheduler, raidScheduler };
+}
+
+function SetupGracefulShutdown(
+  resources: AppResources,
+  logger: Logger
+): void {
+  let isShuttingDown = false;
+
+  const shutdown = async (signal: string): Promise<void> => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+
+    logger.Info(`Received ${signal}, shutting down gracefully...`, {
+      phase: "shutdown",
+    });
+
+    try {
+      resources.tempScheduler.Stop();
+      resources.raidScheduler.Stop();
+      resources.databases.userDb.Close();
+      resources.databases.moderationDb.Close();
+      resources.databases.serverDb.Close();
+      resources.databases.ticketDb.Close();
+      resources.client.destroy();
+      logger.Info("Shutdown complete", { phase: "shutdown" });
+    } catch (error) {
+      logger.Error("Error during shutdown", { error, phase: "shutdown" });
+    }
+
+    process.exit(0);
+  };
+
+  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+}
+
+function SetupGlobalErrorHandlers(logger: Logger): void {
+  process.on("unhandledRejection", (reason, promise) => {
+    logger.Error("Unhandled promise rejection", {
+      error: reason,
+      extra: { promise: String(promise) },
+      phase: "error",
+    });
+  });
+
+  process.on("uncaughtException", (error) => {
+    logger.Error("Uncaught exception", { error, phase: "error" });
+    process.exit(1);
+  });
 }
 
 const bootstrapLogger = CreateConsoleLogger();
 
-Bootstrap(bootstrapLogger).catch((error) => {
-  bootstrapLogger.Error("Failed to start bot", {
-    error,
-    phase: "bootstrap",
+SetupGlobalErrorHandlers(bootstrapLogger);
+
+Bootstrap(bootstrapLogger)
+  .then((resources) => {
+    SetupGracefulShutdown(resources, bootstrapLogger);
+  })
+  .catch((error) => {
+    bootstrapLogger.Error("Failed to start bot", {
+      error,
+      phase: "bootstrap",
+    });
+    process.exit(1);
   });
-});
+

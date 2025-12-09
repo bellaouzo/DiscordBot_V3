@@ -1,18 +1,13 @@
-import { Logger } from "@shared/Logger";
 import { UserDatabase } from "@database";
 import { DAILY_COOLDOWN_MS, DAILY_REWARD, STARTING_BALANCE } from "./constants";
 import { ITEM_MAP } from "./items";
 import type { DailyClaimResult, InventoryEntry, MarketRotation } from "./types";
 
 export class EconomyManager {
-  private readonly userDb: UserDatabase;
-
   constructor(
     private readonly guildId: string,
-    logger: Logger
-  ) {
-    this.userDb = new UserDatabase(logger);
-  }
+    private readonly userDb: UserDatabase
+  ) {}
 
   EnsureBalance(userId: string): number {
     return this.userDb.EnsureBalance(userId, this.guildId, STARTING_BALANCE)
@@ -115,8 +110,5 @@ export class EconomyManager {
   SetMarketRotation(rotation: MarketRotation): void {
     this.userDb.SetMarketRotation(rotation);
   }
-
-  Close(): void {
-    this.userDb.Close();
-  }
 }
+

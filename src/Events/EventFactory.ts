@@ -1,11 +1,13 @@
 import { Client } from "discord.js";
 import { Logger } from "@shared/Logger";
 import { ResponderSet } from "@responders";
+import { DatabaseSet } from "@database";
 
 export interface EventContext {
   readonly client: Client;
   readonly logger: Logger;
   readonly responders: ResponderSet;
+  readonly databases: DatabaseSet;
 }
 
 export type EventExecutor = (

@@ -245,3 +245,4 @@ export const ITEM_MAP: Record<string, EconomyItem> = ITEM_CATALOG.reduce(
 export const DEFAULT_ROTATION_IDS: string[] = ITEM_CATALOG.map(
   (item) => item.id
 );
+

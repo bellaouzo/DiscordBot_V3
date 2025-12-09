@@ -48,7 +48,7 @@ export async function HandleFlip(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.logger);
+  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
   let balanceValue = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
   const luckyCoin = ITEM_MAP["lucky-coin"];
@@ -84,7 +84,6 @@ export async function HandleFlip(
       ],
       ephemeral: true,
     });
-    manager.Close();
     return;
   }
 
@@ -122,7 +121,6 @@ export async function HandleFlip(
         components: [BuildDisabledFlipButtons(customIds)],
       });
     } finally {
-      manager.Close();
     }
   };
 
@@ -203,8 +201,6 @@ export async function HandleFlip(
       embeds: [resultEmbed.toJSON()],
       components: [BuildDisabledFlipButtons(customIds)],
     });
-
-    manager.Close();
   };
 
   const handleCancel = async (
@@ -237,8 +233,6 @@ export async function HandleFlip(
       embeds: [embed.toJSON()],
       components: [BuildDisabledFlipButtons(customIds)],
     });
-
-    manager.Close();
   };
 
   // Lock bet upfront if any
@@ -284,7 +278,6 @@ export async function HandleFlip(
       manager.AdjustBalance(interaction.user.id, bet);
     }
     disposeAll();
-    manager.Close();
     return;
   }
 
@@ -292,3 +285,5 @@ export async function HandleFlip(
     void finalizeTimeout();
   }, FLIP_TIMEOUT_MS);
 }
+
+

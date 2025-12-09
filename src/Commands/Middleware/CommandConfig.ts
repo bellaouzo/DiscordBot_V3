@@ -132,3 +132,4 @@ export const Config = {
   utility: (cooldownSeconds = 1) =>
     CommandConfigBuilder.create().cooldownSeconds(cooldownSeconds).build(),
 };
+

@@ -1,6 +1,5 @@
 import {
   ButtonInteraction,
-  ChatInputCommandInteraction,
   Client,
   Events,
   StringSelectMenuInteraction,
@@ -88,10 +87,4 @@ async function HandleUserSelectMenuInteraction(
       },
     });
   }
-}
-
-export function HandleCommandInteraction(
-  interaction: ChatInputCommandInteraction,
-): boolean {
-  return interaction.isChatInputCommand();
 }

@@ -22,8 +22,7 @@ export function ValidateTicketChannel(
   return !!(channel && channel.isTextBased());
 }
 
-export function CreateTicketServices(logger: Logger, guild: Guild) {
-  const ticketDb = new TicketDatabase(logger);
+export function CreateTicketServices(logger: Logger, guild: Guild, ticketDb: TicketDatabase) {
   const guildResourceLocator = CreateGuildResourceLocator({
     guild,
     logger,
@@ -92,3 +91,5 @@ export async function GetTicketOrReply(
   }
   return ticket;
 }
+
+

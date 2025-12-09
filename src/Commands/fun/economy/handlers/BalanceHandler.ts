@@ -8,21 +8,19 @@ export async function HandleBalance(
   context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-  const manager = new EconomyManager(interaction.guildId!, context.logger);
+  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
   const targetUser = interaction.options.getUser("user") ?? interaction.user;
   const isSelf = targetUser.id === interaction.user.id;
 
-  try {
-    const balance = manager.GetBalance(targetUser.id);
-    const embed = BuildBalanceEmbed({
-      balance,
-      label: isSelf ? "You" : `<@${targetUser.id}>`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-  } finally {
-    manager.Close();
-  }
+  const balance = manager.GetBalance(targetUser.id);
+  const embed = BuildBalanceEmbed({
+    balance,
+    label: isSelf ? "You" : `<@${targetUser.id}>`,
+  });
+  await interactionResponder.Reply(interaction, {
+    embeds: [embed.toJSON()],
+    ephemeral: true,
+  });
 }
+
+

@@ -1017,3 +1017,4 @@ export function BuildGiftSuccessEmbed(options: {
     footer: `Sender: ${options.senderId}`,
   });
 }
+

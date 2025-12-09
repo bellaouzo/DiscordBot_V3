@@ -7,7 +7,7 @@ import {
 } from "@middleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory } from "@utilities";
-import { LinkFilterType, ModerationDatabase } from "@database";
+import { LinkFilterType } from "@database";
 
 function NormalizePattern(input: string): string {
   return input.trim().toLowerCase();
@@ -54,7 +54,7 @@ async function AddFilter(
     return;
   }
 
-  const db = new ModerationDatabase(context.logger.Child({ phase: "db" }));
+  const db = context.databases.moderationDb;
   try {
     const existing = db
       .ListLinkFilters(guild.id)
@@ -98,7 +98,6 @@ async function AddFilter(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -124,7 +123,7 @@ async function RemoveFilter(
     return;
   }
 
-  const db = new ModerationDatabase(context.logger.Child({ phase: "db" }));
+  const db = context.databases.moderationDb;
   try {
     const removed = db.RemoveLinkFilter({
       guild_id: guild.id,
@@ -163,7 +162,6 @@ async function RemoveFilter(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -184,7 +182,7 @@ async function ListFilters(
     return;
   }
 
-  const db = new ModerationDatabase(context.logger.Child({ phase: "db" }));
+  const db = context.databases.moderationDb;
   try {
     const filters = db.ListLinkFilters(guild.id);
     const allow = filters
@@ -227,7 +225,6 @@ async function ListFilters(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -321,3 +318,5 @@ export const LinkFilterCommand = CreateCommand({
     .build(),
   execute: ExecuteLinkFilter,
 });
+
+

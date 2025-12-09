@@ -9,7 +9,10 @@
     "dev": "tsc && node dist/index.js",
     "b": "tsc",
     "s": "node dist/index.js",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "lint": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\""
   },
   "keywords": [
     "discord",

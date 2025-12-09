@@ -20,8 +20,8 @@ import {
   EmbedFactory,
   FormatDuration,
 } from "@utilities";
-import { ModerationDatabase, RaidModeChannelState } from "@database";
 import { Logger } from "@shared/Logger";
+import { ModerationDatabase, RaidModeChannelState } from "@database";
 
 type StoredOverwrite = {
   id: string;
@@ -134,7 +134,6 @@ async function ClearRaidModeByGuild(
     db.ClearRaidModeChannelStates(active.id);
     return true;
   } finally {
-    db.Close();
   }
 }
 
@@ -174,7 +173,7 @@ async function ApplyRaidMode(
     return;
   }
 
-  const db = new ModerationDatabase(context.logger.Child({ phase: "db" }));
+  const db = context.databases.moderationDb;
   try {
     const active = db.GetActiveRaidMode(guild.id);
     if (active) {
@@ -274,7 +273,6 @@ async function ApplyRaidMode(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -329,7 +327,7 @@ async function DisableRaidMode(
     return;
   }
 
-  const db = new ModerationDatabase(context.logger.Child({ phase: "db" }));
+  const db = context.databases.moderationDb;
   try {
     const active = db.GetActiveRaidMode(guild.id);
     if (!active) {
@@ -368,7 +366,6 @@ async function DisableRaidMode(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -389,7 +386,7 @@ async function ShowRaidModeStatus(
     return;
   }
 
-  const db = new ModerationDatabase(context.logger.Child({ phase: "db" }));
+  const db = context.databases.moderationDb;
   try {
     const active = db.GetActiveRaidMode(guild.id);
     if (!active) {
@@ -448,7 +445,6 @@ async function ShowRaidModeStatus(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -524,3 +520,5 @@ export const RaidModeCommand = CreateCommand({
     .build(),
   execute: ExecuteRaidMode,
 });
+
+

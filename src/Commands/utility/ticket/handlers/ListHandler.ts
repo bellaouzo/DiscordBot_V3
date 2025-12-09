@@ -27,7 +27,7 @@ export async function HandleTicketList(
     return;
   }
 
-  const { ticketDb } = CreateTicketServices(logger, interaction.guild);
+  const { ticketDb } = CreateTicketServices(logger, interaction.guild, context.databases.ticketDb);
   const tickets = ticketDb.GetUserTickets(
     interaction.user.id,
     interaction.guild.id
@@ -79,3 +79,6 @@ export async function HandleTicketList(
     ephemeral: true,
   });
 }
+
+
+

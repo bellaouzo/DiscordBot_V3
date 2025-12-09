@@ -14,7 +14,7 @@ import {
 } from "@middleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory } from "@utilities";
-import { LockdownScope, ModerationDatabase } from "@database";
+import { LockdownScope } from "@database";
 
 type StoredOverwrite = {
   id: string;
@@ -73,7 +73,7 @@ async function LockChannel(
   context: CommandContext,
   channel: TextChannel
 ): Promise<void> {
-  const db = new ModerationDatabase(context.logger.Child({ phase: "db" }));
+  const db = context.databases.moderationDb;
   try {
     const existing = db.GetActiveLockdown(
       "channel",
@@ -122,7 +122,6 @@ async function LockChannel(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -131,7 +130,7 @@ async function LockCategory(
   context: CommandContext,
   category: CategoryChannel
 ): Promise<void> {
-  const db = new ModerationDatabase(context.logger.Child({ phase: "db" }));
+  const db = context.databases.moderationDb;
   try {
     const existing = db.GetActiveLockdown(
       "category",
@@ -180,7 +179,6 @@ async function LockCategory(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -190,7 +188,7 @@ async function UnlockTarget(
   scope: LockdownScope,
   targetId: string
 ): Promise<void> {
-  const db = new ModerationDatabase(context.logger.Child({ phase: "db" }));
+  const db = context.databases.moderationDb;
   try {
     const record = db.GetActiveLockdown(scope, interaction.guild!.id, targetId);
     if (!record) {
@@ -236,7 +234,6 @@ async function UnlockTarget(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -244,7 +241,7 @@ async function ShowStatus(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const db = new ModerationDatabase(context.logger.Child({ phase: "db" }));
+  const db = context.databases.moderationDb;
   try {
     const active = db.ListActiveLockdowns(interaction.guild!.id);
     if (active.length === 0) {
@@ -279,7 +276,6 @@ async function ShowStatus(
       ephemeral: true,
     });
   } finally {
-    db.Close();
   }
 }
 
@@ -417,3 +413,5 @@ export const LockdownCommand = CreateCommand({
     .build(),
   execute: ExecuteLockdown,
 });
+
+

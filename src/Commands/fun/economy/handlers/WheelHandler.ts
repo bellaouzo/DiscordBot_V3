@@ -64,7 +64,7 @@ export async function HandleWheel(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.logger);
+  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
   let balance = manager.EnsureBalance(interaction.user.id);
 
   if (bet > balance) {
@@ -76,7 +76,6 @@ export async function HandleWheel(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-    manager.Close();
     return;
   }
 
@@ -129,7 +128,6 @@ export async function HandleWheel(
         components: [BuildDisabledWheelButtons(customIds)],
       });
     } finally {
-      manager.Close();
     }
   };
 
@@ -202,8 +200,6 @@ export async function HandleWheel(
       embeds: [resultEmbed.toJSON()],
       components: [BuildDisabledWheelButtons(customIds)],
     });
-
-    manager.Close();
   };
 
   const spinRegistration = componentRouter.RegisterButton({
@@ -228,7 +224,6 @@ export async function HandleWheel(
       manager.AdjustBalance(interaction.user.id, bet, 0);
     }
     disposeAll();
-    manager.Close();
     return;
   }
 
@@ -236,3 +231,5 @@ export async function HandleWheel(
     void finalizeTimeout();
   }, WHEEL_TIMEOUT_MS);
 }
+
+

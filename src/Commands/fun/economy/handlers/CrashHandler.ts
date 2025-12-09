@@ -48,7 +48,7 @@ export async function HandleCrash(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.logger);
+  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
   let balance = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
   const parachute = ITEM_MAP["parachute"];
@@ -81,7 +81,6 @@ export async function HandleCrash(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-    manager.Close();
     return;
   }
 
@@ -125,7 +124,6 @@ export async function HandleCrash(
       if (intervalHandle) {
         clearInterval(intervalHandle);
       }
-      manager.Close();
     }
   };
 
@@ -163,8 +161,6 @@ export async function HandleCrash(
       embeds: [crashEmbed.toJSON()],
       components: [BuildDisabledCrashButtons(customIds)],
     });
-
-    manager.Close();
   };
 
   const finalizeCashout = async (
@@ -241,8 +237,6 @@ export async function HandleCrash(
         components: [BuildDisabledCrashButtons(customIds)],
       });
     }
-
-    manager.Close();
   };
 
   const handleCashout = async (
@@ -284,8 +278,6 @@ export async function HandleCrash(
       embeds: [embed.toJSON()],
       components: [BuildDisabledCrashButtons(customIds)],
     });
-
-    manager.Close();
   };
 
   if (bet > 0) {
@@ -377,3 +369,5 @@ export async function HandleCrash(
     void finalizeTimeout();
   }, CRASH_TIMEOUT_MS);
 }
+
+
