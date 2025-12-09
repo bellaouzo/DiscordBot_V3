@@ -18,6 +18,10 @@ import {
   MIN_BET,
 } from "@commands/fun/economy/constants";
 import { FlipChoice } from "@commands/fun/economy/types";
+import {
+  AwardEconomyXp,
+  EconomyOutcome,
+} from "@commands/fun/economy/utils/EconomyXp";
 
 interface FlipCustomIds {
   heads: string;
@@ -195,6 +199,15 @@ export async function HandleFlip(
       bet,
       balance: balanceValue,
       note: notes.length ? notes.map((n) => `• ${n}`).join("\n") : undefined,
+    });
+
+    const outcome: EconomyOutcome =
+      win ? "win" : bet > 0 ? "loss" : "neutral";
+    AwardEconomyXp({
+      interaction,
+      context,
+      bet,
+      outcome,
     });
 
     await buttonResponder.Update(buttonInteraction, {

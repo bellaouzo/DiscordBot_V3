@@ -12,6 +12,10 @@ import {
   WHEEL_TIMEOUT_MS,
 } from "@commands/fun/economy/constants";
 import { EmbedFactory } from "@utilities";
+import {
+  AwardEconomyXp,
+  EconomyOutcome,
+} from "@commands/fun/economy/utils/EconomyXp";
 
 type WheelSegment = {
   label: string;
@@ -64,7 +68,10 @@ export async function HandleWheel(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
+  const manager = new EconomyManager(
+    interaction.guildId!,
+    context.databases.userDb
+  );
   let balance = manager.EnsureBalance(interaction.user.id);
 
   if (bet > balance) {
@@ -188,6 +195,15 @@ export async function HandleWheel(
       balance = manager.AdjustBalance(interaction.user.id, payout, 0);
     }
 
+    const xpOutcome: EconomyOutcome =
+      payout > 0 ? "win" : bet > 0 ? "loss" : "neutral";
+    AwardEconomyXp({
+      interaction,
+      context,
+      bet,
+      outcome: xpOutcome,
+    });
+
     const resultEmbed = BuildWheelResultEmbed({
       segmentLabel: `${landed.emoji} ${landed.label}`,
       multiplier: landed.multiplier,
@@ -231,5 +247,3 @@ export async function HandleWheel(
     void finalizeTimeout();
   }, WHEEL_TIMEOUT_MS);
 }
-
-

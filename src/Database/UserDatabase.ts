@@ -32,6 +32,35 @@ export interface Balance {
   updated_at: number;
 }
 
+export interface UserXp {
+  user_id: string;
+  guild_id: string;
+  xp: number;
+  level: number;
+  total_xp_earned: number;
+  updated_at: number;
+}
+
+export interface Giveaway {
+  id: number;
+  guild_id: string;
+  channel_id: string;
+  message_id: string;
+  host_id: string;
+  prize: string;
+  winner_count: number;
+  ends_at: number;
+  ended: boolean;
+  winners: string[] | null;
+  created_at: number;
+}
+
+export interface GiveawayEntry {
+  giveaway_id: number;
+  user_id: string;
+  entered_at: number;
+}
+
 export class UserDatabase {
   private db: Database.Database;
 
@@ -117,6 +146,44 @@ export class UserDatabase {
         items TEXT NOT NULL,
         generated_at INTEGER NOT NULL,
         expires_at INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS user_xp (
+        user_id TEXT NOT NULL,
+        guild_id TEXT NOT NULL,
+        xp INTEGER NOT NULL DEFAULT 0,
+        level INTEGER NOT NULL DEFAULT 1,
+        total_xp_earned INTEGER NOT NULL DEFAULT 0,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (user_id, guild_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_user_xp_guild ON user_xp(guild_id);
+      CREATE INDEX IF NOT EXISTS idx_user_xp_level ON user_xp(guild_id, level DESC, xp DESC);
+
+      CREATE TABLE IF NOT EXISTS giveaways (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        guild_id TEXT NOT NULL,
+        channel_id TEXT NOT NULL,
+        message_id TEXT NOT NULL UNIQUE,
+        host_id TEXT NOT NULL,
+        prize TEXT NOT NULL,
+        winner_count INTEGER NOT NULL DEFAULT 1,
+        ends_at INTEGER NOT NULL,
+        ended INTEGER NOT NULL DEFAULT 0,
+        winners TEXT,
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_giveaways_guild ON giveaways(guild_id);
+      CREATE INDEX IF NOT EXISTS idx_giveaways_ends_at ON giveaways(ended, ends_at);
+
+      CREATE TABLE IF NOT EXISTS giveaway_entries (
+        giveaway_id INTEGER NOT NULL,
+        user_id TEXT NOT NULL,
+        entered_at INTEGER NOT NULL,
+        PRIMARY KEY (giveaway_id, user_id),
+        FOREIGN KEY (giveaway_id) REFERENCES giveaways(id) ON DELETE CASCADE
       );
     `);
   }
@@ -680,6 +747,284 @@ export class UserDatabase {
     });
 
     return transaction();
+  }
+
+  // ================== XP & Leveling Methods ==================
+
+  private CalculateXpForLevel(level: number): number {
+    return Math.floor(100 * Math.pow(level, 1.5));
+  }
+
+  GetUserXp(user_id: string, guild_id: string): UserXp | null {
+    const stmt = this.db.prepare(
+      "SELECT * FROM user_xp WHERE user_id = ? AND guild_id = ?"
+    );
+    return stmt.get(user_id, guild_id) as UserXp | null;
+  }
+
+  EnsureUserXp(user_id: string, guild_id: string): UserXp {
+    const existing = this.GetUserXp(user_id, guild_id);
+    if (existing) {
+      return existing;
+    }
+
+    const now = Date.now();
+    this.db
+      .prepare(
+        `
+        INSERT INTO user_xp (user_id, guild_id, xp, level, total_xp_earned, updated_at)
+        VALUES (?, ?, 0, 1, 0, ?)
+      `
+      )
+      .run(user_id, guild_id, now);
+
+    return this.GetUserXp(user_id, guild_id)!;
+  }
+
+  AddXp(data: {
+    user_id: string;
+    guild_id: string;
+    amount: number;
+  }): { userXp: UserXp; leveledUp: boolean; previousLevel: number } {
+    const transaction = this.db.transaction(() => {
+      const current = this.EnsureUserXp(data.user_id, data.guild_id);
+      const previousLevel = current.level;
+      let xp = current.xp + data.amount;
+      let level = current.level;
+      let leveledUp = false;
+
+      // Check for level ups
+      let xpNeeded = this.CalculateXpForLevel(level);
+      while (xp >= xpNeeded) {
+        xp -= xpNeeded;
+        level++;
+        leveledUp = true;
+        xpNeeded = this.CalculateXpForLevel(level);
+      }
+
+      const now = Date.now();
+      this.db
+        .prepare(
+          `
+          UPDATE user_xp
+          SET xp = ?, level = ?, total_xp_earned = total_xp_earned + ?, updated_at = ?
+          WHERE user_id = ? AND guild_id = ?
+        `
+        )
+        .run(xp, level, data.amount, now, data.user_id, data.guild_id);
+
+      const updated = this.GetUserXp(data.user_id, data.guild_id)!;
+      return { userXp: updated, leveledUp, previousLevel };
+    });
+
+    return transaction();
+  }
+
+  GetXpLeaderboard(
+    guild_id: string,
+    limit = 10
+  ): { userId: string; xp: number; level: number; totalXpEarned: number }[] {
+    const stmt = this.db.prepare(
+      `
+      SELECT user_id, xp, level, total_xp_earned
+      FROM user_xp
+      WHERE guild_id = ?
+      ORDER BY level DESC, xp DESC
+      LIMIT ?
+    `
+    );
+
+    const rows = stmt.all(guild_id, limit) as {
+      user_id: string;
+      xp: number;
+      level: number;
+      total_xp_earned: number;
+    }[];
+
+    return rows.map((row) => ({
+      userId: row.user_id,
+      xp: row.xp,
+      level: row.level,
+      totalXpEarned: row.total_xp_earned,
+    }));
+  }
+
+  GetXpForNextLevel(level: number): number {
+    return this.CalculateXpForLevel(level);
+  }
+
+  // ================== Giveaway Methods ==================
+
+  CreateGiveaway(data: {
+    guild_id: string;
+    channel_id: string;
+    message_id: string;
+    host_id: string;
+    prize: string;
+    winner_count: number;
+    ends_at: number;
+  }): Giveaway {
+    const now = Date.now();
+    const stmt = this.db.prepare(`
+      INSERT INTO giveaways (guild_id, channel_id, message_id, host_id, prize, winner_count, ends_at, ended, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)
+    `);
+
+    stmt.run(
+      data.guild_id,
+      data.channel_id,
+      data.message_id,
+      data.host_id,
+      data.prize,
+      data.winner_count,
+      data.ends_at,
+      now
+    );
+
+    return this.GetGiveawayByMessageId(data.message_id)!;
+  }
+
+  GetGiveawayByMessageId(message_id: string): Giveaway | null {
+    const stmt = this.db.prepare(
+      "SELECT * FROM giveaways WHERE message_id = ?"
+    );
+    const row = stmt.get(message_id) as
+      | {
+          id: number;
+          guild_id: string;
+          channel_id: string;
+          message_id: string;
+          host_id: string;
+          prize: string;
+          winner_count: number;
+          ends_at: number;
+          ended: number;
+          winners: string | null;
+          created_at: number;
+        }
+      | undefined;
+
+    if (!row) return null;
+
+    return {
+      ...row,
+      ended: row.ended === 1,
+      winners: row.winners ? JSON.parse(row.winners) : null,
+    };
+  }
+
+  GetActiveGiveaways(guild_id: string): Giveaway[] {
+    const stmt = this.db.prepare(
+      "SELECT * FROM giveaways WHERE guild_id = ? AND ended = 0 ORDER BY ends_at ASC"
+    );
+    const rows = stmt.all(guild_id) as Array<{
+      id: number;
+      guild_id: string;
+      channel_id: string;
+      message_id: string;
+      host_id: string;
+      prize: string;
+      winner_count: number;
+      ends_at: number;
+      ended: number;
+      winners: string | null;
+      created_at: number;
+    }>;
+
+    return rows.map((row) => ({
+      ...row,
+      ended: row.ended === 1,
+      winners: row.winners ? JSON.parse(row.winners) : null,
+    }));
+  }
+
+  GetEndedGiveawaysToProcess(): Giveaway[] {
+    const now = Date.now();
+    const stmt = this.db.prepare(
+      "SELECT * FROM giveaways WHERE ended = 0 AND ends_at <= ?"
+    );
+    const rows = stmt.all(now) as Array<{
+      id: number;
+      guild_id: string;
+      channel_id: string;
+      message_id: string;
+      host_id: string;
+      prize: string;
+      winner_count: number;
+      ends_at: number;
+      ended: number;
+      winners: string | null;
+      created_at: number;
+    }>;
+
+    return rows.map((row) => ({
+      ...row,
+      ended: row.ended === 1,
+      winners: row.winners ? JSON.parse(row.winners) : null,
+    }));
+  }
+
+  AddGiveawayEntry(giveaway_id: number, user_id: string): boolean {
+    const now = Date.now();
+    try {
+      this.db
+        .prepare(
+          `
+          INSERT INTO giveaway_entries (giveaway_id, user_id, entered_at)
+          VALUES (?, ?, ?)
+        `
+        )
+        .run(giveaway_id, user_id, now);
+      return true;
+    } catch {
+      // Entry already exists
+      return false;
+    }
+  }
+
+  RemoveGiveawayEntry(giveaway_id: number, user_id: string): boolean {
+    const result = this.db
+      .prepare(
+        "DELETE FROM giveaway_entries WHERE giveaway_id = ? AND user_id = ?"
+      )
+      .run(giveaway_id, user_id);
+    return result.changes > 0;
+  }
+
+  HasEnteredGiveaway(giveaway_id: number, user_id: string): boolean {
+    const stmt = this.db.prepare(
+      "SELECT 1 FROM giveaway_entries WHERE giveaway_id = ? AND user_id = ?"
+    );
+    return stmt.get(giveaway_id, user_id) !== undefined;
+  }
+
+  GetGiveawayEntries(giveaway_id: number): string[] {
+    const stmt = this.db.prepare(
+      "SELECT user_id FROM giveaway_entries WHERE giveaway_id = ?"
+    );
+    const rows = stmt.all(giveaway_id) as { user_id: string }[];
+    return rows.map((r) => r.user_id);
+  }
+
+  GetGiveawayEntryCount(giveaway_id: number): number {
+    const stmt = this.db.prepare(
+      "SELECT COUNT(*) as count FROM giveaway_entries WHERE giveaway_id = ?"
+    );
+    const row = stmt.get(giveaway_id) as { count: number };
+    return row.count;
+  }
+
+  EndGiveaway(message_id: string, winnerIds: string[]): boolean {
+    const result = this.db
+      .prepare(
+        `
+        UPDATE giveaways
+        SET ended = 1, winners = ?
+        WHERE message_id = ?
+      `
+      )
+      .run(JSON.stringify(winnerIds), message_id);
+    return result.changes > 0;
   }
 
   Close(): void {

@@ -12,6 +12,10 @@ import {
   SLOTS_TIMEOUT_MS,
 } from "@commands/fun/economy/constants";
 import { EmbedFactory } from "@utilities";
+import {
+  AwardEconomyXp,
+  EconomyOutcome,
+} from "@commands/fun/economy/utils/EconomyXp";
 
 type SlotSymbol = {
   icon: string;
@@ -321,6 +325,15 @@ export async function HandleSlots(
     if (payout > 0) {
       balance = manager.AdjustBalance(interaction.user.id, payout, 0);
     }
+
+    const xpOutcome: EconomyOutcome =
+      payout > 0 ? "win" : bet > 0 ? "loss" : "neutral";
+    AwardEconomyXp({
+      interaction,
+      context,
+      bet,
+      outcome: xpOutcome,
+    });
 
     await interaction.editReply({
       embeds: [

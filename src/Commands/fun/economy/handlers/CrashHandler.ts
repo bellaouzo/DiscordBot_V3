@@ -21,6 +21,10 @@ import {
   MIN_BET,
 } from "@commands/fun/economy/constants";
 import { EmbedFactory } from "@utilities";
+import {
+  AwardEconomyXp,
+  EconomyOutcome,
+} from "@commands/fun/economy/utils/EconomyXp";
 
 interface CrashCustomIds {
   cashout: string;
@@ -157,6 +161,15 @@ export async function HandleCrash(
       note,
     });
 
+    const xpOutcome: EconomyOutcome =
+      bet > 0 && !parachuteUsed ? "loss" : "neutral";
+    AwardEconomyXp({
+      interaction,
+      context,
+      bet,
+      outcome: xpOutcome,
+    });
+
     await interaction.editReply({
       embeds: [crashEmbed.toJSON()],
       components: [BuildDisabledCrashButtons(customIds)],
@@ -204,6 +217,15 @@ export async function HandleCrash(
       }
       balance = manager.AdjustBalance(interaction.user.id, payout);
     }
+
+    const xpOutcome: EconomyOutcome =
+      payout > 0 ? "win" : bet > 0 ? "loss" : "neutral";
+    AwardEconomyXp({
+      interaction,
+      context,
+      bet,
+      outcome: xpOutcome,
+    });
 
     const embed = BuildCrashCashoutEmbed({
       bet,

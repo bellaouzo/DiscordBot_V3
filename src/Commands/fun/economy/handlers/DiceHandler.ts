@@ -5,6 +5,10 @@ import { BuildDiceResultEmbed } from "@commands/fun/economy/utils/Embeds";
 import { DICE_PAYOUT_MULTIPLIER, MAX_BET, MIN_BET } from "../constants";
 import { ITEM_MAP } from "../items";
 import { EmbedFactory } from "@utilities";
+import {
+  AwardEconomyXp,
+  EconomyOutcome,
+} from "@commands/fun/economy/utils/EconomyXp";
 
 export async function HandleDice(
   interaction: ChatInputCommandInteraction,
@@ -127,6 +131,15 @@ export async function HandleDice(
     payout,
     balance,
     note: notes.length ? notes.map((n) => `• ${n}`).join("\n") : undefined,
+  });
+
+  const outcome: EconomyOutcome =
+    win ? "win" : bet > 0 ? "loss" : "neutral";
+  AwardEconomyXp({
+    interaction,
+    context,
+    bet,
+    outcome,
   });
 
   await interactionResponder.Reply(interaction, {

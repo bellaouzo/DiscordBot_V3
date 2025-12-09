@@ -18,10 +18,15 @@ export interface LoggingConfig {
   readonly deployLogChannelName: string;
 }
 
+export interface ApiKeysConfig {
+  readonly openWeatherMapApiKey: string | null;
+}
+
 export interface AppConfig {
   readonly discord: DiscordConfig;
   readonly deployment: DeploymentConfig;
   readonly logging: LoggingConfig;
+  readonly apiKeys: ApiKeysConfig;
 }
 
 const ENVIRONMENT_PATHS = [
@@ -83,6 +88,9 @@ export function LoadAppConfig(): AppConfig {
         process.env.MESSAGE_DELETE_LOG_CHANNEL_NAME || "deleted-logs",
       deployLogChannelName:
         process.env.DEPLOY_LOG_CHANNEL_NAME || "deployment-logs",
+    },
+    apiKeys: {
+      openWeatherMapApiKey: process.env.OPENWEATHER_API_KEY || null,
     },
   };
 }

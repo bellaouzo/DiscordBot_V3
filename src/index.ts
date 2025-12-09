@@ -18,6 +18,7 @@ import { CreateResponders } from "@responders";
 import { RegisterInteractionHandlers } from "./interaction-handlers";
 import { TempActionScheduler } from "./Moderation/TempActionScheduler";
 import { RaidModeScheduler } from "./Moderation/RaidModeScheduler";
+import { GiveawayScheduler } from "@commands/utility/giveaway/GiveawayScheduler";
 import { Client } from "discord.js";
 
 interface AppResources {
@@ -25,6 +26,7 @@ interface AppResources {
   databases: DatabaseSet;
   tempScheduler: TempActionScheduler;
   raidScheduler: RaidModeScheduler;
+  giveawayScheduler: GiveawayScheduler;
 }
 
 async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
@@ -59,6 +61,11 @@ async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     db: databases.moderationDb,
     logger: logger.Child({ phase: "raid-mode" }),
   });
+  const giveawayScheduler = new GiveawayScheduler(
+    bot.client,
+    databases.userDb,
+    logger.Child({ phase: "giveaways" })
+  );
 
   const { commands, modules } = await loadCommands();
   const events = await loadEvents();
@@ -103,33 +110,37 @@ async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
   await bot.Start(config.discord.token);
   tempScheduler.Start();
   raidScheduler.Start();
+  giveawayScheduler.Start();
 
-  return { client: bot.client, databases, tempScheduler, raidScheduler };
+  return {
+    client: bot.client,
+    databases,
+    tempScheduler,
+    raidScheduler,
+    giveawayScheduler,
+  };
 }
 
-function SetupGracefulShutdown(
-  resources: AppResources,
-  logger: Logger
-): void {
+function SetupGracefulShutdown(resources: AppResources, logger: Logger): void {
   let isShuttingDown = false;
 
-  const shutdown = async (signal: string): Promise<void> => {
+  const shutdown = async (): Promise<void> => {
     if (isShuttingDown) return;
     isShuttingDown = true;
 
-    logger.Info(`Received ${signal}, shutting down gracefully...`, {
-      phase: "shutdown",
-    });
+    // logger.Info(`Received ${signal}, shutting down gracefully...`, {
+    //   phase: "shutdown",
+    // });
 
     try {
       resources.tempScheduler.Stop();
       resources.raidScheduler.Stop();
+      resources.giveawayScheduler.Stop();
       resources.databases.userDb.Close();
       resources.databases.moderationDb.Close();
       resources.databases.serverDb.Close();
       resources.databases.ticketDb.Close();
       resources.client.destroy();
-      logger.Info("Shutdown complete", { phase: "shutdown" });
     } catch (error) {
       logger.Error("Error during shutdown", { error, phase: "shutdown" });
     }
@@ -137,8 +148,8 @@ function SetupGracefulShutdown(
     process.exit(0);
   };
 
-  process.on("SIGINT", () => shutdown("SIGINT"));
-  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown());
+  process.on("SIGTERM", () => shutdown());
 }
 
 function SetupGlobalErrorHandlers(logger: Logger): void {
@@ -171,4 +182,3 @@ Bootstrap(bootstrapLogger)
     });
     process.exit(1);
   });
-

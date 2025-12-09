@@ -23,6 +23,10 @@ import {
 } from "@commands/fun/economy/constants";
 import { HorseId } from "@commands/fun/economy/types";
 import { EmbedFactory } from "@utilities";
+import {
+  AwardEconomyXp,
+  EconomyOutcome,
+} from "@commands/fun/economy/utils/EconomyXp";
 
 interface HorseCustomIds {
   horses: string[];
@@ -52,7 +56,10 @@ export async function HandleHorseRace(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
+  const manager = new EconomyManager(
+    interaction.guildId!,
+    context.databases.userDb
+  );
   let balance = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
   const spurItem = ITEM_MAP["speed-spur"];
@@ -291,6 +298,15 @@ export async function HandleHorseRace(
           balance = manager.AdjustBalance(interaction.user.id, payout);
         }
 
+        const xpOutcome: EconomyOutcome =
+          payout > 0 ? "win" : bet > 0 ? "loss" : "neutral";
+        AwardEconomyXp({
+          interaction,
+          context,
+          bet,
+          outcome: xpOutcome,
+        });
+
         const resultEmbed = BuildHorseResultEmbed({
           bet,
           playerHorse,
@@ -383,5 +399,3 @@ export async function HandleHorseRace(
     void finalizeTimeout();
   }, HORSE_TIMEOUT_MS);
 }
-
-

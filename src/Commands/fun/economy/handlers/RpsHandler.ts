@@ -19,6 +19,10 @@ import {
 import { RpsChoice } from "@commands/fun/economy/types";
 import { ITEM_MAP } from "@commands/fun/economy/items";
 import { EmbedFactory } from "@utilities";
+import {
+  AwardEconomyXp,
+  EconomyOutcome,
+} from "@commands/fun/economy/utils/EconomyXp";
 
 interface RpsCustomIds {
   rock: string;
@@ -204,6 +208,19 @@ export async function HandleRps(
     } else if (outcome === "draw" && bet > 0) {
       balanceValue = manager.AdjustBalance(interaction.user.id, bet);
     }
+
+    const xpOutcome: EconomyOutcome =
+      outcome === "win"
+        ? "win"
+        : outcome === "loss" && bet > 0
+        ? "loss"
+        : "neutral";
+    AwardEconomyXp({
+      interaction,
+      context,
+      bet,
+      outcome: xpOutcome,
+    });
 
     const resultEmbed = BuildRpsResultEmbed({
       botChoice,

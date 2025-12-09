@@ -46,7 +46,7 @@ export class InteractionResponder {
     interaction: InteractionLike,
     options: ResponseOptions
   ): Promise<ResponseResult> {
-    if (!interaction.replied) {
+    if (!interaction.replied && !interaction.deferred) {
       return { success: false, message: "No reply to edit" };
     }
 

@@ -22,6 +22,10 @@ import {
 } from "@commands/fun/economy/constants";
 import { CardValue } from "@commands/fun/economy/types";
 import { EmbedFactory } from "@utilities";
+import {
+  AwardEconomyXp,
+  EconomyOutcome,
+} from "@commands/fun/economy/utils/EconomyXp";
 
 interface BlackjackCustomIds {
   hit: string;
@@ -235,6 +239,19 @@ export async function HandleBlackjack(
       balance = manager.AdjustBalance(interaction.user.id, payout);
     }
 
+    const xpOutcome: EconomyOutcome =
+      finalOutcome === "win" || finalOutcome === "blackjack"
+        ? "win"
+        : finalOutcome === "loss"
+        ? "loss"
+        : "neutral";
+    AwardEconomyXp({
+      interaction,
+      context,
+      bet: wager,
+      outcome: xpOutcome,
+    });
+
     const embed = BuildBlackjackResultEmbed({
       outcome: finalOutcome,
       bet: wager,
@@ -294,6 +311,19 @@ export async function HandleBlackjack(
     if (payout > 0) {
       balance = manager.AdjustBalance(interaction.user.id, payout);
     }
+
+    const xpOutcome: EconomyOutcome =
+      outcome === "win" || outcome === "blackjack"
+        ? "win"
+        : outcome === "loss"
+        ? "loss"
+        : "neutral";
+    AwardEconomyXp({
+      interaction,
+      context,
+      bet: wager,
+      outcome: xpOutcome,
+    });
 
     const embed = BuildBlackjackResultEmbed({
       outcome,
