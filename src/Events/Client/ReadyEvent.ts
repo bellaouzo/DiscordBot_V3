@@ -12,6 +12,7 @@ interface DeployInfo {
 }
 
 const DEPLOY_INFO_PATH = join(process.cwd(), "data", "deploy-info.json");
+const REPO_URL = "https://github.com/bellaouzo/DiscordBot_V3";
 
 function ReadDeployInfo(logger: EventContext["logger"]): DeployInfo | null {
   if (!existsSync(DEPLOY_INFO_PATH)) {
@@ -49,7 +50,7 @@ async function AnnounceDeploy(context: EventContext): Promise<void> {
     return;
   }
 
-  const truncate = (text: string, max = 300): string =>
+  const truncate = (text: string, max = 450): string =>
     text.length <= max ? text : `${text.slice(0, max - 1)}…`;
 
   const formatMessage = (raw: string): string => {
@@ -73,6 +74,7 @@ async function AnnounceDeploy(context: EventContext): Promise<void> {
 
   const config = LoadAppConfig();
   const sentGuilds: string[] = [];
+  const commitUrl = `${REPO_URL}/commit/${info.hash}`;
 
   for (const guild of context.client.guilds.cache.values()) {
     const channelManager = CreateChannelManager({
@@ -94,6 +96,7 @@ async function AnnounceDeploy(context: EventContext): Promise<void> {
     })
       .addFields(
         { name: "Commit", value: `\`${info.hash}\`` },
+        { name: "Push", value: `[View on GitHub](${commitUrl})` },
         { name: "Message", value: formatMessage(info.message) || "No message" },
         {
           name: "Deployed At",
