@@ -11,3 +11,5 @@ export { LinkFilterCommand } from "./LinkFilterCommand";
 export { RaidModeCommand } from "./RaidModeCommand";
 export { NoteCommand } from "./NoteCommand";
 export { CasefileCommand } from "./CasefileCommand";
+export { SlowmodeCommand } from "./SlowmodeCommand";
+export { EconomyAdminCommand } from "./EconomyAdminCommand";

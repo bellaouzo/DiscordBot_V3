@@ -41,10 +41,7 @@ function Truncate(text: string, max = 220): string {
   return trimmed.length <= max ? trimmed : `${trimmed.slice(0, max - 1)}…`;
 }
 
-function FormatArticle(
-  article: NewsApiArticle,
-  index: number
-): string | null {
+function FormatArticle(article: NewsApiArticle, index: number): string | null {
   const title = article.title?.trim();
   const url = article.url?.trim();
   if (!title || !url) {
@@ -273,4 +270,3 @@ export const NewsCommand = CreateCommand({
   },
   execute: ExecuteNews,
 });
-
