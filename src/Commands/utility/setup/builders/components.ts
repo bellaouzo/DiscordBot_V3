@@ -1,0 +1,325 @@
+import {
+  ActionRowComponentData,
+  ActionRowData,
+  ButtonStyle,
+  Role,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
+  TextChannel,
+  CategoryChannel,
+} from "discord.js";
+import { ComponentFactory } from "@utilities";
+import { LoadAppConfig } from "@config/AppConfig";
+import {
+  DEFAULT_ANNOUNCEMENT_CHANNEL,
+  DEFAULT_DELETE_LOG_CHANNEL,
+  DEFAULT_PRODUCTION_LOG_CHANNEL,
+  DEFAULT_TICKET_CATEGORY,
+} from "../constants";
+import { NavigationIds, SetupDraft, SetupResources } from "../state";
+
+export function BuildStepComponents(options: {
+  step: number;
+  draft: SetupDraft;
+  resources: SetupResources;
+  ids: NavigationIds;
+  loggingDefaults: ReturnType<typeof LoadAppConfig>["logging"];
+}): ActionRowData<ActionRowComponentData>[] {
+  const { draft, resources, ids, loggingDefaults } = options;
+  const rows: ActionRowData<ActionRowComponentData>[] = [];
+
+  switch (options.step) {
+    case 1: {
+      rows.push(
+        BuildRoleSelectRow(
+          ids.adminSelect,
+          "Admin roles — full access",
+          resources.roles,
+          draft.adminRoleIds,
+          "Admin Roles",
+          "Admin: None (use perms)"
+        ),
+        BuildRoleSelectRow(
+          ids.modSelect,
+          "Mod roles — day-to-day moderation",
+          resources.roles,
+          draft.modRoleIds,
+          "Mod Roles",
+          "Mod: None (use perms)"
+        )
+      );
+      break;
+    }
+    case 2: {
+      rows.push(
+        BuildTicketCategoryRow(
+          ids.ticketSelect,
+          resources.categories,
+          draft.ticketCategoryId
+        ),
+        BuildChannelSelectRow({
+          customId: ids.commandLogSelect,
+          channels: resources.textChannels,
+          selectedId: draft.commandLogChannelId,
+          placeholder: "Choose a command log channel",
+          defaultName: loggingDefaults.commandLogChannelName,
+          includeCategoryName: loggingDefaults.commandLogCategoryName,
+        }),
+        BuildChannelSelectRow({
+          customId: ids.deleteLogSelect,
+          channels: resources.textChannels,
+          selectedId: draft.deleteLogChannelId,
+          placeholder: "Choose a delete logs channel",
+          defaultName:
+            loggingDefaults.messageDeleteChannelName ||
+            DEFAULT_DELETE_LOG_CHANNEL,
+        })
+      );
+      break;
+    }
+    case 3: {
+      rows.push(
+        BuildChannelSelectRow({
+          customId: ids.announcementSelect,
+          channels: resources.textChannels,
+          selectedId: draft.announcementChannelId,
+          placeholder: "Choose an announcements channel (optional)",
+          defaultName: DEFAULT_ANNOUNCEMENT_CHANNEL,
+        }),
+        BuildChannelSelectRow({
+          customId: ids.productionLogSelect,
+          channels: resources.textChannels,
+          selectedId: draft.productionLogChannelId,
+          placeholder: "Choose a production logs channel (or disable)",
+          defaultName:
+            loggingDefaults.deployLogChannelName ||
+            DEFAULT_PRODUCTION_LOG_CHANNEL,
+          allowNone: true,
+        })
+      );
+      break;
+    }
+    default:
+      break;
+  }
+
+  rows.push(BuildNavigationRow(options.step, ids));
+  return rows;
+}
+
+export function BuildRoleSelectRow(
+  customId: string,
+  placeholder: string,
+  roles: Role[],
+  selectedIds: string[],
+  label?: string,
+  noneLabel?: string
+): ActionRowData<ActionRowComponentData> {
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId(customId)
+    .setPlaceholder(placeholder)
+    .setMinValues(0)
+    .setMaxValues(Math.min(roles.length + 1, 5));
+
+  menu.addOptions(
+    new StringSelectMenuOptionBuilder()
+      .setLabel(noneLabel ?? "None (use perms)")
+      .setValue("none")
+      .setDescription("No dedicated role required")
+      .setDefault(selectedIds.length === 0)
+  );
+
+  roles.slice(0, 24).forEach((role) => {
+    const option = new StringSelectMenuOptionBuilder()
+      .setLabel(role.name.slice(0, 95))
+      .setValue(role.id)
+      .setDescription(`ID: ${role.id}`);
+
+    if (selectedIds.includes(role.id)) {
+      option.setDefault(true);
+    }
+
+    menu.addOptions(option);
+  });
+
+  const row = ComponentFactory.CreateSelectMenuRow(
+    menu
+  ).toJSON() as unknown as ActionRowData<ActionRowComponentData>;
+
+  if (label) {
+    return {
+      ...row,
+      components: row.components.map((component) => ({
+        ...component,
+        placeholder: label,
+      })),
+    };
+  }
+
+  return row;
+}
+
+export function BuildTicketCategoryRow(
+  customId: string,
+  categories: CategoryChannel[],
+  selectedId: string | null
+): ActionRowData<ActionRowComponentData> {
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId(customId)
+    .setPlaceholder("Ticket category for new ticket channels")
+    .setMinValues(1)
+    .setMaxValues(1);
+
+  const allowCreate = !selectedId;
+
+  menu.addOptions(
+    new StringSelectMenuOptionBuilder()
+      .setLabel(`Auto-manage "${DEFAULT_TICKET_CATEGORY}"`)
+      .setValue("auto")
+      .setDescription("Let the bot create or use the default category")
+      .setDefault(!selectedId)
+  );
+
+  if (allowCreate) {
+    menu.addOptions(
+      new StringSelectMenuOptionBuilder()
+        .setLabel(`Create "${DEFAULT_TICKET_CATEGORY}" now`)
+        .setValue("create")
+        .setDescription("Create the default category immediately")
+    );
+  }
+
+  categories.slice(0, 23).forEach((category) => {
+    const option = new StringSelectMenuOptionBuilder()
+      .setLabel(category.name.slice(0, 95))
+      .setValue(category.id)
+      .setDescription("Use existing category");
+
+    if (selectedId === category.id) {
+      option.setDefault(true);
+    }
+
+    menu.addOptions(option);
+  });
+
+  return ComponentFactory.CreateSelectMenuRow(
+    menu
+  ).toJSON() as unknown as ActionRowData<ActionRowComponentData>;
+}
+
+export function BuildChannelSelectRow(options: {
+  customId: string;
+  channels: TextChannel[];
+  selectedId: string | null;
+  placeholder: string;
+  defaultName: string;
+  includeCategoryName?: string;
+  allowNone?: boolean;
+}): ActionRowData<ActionRowComponentData> {
+  const selectedChannel =
+    options.selectedId &&
+    options.channels.find((channel) => channel.id === options.selectedId);
+
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId(options.customId)
+    .setPlaceholder(options.placeholder)
+    .setMinValues(1)
+    .setMaxValues(1);
+
+  const allowCreate = !options.selectedId;
+  const isNoneSelected = options.allowNone && options.selectedId === null;
+
+  menu.addOptions(
+    new StringSelectMenuOptionBuilder()
+      .setLabel(`Auto-manage "${options.defaultName}"`)
+      .setValue("auto")
+      .setDescription("Use defaults or create when needed")
+      .setDefault(!options.selectedId && !isNoneSelected)
+  );
+
+  if (allowCreate) {
+    menu.addOptions(
+      new StringSelectMenuOptionBuilder()
+        .setLabel(`Create #${options.defaultName}`)
+        .setValue("create")
+        .setDescription(
+          options.includeCategoryName
+            ? `Create under ${options.includeCategoryName}`
+            : "Create this channel now"
+        )
+    );
+  }
+
+  if (options.allowNone) {
+    menu.addOptions(
+      new StringSelectMenuOptionBuilder()
+        .setLabel("Production logs: disable (none)")
+        .setValue("none")
+        .setDescription("Do not use a channel for this")
+        .setDefault(isNoneSelected)
+    );
+  }
+
+  const optionValues = new Set<string>();
+
+  options.channels.slice(0, 23).forEach((channel) => {
+    const option = new StringSelectMenuOptionBuilder()
+      .setLabel(`#${channel.name}`.slice(0, 95))
+      .setValue(channel.id)
+      .setDescription("Use existing text channel");
+
+    if (options.selectedId === channel.id) {
+      option.setDefault(true);
+    }
+
+    optionValues.add(channel.id);
+    menu.addOptions(option);
+  });
+
+  if (selectedChannel && !optionValues.has(selectedChannel.id)) {
+    menu.addOptions(
+      new StringSelectMenuOptionBuilder()
+        .setLabel(`#${selectedChannel.name}`.slice(0, 95))
+        .setValue(selectedChannel.id)
+        .setDescription("Use existing text channel")
+        .setDefault(true)
+    );
+  }
+
+  return ComponentFactory.CreateSelectMenuRow(
+    menu
+  ).toJSON() as unknown as ActionRowData<ActionRowComponentData>;
+}
+
+export function BuildNavigationRow(
+  step: number,
+  ids: NavigationIds
+): ActionRowData<ActionRowComponentData> {
+  const isFinalStep = step >= 3;
+  const buttons = [
+    {
+      label: "Back",
+      style: ButtonStyle.Secondary,
+      emoji: "◀",
+      disabled: step === 1,
+    },
+    {
+      label: isFinalStep ? "Save" : "Next",
+      style: isFinalStep ? ButtonStyle.Success : ButtonStyle.Primary,
+      emoji: isFinalStep ? "💾" : "▶",
+    },
+    {
+      label: "Cancel",
+      style: ButtonStyle.Danger,
+      emoji: "✖",
+    },
+  ];
+
+  const customIds = [ids.back, isFinalStep ? ids.save : ids.next, ids.cancel];
+
+  return ComponentFactory.CreateActionRow({
+    buttons,
+    customIds,
+  }).toJSON() as ActionRowData<ActionRowComponentData>;
+}
+

@@ -21,6 +21,8 @@ export interface GuildSettings {
   ticket_category_id: string | null;
   command_log_channel_id: string | null;
   announcement_channel_id: string | null;
+  delete_log_channel_id: string | null;
+  production_log_channel_id: string | null;
   created_at: number;
   updated_at: number;
 }
@@ -72,6 +74,8 @@ export class ServerDatabase {
           ticket_category_id TEXT,
           command_log_channel_id TEXT,
           announcement_channel_id TEXT,
+          delete_log_channel_id TEXT,
+          production_log_channel_id TEXT,
           created_at INTEGER NOT NULL,
           updated_at INTEGER NOT NULL
         );
@@ -79,11 +83,28 @@ export class ServerDatabase {
         CREATE INDEX IF NOT EXISTS idx_guild_settings_updated ON guild_settings(updated_at);
       `);
 
+      this.EnsureGuildSettingsColumns();
       this.EnsureGuildEventIdColumn();
     } catch (error) {
       this.logger.Error("Failed to create server tables", { error });
       throw error;
     }
+  }
+
+  private EnsureGuildSettingsColumns(): void {
+    const columns = this.db
+      .prepare("PRAGMA table_info(guild_settings)")
+      .all() as Array<{ name: string }>;
+    const ensureColumn = (name: string): void => {
+      const has = columns.some((c) => c.name === name);
+      if (!has) {
+        this.db
+          .prepare(`ALTER TABLE guild_settings ADD COLUMN ${name} TEXT`)
+          .run();
+      }
+    };
+    ensureColumn("delete_log_channel_id");
+    ensureColumn("production_log_channel_id");
   }
 
   private EnsureGuildEventIdColumn(): void {
@@ -297,7 +318,7 @@ export class ServerDatabase {
   GetGuildSettings(guild_id: string): GuildSettings | null {
     const stmt = this.db.prepare(
       `
-      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, command_log_channel_id, announcement_channel_id, created_at, updated_at
+      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, command_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, created_at, updated_at
       FROM guild_settings
       WHERE guild_id = ?
     `
@@ -311,6 +332,8 @@ export class ServerDatabase {
           ticket_category_id: string | null;
           command_log_channel_id: string | null;
           announcement_channel_id: string | null;
+      delete_log_channel_id: string | null;
+      production_log_channel_id: string | null;
           created_at: number;
           updated_at: number;
         }
@@ -327,6 +350,8 @@ export class ServerDatabase {
       ticket_category_id: row.ticket_category_id ?? null,
       command_log_channel_id: row.command_log_channel_id ?? null,
       announcement_channel_id: row.announcement_channel_id ?? null,
+      delete_log_channel_id: row.delete_log_channel_id ?? null,
+      production_log_channel_id: row.production_log_channel_id ?? null,
       created_at: Number(row.created_at),
       updated_at: Number(row.updated_at),
     };
@@ -339,6 +364,8 @@ export class ServerDatabase {
     ticket_category_id?: string | null;
     command_log_channel_id?: string | null;
     announcement_channel_id?: string | null;
+    delete_log_channel_id?: string | null;
+    production_log_channel_id?: string | null;
   }): GuildSettings {
     const existing = this.GetGuildSettings(settings.guild_id);
     const now = Date.now();
@@ -358,6 +385,12 @@ export class ServerDatabase {
       settings.announcement_channel_id ??
       existing?.announcement_channel_id ??
       null;
+    const deleteLogChannelId =
+      settings.delete_log_channel_id ?? existing?.delete_log_channel_id ?? null;
+    const productionLogChannelId =
+      settings.production_log_channel_id ??
+      existing?.production_log_channel_id ??
+      null;
     const createdAt = existing?.created_at ?? now;
 
     const stmt = this.db.prepare(
@@ -369,16 +402,20 @@ export class ServerDatabase {
         ticket_category_id,
         command_log_channel_id,
         announcement_channel_id,
+        delete_log_channel_id,
+        production_log_channel_id,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(guild_id) DO UPDATE SET
         admin_role_ids = excluded.admin_role_ids,
         mod_role_ids = excluded.mod_role_ids,
         ticket_category_id = excluded.ticket_category_id,
         command_log_channel_id = excluded.command_log_channel_id,
         announcement_channel_id = excluded.announcement_channel_id,
+        delete_log_channel_id = excluded.delete_log_channel_id,
+        production_log_channel_id = excluded.production_log_channel_id,
         updated_at = excluded.updated_at
     `
     );
@@ -390,6 +427,8 @@ export class ServerDatabase {
       ticketCategoryId,
       commandLogChannelId,
       announcementChannelId,
+      deleteLogChannelId,
+      productionLogChannelId,
       createdAt,
       now
     );

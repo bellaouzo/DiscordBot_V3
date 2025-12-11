@@ -1,0 +1,20 @@
+{"timestamp":1765424263989,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
+{"timestamp":1765424320925,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
+{"timestamp":1765424442305,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
+{"timestamp":1765424544077,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
+{"timestamp":1765424662018,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
+{"timestamp":1765424711365,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
+{"timestamp":1765424733666,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
+{"timestamp":1765424899504,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
+{"timestamp":1765424909921,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
+{"timestamp":1765424930934,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
+{"timestamp":1765425059205,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
+{"timestamp":1765425098242,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"announce","group":"utility","options":{"message":"Testing announcement","title":"Test announcement!","mention":"none","type":"info"}}
+{"timestamp":1765425117018,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"announce","group":"utility","options":{"message":"Testing announcement","title":"Test announcement!","mention":"none","type":"update"}}
+{"timestamp":1765425126763,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"announce","group":"utility","options":{"message":"Testing announcement","title":"Test announcement!","mention":"none","type":"maintenance"}}
+{"timestamp":1765425296888,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"announce","group":"utility","options":{"message":"Testing announcement","title":"Test announcement!","mention":"none","type":"info"}}
+{"timestamp":1765425306867,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"announce","group":"utility","options":{"message":"Testing announcement","title":"Test announcement!","mention":"none","type":"update"}}
+{"timestamp":1765425314660,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"announce","group":"utility","options":{"message":"Testing announcement","title":"Test announcement!","mention":"none","type":"maintenance"}}
+{"timestamp":1765425323924,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"announce","group":"utility","options":{"message":"Testing announcement","title":"Test announcement!","mention":"none","type":"event"}}
+{"timestamp":1765425888451,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
+{"timestamp":1765425914686,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}

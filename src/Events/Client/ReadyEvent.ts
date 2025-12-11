@@ -4,6 +4,7 @@ import { LoadAppConfig } from "@config/AppConfig";
 import { CreateChannelManager, EmbedFactory } from "@utilities";
 import { existsSync, readFileSync, unlinkSync } from "fs";
 import { join } from "path";
+import { ActivityType } from "discord.js";
 
 interface DeployInfo {
   hash: string;
@@ -126,5 +127,19 @@ export const ReadyEvent = CreateEvent({
   once: true,
   execute: async (context: EventContext) => {
     await AnnounceDeploy(context);
+
+    try {
+      await context.client.user?.setPresence({
+        activities: [
+          {
+            name: "/setup to get started",
+            type: ActivityType.Playing,
+          },
+        ],
+        status: "online",
+      });
+    } catch (error) {
+      context.logger.Warn("Failed to set default presence", { error });
+    }
   },
 });
