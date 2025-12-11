@@ -14,6 +14,17 @@ export interface ScheduledEvent {
   created_at: number;
 }
 
+export interface GuildSettings {
+  guild_id: string;
+  admin_role_ids: string[];
+  mod_role_ids: string[];
+  ticket_category_id: string | null;
+  command_log_channel_id: string | null;
+  announcement_channel_id: string | null;
+  created_at: number;
+  updated_at: number;
+}
+
 export class ServerDatabase {
   private db: Database.Database;
 
@@ -53,6 +64,19 @@ export class ServerDatabase {
         );
 
         CREATE INDEX IF NOT EXISTS idx_events_guild_time ON events(guild_id, scheduled_at);
+
+        CREATE TABLE IF NOT EXISTS guild_settings (
+          guild_id TEXT PRIMARY KEY,
+          admin_role_ids TEXT NOT NULL,
+          mod_role_ids TEXT NOT NULL,
+          ticket_category_id TEXT,
+          command_log_channel_id TEXT,
+          announcement_channel_id TEXT,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_guild_settings_updated ON guild_settings(updated_at);
       `);
 
       this.EnsureGuildEventIdColumn();
@@ -268,5 +292,143 @@ export class ServerDatabase {
 
   Close(): void {
     this.db.close();
+  }
+
+  GetGuildSettings(guild_id: string): GuildSettings | null {
+    const stmt = this.db.prepare(
+      `
+      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, command_log_channel_id, announcement_channel_id, created_at, updated_at
+      FROM guild_settings
+      WHERE guild_id = ?
+    `
+    );
+
+    const row = stmt.get(guild_id) as
+      | {
+          guild_id: string;
+          admin_role_ids: string;
+          mod_role_ids: string;
+          ticket_category_id: string | null;
+          command_log_channel_id: string | null;
+          announcement_channel_id: string | null;
+          created_at: number;
+          updated_at: number;
+        }
+      | undefined;
+
+    if (!row) {
+      return null;
+    }
+
+    return {
+      guild_id: row.guild_id,
+      admin_role_ids: this.ParseIdList(row.admin_role_ids),
+      mod_role_ids: this.ParseIdList(row.mod_role_ids),
+      ticket_category_id: row.ticket_category_id ?? null,
+      command_log_channel_id: row.command_log_channel_id ?? null,
+      announcement_channel_id: row.announcement_channel_id ?? null,
+      created_at: Number(row.created_at),
+      updated_at: Number(row.updated_at),
+    };
+  }
+
+  UpsertGuildSettings(settings: {
+    guild_id: string;
+    admin_role_ids?: string[];
+    mod_role_ids?: string[];
+    ticket_category_id?: string | null;
+    command_log_channel_id?: string | null;
+    announcement_channel_id?: string | null;
+  }): GuildSettings {
+    const existing = this.GetGuildSettings(settings.guild_id);
+    const now = Date.now();
+    const adminRoles = this.NormalizeIds(
+      settings.admin_role_ids ?? existing?.admin_role_ids ?? []
+    );
+    const modRoles = this.NormalizeIds(
+      settings.mod_role_ids ?? existing?.mod_role_ids ?? []
+    );
+    const ticketCategoryId =
+      settings.ticket_category_id ?? existing?.ticket_category_id ?? null;
+    const commandLogChannelId =
+      settings.command_log_channel_id ??
+      existing?.command_log_channel_id ??
+      null;
+    const announcementChannelId =
+      settings.announcement_channel_id ??
+      existing?.announcement_channel_id ??
+      null;
+    const createdAt = existing?.created_at ?? now;
+
+    const stmt = this.db.prepare(
+      `
+      INSERT INTO guild_settings (
+        guild_id,
+        admin_role_ids,
+        mod_role_ids,
+        ticket_category_id,
+        command_log_channel_id,
+        announcement_channel_id,
+        created_at,
+        updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(guild_id) DO UPDATE SET
+        admin_role_ids = excluded.admin_role_ids,
+        mod_role_ids = excluded.mod_role_ids,
+        ticket_category_id = excluded.ticket_category_id,
+        command_log_channel_id = excluded.command_log_channel_id,
+        announcement_channel_id = excluded.announcement_channel_id,
+        updated_at = excluded.updated_at
+    `
+    );
+
+    stmt.run(
+      settings.guild_id,
+      JSON.stringify(adminRoles),
+      JSON.stringify(modRoles),
+      ticketCategoryId,
+      commandLogChannelId,
+      announcementChannelId,
+      createdAt,
+      now
+    );
+
+    const saved = this.GetGuildSettings(settings.guild_id);
+    if (!saved) {
+      throw new Error("Failed to save guild settings");
+    }
+
+    return saved;
+  }
+
+  private ParseIdList(value: string | null | undefined): string[] {
+    if (!value) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(value) as string[];
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+      return parsed
+        .map((item) => String(item).trim())
+        .filter((item) => item.length > 0);
+    } catch (error) {
+      this.logger.Warn("Failed to parse guild settings id list", { error });
+      return [];
+    }
+  }
+
+  private NormalizeIds(ids: string[]): string[] {
+    const unique = new Set<string>();
+    ids.forEach((id) => {
+      const normalized = String(id).trim();
+      if (normalized.length > 0) {
+        unique.add(normalized);
+      }
+    });
+    return Array.from(unique);
   }
 }

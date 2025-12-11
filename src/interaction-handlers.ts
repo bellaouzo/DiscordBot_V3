@@ -19,26 +19,26 @@ export interface InteractionHandlerDependencies {
 }
 
 export function RegisterInteractionHandlers(
-  dependencies: InteractionHandlerDependencies,
+  dependencies: InteractionHandlerDependencies
 ): void {
   dependencies.client.on(Events.InteractionCreate, async (interaction) => {
     if (interaction.isButton()) {
       await HandleButtonInteraction(
         interaction,
         dependencies.componentRouter,
-        dependencies.logger,
+        dependencies.logger
       );
     } else if (interaction.isStringSelectMenu()) {
       await HandleSelectMenuInteraction(
         interaction,
         dependencies.selectMenuRouter,
-        dependencies.logger,
+        dependencies.logger
       );
     } else if (interaction.isUserSelectMenu()) {
       await HandleUserSelectMenuInteraction(
         interaction,
         dependencies.userSelectMenuRouter,
-        dependencies.logger,
+        dependencies.logger
       );
     }
   });
@@ -47,7 +47,7 @@ export function RegisterInteractionHandlers(
 async function HandleButtonInteraction(
   interaction: ButtonInteraction,
   router: ComponentRouter,
-  logger: Logger,
+  logger: Logger
 ): Promise<void> {
   const handled = await router.HandleButton(interaction);
   if (!handled) {
@@ -62,7 +62,7 @@ async function HandleButtonInteraction(
 async function HandleSelectMenuInteraction(
   interaction: StringSelectMenuInteraction,
   router: SelectMenuRouter,
-  logger: Logger,
+  logger: Logger
 ): Promise<void> {
   const handled = await router.HandleSelectMenu(interaction);
   if (!handled) {
@@ -71,13 +71,22 @@ async function HandleSelectMenuInteraction(
         customId: interaction.customId,
       },
     });
+
+    if (!interaction.deferred && !interaction.replied) {
+      await interaction
+        .reply({
+          content: "This interaction is no longer available.",
+          flags: 64,
+        })
+        .catch(() => {});
+    }
   }
 }
 
 async function HandleUserSelectMenuInteraction(
   interaction: UserSelectMenuInteraction,
   router: UserSelectMenuRouter,
-  logger: Logger,
+  logger: Logger
 ): Promise<void> {
   const handled = await router.HandleUserSelectMenu(interaction);
   if (!handled) {

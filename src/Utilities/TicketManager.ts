@@ -9,6 +9,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ChannelType,
+  CategoryChannel,
 } from "discord.js";
 import { TicketDatabase, Ticket, TICKET_CATEGORIES } from "@database";
 import { Logger } from "@shared/Logger";
@@ -24,6 +25,7 @@ export interface TicketManagerOptions {
   readonly logger: Logger;
   readonly ticketDb: TicketDatabase;
   readonly guildResourceLocator: GuildResourceLocator;
+  readonly ticketCategoryId?: string | null;
 }
 
 export interface CreateTicketOptions {
@@ -55,8 +57,10 @@ export class TicketManager {
       throw new Error(`User ${userId} not found in guild ${guild.id}`);
     }
 
-    const ticketCategory =
-      await this.channelManager.GetOrCreateCategory("Support Tickets");
+    const ticketCategory = await this.ResolveTicketCategory();
+    if (!ticketCategory) {
+      throw new Error("Unable to resolve ticket category for ticket creation");
+    }
 
     const ticket = ticketDb.CreateTicket({
       user_id: userId,
@@ -103,8 +107,10 @@ export class TicketManager {
       throw new Error("Ticket user is no longer in the guild.");
     }
 
-    const ticketCategory =
-      await this.channelManager.GetOrCreateCategory("Support Tickets");
+    const ticketCategory = await this.ResolveTicketCategory();
+    if (!ticketCategory) {
+      throw new Error("Unable to resolve ticket category for ticket reopen");
+    }
 
     const ticket = this.options.ticketDb.CreateTicket({
       user_id: prior.user_id,
@@ -499,6 +505,20 @@ export class TicketManager {
       member.permissions.has(PermissionFlagsBits.ManageGuild) ||
       member.permissions.has(PermissionFlagsBits.Administrator)
     );
+  }
+
+  private async ResolveTicketCategory(): Promise<CategoryChannel | null> {
+    if (this.options.ticketCategoryId) {
+      const existing =
+        await this.options.guildResourceLocator.GetCategoryChannel(
+          this.options.ticketCategoryId
+        );
+      if (existing) {
+        return existing;
+      }
+    }
+
+    return await this.channelManager.GetOrCreateCategory("Support Tickets");
   }
 }
 

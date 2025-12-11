@@ -38,8 +38,14 @@ export async function HandleTicketReopen(
   const ticketId = interaction.options.getInteger("ticket_id", true);
   const reason = interaction.options.getString("reason") ?? null;
 
+  const settings = context.databases.serverDb.GetGuildSettings(
+    interaction.guild!.id
+  );
+
   const { ticketDb, ticketManager, guildResourceLocator } =
-    CreateTicketServices(logger, interaction.guild!, context.databases.ticketDb);
+    CreateTicketServices(logger, interaction.guild!, context.databases.ticketDb, {
+      ticketCategoryId: settings?.ticket_category_id ?? null,
+    });
 
   try {
     const prior = ticketDb.GetTicket(ticketId);

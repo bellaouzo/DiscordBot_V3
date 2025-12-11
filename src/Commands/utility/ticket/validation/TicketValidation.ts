@@ -22,7 +22,12 @@ export function ValidateTicketChannel(
   return !!(channel && channel.isTextBased());
 }
 
-export function CreateTicketServices(logger: Logger, guild: Guild, ticketDb: TicketDatabase) {
+export function CreateTicketServices(
+  logger: Logger,
+  guild: Guild,
+  ticketDb: TicketDatabase,
+  options?: { ticketCategoryId?: string | null },
+) {
   const guildResourceLocator = CreateGuildResourceLocator({
     guild,
     logger,
@@ -32,6 +37,7 @@ export function CreateTicketServices(logger: Logger, guild: Guild, ticketDb: Tic
     logger,
     ticketDb,
     guildResourceLocator,
+    ticketCategoryId: options?.ticketCategoryId ?? null,
   });
   return { ticketDb, ticketManager, guildResourceLocator };
 }

@@ -89,6 +89,10 @@ export class InteractionResponder {
     interaction: InteractionLike,
     options: ResponderMessageOptions | boolean = false
   ): Promise<ResponseResult> {
+    if (interaction.deferred || interaction.replied) {
+      return { success: true, message: "Already acknowledged" };
+    }
+
     try {
       const flags =
         typeof options === "boolean"
@@ -103,6 +107,17 @@ export class InteractionResponder {
 
       return { success: true, message: "Deferred" };
     } catch (error) {
+      const code = (error as { code?: number }).code;
+      const message = (error as { message?: string }).message;
+      const alreadyAck =
+        code === 40060 ||
+        (typeof message === "string" &&
+          message.toLowerCase().includes("already been acknowledged"));
+
+      if (alreadyAck) {
+        return { success: true, message: "Already deferred" };
+      }
+
       this.logger.Error("Defer failed", { error });
       return { success: false, message: "Failed to defer" };
     }

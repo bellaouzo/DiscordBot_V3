@@ -49,8 +49,22 @@ export async function HandleTicketCreate(
     return;
   }
 
+  const settings = context.databases.serverDb.GetGuildSettings(
+    interaction.guild.id
+  );
+
   const { ticketDb, ticketManager, guildResourceLocator } =
-    CreateTicketServices(logger, interaction.guild, context.databases.ticketDb);
+    CreateTicketServices(
+      logger,
+      interaction.guild,
+      context.databases.ticketDb,
+      { ticketCategoryId: settings?.ticket_category_id ?? null }
+    );
+
+  const deferred = await interactionResponder.Defer(interaction, true);
+  if (!deferred.success) {
+    return;
+  }
 
   const selectMenu = ComponentFactory.CreateSelectMenu({
     customId: `ticket-create:${interaction.id}`,
@@ -82,12 +96,12 @@ export async function HandleTicketCreate(
         guildResourceLocator
       );
     },
-    expiresInMs: 60000,
+    expiresInMs: 30000,
   });
 
   const row = ComponentFactory.CreateSelectMenuRow(selectMenu);
 
-  await interactionResponder.Reply(interaction, {
+  await interactionResponder.Edit(interaction, {
     embeds: [
       EmbedFactory.Create({
         title: "🎫 Create a Ticket",
@@ -212,6 +226,3 @@ async function HandleTicketCategorySelection(
     });
   }
 }
-
-
-
