@@ -1,11 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import {
-  LoggingMiddleware,
-  ErrorMiddleware,
-  PermissionMiddleware,
-} from "@middleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { CreateChannelManager, EmbedFactory } from "@utilities";
 import { LoadAppConfig } from "@config/AppConfig";
 import {
@@ -173,10 +168,6 @@ export const SetupCommand = CreateCommand({
   name: "setup",
   description: "Interactive first-time setup for roles and channels",
   group: "admin",
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware],
-    after: [ErrorMiddleware],
-  },
   config: Config.create()
     .anyPermission("ManageGuild", "Administrator")
     .cooldownSeconds(3)

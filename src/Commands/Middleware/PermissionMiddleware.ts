@@ -4,12 +4,13 @@ import {
   GuildMember,
   ChatInputCommandInteraction,
 } from "discord.js";
-import { CommandMiddleware } from "./index";
+import { CommandMiddleware, MiddlewareContext } from "./index";
 import { ResponderSet } from "@responders";
 import { CreateErrorMessage } from "@responders/MessageFactory";
 import { CreateGuildResourceLocator } from "@utilities/GuildResourceLocator";
 import { CommandConfig } from "@commands/Middleware/CommandConfig";
 import { Logger } from "@shared/Logger";
+import { DatabaseSet } from "@database";
 
 async function SendPermissionError(
   responders: ResponderSet,
@@ -121,6 +122,79 @@ async function CheckRolePermission(context: {
   return true;
 }
 
+async function CheckModRolePermission(context: {
+  interaction: ChatInputCommandInteraction;
+  config: CommandConfig;
+  responders: ResponderSet;
+  member: GuildMember;
+  logger?: Logger;
+  databases: DatabaseSet;
+}): Promise<boolean> {
+  if (!context.config.modRole) return true;
+
+  if (!context.interaction.guild) {
+    await SendPermissionError(
+      context.responders,
+      context.interaction,
+      "Permission Check Failed",
+      "This command can only be used in a server."
+    );
+    return false;
+  }
+
+  const guildSettings = context.databases.serverDb.GetGuildSettings(
+    context.interaction.guild.id
+  );
+
+  if (!guildSettings || !guildSettings.mod_role_ids.length) {
+    await SendPermissionError(
+      context.responders,
+      context.interaction,
+      "Mod Role Not Configured",
+      "No mod roles have been configured for this server. Please use the setup command to configure mod roles."
+    );
+    return false;
+  }
+
+  const memberRoles = context.member?.roles?.cache
+    ? Array.from(context.member.roles.cache.keys())
+    : [];
+
+  const hasModRole = guildSettings.mod_role_ids.some((roleId) =>
+    memberRoles.includes(roleId)
+  );
+
+  if (!hasModRole) {
+    const locator = CreateGuildResourceLocator({
+      guild: context.interaction.guild,
+      logger: context.logger,
+    });
+
+    const modRoleNames: string[] = [];
+    for (const roleId of guildSettings.mod_role_ids) {
+      const role = await locator.GetRole(roleId);
+      if (role) {
+        modRoleNames.push(role.name);
+      }
+    }
+
+    const roleList =
+      modRoleNames.length > 0
+        ? modRoleNames.join(", ")
+        : "a configured mod role";
+
+    await SendPermissionError(
+      context.responders,
+      context.interaction,
+      "Missing Mod Role",
+      `You need one of the following mod roles to use this command: **${roleList}**`
+    );
+    return false;
+  }
+
+  return true;
+}
+
 async function CheckDiscordPermissions(context: {
   interaction: ChatInputCommandInteraction;
   config: CommandConfig;
@@ -182,7 +256,7 @@ async function CheckDiscordPermissions(context: {
 
 export const PermissionMiddleware: CommandMiddleware = {
   name: "permissions",
-  execute: async (context, next) => {
+  execute: async (context: MiddlewareContext, next) => {
     const member = context.interaction.member as GuildMember;
     const permissions = member?.permissions;
 
@@ -199,6 +273,13 @@ export const PermissionMiddleware: CommandMiddleware = {
     const checks = [
       () => CheckOwnerPermission(context),
       () => CheckRolePermission({ ...context, member, logger: context.logger }),
+      () =>
+        CheckModRolePermission({
+          ...context,
+          member,
+          logger: context.logger,
+          databases: context.databases,
+        }),
       () => CheckDiscordPermissions({ ...context, member }),
     ];
 
@@ -209,4 +290,3 @@ export const PermissionMiddleware: CommandMiddleware = {
     await next();
   },
 };
-

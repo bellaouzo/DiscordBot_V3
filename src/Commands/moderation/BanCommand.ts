@@ -1,9 +1,6 @@
 import { ChatInputCommandInteraction, User } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
-import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
-import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
-import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { CreateGuildResourceLocator, EmbedFactory } from "@utilities";
 import { ConvertDurationToMs, DurationUnit, FormatDuration } from "@utilities";
 
@@ -188,6 +185,8 @@ export const BanCommand = CreateCommand({
   name: "ban",
   description: "Ban a user from the server",
   group: "moderation",
+  config: Config.mod().build(),
+  execute: ExecuteBan,
   configure: (builder) => {
     builder
       // Required options must be defined before optional ones
@@ -232,12 +231,4 @@ export const BanCommand = CreateCommand({
           )
       );
   },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.moderation(5),
-  execute: ExecuteBan,
 });
-
-

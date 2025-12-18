@@ -1,8 +1,5 @@
 import { CreateCommand } from "@commands/CommandFactory";
-import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
-import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
-import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { MIN_BET, MAX_BET } from "@commands/fun/economy/constants";
 import { HandleBalance } from "@commands/fun/economy/handlers/BalanceHandler";
@@ -260,10 +257,6 @@ export const EconomyCommand = CreateCommand({
       .addSubcommand((sub) =>
         sub.setName("inventory").setDescription("View your inventory items")
       );
-  },
-  middleware: {
-    before: [LoggingMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
   },
   config: Config.utility(5),
   execute: async (interaction, context) => {

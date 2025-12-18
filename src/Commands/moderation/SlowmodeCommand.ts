@@ -4,12 +4,6 @@ import {
   TextChannel,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import {
-  LoggingMiddleware,
-  PermissionMiddleware,
-  CooldownMiddleware,
-  ErrorMiddleware,
-} from "@middleware";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory } from "@utilities";
 
@@ -99,11 +93,8 @@ export const SlowmodeCommand = CreateCommand({
   name: "slowmode",
   description: "Set or disable slowmode for a channel",
   group: "moderation",
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.requirePermissions("ManageChannels"),
+  config: Config.mod().build(),
+  execute: ExecuteSlowmode,
   configure: (builder) => {
     builder
       .addIntegerOption((option) =>
@@ -128,7 +119,4 @@ export const SlowmodeCommand = CreateCommand({
           .setRequired(false)
       );
   },
-  execute: ExecuteSlowmode,
 });
-
-

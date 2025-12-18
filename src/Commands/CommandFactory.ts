@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { Logger } from "../Shared/Logger";
 import { ResponderSet } from "../Responders";
-import { MiddlewareConfiguration } from "./Middleware";
+import { MiddlewareConfiguration, AutoMiddleware } from "./Middleware";
 import { CommandConfig } from "./Middleware/CommandConfig";
 import { DatabaseSet } from "../Database";
 
@@ -45,12 +45,13 @@ export function CreateCommand(
     options.configure(data);
   }
 
+  const middleware = options.middleware ?? AutoMiddleware(options.config);
+
   return {
     data,
     group: options.group,
     execute: options.execute,
-    middleware: options.middleware,
+    middleware,
     config: options.config,
   };
 }
-

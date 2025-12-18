@@ -1,9 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
-import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
-import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { RequestJson } from "@utilities/ApiClient";
 import { LoadApiConfig } from "@config/ApiConfig";
@@ -127,10 +124,6 @@ export const JokeCommand = CreateCommand({
   name: "joke",
   description: "Grab a random joke",
   group: "fun",
-  middleware: {
-    before: [LoggingMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
-  },
   config: Config.utility(3),
   configure: (builder) => {
     builder.addStringOption((option) =>

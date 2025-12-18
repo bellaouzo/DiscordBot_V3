@@ -2,7 +2,12 @@ import { ChatInputCommandInteraction } from "discord.js";
 import { CommandDefinition } from "@commands/CommandFactory";
 import { Logger } from "@shared/Logger";
 import { ResponderSet } from "@responders";
-import { CommandConfig } from "@commands/Middleware/CommandConfig";
+import { CommandConfig } from "@middleware/CommandConfig";
+import { DatabaseSet } from "@database";
+import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
+import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
+import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
+import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
 
 export interface MiddlewareContext {
   readonly interaction: ChatInputCommandInteraction;
@@ -10,6 +15,7 @@ export interface MiddlewareContext {
   readonly logger: Logger;
   readonly responders: ResponderSet;
   readonly config: CommandConfig;
+  readonly databases: DatabaseSet;
 }
 
 export interface CommandMiddleware {
@@ -51,9 +57,34 @@ export async function RunMiddlewareChain(
   await dispatch(0);
 }
 
-export { LoggingMiddleware } from "./LoggingMiddleware";
-export { PermissionMiddleware } from "./PermissionMiddleware";
-export { ErrorMiddleware } from "./ErrorMiddleware";
-export { CooldownMiddleware } from "./CooldownMiddleware";
-export { DiscordLoggingMiddleware } from "./DiscordLoggingMiddleware";
+export { LoggingMiddleware } from "@middleware/LoggingMiddleware";
+export { PermissionMiddleware } from "@middleware/PermissionMiddleware";
+export { ErrorMiddleware } from "@middleware/ErrorMiddleware";
+export { CooldownMiddleware } from "@middleware/CooldownMiddleware";
+export { DiscordLoggingMiddleware } from "@middleware/DiscordLoggingMiddleware";
+export * from "@middleware/CommandConfig";
 
+export function AutoMiddleware(
+  config?: CommandConfig
+): MiddlewareConfiguration {
+  const before: CommandMiddleware[] = [LoggingMiddleware];
+  const after: CommandMiddleware[] = [ErrorMiddleware];
+
+  if (config) {
+    const needsPermissionCheck =
+      config.permissions?.required?.length ||
+      config.modRole ||
+      config.owner ||
+      config.role;
+
+    if (needsPermissionCheck) {
+      before.push(PermissionMiddleware);
+    }
+
+    if (config.cooldown) {
+      before.push(CooldownMiddleware);
+    }
+  }
+
+  return { before, after };
+}

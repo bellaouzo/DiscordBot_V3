@@ -1,7 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import { LoggingMiddleware, CooldownMiddleware, ErrorMiddleware } from "@middleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { LevelManager } from "@commands/fun/leveling";
 
@@ -78,10 +77,6 @@ export const RankCommand = CreateCommand({
         .setDescription("User to check rank for (optional)")
         .setRequired(false)
     );
-  },
-  middleware: {
-    before: [LoggingMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
   },
   config: Config.utility(3),
   execute: ExecuteRank,

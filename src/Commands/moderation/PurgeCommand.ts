@@ -1,12 +1,6 @@
 import { ChatInputCommandInteraction, TextChannel, Message } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import {
-  LoggingMiddleware,
-  PermissionMiddleware,
-  CooldownMiddleware,
-  ErrorMiddleware,
-} from "@middleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 
 function ValidatePurgeOptions(
@@ -204,6 +198,8 @@ export const PurgeCommand = CreateCommand({
   name: "purge",
   description: "Delete messages in bulk with optional filters",
   group: "moderation",
+  config: Config.mod().build(),
+  execute: ExecutePurge,
   configure: (builder) => {
     builder
       .addIntegerOption((option) =>
@@ -235,15 +231,4 @@ export const PurgeCommand = CreateCommand({
           .setMinValue(0)
       );
   },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.create()
-    .permissions("ManageMessages")
-    .cooldownSeconds(10)
-    .build(),
-  execute: ExecutePurge,
 });
-
-

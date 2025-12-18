@@ -1,7 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import { LoggingMiddleware, CooldownMiddleware, ErrorMiddleware } from "@middleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { LoadAppConfig } from "@config/AppConfig";
 
@@ -192,10 +191,6 @@ export const WeatherCommand = CreateCommand({
         .setDescription("City name (e.g., 'London' or 'Paris, FR')")
         .setRequired(true)
     );
-  },
-  middleware: {
-    before: [LoggingMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
   },
   config: Config.utility(5),
   execute: ExecuteWeather,

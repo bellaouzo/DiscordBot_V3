@@ -3,7 +3,6 @@ import {
   SlashCommandSubcommandBuilder,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import { LoggingMiddleware, ErrorMiddleware } from "@middleware";
 import { Config } from "@middleware/CommandConfig";
 
 import { HandleTicketCreate } from "@commands/utility/ticket/handlers/CreateHandler";
@@ -47,10 +46,6 @@ export const TicketCommand = CreateCommand({
   name: "ticket",
   description: "Create and manage support tickets",
   group: "utility",
-  middleware: {
-    before: [LoggingMiddleware],
-    after: [ErrorMiddleware],
-  },
   config: Config.utility(3),
   configure: (builder) => {
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>

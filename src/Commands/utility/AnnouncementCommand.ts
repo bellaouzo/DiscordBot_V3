@@ -1,11 +1,6 @@
 import { ChatInputCommandInteraction, ChannelType, Role } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import {
-  LoggingMiddleware,
-  PermissionMiddleware,
-  ErrorMiddleware,
-} from "@middleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory, CreateChannelManager } from "@utilities";
 
 type MentionType = "none" | "everyone" | "here" | "role";
@@ -192,10 +187,6 @@ export const AnnouncementCommand = CreateCommand({
           )
           .setRequired(false)
       );
-  },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware],
-    after: [ErrorMiddleware],
   },
   config: Config.create().anyPermission("ManageGuild", "Administrator").build(),
   execute: ExecuteAnnouncement,

@@ -1,9 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
-import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
-import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { CreateGuildResourceLocator, EmbedFactory } from "@utilities";
 
 async function ExecuteKick(
@@ -85,6 +82,8 @@ export const KickCommand = CreateCommand({
   name: "kick",
   description: "Kick a user from the server",
   group: "moderation",
+  config: Config.mod().build(),
+  execute: ExecuteKick,
   configure: (builder) => {
     builder
       .addUserOption((option) =>
@@ -103,12 +102,4 @@ export const KickCommand = CreateCommand({
         option.setName("notify").setDescription("Send DM notification to user")
       );
   },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.moderation(5),
-  execute: ExecuteKick,
 });
-
-

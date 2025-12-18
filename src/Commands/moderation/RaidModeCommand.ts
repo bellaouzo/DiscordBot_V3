@@ -8,11 +8,6 @@ import {
   TextChannel,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
-import {
-  ErrorMiddleware,
-  LoggingMiddleware,
-  PermissionMiddleware,
-} from "@middleware";
 import { Config } from "@middleware/CommandConfig";
 import {
   ConvertDurationToMs,
@@ -92,49 +87,46 @@ async function ClearRaidModeByGuild(
   logger: Logger
 ): Promise<boolean> {
   const db = new ModerationDatabase(logger.Child({ phase: "raid-clear" }));
-  try {
-    const active = db.GetActiveRaidMode(guildId);
-    if (!active) {
-      return false;
-    }
+  const active = db.GetActiveRaidMode(guildId);
+  if (!active) {
+    return false;
+  }
 
-    const guild = await client.guilds.fetch(guildId).catch(() => null);
-    if (!guild) {
-      db.MarkRaidModeCleared(active.id);
-      db.ClearRaidModeChannelStates(active.id);
-      return true;
-    }
-
-    const states = db.ListRaidModeChannelStates(active.id);
-    for (const state of states) {
-      const channel = guild.channels.cache.get(state.channel_id) as
-        | TextChannel
-        | undefined;
-      if (!channel || !channel.manageable) {
-        continue;
-      }
-
-      try {
-        const overwrites = DeserializeOverwrites(state.overwrites);
-        await channel.permissionOverwrites.set(overwrites);
-        await channel.setRateLimitPerUser(
-          state.rate_limit_per_user,
-          "Raid mode expired"
-        );
-      } catch (error) {
-        logger.Warn("Failed to restore raid channel state (auto-clear)", {
-          error,
-          guildId: guild.id,
-          extra: { channelId: state.channel_id },
-        });
-      }
-    }
-
+  const guild = await client.guilds.fetch(guildId).catch(() => null);
+  if (!guild) {
     db.MarkRaidModeCleared(active.id);
     db.ClearRaidModeChannelStates(active.id);
     return true;
-  } finally {
   }
+
+  const states = db.ListRaidModeChannelStates(active.id);
+  for (const state of states) {
+    const channel = guild.channels.cache.get(state.channel_id) as
+      | TextChannel
+      | undefined;
+    if (!channel || !channel.manageable) {
+      continue;
+    }
+
+    try {
+      const overwrites = DeserializeOverwrites(state.overwrites);
+      await channel.permissionOverwrites.set(overwrites);
+      await channel.setRateLimitPerUser(
+        state.rate_limit_per_user,
+        "Raid mode expired"
+      );
+    } catch (error) {
+      logger.Warn("Failed to restore raid channel state (auto-clear)", {
+        error,
+        guildId: guild.id,
+        extra: { channelId: state.channel_id },
+      });
+    }
+  }
+
+  db.MarkRaidModeCleared(active.id);
+  db.ClearRaidModeChannelStates(active.id);
+  return true;
 }
 
 async function ApplyRaidMode(
@@ -272,7 +264,6 @@ async function ApplyRaidMode(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } finally {
   }
 }
 
@@ -365,7 +356,6 @@ async function DisableRaidMode(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } finally {
   }
 }
 
@@ -444,7 +434,6 @@ async function ShowRaidModeStatus(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } finally {
   }
 }
 
@@ -474,6 +463,8 @@ export const RaidModeCommand = CreateCommand({
   name: "raidmode",
   description: "Enable or disable raid protection",
   group: "moderation",
+  config: Config.mod().build(),
+  execute: ExecuteRaidMode,
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>
@@ -510,15 +501,4 @@ export const RaidModeCommand = CreateCommand({
         sub.setName("status").setDescription("Show raid mode status")
       );
   },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.create()
-    .permissions("ManageChannels")
-    .cooldownSeconds(5)
-    .build(),
-  execute: ExecuteRaidMode,
 });
-
-

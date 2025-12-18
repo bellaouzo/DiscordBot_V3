@@ -11,6 +11,7 @@ export interface CommandConfig {
     readonly milliseconds?: number;
   };
   readonly role?: string;
+  readonly modRole?: boolean;
   readonly owner?: boolean;
   readonly custom?: Map<string, unknown>;
 }
@@ -71,6 +72,11 @@ export class CommandConfigBuilder {
     return this;
   }
 
+  hasModRole(): this {
+    this.config = { ...this.config, modRole: true };
+    return this;
+  }
+
   owner(): this {
     this.config = { ...this.config, owner: true };
     return this;
@@ -117,11 +123,8 @@ export const Config = {
     CommandConfigBuilder.create().cooldownMinutes(minutes).build(),
 
   // Combined helpers
-  moderation: (cooldownSeconds = 5) =>
-    CommandConfigBuilder.create()
-      .permissions("KickMembers", "BanMembers")
-      .cooldownSeconds(cooldownSeconds)
-      .build(),
+  mod: (cooldownSeconds = 5) =>
+    CommandConfigBuilder.create().hasModRole().cooldownSeconds(cooldownSeconds),
 
   admin: (cooldownSeconds = 10) =>
     CommandConfigBuilder.create()
@@ -132,4 +135,3 @@ export const Config = {
   utility: (cooldownSeconds = 1) =>
     CommandConfigBuilder.create().cooldownSeconds(cooldownSeconds).build(),
 };
-

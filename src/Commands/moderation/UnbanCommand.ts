@@ -1,9 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
-import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
-import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 
 async function ExecuteUnban(
@@ -62,6 +59,8 @@ export const UnbanCommand = CreateCommand({
   name: "unban",
   description: "Unban a user from the server",
   group: "moderation",
+  config: Config.mod(5).build(),
+  execute: ExecuteUnban,
   configure: (builder) => {
     builder
       .addStringOption((option) =>
@@ -77,12 +76,4 @@ export const UnbanCommand = CreateCommand({
           .setRequired(false)
       );
   },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.moderation(5),
-  execute: ExecuteUnban,
 });
-
-

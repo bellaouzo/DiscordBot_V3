@@ -4,10 +4,7 @@ import {
   PermissionFlagsBits,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
-import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
-import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
-import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory, CreateWarnManager } from "@utilities";
 import { PaginationPage } from "@shared/Paginator";
 
@@ -286,6 +283,8 @@ export const WarnCommand = CreateCommand({
   name: "warn",
   description: "Manage user warnings",
   group: "moderation",
+  config: Config.mod(5).build(),
+  execute: ExecuteWarn,
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>
@@ -338,12 +337,4 @@ export const WarnCommand = CreateCommand({
           )
       );
   },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.utility(2),
-  execute: ExecuteWarn,
 });
-
-

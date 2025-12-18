@@ -1,10 +1,5 @@
 import { AttachmentBuilder, ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import {
-  LoggingMiddleware,
-  ErrorMiddleware,
-  PermissionMiddleware,
-} from "@middleware";
 import { EmbedFactory } from "@utilities";
 import {
   FormatLogs,
@@ -128,10 +123,6 @@ export const CommandLogsCommand = CreateCommand({
             )
         )
     );
-  },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware],
-    after: [ErrorMiddleware],
   },
   config: {
     permissions: {

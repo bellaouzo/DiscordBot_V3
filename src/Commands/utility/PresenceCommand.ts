@@ -6,12 +6,7 @@ import {
   type ActivitiesOptions,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import {
-  LoggingMiddleware,
-  PermissionMiddleware,
-  ErrorMiddleware,
-} from "@middleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 
 type ActivityKind =
@@ -252,10 +247,6 @@ export const PresenceCommand = CreateCommand({
       .addSubcommand((sub) =>
         sub.setName("clearactivity").setDescription("Clear the bot's activity")
       );
-  },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware],
-    after: [ErrorMiddleware],
   },
   config: Config.admin(5),
   execute: ExecutePresence,

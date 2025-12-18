@@ -1,7 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import { LoggingMiddleware, CooldownMiddleware, ErrorMiddleware } from "@middleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { LevelManager } from "@commands/fun/leveling";
 import { EconomyManager } from "@commands/fun/economy/EconomyManager";
@@ -194,10 +193,6 @@ export const LeaderboardCommand = CreateCommand({
           { name: "Coins", value: "coins" }
         )
     );
-  },
-  middleware: {
-    before: [LoggingMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
   },
   config: Config.utility(5),
   execute: ExecuteLeaderboard,

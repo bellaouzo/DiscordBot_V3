@@ -1,9 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
-import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
-import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { AllCommands } from "@commands/registry";
 import * as path from "path";
@@ -104,10 +101,6 @@ export const DebugCommand = CreateCommand({
   name: "debug",
   description: "Display bot diagnostic and debug information",
   group: "utility",
-  middleware: {
-    before: [LoggingMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
-  },
   config: Config.utility(5),
   execute: ExecuteDebug,
 });

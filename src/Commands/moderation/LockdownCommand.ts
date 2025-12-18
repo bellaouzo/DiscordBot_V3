@@ -7,12 +7,7 @@ import {
   OverwriteResolvable,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
-import {
-  LoggingMiddleware,
-  PermissionMiddleware,
-  ErrorMiddleware,
-} from "@middleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { LockdownScope } from "@database";
 
@@ -74,55 +69,52 @@ async function LockChannel(
   channel: TextChannel
 ): Promise<void> {
   const db = context.databases.moderationDb;
-  try {
-    const existing = db.GetActiveLockdown(
-      "channel",
-      interaction.guild!.id,
-      channel.id
-    );
+  const existing = db.GetActiveLockdown(
+    "channel",
+    interaction.guild!.id,
+    channel.id
+  );
 
-    if (existing) {
-      const embed = EmbedFactory.CreateWarning({
-        title: "Already Locked",
-        description: `Channel ${channel} is already locked.`,
-      });
-      await context.responders.interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        ephemeral: true,
-      });
-      return;
-    }
-
-    const snapshot = SerializeOverwrites(
-      channel.permissionOverwrites.cache.values()
-    );
-
-    await channel.permissionOverwrites.edit(channel.guild.id, {
-      SendMessages: false,
-      SendMessagesInThreads: false,
-      AddReactions: false,
-      CreatePublicThreads: false,
-      CreatePrivateThreads: false,
-    });
-
-    db.AddLockdown({
-      scope: "channel",
-      guild_id: channel.guild.id,
-      target_id: channel.id,
-      applied_by: interaction.user.id,
-      overwrites: snapshot,
-    });
-
-    const embed = EmbedFactory.CreateSuccess({
-      title: "Channel Locked",
-      description: `Locked ${channel} for everyone.`,
+  if (existing) {
+    const embed = EmbedFactory.CreateWarning({
+      title: "Already Locked",
+      description: `Channel ${channel} is already locked.`,
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } finally {
+    return;
   }
+
+  const snapshot = SerializeOverwrites(
+    channel.permissionOverwrites.cache.values()
+  );
+
+  await channel.permissionOverwrites.edit(channel.guild.id, {
+    SendMessages: false,
+    SendMessagesInThreads: false,
+    AddReactions: false,
+    CreatePublicThreads: false,
+    CreatePrivateThreads: false,
+  });
+
+  db.AddLockdown({
+    scope: "channel",
+    guild_id: channel.guild.id,
+    target_id: channel.id,
+    applied_by: interaction.user.id,
+    overwrites: snapshot,
+  });
+
+  const embed = EmbedFactory.CreateSuccess({
+    title: "Channel Locked",
+    description: `Locked ${channel} for everyone.`,
+  });
+  await context.responders.interactionResponder.Reply(interaction, {
+    embeds: [embed.toJSON()],
+    ephemeral: true,
+  });
 }
 
 async function LockCategory(
@@ -131,55 +123,52 @@ async function LockCategory(
   category: CategoryChannel
 ): Promise<void> {
   const db = context.databases.moderationDb;
-  try {
-    const existing = db.GetActiveLockdown(
-      "category",
-      interaction.guild!.id,
-      category.id
-    );
+  const existing = db.GetActiveLockdown(
+    "category",
+    interaction.guild!.id,
+    category.id
+  );
 
-    if (existing) {
-      const embed = EmbedFactory.CreateWarning({
-        title: "Already Locked",
-        description: `Category **${category.name}** is already locked.`,
-      });
-      await context.responders.interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        ephemeral: true,
-      });
-      return;
-    }
-
-    const snapshot = SerializeOverwrites(
-      category.permissionOverwrites.cache.values()
-    );
-
-    await category.permissionOverwrites.edit(category.guild.id, {
-      SendMessages: false,
-      SendMessagesInThreads: false,
-      AddReactions: false,
-      CreatePublicThreads: false,
-      CreatePrivateThreads: false,
-    });
-
-    db.AddLockdown({
-      scope: "category",
-      guild_id: category.guild.id,
-      target_id: category.id,
-      applied_by: interaction.user.id,
-      overwrites: snapshot,
-    });
-
-    const embed = EmbedFactory.CreateSuccess({
-      title: "Category Locked",
-      description: `Locked category **${category.name}** and its channels.`,
+  if (existing) {
+    const embed = EmbedFactory.CreateWarning({
+      title: "Already Locked",
+      description: `Category **${category.name}** is already locked.`,
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } finally {
+    return;
   }
+
+  const snapshot = SerializeOverwrites(
+    category.permissionOverwrites.cache.values()
+  );
+
+  await category.permissionOverwrites.edit(category.guild.id, {
+    SendMessages: false,
+    SendMessagesInThreads: false,
+    AddReactions: false,
+    CreatePublicThreads: false,
+    CreatePrivateThreads: false,
+  });
+
+  db.AddLockdown({
+    scope: "category",
+    guild_id: category.guild.id,
+    target_id: category.id,
+    applied_by: interaction.user.id,
+    overwrites: snapshot,
+  });
+
+  const embed = EmbedFactory.CreateSuccess({
+    title: "Category Locked",
+    description: `Locked category **${category.name}** and its channels.`,
+  });
+  await context.responders.interactionResponder.Reply(interaction, {
+    embeds: [embed.toJSON()],
+    ephemeral: true,
+  });
 }
 
 async function UnlockTarget(
@@ -233,7 +222,8 @@ async function UnlockTarget(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } finally {
+  } catch (error) {
+    context.logger.Error("Failed to unlock target", { error });
   }
 }
 
@@ -275,7 +265,8 @@ async function ShowStatus(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } finally {
+  } catch (error) {
+    context.logger.Error("Failed to show status", { error });
   }
 }
 
@@ -354,6 +345,8 @@ export const LockdownCommand = CreateCommand({
   name: "lockdown",
   description: "Lock or unlock channels and categories",
   group: "moderation",
+  config: Config.mod().build(),
+  execute: ExecuteLockdown,
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>
@@ -403,15 +396,4 @@ export const LockdownCommand = CreateCommand({
         sub.setName("status").setDescription("View active lockdowns")
       );
   },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.create()
-    .permissions("ManageChannels")
-    .cooldownSeconds(5)
-    .build(),
-  execute: ExecuteLockdown,
 });
-
-

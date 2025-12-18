@@ -4,10 +4,7 @@ import {
   PermissionFlagsBits,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
-import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
-import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
-import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory, CreateNoteManager } from "@utilities";
 import { Note } from "@database";
 import { PaginationPage } from "@shared/Paginator";
@@ -272,6 +269,8 @@ export const NoteCommand = CreateCommand({
   name: "note",
   description: "Manage user notes",
   group: "moderation",
+  config: Config.mod(5).build(),
+  execute: ExecuteNote,
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>
@@ -321,12 +320,4 @@ export const NoteCommand = CreateCommand({
           )
       );
   },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.moderation(5),
-  execute: ExecuteNote,
 });
-
-

@@ -6,12 +6,7 @@ import {
   TextChannel,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import {
-  LoggingMiddleware,
-  CooldownMiddleware,
-  ErrorMiddleware,
-} from "@middleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { PaginationPage } from "@shared/Paginator";
 
@@ -436,10 +431,6 @@ export const PollCommand = CreateCommand({
             .addChannelTypes(ChannelType.GuildText)
         )
     );
-  },
-  middleware: {
-    before: [LoggingMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
   },
   config: Config.utility(3),
   execute: ExecutePoll,

@@ -1,9 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
-import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
-import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 
 async function ExecutePing(
@@ -52,10 +49,6 @@ export const PingCommand = CreateCommand({
   name: "ping",
   description: "Replies with Pong!",
   group: "utility",
-  middleware: {
-    before: [LoggingMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
-  },
   config: Config.utility(1),
   execute: ExecutePing,
 });

@@ -1,9 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
-import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
-import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { RequestJson } from "@utilities/ApiClient";
 import { LoadApiConfig } from "@config/ApiConfig";
@@ -134,10 +131,6 @@ export const TriviaCommand = CreateCommand({
   name: "trivia",
   description: "Get a random multiple-choice trivia question",
   group: "fun",
-  middleware: {
-    before: [LoggingMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
-  },
   config: Config.utility(5),
   configure: (builder) => {
     builder
@@ -161,4 +154,3 @@ export const TriviaCommand = CreateCommand({
   },
   execute: ExecuteTrivia,
 });
-

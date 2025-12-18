@@ -1,12 +1,6 @@
 import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import {
-  LoggingMiddleware,
-  PermissionMiddleware,
-  ErrorMiddleware,
-  CooldownMiddleware,
-} from "@middleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import {
   EmbedFactory,
   CreateGuildResourceLocator,
@@ -228,6 +222,8 @@ export const MuteCommand = CreateCommand({
   name: "mute",
   description: "Mute a user or remove their mute",
   group: "moderation",
+  config: Config.mod(5).build(),
+  execute: ExecuteMute,
   configure: (builder) => {
     builder
       .addSubcommand((subcommand) =>
@@ -294,15 +290,4 @@ export const MuteCommand = CreateCommand({
           )
       );
   },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.create()
-    .permissions("ModerateMembers")
-    .cooldownSeconds(5)
-    .build(),
-  execute: ExecuteMute,
 });
-
-

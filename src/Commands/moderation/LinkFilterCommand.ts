@@ -1,11 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
-import {
-  ErrorMiddleware,
-  LoggingMiddleware,
-  PermissionMiddleware,
-} from "@middleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { LinkFilterType } from "@database";
 
@@ -97,7 +92,6 @@ async function AddFilter(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } finally {
   }
 }
 
@@ -161,7 +155,6 @@ async function RemoveFilter(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } finally {
   }
 }
 
@@ -224,7 +217,6 @@ async function ListFilters(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } finally {
   }
 }
 
@@ -259,6 +251,8 @@ export const LinkFilterCommand = CreateCommand({
   name: "linkfilter",
   description: "Manage link allow/block lists",
   group: "moderation",
+  config: Config.mod().build(),
+  execute: ExecuteLinkFilter,
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>
@@ -308,15 +302,4 @@ export const LinkFilterCommand = CreateCommand({
         sub.setName("list").setDescription("Show stored patterns")
       );
   },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.create()
-    .permissions("ManageMessages")
-    .cooldownSeconds(5)
-    .build(),
-  execute: ExecuteLinkFilter,
 });
-
-

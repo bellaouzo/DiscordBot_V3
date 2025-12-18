@@ -1,7 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import { LoggingMiddleware, ErrorMiddleware } from "@middleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { PaginationPage } from "@shared/Paginator";
 
@@ -108,7 +107,6 @@ async function ExecuteEventCreate(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } finally {
   }
 }
 
@@ -171,7 +169,6 @@ async function ExecuteEventList(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } finally {
   }
 }
 
@@ -278,7 +275,6 @@ async function ExecuteEventCancel(
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } finally {
   }
 }
 
@@ -286,10 +282,6 @@ export const EventCommand = CreateCommand({
   name: "event",
   description: "Create a scheduled event",
   group: "utility",
-  middleware: {
-    before: [LoggingMiddleware],
-    after: [ErrorMiddleware],
-  },
   config: Config.utility(3),
   configure: (builder) => {
     builder
@@ -350,5 +342,3 @@ export const EventCommand = CreateCommand({
     }
   },
 });
-
-

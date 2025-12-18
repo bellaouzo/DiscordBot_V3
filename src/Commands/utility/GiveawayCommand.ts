@@ -9,12 +9,6 @@ import {
   ThreadChannel,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import {
-  LoggingMiddleware,
-  CooldownMiddleware,
-  ErrorMiddleware,
-  PermissionMiddleware,
-} from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { GiveawayManager } from "./giveaway/GiveawayManager";
 import { ParseDuration } from "@utilities/Duration";
@@ -566,10 +560,6 @@ export const GiveawayCommand = CreateCommand({
       .addSubcommand((sub) =>
         sub.setName("list").setDescription("List all active giveaways")
       );
-  },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
   },
   config: {
     permissions: {

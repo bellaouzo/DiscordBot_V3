@@ -32,6 +32,7 @@ export function CreateCommandExecutor(deps: CommandExecutorDependencies) {
       logger: commandLogger,
       responders,
       config: command.config ?? {},
+      databases: deps.databases,
     };
 
     const finalHandler = async (): Promise<void> => {

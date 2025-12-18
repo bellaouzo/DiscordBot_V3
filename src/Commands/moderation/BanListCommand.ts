@@ -1,9 +1,6 @@
 import { ChatInputCommandInteraction, GuildBan } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
-import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
-import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
-import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { PaginationPage } from "@shared/Paginator";
 
@@ -156,6 +153,8 @@ export const BanListCommand = CreateCommand({
   name: "banlist",
   description: "View the server ban list or check a user's ban status",
   group: "moderation",
+  config: Config.mod().build(),
+  execute: ExecuteBanList,
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>
@@ -175,12 +174,4 @@ export const BanListCommand = CreateCommand({
           )
       );
   },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.moderation(5),
-  execute: ExecuteBanList,
 });
-
-

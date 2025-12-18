@@ -102,6 +102,6 @@ export const KickCommand = CreateCommand({
     before: [LoggingMiddleware, PermissionMiddleware, CooldownMiddleware],
     after: [ErrorMiddleware],
   },
-  config: Config.moderation(5), // 5 second cooldown, requires permissions
+  config: Config.mod(5).build(), // 5 second cooldown, requires mod role
   execute: ExecuteKick,
 });

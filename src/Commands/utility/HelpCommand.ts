@@ -7,9 +7,7 @@ import {
   ChatInputCommandInteraction,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
-import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { AllCommands } from "@commands/registry";
 import { EmbedFactory, ComponentFactory } from "@utilities";
 import { ButtonResponder } from "@responders";
@@ -578,10 +576,6 @@ export const HelpCommand = CreateCommand({
   name: "help",
   description: "📚 Browse all available bot commands with an interactive menu",
   group: "utility",
-  middleware: {
-    before: [LoggingMiddleware],
-    after: [ErrorMiddleware],
-  },
   config: Config.utility(0),
   execute: ExecuteHelp,
 });

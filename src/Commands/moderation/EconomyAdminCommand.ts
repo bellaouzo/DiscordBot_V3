@@ -1,12 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
-import {
-  LoggingMiddleware,
-  PermissionMiddleware,
-  CooldownMiddleware,
-  ErrorMiddleware,
-} from "@middleware";
-import { Config } from "@middleware/CommandConfig";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { EconomyManager } from "@commands/fun/economy/EconomyManager";
 import { ITEM_MAP } from "@commands/fun/economy/items";
@@ -86,110 +80,113 @@ async function ExecuteEconomyAdmin(
   const targetUser = interaction.options.getUser("user", true);
   const subcommand = interaction.options.getSubcommand();
 
-  const manager = new EconomyManager(interaction.guildId, context.databases.userDb);
+  const manager = new EconomyManager(
+    interaction.guildId,
+    context.databases.userDb
+  );
   if (subcommand === "setbalance") {
-      const amount = interaction.options.getInteger("amount", true);
-      if (amount < 0) {
-        throw new Error("Amount must be 0 or higher.");
-      }
-
-      const before = manager.GetBalance(targetUser.id);
-      const delta = amount - before;
-      const after = manager.AdjustBalance(targetUser.id, delta, 0);
-
-      const embed = BuildBalanceEmbed({
-        title: "Balance Set",
-        userId: targetUser.id,
-        before,
-        after,
-      });
-
-      await interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        ephemeral: true,
-      });
-      return;
+    const amount = interaction.options.getInteger("amount", true);
+    if (amount < 0) {
+      throw new Error("Amount must be 0 or higher.");
     }
 
-    if (subcommand === "addbalance") {
-      const amount = interaction.options.getInteger("amount", true);
-      RequirePositive("Amount", amount);
+    const before = manager.GetBalance(targetUser.id);
+    const delta = amount - before;
+    const after = manager.AdjustBalance(targetUser.id, delta, 0);
 
-      const before = manager.GetBalance(targetUser.id);
-      const after = manager.AdjustBalance(targetUser.id, amount, 0);
+    const embed = BuildBalanceEmbed({
+      title: "Balance Set",
+      userId: targetUser.id,
+      before,
+      after,
+    });
 
-      const embed = BuildBalanceEmbed({
-        title: "Balance Added",
-        userId: targetUser.id,
-        before,
-        after,
-      });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
 
-      await interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        ephemeral: true,
-      });
-      return;
+  if (subcommand === "addbalance") {
+    const amount = interaction.options.getInteger("amount", true);
+    RequirePositive("Amount", amount);
+
+    const before = manager.GetBalance(targetUser.id);
+    const after = manager.AdjustBalance(targetUser.id, amount, 0);
+
+    const embed = BuildBalanceEmbed({
+      title: "Balance Added",
+      userId: targetUser.id,
+      before,
+      after,
+    });
+
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
+
+  if (subcommand === "removebalance") {
+    const amount = interaction.options.getInteger("amount", true);
+    RequirePositive("Amount", amount);
+
+    const before = manager.GetBalance(targetUser.id);
+    const after = manager.AdjustBalance(targetUser.id, -amount, 0);
+    const removed = before - after;
+    const note =
+      removed < amount
+        ? `Requested to remove ${amount}, but balance was clamped at 0. Removed ${removed}.`
+        : undefined;
+
+    const embed = BuildBalanceEmbed({
+      title: "Balance Removed",
+      userId: targetUser.id,
+      before,
+      after,
+      note,
+    });
+
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
+
+  if (subcommand === "giveitem" || subcommand === "takeitem") {
+    const itemId = interaction.options.getString("item_id", true);
+    const quantity = interaction.options.getInteger("quantity", true);
+    RequirePositive("Quantity", quantity);
+
+    const item = ITEM_MAP[itemId];
+    if (!item) {
+      throw new Error("Invalid item id.");
     }
 
-    if (subcommand === "removebalance") {
-      const amount = interaction.options.getInteger("amount", true);
-      RequirePositive("Amount", amount);
+    const delta = subcommand === "giveitem" ? quantity : -quantity;
+    const entry = manager.AdjustInventoryItem({
+      userId: targetUser.id,
+      itemId,
+      delta,
+    });
 
-      const before = manager.GetBalance(targetUser.id);
-      const after = manager.AdjustBalance(targetUser.id, -amount, 0);
-      const removed = before - after;
-      const note =
-        removed < amount
-          ? `Requested to remove ${amount}, but balance was clamped at 0. Removed ${removed}.`
-          : undefined;
+    const embed = BuildItemEmbed({
+      title: subcommand === "giveitem" ? "Item Granted" : "Item Removed",
+      userId: targetUser.id,
+      itemId,
+      delta,
+      quantity: entry.quantity,
+    });
 
-      const embed = BuildBalanceEmbed({
-        title: "Balance Removed",
-        userId: targetUser.id,
-        before,
-        after,
-        note,
-      });
-
-      await interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        ephemeral: true,
-      });
-      return;
-    }
-
-    if (subcommand === "giveitem" || subcommand === "takeitem") {
-      const itemId = interaction.options.getString("item_id", true);
-      const quantity = interaction.options.getInteger("quantity", true);
-      RequirePositive("Quantity", quantity);
-
-      const item = ITEM_MAP[itemId];
-      if (!item) {
-        throw new Error("Invalid item id.");
-      }
-
-      const delta = subcommand === "giveitem" ? quantity : -quantity;
-      const entry = manager.AdjustInventoryItem({
-        userId: targetUser.id,
-        itemId,
-        delta,
-      });
-
-      const embed = BuildItemEmbed({
-        title: subcommand === "giveitem" ? "Item Granted" : "Item Removed",
-        userId: targetUser.id,
-        itemId,
-        delta,
-        quantity: entry.quantity,
-      });
-
-      await interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        ephemeral: true,
-      });
-      return;
-    }
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
 
   throw new Error("Unsupported subcommand.");
 }
@@ -198,11 +195,7 @@ export const EconomyAdminCommand = CreateCommand({
   name: "economyadmin",
   description: "Administer user balances and items",
   group: "moderation",
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.admin(5),
+  config: Config.mod().build(),
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>
@@ -310,5 +303,3 @@ export const EconomyAdminCommand = CreateCommand({
   },
   execute: ExecuteEconomyAdmin,
 });
-
-
