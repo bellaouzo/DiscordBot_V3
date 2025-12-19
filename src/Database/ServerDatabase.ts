@@ -318,6 +318,8 @@ export class ServerDatabase {
   }
 
   GetGuildSettings(guild_id: string): GuildSettings | null {
+    this.EnsureGuildSettingsColumns();
+
     const stmt = this.db.prepare(
       `
       SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, command_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, created_at, updated_at
@@ -334,9 +336,9 @@ export class ServerDatabase {
           ticket_category_id: string | null;
           command_log_channel_id: string | null;
           announcement_channel_id: string | null;
-      delete_log_channel_id: string | null;
-      production_log_channel_id: string | null;
-      welcome_channel_id: string | null;
+          delete_log_channel_id: string | null;
+          production_log_channel_id: string | null;
+          welcome_channel_id?: string | null;
           created_at: number;
           updated_at: number;
         }
@@ -347,15 +349,27 @@ export class ServerDatabase {
     }
 
     return {
-      guild_id: row.guild_id,
+      guild_id: String(row.guild_id),
       admin_role_ids: this.ParseIdList(row.admin_role_ids),
       mod_role_ids: this.ParseIdList(row.mod_role_ids),
-      ticket_category_id: row.ticket_category_id ?? null,
-      command_log_channel_id: row.command_log_channel_id ?? null,
-      announcement_channel_id: row.announcement_channel_id ?? null,
-      delete_log_channel_id: row.delete_log_channel_id ?? null,
-      production_log_channel_id: row.production_log_channel_id ?? null,
-      welcome_channel_id: row.welcome_channel_id ?? null,
+      ticket_category_id: row.ticket_category_id
+        ? String(row.ticket_category_id)
+        : null,
+      command_log_channel_id: row.command_log_channel_id
+        ? String(row.command_log_channel_id)
+        : null,
+      announcement_channel_id: row.announcement_channel_id
+        ? String(row.announcement_channel_id)
+        : null,
+      delete_log_channel_id: row.delete_log_channel_id
+        ? String(row.delete_log_channel_id)
+        : null,
+      production_log_channel_id: row.production_log_channel_id
+        ? String(row.production_log_channel_id)
+        : null,
+      welcome_channel_id: row.welcome_channel_id
+        ? String(row.welcome_channel_id)
+        : null,
       created_at: Number(row.created_at),
       updated_at: Number(row.updated_at),
     };
