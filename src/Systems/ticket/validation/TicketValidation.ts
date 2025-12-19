@@ -26,7 +26,7 @@ export function CreateTicketServices(
   logger: Logger,
   guild: Guild,
   ticketDb: TicketDatabase,
-  options?: { ticketCategoryId?: string | null },
+  options?: { ticketCategoryId?: string | null }
 ) {
   const guildResourceLocator = CreateGuildResourceLocator({
     guild,
@@ -97,5 +97,3 @@ export async function GetTicketOrReply(
   }
   return ticket;
 }
-
-
