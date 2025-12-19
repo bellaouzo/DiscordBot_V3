@@ -88,20 +88,21 @@ async function ExecuteSetup(
 
   const resources = CollectResources(guild);
 
+  const interactionId = String(interaction.id);
   const ids: NavigationIds = {
-    adminSelect: `setup:${interaction.id}:admin`,
-    modSelect: `setup:${interaction.id}:mod`,
-    ticketSelect: `setup:${interaction.id}:ticket`,
-    commandLogSelect: `setup:${interaction.id}:cmdlog`,
-    deleteLogSelect: `setup:${interaction.id}:deletelog`,
-    productionLogSelect: `setup:${interaction.id}:prodlog`,
-    announcementSelect: `setup:${interaction.id}:announce`,
-    welcomeSelect: `setup:${interaction.id}:welcome`,
-    next: `setup:${interaction.id}:next`,
-    back: `setup:${interaction.id}:back`,
-    save: `setup:${interaction.id}:save`,
-    saveAndQuit: `setup:${interaction.id}:savequit`,
-    cancel: `setup:${interaction.id}:cancel`,
+    adminSelect: `setup:${interactionId}:admin`,
+    modSelect: `setup:${interactionId}:mod`,
+    ticketSelect: `setup:${interactionId}:ticket`,
+    commandLogSelect: `setup:${interactionId}:cmdlog`,
+    deleteLogSelect: `setup:${interactionId}:deletelog`,
+    productionLogSelect: `setup:${interactionId}:prodlog`,
+    announcementSelect: `setup:${interactionId}:announce`,
+    welcomeSelect: `setup:${interactionId}:welcome`,
+    next: `setup:${interactionId}:next`,
+    back: `setup:${interactionId}:back`,
+    save: `setup:${interactionId}:save`,
+    saveAndQuit: `setup:${interactionId}:savequit`,
+    cancel: `setup:${interactionId}:cancel`,
   };
 
   const stepState: StepState = { current: 1 };
@@ -144,8 +145,8 @@ async function ExecuteSetup(
     componentRouter,
     buttonResponder,
     serverDb: databases.serverDb,
-    guildId: guild.id,
-    ownerId: interaction.user.id,
+    guildId: String(guild.id),
+    ownerId: String(interaction.user.id),
     updateMessage,
   });
 
