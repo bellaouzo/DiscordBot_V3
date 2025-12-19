@@ -126,12 +126,13 @@ export function BuildRoleSelectRow(
     .setMaxValues(Math.min(roles.length, 25));
 
   roles.slice(0, 25).forEach((role) => {
+    const roleId = String(role.id);
     const option = new StringSelectMenuOptionBuilder()
       .setLabel(role.name.slice(0, 95))
-      .setValue(role.id)
-      .setDescription(`ID: ${role.id}`);
+      .setValue(roleId)
+      .setDescription(`ID: ${roleId}`);
 
-    if (selectedIds.includes(role.id)) {
+    if (selectedIds.includes(roleId)) {
       option.setDefault(true);
     }
 
@@ -259,24 +260,25 @@ export function BuildChannelSelectRow(options: {
   const optionValues = new Set<string>();
 
   options.channels.slice(0, 23).forEach((channel) => {
+    const channelId = String(channel.id);
     const option = new StringSelectMenuOptionBuilder()
       .setLabel(`#${channel.name}`.slice(0, 95))
-      .setValue(channel.id)
+      .setValue(channelId)
       .setDescription("Use existing text channel");
 
-    if (options.selectedId === channel.id) {
+    if (options.selectedId === channelId) {
       option.setDefault(true);
     }
 
-    optionValues.add(channel.id);
+    optionValues.add(channelId);
     menu.addOptions(option);
   });
 
-  if (selectedChannel && !optionValues.has(selectedChannel.id)) {
+  if (selectedChannel && !optionValues.has(String(selectedChannel.id))) {
     menu.addOptions(
       new StringSelectMenuOptionBuilder()
         .setLabel(`#${selectedChannel.name}`.slice(0, 95))
-        .setValue(selectedChannel.id)
+        .setValue(String(selectedChannel.id))
         .setDescription("Use existing text channel")
         .setDefault(true)
     );

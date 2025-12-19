@@ -77,6 +77,7 @@ export class ServerDatabase {
           announcement_channel_id TEXT,
           delete_log_channel_id TEXT,
           production_log_channel_id TEXT,
+          welcome_channel_id TEXT,
           created_at INTEGER NOT NULL,
           updated_at INTEGER NOT NULL
         );
