@@ -119,25 +119,36 @@ export function BuildRoleSelectRow(
   selectedIds: string[],
   label?: string
 ): ActionRowData<ActionRowComponentData> {
+  const hasRoles = roles.length > 0;
   const menu = new StringSelectMenuBuilder()
     .setCustomId(customId)
     .setPlaceholder(placeholder)
-    .setMinValues(0)
-    .setMaxValues(Math.min(roles.length, 25));
+    .setMinValues(hasRoles ? 1 : 1)
+    .setMaxValues(hasRoles ? Math.min(roles.length, 25) : 1);
 
-  roles.slice(0, 25).forEach((role) => {
-    const roleId = String(role.id);
-    const option = new StringSelectMenuOptionBuilder()
-      .setLabel(role.name.slice(0, 95))
-      .setValue(roleId)
-      .setDescription(`ID: ${roleId}`);
+  if (!hasRoles) {
+    menu.addOptions(
+      new StringSelectMenuOptionBuilder()
+        .setLabel("No roles available")
+        .setValue("noop")
+        .setDescription("Create roles in Discord, then rerun /setup")
+        .setDefault(true)
+    );
+  } else {
+    roles.slice(0, 25).forEach((role) => {
+      const roleId = String(role.id);
+      const option = new StringSelectMenuOptionBuilder()
+        .setLabel(role.name.slice(0, 95))
+        .setValue(roleId)
+        .setDescription(`ID: ${roleId}`);
 
-    if (selectedIds.includes(roleId)) {
-      option.setDefault(true);
-    }
+      if (selectedIds.includes(roleId)) {
+        option.setDefault(true);
+      }
 
-    menu.addOptions(option);
-  });
+      menu.addOptions(option);
+    });
+  }
 
   const row = ComponentFactory.CreateSelectMenuRow(
     menu

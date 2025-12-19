@@ -42,7 +42,7 @@ export function RegisterSelectHandlers(
     expiresInMs: SETUP_TIMEOUT_MS,
     handler: async (selectInteraction) => {
       const selected = selectInteraction.values.filter(
-        (value) => value !== "none"
+        (value) => value !== "none" && value !== "noop"
       );
       draft.adminRoleIds = selected;
 
@@ -57,7 +57,7 @@ export function RegisterSelectHandlers(
     expiresInMs: SETUP_TIMEOUT_MS,
     handler: async (selectInteraction) => {
       const selected = selectInteraction.values.filter(
-        (value) => value !== "none"
+        (value) => value !== "none" && value !== "noop"
       );
       draft.modRoleIds = selected;
 
