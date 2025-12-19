@@ -1,28 +1,28 @@
 import { CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
-import { MIN_BET, MAX_BET } from "@commands/fun/economy/constants";
-import { HandleBalance } from "@commands/fun/economy/handlers/BalanceHandler";
-import { HandleDaily } from "@commands/fun/economy/handlers/DailyHandler";
-import { HandleFlip } from "@commands/fun/economy/handlers/FlipHandler";
-import { HandleDice } from "@commands/fun/economy/handlers/DiceHandler";
-import { HandleRps } from "@commands/fun/economy/handlers/RpsHandler";
-import { HandleCrash } from "@commands/fun/economy/handlers/CrashHandler";
-import { HandleHorseRace } from "@commands/fun/economy/handlers/HorseRaceHandler";
-import { HandleScratch } from "@commands/fun/economy/handlers/ScratchHandler";
-import { HandleBlackjack } from "@commands/fun/economy/handlers/BlackjackHandler";
-import { HandleLeaderboard } from "@commands/fun/economy/handlers/LeaderboardHandler";
-import { HandleGift } from "@commands/fun/economy/handlers/GiftHandler";
-import { HandleSlots } from "@commands/fun/economy/handlers/SlotsHandler";
-import { HandleWheel } from "@commands/fun/economy/handlers/WheelHandler";
+import { MIN_BET, MAX_BET } from "@systems/economy/constants";
+import { HandleBalance } from "@systems/economy/handlers/BalanceHandler";
+import { HandleDaily } from "@systems/economy/handlers/DailyHandler";
+import { HandleFlip } from "@systems/economy/handlers/FlipHandler";
+import { HandleDice } from "@systems/economy/handlers/DiceHandler";
+import { HandleRps } from "@systems/economy/handlers/RpsHandler";
+import { HandleCrash } from "@systems/economy/handlers/CrashHandler";
+import { HandleHorseRace } from "@systems/economy/handlers/HorseRaceHandler";
+import { HandleScratch } from "@systems/economy/handlers/ScratchHandler";
+import { HandleBlackjack } from "@systems/economy/handlers/BlackjackHandler";
+import { HandleLeaderboard } from "@systems/economy/handlers/LeaderboardHandler";
+import { HandleGift } from "@systems/economy/handlers/GiftHandler";
+import { HandleSlots } from "@systems/economy/handlers/SlotsHandler";
+import { HandleWheel } from "@systems/economy/handlers/WheelHandler";
 import {
   HandleInventory,
   HandleMarketBuy,
   HandleMarketRefresh,
   HandleMarketSell,
   HandleMarketView,
-} from "@commands/fun/economy/handlers/MarketHandler";
-import { ITEM_CATALOG } from "@commands/fun/economy/items";
+} from "@systems/economy/handlers/MarketHandler";
+import { ITEM_CATALOG } from "@systems/economy/items";
 
 export const EconomyCommand = CreateCommand({
   name: "economy",

@@ -4,7 +4,7 @@ import { Logger } from "@shared/Logger";
 import type {
   InventoryEntry,
   MarketRotation,
-} from "@commands/fun/economy/types";
+} from "@systems/economy/types";
 import { join } from "path";
 
 export interface Warning {

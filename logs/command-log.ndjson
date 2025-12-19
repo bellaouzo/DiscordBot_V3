@@ -18,3 +18,8 @@
 {"timestamp":1765425323924,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"announce","group":"utility","options":{"message":"Testing announcement","title":"Test announcement!","mention":"none","type":"event"}}
 {"timestamp":1765425888451,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
 {"timestamp":1765425914686,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"setup","group":"admin"}
+{"timestamp":1766103497274,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"help","group":"utility"}
+{"timestamp":1766103499922,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"ping","group":"utility"}
+{"timestamp":1766103505590,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"economy","group":"fun","subcommand":"balance","options":{}}
+{"timestamp":1766103526628,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"giveaway","group":"utility","subcommand":"create","options":{"prize":"Test","duration":"30s"}}
+{"timestamp":1766103533956,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"giveaway","group":"utility","subcommand":"create","options":{"prize":"Test","duration":"1m"}}

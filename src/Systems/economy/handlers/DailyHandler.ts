@@ -1,0 +1,32 @@
+import { ChatInputCommandInteraction } from "discord.js";
+import { CommandContext } from "@commands/CommandFactory";
+import { EconomyManager } from "@systems/economy/EconomyManager";
+import { BuildDailyEmbed } from "@systems/economy/utils/Embeds";
+import { DAILY_REWARD } from "@systems/economy/constants";
+
+export async function HandleDaily(
+  interaction: ChatInputCommandInteraction,
+  context: CommandContext
+): Promise<void> {
+  const { interactionResponder } = context.responders;
+  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
+
+  try {
+    const result = manager.ClaimDaily(interaction.user.id);
+
+    const embed = BuildDailyEmbed({
+      success: result.success,
+      reward: DAILY_REWARD,
+      balance: result.success ? result.balance : 0,
+      nextAvailableAt: result.nextAvailableAt,
+    });
+
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+  } finally {
+  }
+}
+
+

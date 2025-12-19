@@ -2,8 +2,8 @@ import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
-import { EconomyManager } from "@commands/fun/economy/EconomyManager";
-import { ITEM_MAP } from "@commands/fun/economy/items";
+import { EconomyManager } from "@systems/economy/EconomyManager";
+import { ITEM_MAP } from "@systems/economy/items";
 
 function RequireGuild(
   interaction: ChatInputCommandInteraction

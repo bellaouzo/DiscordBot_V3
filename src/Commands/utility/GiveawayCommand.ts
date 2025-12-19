@@ -10,7 +10,7 @@ import {
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { EmbedFactory } from "@utilities";
-import { GiveawayManager } from "./giveaway/GiveawayManager";
+import { GiveawayManager } from "@systems/giveaway/GiveawayManager";
 import { ParseDuration } from "@utilities/Duration";
 import { Giveaway } from "@database";
 

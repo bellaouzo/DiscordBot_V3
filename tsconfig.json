@@ -23,6 +23,8 @@
     "paths": {
       "@commands": ["Commands/index"],
       "@commands/*": ["Commands/*"],
+      "@systems": ["Systems"],
+      "@systems/*": ["Systems/*"],
       "@middleware": ["Commands/Middleware/index"],
       "@middleware/*": ["Commands/Middleware/*"],
       "@bot": ["Bot/index"],

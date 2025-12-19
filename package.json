@@ -37,6 +37,7 @@
   },
   "_moduleAliases": {
     "@commands": "dist/Commands",
+    "@systems": "dist/Systems",
     "@middleware": "dist/Commands/Middleware",
     "@bot": "dist/Bot",
     "@database": "dist/Database",

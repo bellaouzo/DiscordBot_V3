@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
-import { LevelManager } from "@commands/fun/leveling";
+import { LevelManager } from "@systems/leveling";
 
 function BuildProgressBar(percent: number, length = 10): string {
   const filled = Math.floor((percent / 100) * length);

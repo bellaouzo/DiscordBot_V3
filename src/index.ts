@@ -18,7 +18,7 @@ import { CreateResponders } from "@responders";
 import { RegisterInteractionHandlers } from "./interaction-handlers";
 import { TempActionScheduler } from "./Moderation/TempActionScheduler";
 import { RaidModeScheduler } from "./Moderation/RaidModeScheduler";
-import { GiveawayScheduler } from "@commands/utility/giveaway/GiveawayScheduler";
+import { GiveawayScheduler } from "@systems/giveaway/GiveawayScheduler";
 import { Client } from "discord.js";
 
 interface AppResources {
