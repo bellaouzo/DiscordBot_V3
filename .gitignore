@@ -37,10 +37,8 @@ pids
 .env.test
 
 # Database files
-*.db
 *.db-shm
 *.db-wal
-data/*.db
 
 # OS generated files
 .DS_Store
