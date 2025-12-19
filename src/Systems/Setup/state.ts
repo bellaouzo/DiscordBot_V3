@@ -15,6 +15,7 @@ export interface SetupDraft {
   announcementChannelId: string | null;
   deleteLogChannelId: string | null;
   productionLogChannelId: string | null;
+  welcomeChannelId: string | null;
 }
 
 export interface SetupResources {
@@ -31,9 +32,11 @@ export interface NavigationIds {
   deleteLogSelect: string;
   productionLogSelect: string;
   announcementSelect: string;
+  welcomeSelect: string;
   next: string;
   back: string;
   save: string;
+  saveAndQuit: string;
   cancel: string;
 }
 
@@ -51,6 +54,7 @@ export function CreateEmptySettings(guild_id: string): GuildSettings {
     announcement_channel_id: null,
     delete_log_channel_id: null,
     production_log_channel_id: null,
+    welcome_channel_id: null,
     created_at: Date.now(),
     updated_at: Date.now(),
   };
@@ -90,6 +94,12 @@ export async function SanitizeGuildSettings(
     ChannelType.GuildText
   );
 
+  const welcomeChannelId = await ResolveExistingChannelId(
+    guild,
+    settings.welcome_channel_id,
+    ChannelType.GuildText
+  );
+
   return {
     ...settings,
     ticket_category_id: ticketCategoryId,
@@ -97,6 +107,7 @@ export async function SanitizeGuildSettings(
     announcement_channel_id: announcementChannelId,
     delete_log_channel_id: deleteLogChannelId,
     production_log_channel_id: productionLogChannelId,
+    welcome_channel_id: welcomeChannelId,
   };
 }
 
@@ -119,4 +130,3 @@ export async function ResolveExistingChannelId(
     return null;
   }
 }
-

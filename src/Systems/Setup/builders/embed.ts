@@ -1,4 +1,9 @@
-import { ChatInputCommandInteraction, Role, TextChannel, CategoryChannel } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  Role,
+  TextChannel,
+  CategoryChannel,
+} from "discord.js";
 import { EmbedFactory } from "@utilities";
 import { LoadAppConfig } from "@config/AppConfig";
 import {
@@ -14,7 +19,7 @@ function FormatRoleList(
   guild: ChatInputCommandInteraction["guild"]
 ): string {
   if (!roleIds || roleIds.length === 0) {
-    return "None (uses Discord permissions)";
+    return "No roles selected (required)";
   }
 
   const mentions = roleIds
@@ -80,71 +85,92 @@ export function BuildSetupEmbed(options: {
   loggingDefaults: ReturnType<typeof LoadAppConfig>["logging"];
 }) {
   const { draft, step, guild, loggingDefaults } = options;
+
+  let description = "Use the menus below to pick roles and channels.";
+  if (step < 3) {
+    description += `\n\n**📄 More settings available on the next ${step === 1 ? "2" : "1"} page${step === 1 ? "s" : ""}**`;
+  }
+
   const embed = EmbedFactory.Create({
     title: `Server Setup — Step ${step}/3`,
-    description:
-      "Use the menus below to pick roles and channels. Selections are restricted to you.",
+    description,
     color: 0x5865f2,
   });
 
-  embed.addFields(
-    {
-      name: "Admin Roles",
-      value: FormatRoleList(draft.adminRoleIds, guild),
-      inline: true,
-    },
-    {
-      name: "Mod Roles",
-      value: FormatRoleList(draft.modRoleIds, guild),
-      inline: true,
-    },
-    {
-      name: "Ticket Category",
-      value: FormatCategory(
-        draft.ticketCategoryId,
-        guild,
-        DEFAULT_TICKET_CATEGORY
-      ),
-      inline: false,
-    },
-    {
-      name: "Delete Logs",
-      value: FormatChannel(
-        draft.deleteLogChannelId,
-        guild,
-        loggingDefaults.messageDeleteChannelName || DEFAULT_DELETE_LOG_CHANNEL
-      ),
-      inline: true,
-    },
-    {
-      name: "Command Logs",
-      value: FormatChannel(
-        draft.commandLogChannelId,
-        guild,
-        loggingDefaults.commandLogChannelName
-      ),
-      inline: true,
-    },
-    {
-      name: "Announcements",
-      value: FormatChannel(
-        draft.announcementChannelId,
-        guild,
-        DEFAULT_ANNOUNCEMENT_CHANNEL
-      ),
-      inline: true,
-    },
-    {
-      name: "Production Logs",
-      value: FormatChannelAllowNone(
-        draft.productionLogChannelId,
-        guild,
-        loggingDefaults.deployLogChannelName || DEFAULT_PRODUCTION_LOG_CHANNEL
-      ),
-      inline: true,
-    }
-  );
+  const fields = [];
+
+  if (step === 1) {
+    fields.push(
+      {
+        name: "Admin Roles",
+        value: FormatRoleList(draft.adminRoleIds, guild),
+        inline: true,
+      },
+      {
+        name: "Mod Roles",
+        value: FormatRoleList(draft.modRoleIds, guild),
+        inline: true,
+      }
+    );
+  } else if (step === 2) {
+    fields.push(
+      {
+        name: "Ticket Category",
+        value: FormatCategory(
+          draft.ticketCategoryId,
+          guild,
+          DEFAULT_TICKET_CATEGORY
+        ),
+        inline: false,
+      },
+      {
+        name: "Delete Logs",
+        value: FormatChannel(
+          draft.deleteLogChannelId,
+          guild,
+          loggingDefaults.messageDeleteChannelName || DEFAULT_DELETE_LOG_CHANNEL
+        ),
+        inline: true,
+      },
+      {
+        name: "Command Logs",
+        value: FormatChannel(
+          draft.commandLogChannelId,
+          guild,
+          loggingDefaults.commandLogChannelName
+        ),
+        inline: true,
+      }
+    );
+  } else if (step === 3) {
+    fields.push(
+      {
+        name: "Announcements",
+        value: FormatChannel(
+          draft.announcementChannelId,
+          guild,
+          DEFAULT_ANNOUNCEMENT_CHANNEL
+        ),
+        inline: true,
+      },
+      {
+        name: "Production Logs",
+        value: FormatChannelAllowNone(
+          draft.productionLogChannelId,
+          guild,
+          loggingDefaults.deployLogChannelName || DEFAULT_PRODUCTION_LOG_CHANNEL
+        ),
+        inline: true,
+      },
+      {
+        name: "Welcome Channel",
+        value: FormatChannel(draft.welcomeChannelId, guild, "welcome"),
+        inline: true,
+      }
+    );
+  }
+
+  embed.addFields(fields);
 
   return embed;
 }
-

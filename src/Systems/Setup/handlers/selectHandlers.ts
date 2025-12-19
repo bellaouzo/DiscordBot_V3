@@ -250,5 +250,38 @@ export function RegisterSelectHandlers(
       await updateMessage();
     },
   });
-}
 
+  selectMenuRouter.RegisterSelectMenu({
+    customId: ids.welcomeSelect,
+    ownerId: interaction.user.id,
+    expiresInMs: SETUP_TIMEOUT_MS,
+    handler: async (selectInteraction) => {
+      const selection = selectInteraction.values[0];
+
+      if (selection === "auto") {
+        draft.welcomeChannelId = null;
+      } else if (selection === "create") {
+        const created = await channelManager.GetOrCreateTextChannel("welcome");
+        if (created) {
+          draft.welcomeChannelId = created.id;
+          if (
+            !resources.textChannels.find((channel) => channel.id === created.id)
+          ) {
+            resources.textChannels.unshift(created);
+          }
+        } else {
+          await selectInteraction.followUp({
+            content:
+              "Could not create the welcome channel. Check bot permissions.",
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+      } else {
+        draft.welcomeChannelId = selection;
+      }
+
+      await selectInteraction.deferUpdate();
+      await updateMessage();
+    },
+  });
+}

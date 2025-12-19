@@ -58,7 +58,8 @@ async function ExecuteSetup(
     sanitizedSettings.delete_log_channel_id !==
       currentSettings.delete_log_channel_id ||
     sanitizedSettings.production_log_channel_id !==
-      currentSettings.production_log_channel_id;
+      currentSettings.production_log_channel_id ||
+    sanitizedSettings.welcome_channel_id !== currentSettings.welcome_channel_id;
 
   if (settingsChanged) {
     databases.serverDb.UpsertGuildSettings({
@@ -70,6 +71,7 @@ async function ExecuteSetup(
       announcement_channel_id: sanitizedSettings.announcement_channel_id,
       delete_log_channel_id: sanitizedSettings.delete_log_channel_id,
       production_log_channel_id: sanitizedSettings.production_log_channel_id,
+      welcome_channel_id: sanitizedSettings.welcome_channel_id,
     });
   }
 
@@ -81,6 +83,7 @@ async function ExecuteSetup(
     announcementChannelId: sanitizedSettings.announcement_channel_id,
     deleteLogChannelId: sanitizedSettings.delete_log_channel_id,
     productionLogChannelId: sanitizedSettings.production_log_channel_id,
+    welcomeChannelId: sanitizedSettings.welcome_channel_id,
   };
 
   const resources = CollectResources(guild);
@@ -93,9 +96,11 @@ async function ExecuteSetup(
     deleteLogSelect: `setup:${interaction.id}:deletelog`,
     productionLogSelect: `setup:${interaction.id}:prodlog`,
     announcementSelect: `setup:${interaction.id}:announce`,
+    welcomeSelect: `setup:${interaction.id}:welcome`,
     next: `setup:${interaction.id}:next`,
     back: `setup:${interaction.id}:back`,
     save: `setup:${interaction.id}:save`,
+    saveAndQuit: `setup:${interaction.id}:savequit`,
     cancel: `setup:${interaction.id}:cancel`,
   };
 

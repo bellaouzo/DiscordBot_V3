@@ -36,16 +36,14 @@ export function BuildStepComponents(options: {
           "Admin roles — full access",
           resources.roles,
           draft.adminRoleIds,
-          "Admin Roles",
-          "Admin: None (use perms)"
+          "Admin Roles"
         ),
         BuildRoleSelectRow(
           ids.modSelect,
           "Mod roles — day-to-day moderation",
           resources.roles,
           draft.modRoleIds,
-          "Mod Roles",
-          "Mod: None (use perms)"
+          "Mod Roles"
         )
       );
       break;
@@ -95,6 +93,13 @@ export function BuildStepComponents(options: {
             loggingDefaults.deployLogChannelName ||
             DEFAULT_PRODUCTION_LOG_CHANNEL,
           allowNone: true,
+        }),
+        BuildChannelSelectRow({
+          customId: ids.welcomeSelect,
+          channels: resources.textChannels,
+          selectedId: draft.welcomeChannelId,
+          placeholder: "Choose a welcome channel (optional)",
+          defaultName: "welcome",
         })
       );
       break;
@@ -112,24 +117,15 @@ export function BuildRoleSelectRow(
   placeholder: string,
   roles: Role[],
   selectedIds: string[],
-  label?: string,
-  noneLabel?: string
+  label?: string
 ): ActionRowData<ActionRowComponentData> {
   const menu = new StringSelectMenuBuilder()
     .setCustomId(customId)
     .setPlaceholder(placeholder)
     .setMinValues(0)
-    .setMaxValues(Math.min(roles.length + 1, 5));
+    .setMaxValues(Math.min(roles.length, 25));
 
-  menu.addOptions(
-    new StringSelectMenuOptionBuilder()
-      .setLabel(noneLabel ?? "None (use perms)")
-      .setValue("none")
-      .setDescription("No dedicated role required")
-      .setDefault(selectedIds.length === 0)
-  );
-
-  roles.slice(0, 24).forEach((role) => {
+  roles.slice(0, 25).forEach((role) => {
     const option = new StringSelectMenuOptionBuilder()
       .setLabel(role.name.slice(0, 95))
       .setValue(role.id)
@@ -303,10 +299,19 @@ export function BuildNavigationRow(
       emoji: "◀",
       disabled: step === 1,
     },
+    ...(isFinalStep
+      ? []
+      : [
+          {
+            label: "Next",
+            style: ButtonStyle.Primary,
+            emoji: "▶",
+          },
+        ]),
     {
-      label: isFinalStep ? "Save" : "Next",
-      style: isFinalStep ? ButtonStyle.Success : ButtonStyle.Primary,
-      emoji: isFinalStep ? "💾" : "▶",
+      label: "Save & Quit",
+      style: ButtonStyle.Success,
+      emoji: "💾",
     },
     {
       label: "Cancel",
@@ -315,11 +320,15 @@ export function BuildNavigationRow(
     },
   ];
 
-  const customIds = [ids.back, isFinalStep ? ids.save : ids.next, ids.cancel];
+  const customIds = [
+    ids.back,
+    ...(isFinalStep ? [] : [ids.next]),
+    ids.saveAndQuit,
+    ids.cancel,
+  ];
 
   return ComponentFactory.CreateActionRow({
     buttons,
     customIds,
   }).toJSON() as ActionRowData<ActionRowComponentData>;
 }
-

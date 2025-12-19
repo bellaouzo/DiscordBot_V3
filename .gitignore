@@ -15,6 +15,8 @@ dist/
 # Logs
 *.log
 npm-debug.log*
+logs/
+*.ndjson
 
 # Runtime data
 pids
@@ -34,6 +36,12 @@ pids
 # dotenv environment variables file
 .env.test
 
+# Database files
+*.db
+*.db-shm
+*.db-wal
+data/*.db
+
 # OS generated files
 .DS_Store
 .DS_Store?
@@ -42,8 +50,3 @@ pids
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-*.db-shm
-*.db-wal
-
-*.db

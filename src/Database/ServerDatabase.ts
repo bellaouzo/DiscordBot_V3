@@ -23,6 +23,7 @@ export interface GuildSettings {
   announcement_channel_id: string | null;
   delete_log_channel_id: string | null;
   production_log_channel_id: string | null;
+  welcome_channel_id: string | null;
   created_at: number;
   updated_at: number;
 }
@@ -105,6 +106,7 @@ export class ServerDatabase {
     };
     ensureColumn("delete_log_channel_id");
     ensureColumn("production_log_channel_id");
+    ensureColumn("welcome_channel_id");
   }
 
   private EnsureGuildEventIdColumn(): void {
@@ -318,7 +320,7 @@ export class ServerDatabase {
   GetGuildSettings(guild_id: string): GuildSettings | null {
     const stmt = this.db.prepare(
       `
-      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, command_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, created_at, updated_at
+      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, command_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, created_at, updated_at
       FROM guild_settings
       WHERE guild_id = ?
     `
@@ -334,6 +336,7 @@ export class ServerDatabase {
           announcement_channel_id: string | null;
       delete_log_channel_id: string | null;
       production_log_channel_id: string | null;
+      welcome_channel_id: string | null;
           created_at: number;
           updated_at: number;
         }
@@ -352,6 +355,7 @@ export class ServerDatabase {
       announcement_channel_id: row.announcement_channel_id ?? null,
       delete_log_channel_id: row.delete_log_channel_id ?? null,
       production_log_channel_id: row.production_log_channel_id ?? null,
+      welcome_channel_id: row.welcome_channel_id ?? null,
       created_at: Number(row.created_at),
       updated_at: Number(row.updated_at),
     };
@@ -366,6 +370,7 @@ export class ServerDatabase {
     announcement_channel_id?: string | null;
     delete_log_channel_id?: string | null;
     production_log_channel_id?: string | null;
+    welcome_channel_id?: string | null;
   }): GuildSettings {
     const existing = this.GetGuildSettings(settings.guild_id);
     const now = Date.now();
@@ -391,6 +396,8 @@ export class ServerDatabase {
       settings.production_log_channel_id ??
       existing?.production_log_channel_id ??
       null;
+    const welcomeChannelId =
+      settings.welcome_channel_id ?? existing?.welcome_channel_id ?? null;
     const createdAt = existing?.created_at ?? now;
 
     const stmt = this.db.prepare(
@@ -404,10 +411,11 @@ export class ServerDatabase {
         announcement_channel_id,
         delete_log_channel_id,
         production_log_channel_id,
+        welcome_channel_id,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(guild_id) DO UPDATE SET
         admin_role_ids = excluded.admin_role_ids,
         mod_role_ids = excluded.mod_role_ids,
@@ -416,6 +424,7 @@ export class ServerDatabase {
         announcement_channel_id = excluded.announcement_channel_id,
         delete_log_channel_id = excluded.delete_log_channel_id,
         production_log_channel_id = excluded.production_log_channel_id,
+        welcome_channel_id = excluded.welcome_channel_id,
         updated_at = excluded.updated_at
     `
     );
@@ -429,6 +438,7 @@ export class ServerDatabase {
       announcementChannelId,
       deleteLogChannelId,
       productionLogChannelId,
+      welcomeChannelId,
       createdAt,
       now
     );
