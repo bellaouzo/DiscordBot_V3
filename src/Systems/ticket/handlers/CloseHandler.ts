@@ -9,7 +9,7 @@ import {
   CreateTicketServices,
   ValidateTicketChannelOrReply,
   GetTicketOrReply,
-} from "@systems/ticket/validation/TicketValidation";
+} from "@systems/Ticket/validation/TicketValidation";
 import { Logger } from "@shared/Logger";
 
 export async function HandleTicketClose(

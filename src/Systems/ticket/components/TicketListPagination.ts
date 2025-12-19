@@ -10,7 +10,7 @@ import { EmbedFactory, ComponentFactory } from "@utilities";
 import {
   TicketInfo,
   TicketListPage,
-} from "@systems/ticket/types/TicketTypes";
+} from "@systems/Ticket/types/TicketTypes";
 
 export function CreateTicketListPage(
   tickets: TicketInfo[],

@@ -2,8 +2,8 @@ import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
-import { LevelManager } from "@systems/leveling";
-import { EconomyManager } from "@systems/economy/EconomyManager";
+import { LevelManager } from "@systems/Leveling";
+import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { PaginationPage } from "@shared/Paginator";
 
 type LeaderboardType = "xp" | "coins";

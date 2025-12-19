@@ -9,12 +9,12 @@ import {
   SanitizeGuildSettings,
   SetupDraft,
   StepState,
-} from "@systems/setup/state";
-import { CollectResources } from "@systems/setup/resources";
-import { BuildSetupEmbed } from "@systems/setup/builders/embed";
-import { BuildStepComponents } from "@systems/setup/builders/components";
-import { RegisterSelectHandlers } from "@systems/setup/handlers/selectHandlers";
-import { RegisterButtonHandlers } from "@systems/setup/handlers/buttonHandlers";
+} from "@systems/Setup/state";
+import { CollectResources } from "@systems/Setup/resources";
+import { BuildSetupEmbed } from "@systems/Setup/builders/embed";
+import { BuildStepComponents } from "@systems/Setup/builders/components";
+import { RegisterSelectHandlers } from "@systems/Setup/handlers/selectHandlers";
+import { RegisterButtonHandlers } from "@systems/Setup/handlers/buttonHandlers";
 
 async function ExecuteSetup(
   interaction: ChatInputCommandInteraction,

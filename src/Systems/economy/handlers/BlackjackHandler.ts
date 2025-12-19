@@ -1,31 +1,31 @@
 import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EconomyManager } from "@systems/economy/EconomyManager";
-import { ITEM_MAP } from "@systems/economy/items";
+import { EconomyManager } from "@systems/Economy/EconomyManager";
+import { ITEM_MAP } from "@systems/Economy/items";
 import {
   BuildBlackjackButtons,
   BuildDisabledBlackjackButtons,
-} from "@systems/economy/utils/BlackjackComponents";
+} from "@systems/Economy/utils/BlackjackComponents";
 import {
   BuildBlackjackCancelledEmbed,
   BuildBlackjackExpiredEmbed,
   BuildBlackjackProgressEmbed,
   BuildBlackjackPromptEmbed,
   BuildBlackjackResultEmbed,
-} from "@systems/economy/utils/Embeds";
+} from "@systems/Economy/utils/Embeds";
 import {
   BJ_BLACKJACK_PAYOUT,
   BJ_DEALER_STAND,
   BJ_TIMEOUT_MS,
   MAX_BET,
   MIN_BET,
-} from "@systems/economy/constants";
-import { CardValue } from "@systems/economy/types";
+} from "@systems/Economy/constants";
+import { CardValue } from "@systems/Economy/types";
 import { EmbedFactory } from "@utilities";
 import {
   AwardEconomyXp,
   EconomyOutcome,
-} from "@systems/economy/utils/EconomyXp";
+} from "@systems/Economy/utils/EconomyXp";
 
 interface BlackjackCustomIds {
   hit: string;

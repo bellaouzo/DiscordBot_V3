@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "../EconomyManager";
-import { BuildBalanceEmbed } from "@systems/economy/utils/Embeds";
+import { BuildBalanceEmbed } from "@systems/Economy/utils/Embeds";
 
 export async function HandleBalance(
   interaction: ChatInputCommandInteraction,

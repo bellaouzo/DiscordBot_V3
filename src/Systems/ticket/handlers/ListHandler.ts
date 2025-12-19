@@ -1,11 +1,11 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EmbedFactory } from "@utilities";
-import { CreateTicketServices } from "@systems/ticket/validation/TicketValidation";
+import { CreateTicketServices } from "@systems/Ticket/validation/TicketValidation";
 import {
   RegisterTicketListButtons,
   CreateTicketListPage,
-} from "@systems/ticket/components/TicketListPagination";
+} from "@systems/Ticket/components/TicketListPagination";
 
 export async function HandleTicketList(
   interaction: ChatInputCommandInteraction,

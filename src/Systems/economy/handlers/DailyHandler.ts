@@ -1,8 +1,8 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EconomyManager } from "@systems/economy/EconomyManager";
-import { BuildDailyEmbed } from "@systems/economy/utils/Embeds";
-import { DAILY_REWARD } from "@systems/economy/constants";
+import { EconomyManager } from "@systems/Economy/EconomyManager";
+import { BuildDailyEmbed } from "@systems/Economy/utils/Embeds";
+import { DAILY_REWARD } from "@systems/Economy/constants";
 
 export async function HandleDaily(
   interaction: ChatInputCommandInteraction,

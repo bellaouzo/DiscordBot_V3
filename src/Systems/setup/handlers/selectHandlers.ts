@@ -8,8 +8,8 @@ import {
   DEFAULT_PRODUCTION_LOG_CHANNEL,
   DEFAULT_TICKET_CATEGORY,
   SETUP_TIMEOUT_MS,
-} from "../../setup/constants";
-import { NavigationIds, SetupDraft, SetupResources } from "../../setup/state";
+} from "../../Setup/constants";
+import { NavigationIds, SetupDraft, SetupResources } from "../../Setup/state";
 
 interface RegisterSelectHandlersOptions {
   interaction: ChatInputCommandInteraction;

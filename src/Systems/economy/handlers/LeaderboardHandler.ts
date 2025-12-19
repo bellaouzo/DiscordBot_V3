@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EconomyManager } from "@systems/economy/EconomyManager";
-import { BuildLeaderboardEmbed } from "@systems/economy/utils/Embeds";
+import { EconomyManager } from "@systems/Economy/EconomyManager";
+import { BuildLeaderboardEmbed } from "@systems/Economy/utils/Embeds";
 import { EmbedFactory } from "@utilities";
 
 export async function HandleLeaderboard(

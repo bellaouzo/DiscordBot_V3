@@ -1,11 +1,11 @@
 import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EconomyManager } from "@systems/economy/EconomyManager";
-import { ITEM_MAP } from "@systems/economy/items";
+import { EconomyManager } from "@systems/Economy/EconomyManager";
+import { ITEM_MAP } from "@systems/Economy/items";
 import {
   BuildCrashButtons,
   BuildDisabledCrashButtons,
-} from "@systems/economy/utils/CrashComponents";
+} from "@systems/Economy/utils/CrashComponents";
 import {
   BuildCrashCancelledEmbed,
   BuildCrashCashoutEmbed,
@@ -13,18 +13,18 @@ import {
   BuildCrashExpiredEmbed,
   BuildCrashProgressEmbed,
   BuildCrashPromptEmbed,
-} from "@systems/economy/utils/Embeds";
+} from "@systems/Economy/utils/Embeds";
 import {
   CRASH_TICK_MS,
   CRASH_TIMEOUT_MS,
   MAX_BET,
   MIN_BET,
-} from "@systems/economy/constants";
+} from "@systems/Economy/constants";
 import { EmbedFactory } from "@utilities";
 import {
   AwardEconomyXp,
   EconomyOutcome,
-} from "@systems/economy/utils/EconomyXp";
+} from "@systems/Economy/utils/EconomyXp";
 
 interface CrashCustomIds {
   cashout: string;

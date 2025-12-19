@@ -5,15 +5,15 @@ import {
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware/CommandConfig";
 
-import { HandleTicketCreate } from "@systems/ticket/handlers/CreateHandler";
-import { HandleTicketList } from "@systems/ticket/handlers/ListHandler";
-import { HandleTicketClose } from "@systems/ticket/handlers/CloseHandler";
-import { HandleTicketClaim } from "@systems/ticket/handlers/ClaimHandler";
-import { HandleTicketTranscript } from "@systems/ticket/handlers/TranscriptHandler";
-import { HandleTicketAdd } from "@systems/ticket/handlers/AddHandler";
-import { HandleTicketRemove } from "@systems/ticket/handlers/RemoveHandler";
-import { HandleTicketReopen } from "@systems/ticket/handlers/ReopenHandler";
-import { HandleTicketTag } from "@systems/ticket/handlers/TagHandler";
+import { HandleTicketCreate } from "@systems/Ticket/handlers/CreateHandler";
+import { HandleTicketList } from "@systems/Ticket/handlers/ListHandler";
+import { HandleTicketClose } from "@systems/Ticket/handlers/CloseHandler";
+import { HandleTicketClaim } from "@systems/Ticket/handlers/ClaimHandler";
+import { HandleTicketTranscript } from "@systems/Ticket/handlers/TranscriptHandler";
+import { HandleTicketAdd } from "@systems/Ticket/handlers/AddHandler";
+import { HandleTicketRemove } from "@systems/Ticket/handlers/RemoveHandler";
+import { HandleTicketReopen } from "@systems/Ticket/handlers/ReopenHandler";
+import { HandleTicketTag } from "@systems/Ticket/handlers/TagHandler";
 
 async function ExecuteTicket(
   interaction: ChatInputCommandInteraction,

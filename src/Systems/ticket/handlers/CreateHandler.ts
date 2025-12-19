@@ -18,11 +18,11 @@ import { Logger } from "@shared/Logger";
 import { ComponentRouter } from "@shared/ComponentRouter";
 import { ButtonResponder } from "@responders";
 import { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
-import { CreateTicketServices } from "@systems/ticket/validation/TicketValidation";
-import { RegisterClaimButton } from "@systems/ticket/buttons/ClaimButton";
-import { RegisterAddUserButton } from "@systems/ticket/buttons/AddUserButton";
-import { RegisterRemoveUserButton } from "@systems/ticket/buttons/RemoveUserButton";
-import { RegisterCloseButton } from "@systems/ticket/buttons/CloseButton";
+import { CreateTicketServices } from "@systems/Ticket/validation/TicketValidation";
+import { RegisterClaimButton } from "@systems/Ticket/buttons/ClaimButton";
+import { RegisterAddUserButton } from "@systems/Ticket/buttons/AddUserButton";
+import { RegisterRemoveUserButton } from "@systems/Ticket/buttons/RemoveUserButton";
+import { RegisterCloseButton } from "@systems/Ticket/buttons/CloseButton";
 
 export async function HandleTicketCreate(
   interaction: ChatInputCommandInteraction,

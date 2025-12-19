@@ -3,8 +3,8 @@ import { ComponentRouter } from "@shared/ComponentRouter";
 import { ButtonResponder } from "@responders";
 import { TicketDatabase, Ticket } from "@database";
 import { EmbedFactory } from "@utilities";
-import { HasStaffPermissions } from "@systems/ticket/validation/TicketValidation";
-import { BUTTON_EXPIRATION_MS } from "@systems/ticket/types/TicketTypes";
+import { HasStaffPermissions } from "@systems/Ticket/validation/TicketValidation";
+import { BUTTON_EXPIRATION_MS } from "@systems/Ticket/types/TicketTypes";
 
 export async function RegisterClaimButton(
   componentRouter: ComponentRouter,

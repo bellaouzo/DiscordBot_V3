@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, TextChannel, Guild } from "discord.js";
-import { GuildMemberOrAPI } from "@systems/ticket/types/TicketTypes";
+import { GuildMemberOrAPI } from "@systems/Ticket/types/TicketTypes";
 import { TicketDatabase, Ticket } from "@database";
 import { CreateTicketManager, CreateGuildResourceLocator } from "@utilities";
 import { Logger } from "@shared/Logger";

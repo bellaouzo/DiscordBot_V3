@@ -6,7 +6,7 @@ import {
   ValidateTicketChannelOrReply,
   GetTicketOrReply,
   HasStaffPermissions,
-} from "@systems/ticket/validation/TicketValidation";
+} from "@systems/Ticket/validation/TicketValidation";
 
 export async function HandleTicketTranscript(
   interaction: ChatInputCommandInteraction,

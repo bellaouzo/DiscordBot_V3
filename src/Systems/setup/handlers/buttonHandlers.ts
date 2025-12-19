@@ -2,8 +2,8 @@ import { ComponentRouter } from "@shared/ComponentRouter";
 import { ButtonResponder } from "@responders/ButtonResponder";
 import { EmbedFactory } from "@utilities";
 import { ServerDatabase } from "@database/ServerDatabase";
-import { SETUP_TIMEOUT_MS } from "../../setup/constants";
-import { NavigationIds, SetupDraft, StepState } from "../../setup/state";
+import { SETUP_TIMEOUT_MS } from "../../Setup/constants";
+import { NavigationIds, SetupDraft, StepState } from "../../Setup/state";
 
 interface RegisterButtonHandlersOptions {
   ids: NavigationIds;

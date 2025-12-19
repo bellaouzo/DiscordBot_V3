@@ -1,21 +1,21 @@
 import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EconomyManager } from "@systems/economy/EconomyManager";
-import { BuildWheelResultEmbed } from "@systems/economy/utils/Embeds";
+import { EconomyManager } from "@systems/Economy/EconomyManager";
+import { BuildWheelResultEmbed } from "@systems/Economy/utils/Embeds";
 import {
   BuildDisabledWheelButtons,
   BuildWheelButtons,
-} from "@systems/economy/utils/WheelComponents";
+} from "@systems/Economy/utils/WheelComponents";
 import {
   MAX_BET,
   MIN_BET,
   WHEEL_TIMEOUT_MS,
-} from "@systems/economy/constants";
+} from "@systems/Economy/constants";
 import { EmbedFactory } from "@utilities";
 import {
   AwardEconomyXp,
   EconomyOutcome,
-} from "@systems/economy/utils/EconomyXp";
+} from "@systems/Economy/utils/EconomyXp";
 
 type WheelSegment = {
   label: string;

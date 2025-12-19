@@ -1,27 +1,27 @@
 import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EconomyManager } from "@systems/economy/EconomyManager";
-import { ITEM_MAP } from "@systems/economy/items";
+import { EconomyManager } from "@systems/Economy/EconomyManager";
+import { ITEM_MAP } from "@systems/Economy/items";
 import {
   BuildDisabledFlipButtons,
   BuildFlipButtons,
-} from "@systems/economy/utils/FlipComponents";
+} from "@systems/Economy/utils/FlipComponents";
 import {
   BuildFlipCancelledEmbed,
   BuildFlipExpiredEmbed,
   BuildFlipPromptEmbed,
   BuildFlipResultEmbed,
-} from "@systems/economy/utils/Embeds";
+} from "@systems/Economy/utils/Embeds";
 import {
   FLIP_TIMEOUT_MS,
   MAX_BET,
   MIN_BET,
-} from "@systems/economy/constants";
-import { FlipChoice } from "@systems/economy/types";
+} from "@systems/Economy/constants";
+import { FlipChoice } from "@systems/Economy/types";
 import {
   AwardEconomyXp,
   EconomyOutcome,
-} from "@systems/economy/utils/EconomyXp";
+} from "@systems/Economy/utils/EconomyXp";
 
 interface FlipCustomIds {
   heads: string;

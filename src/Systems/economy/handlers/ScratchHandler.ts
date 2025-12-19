@@ -1,29 +1,29 @@
 import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EconomyManager } from "@systems/economy/EconomyManager";
+import { EconomyManager } from "@systems/Economy/EconomyManager";
 import {
   BuildScratchButtons,
   BuildDisabledScratchButtons,
-} from "@systems/economy/utils/ScratchComponents";
+} from "@systems/Economy/utils/ScratchComponents";
 import {
   BuildScratchCancelledEmbed,
   BuildScratchExpiredEmbed,
   BuildScratchProgressEmbed,
   BuildScratchPromptEmbed,
   BuildScratchResultEmbed,
-} from "@systems/economy/utils/Embeds";
+} from "@systems/Economy/utils/Embeds";
 import {
   MAX_BET,
   MIN_BET,
   SCRATCH_TIMEOUT_MS,
-} from "@systems/economy/constants";
-import { ScratchSymbol } from "@systems/economy/types";
-import { ITEM_MAP } from "@systems/economy/items";
+} from "@systems/Economy/constants";
+import { ScratchSymbol } from "@systems/Economy/types";
+import { ITEM_MAP } from "@systems/Economy/items";
 import { EmbedFactory } from "@utilities";
 import {
   AwardEconomyXp,
   EconomyOutcome,
-} from "@systems/economy/utils/EconomyXp";
+} from "@systems/Economy/utils/EconomyXp";
 
 interface ScratchCustomIds {
   slots: string[];

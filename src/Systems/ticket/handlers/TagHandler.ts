@@ -4,7 +4,7 @@ import {
   CreateTicketServices,
   ValidateTicketChannelOrReply,
   GetTicketOrReply,
-} from "@systems/ticket/validation/TicketValidation";
+} from "@systems/Ticket/validation/TicketValidation";
 import { EmbedFactory } from "@utilities";
 
 type TagAction = "add" | "remove" | "list";

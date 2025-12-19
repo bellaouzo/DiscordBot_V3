@@ -1,18 +1,18 @@
 import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EconomyManager } from "@systems/economy/EconomyManager";
-import { ITEM_MAP } from "@systems/economy/items";
+import { EconomyManager } from "@systems/Economy/EconomyManager";
+import { ITEM_MAP } from "@systems/Economy/items";
 import {
   BuildHorseButtons,
   BuildDisabledHorseButtons,
-} from "@systems/economy/utils/HorseComponents";
+} from "@systems/Economy/utils/HorseComponents";
 import {
   BuildHorseCancelledEmbed,
   BuildHorseExpiredEmbed,
   BuildHorseProgressEmbed,
   BuildHorsePromptEmbed,
   BuildHorseResultEmbed,
-} from "@systems/economy/utils/Embeds";
+} from "@systems/Economy/utils/Embeds";
 import {
   HORSE_PAYOUT_MULTIPLIER,
   HORSE_TICK_MS,
@@ -20,13 +20,13 @@ import {
   HORSE_TRACK_LENGTH,
   MAX_BET,
   MIN_BET,
-} from "@systems/economy/constants";
-import { HorseId } from "@systems/economy/types";
+} from "@systems/Economy/constants";
+import { HorseId } from "@systems/Economy/types";
 import { EmbedFactory } from "@utilities";
 import {
   AwardEconomyXp,
   EconomyOutcome,
-} from "@systems/economy/utils/EconomyXp";
+} from "@systems/Economy/utils/EconomyXp";
 
 interface HorseCustomIds {
   horses: string[];

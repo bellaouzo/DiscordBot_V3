@@ -10,8 +10,8 @@ import {
   GuildResourceLocator,
 } from "@utilities";
 import { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
-import { BUTTON_EXPIRATION_MS } from "@systems/ticket/types/TicketTypes";
-import { HandleUserRemoval } from "@systems/ticket/components/UserSelectionMenu";
+import { BUTTON_EXPIRATION_MS } from "@systems/Ticket/types/TicketTypes";
+import { HandleUserRemoval } from "@systems/Ticket/components/UserSelectionMenu";
 
 export async function RegisterRemoveUserButton(
   componentRouter: ComponentRouter,

@@ -1,14 +1,14 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EconomyManager } from "@systems/economy/EconomyManager";
-import { BuildDiceResultEmbed } from "@systems/economy/utils/Embeds";
+import { EconomyManager } from "@systems/Economy/EconomyManager";
+import { BuildDiceResultEmbed } from "@systems/Economy/utils/Embeds";
 import { DICE_PAYOUT_MULTIPLIER, MAX_BET, MIN_BET } from "../constants";
 import { ITEM_MAP } from "../items";
 import { EmbedFactory } from "@utilities";
 import {
   AwardEconomyXp,
   EconomyOutcome,
-} from "@systems/economy/utils/EconomyXp";
+} from "@systems/Economy/utils/EconomyXp";
 
 export async function HandleDice(
   interaction: ChatInputCommandInteraction,

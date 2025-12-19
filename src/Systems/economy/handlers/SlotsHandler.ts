@@ -1,21 +1,21 @@
 import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EconomyManager } from "@systems/economy/EconomyManager";
-import { BuildSlotsResultEmbed } from "@systems/economy/utils/Embeds";
+import { EconomyManager } from "@systems/Economy/EconomyManager";
+import { BuildSlotsResultEmbed } from "@systems/Economy/utils/Embeds";
 import {
   BuildDisabledSlotsButtons,
   BuildSlotsButtons,
-} from "@systems/economy/utils/SlotsComponents";
+} from "@systems/Economy/utils/SlotsComponents";
 import {
   MAX_BET,
   MIN_BET,
   SLOTS_TIMEOUT_MS,
-} from "@systems/economy/constants";
+} from "@systems/Economy/constants";
 import { EmbedFactory } from "@utilities";
 import {
   AwardEconomyXp,
   EconomyOutcome,
-} from "@systems/economy/utils/EconomyXp";
+} from "@systems/Economy/utils/EconomyXp";
 
 type SlotSymbol = {
   icon: string;

@@ -23,3 +23,14 @@
 {"timestamp":1766103505590,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"economy","group":"fun","subcommand":"balance","options":{}}
 {"timestamp":1766103526628,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"giveaway","group":"utility","subcommand":"create","options":{"prize":"Test","duration":"30s"}}
 {"timestamp":1766103533956,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"giveaway","group":"utility","subcommand":"create","options":{"prize":"Test","duration":"1m"}}
+{"timestamp":1766103629799,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"giveaway","group":"utility","subcommand":"list","options":{}}
+{"timestamp":1766103636508,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"giveaway","group":"utility","subcommand":"list","options":{}}
+{"timestamp":1766103899641,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"help","group":"utility"}
+{"timestamp":1766103902429,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"ping","group":"utility"}
+{"timestamp":1766103904678,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"economy","group":"fun","subcommand":"balance","options":{}}
+{"timestamp":1766103906746,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"ping","group":"utility"}
+{"timestamp":1766103909115,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"ping","group":"utility"}
+{"timestamp":1766103911252,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"ping","group":"utility"}
+{"timestamp":1766103913168,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"ping","group":"utility"}
+{"timestamp":1766103927237,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"giveaway","group":"utility","subcommand":"create","options":{"prize":"A big hug","duration":"5m"}}
+{"timestamp":1766103933315,"guildId":"1169429889586298960","channelId":"1169429891029159968","userId":"183702016969670657","command":"giveaway","group":"utility","subcommand":"list","options":{}}

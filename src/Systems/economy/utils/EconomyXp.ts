@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { LevelManager } from "@systems/leveling/LevelManager";
+import { LevelManager } from "@systems/Leveling/LevelManager";
 
 export type EconomyOutcome = "win" | "loss" | "neutral";
 

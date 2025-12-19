@@ -1,28 +1,28 @@
 import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EconomyManager } from "@systems/economy/EconomyManager";
+import { EconomyManager } from "@systems/Economy/EconomyManager";
 import {
   BuildDisabledRpsButtons,
   BuildRpsButtons,
-} from "@systems/economy/utils/RpsComponents";
+} from "@systems/Economy/utils/RpsComponents";
 import {
   BuildRpsCancelledEmbed,
   BuildRpsExpiredEmbed,
   BuildRpsPromptEmbed,
   BuildRpsResultEmbed,
-} from "@systems/economy/utils/Embeds";
+} from "@systems/Economy/utils/Embeds";
 import {
   MAX_BET,
   MIN_BET,
   RPS_TIMEOUT_MS,
-} from "@systems/economy/constants";
-import { RpsChoice } from "@systems/economy/types";
-import { ITEM_MAP } from "@systems/economy/items";
+} from "@systems/Economy/constants";
+import { RpsChoice } from "@systems/Economy/types";
+import { ITEM_MAP } from "@systems/Economy/items";
 import { EmbedFactory } from "@utilities";
 import {
   AwardEconomyXp,
   EconomyOutcome,
-} from "@systems/economy/utils/EconomyXp";
+} from "@systems/Economy/utils/EconomyXp";
 
 interface RpsCustomIds {
   rock: string;
