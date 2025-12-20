@@ -1,8 +1,8 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
-import { LoadAppConfig } from "@config/AppConfig";
+import { EmbedFactory, RequestJson } from "@utilities";
+import { LoadApiConfig } from "@config/ApiConfig";
 
 interface WeatherData {
   name: string;
@@ -35,13 +35,13 @@ interface WeatherError {
 }
 
 const WEATHER_EMOJIS: Record<string, string> = {
-  "01d": "☀️",  // Clear sky day
-  "01n": "🌙",  // Clear sky night
-  "02d": "⛅",  // Few clouds day
-  "02n": "☁️",  // Few clouds night
-  "03d": "☁️",  // Scattered clouds
+  "01d": "☀️", // Clear sky day
+  "01n": "🌙", // Clear sky night
+  "02d": "⛅", // Few clouds day
+  "02n": "☁️", // Few clouds night
+  "03d": "☁️", // Scattered clouds
   "03n": "☁️",
-  "04d": "☁️",  // Broken clouds
+  "04d": "☁️", // Broken clouds
   "04n": "☁️",
   "09d": "🌧️", // Shower rain
   "09n": "🌧️",
@@ -59,9 +59,12 @@ function GetWeatherEmoji(iconCode: string): string {
   return WEATHER_EMOJIS[iconCode] ?? "🌡️";
 }
 
-function FormatTemperature(kelvin: number): { celsius: number; fahrenheit: number } {
+function FormatTemperature(kelvin: number): {
+  celsius: number;
+  fahrenheit: number;
+} {
   const celsius = Math.round(kelvin - 273.15);
-  const fahrenheit = Math.round((kelvin - 273.15) * 9/5 + 32);
+  const fahrenheit = Math.round(((kelvin - 273.15) * 9) / 5 + 32);
   return { celsius, fahrenheit };
 }
 
@@ -74,18 +77,20 @@ function FormatUnixTime(unix: number, timezoneOffset: number): string {
   return `${hour12}:${minutes} ${ampm}`;
 }
 
+const apiConfig = LoadApiConfig();
+
 async function ExecuteWeather(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-  const config = LoadAppConfig();
-  const apiKey = config.apiKeys.openWeatherMapApiKey;
+  const apiKey = apiConfig.weather.apiKey;
 
   if (!apiKey) {
     const embed = EmbedFactory.CreateError({
       title: "Weather Unavailable",
-      description: "Weather functionality is not configured. Please ask the bot owner to add an OpenWeatherMap API key.",
+      description:
+        "Weather functionality is not configured. Please ask the bot owner to add an OpenWeatherMap API key.",
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
@@ -99,9 +104,36 @@ async function ExecuteWeather(
   await interactionResponder.Defer(interaction, false);
 
   try {
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&appid=${apiKey}`;
-    const response = await fetch(url);
-    const data = await response.json() as WeatherData | WeatherError;
+    const response = await RequestJson<WeatherData | WeatherError>(
+      `${apiConfig.weather.url}/weather`,
+      {
+        query: {
+          q: location,
+          appid: apiKey,
+        },
+        timeoutMs: apiConfig.weather.timeoutMs,
+      }
+    );
+
+    if (!response.ok || !response.data) {
+      context.logger.Error("Weather API error", {
+        extra: {
+          status: response.status,
+          error: response.error,
+        },
+      });
+      const embed = EmbedFactory.CreateError({
+        title: "Weather Error",
+        description:
+          "An error occurred while fetching weather data. Please try again later.",
+      });
+      await interactionResponder.Edit(interaction, {
+        embeds: [embed.toJSON()],
+      });
+      return;
+    }
+
+    const data = response.data;
 
     if ("cod" in data && data.cod !== 200) {
       const embed = EmbedFactory.CreateError({
@@ -172,7 +204,8 @@ async function ExecuteWeather(
     context.logger.Error("Weather API error", { error });
     const embed = EmbedFactory.CreateError({
       title: "Weather Error",
-      description: "An error occurred while fetching weather data. Please try again later.",
+      description:
+        "An error occurred while fetching weather data. Please try again later.",
     });
     await interactionResponder.Edit(interaction, {
       embeds: [embed.toJSON()],

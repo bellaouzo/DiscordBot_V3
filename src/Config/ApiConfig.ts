@@ -13,6 +13,14 @@ interface NewsConfig extends EndpointConfig {
   readonly apiKey: string;
 }
 
+interface WeatherConfig extends EndpointConfig {
+  readonly apiKey: string | null;
+}
+
+interface TranslateConfig extends EndpointConfig {
+  readonly apiKey: string | null;
+}
+
 export interface ApiConfig {
   readonly quote: EndpointConfig;
   readonly meme: EndpointConfig;
@@ -22,6 +30,8 @@ export interface ApiConfig {
   readonly trivia: EndpointConfig;
   readonly apod: ApodConfig;
   readonly news: NewsConfig;
+  readonly weather: WeatherConfig;
+  readonly translate: TranslateConfig;
 }
 
 const DEFAULTS: ApiConfig = {
@@ -40,6 +50,16 @@ const DEFAULTS: ApiConfig = {
     url: "https://newsapi.org/v2",
     timeoutMs: 7000,
     apiKey: "797ad4f3fa334d5e968f59127c41e929",
+  },
+  weather: {
+    url: "https://api.openweathermap.org/data/2.5",
+    timeoutMs: 8000,
+    apiKey: null,
+  },
+  translate: {
+    url: "https://api.mymemory.translated.net",
+    timeoutMs: 10000,
+    apiKey: null,
   },
 };
 
@@ -115,6 +135,22 @@ export function LoadApiConfig(): ApiConfig {
         DEFAULTS.news.timeoutMs
       ),
       apiKey: process.env.API_NEWS_KEY || DEFAULTS.news.apiKey,
+    },
+    weather: {
+      url: process.env.API_WEATHER_URL || DEFAULTS.weather.url,
+      timeoutMs: toNumber(
+        process.env.API_WEATHER_TIMEOUT_MS,
+        DEFAULTS.weather.timeoutMs
+      ),
+      apiKey: process.env.OPENWEATHER_API_KEY || DEFAULTS.weather.apiKey,
+    },
+    translate: {
+      url: process.env.API_TRANSLATE_URL || DEFAULTS.translate.url,
+      timeoutMs: toNumber(
+        process.env.API_TRANSLATE_TIMEOUT_MS,
+        DEFAULTS.translate.timeoutMs
+      ),
+      apiKey: process.env.API_TRANSLATE_KEY || DEFAULTS.translate.apiKey,
     },
   };
 }
