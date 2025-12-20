@@ -7,7 +7,14 @@ async function ExecuteGuildMemberAddEvent(
   member: unknown
 ): Promise<void> {
   const guildMember = member as GuildMember;
+
+  context.logger.Debug("GuildMemberAdd event triggered", {
+    guildId: guildMember.guild?.id,
+    userId: guildMember.user?.id,
+  });
+
   if (!guildMember.guild) {
+    context.logger.Debug("GuildMemberAdd: No guild found, skipping");
     return;
   }
 
@@ -16,7 +23,17 @@ async function ExecuteGuildMemberAddEvent(
       guildMember.guild.id
     );
 
-    if (!settings || !settings.welcome_channel_id) {
+    if (!settings) {
+      context.logger.Debug("No guild settings found for welcome message", {
+        guildId: guildMember.guild.id,
+      });
+      return;
+    }
+
+    if (!settings.welcome_channel_id) {
+      context.logger.Debug("No welcome channel configured", {
+        guildId: guildMember.guild.id,
+      });
       return;
     }
 
@@ -24,7 +41,24 @@ async function ExecuteGuildMemberAddEvent(
       settings.welcome_channel_id
     );
 
-    if (!channel || !channel.isTextBased()) {
+    if (!channel) {
+      context.logger.Warn("Welcome channel not found", {
+        guildId: guildMember.guild.id,
+        extra: {
+          channelId: settings.welcome_channel_id,
+        },
+      });
+      return;
+    }
+
+    if (!channel.isTextBased()) {
+      context.logger.Warn("Welcome channel is not a text channel", {
+        guildId: guildMember.guild.id,
+        extra: {
+          channelId: settings.welcome_channel_id,
+          channelType: channel.type,
+        },
+      });
       return;
     }
 
@@ -53,8 +87,20 @@ async function ExecuteGuildMemberAddEvent(
       content: `${guildMember}`,
       embeds: [welcomeEmbed.toJSON()],
     });
+
+    context.logger.Debug("Welcome message sent", {
+      guildId: guildMember.guild.id,
+      userId: guildMember.user.id,
+      extra: {
+        channelId: settings.welcome_channel_id,
+      },
+    });
   } catch (error) {
-    context.logger.Error("Failed to send welcome message", { error });
+    context.logger.Error("Failed to send welcome message", {
+      guildId: guildMember.guild.id,
+      userId: guildMember.user.id,
+      error,
+    });
   }
 }
 

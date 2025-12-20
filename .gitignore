@@ -36,6 +36,11 @@ pids
 # dotenv environment variables file
 .env.test
 
+# Database files
+*.db-shm
+*.db-wal
+data/
+
 # OS generated files
 .DS_Store
 .DS_Store?
