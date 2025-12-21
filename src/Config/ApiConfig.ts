@@ -32,6 +32,8 @@ export interface ApiConfig {
   readonly news: NewsConfig;
   readonly weather: WeatherConfig;
   readonly translate: TranslateConfig;
+  readonly insult: EndpointConfig;
+  readonly compliment: EndpointConfig;
 }
 
 const DEFAULTS: ApiConfig = {
@@ -61,6 +63,11 @@ const DEFAULTS: ApiConfig = {
     timeoutMs: 10000,
     apiKey: null,
   },
+  insult: {
+    url: "https://evilinsult.com/generate_insult.php",
+    timeoutMs: 5000,
+  },
+  compliment: { url: "https://complimentr.com/api", timeoutMs: 5000 },
 };
 
 function toNumber(value: string | undefined, fallback: number): number {
@@ -151,6 +158,20 @@ export function LoadApiConfig(): ApiConfig {
         DEFAULTS.translate.timeoutMs
       ),
       apiKey: process.env.API_TRANSLATE_KEY || DEFAULTS.translate.apiKey,
+    },
+    insult: {
+      url: process.env.API_INSULT_URL || DEFAULTS.insult.url,
+      timeoutMs: toNumber(
+        process.env.API_INSULT_TIMEOUT_MS,
+        DEFAULTS.insult.timeoutMs
+      ),
+    },
+    compliment: {
+      url: process.env.API_COMPLIMENT_URL || DEFAULTS.compliment.url,
+      timeoutMs: toNumber(
+        process.env.API_COMPLIMENT_TIMEOUT_MS,
+        DEFAULTS.compliment.timeoutMs
+      ),
     },
   };
 }
