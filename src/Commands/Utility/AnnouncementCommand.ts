@@ -56,7 +56,7 @@ async function ExecuteAnnouncement(
       embeds: [
         EmbedFactory.CreateError({
           title: "Guild Only",
-          description: "Announcements must be sent from a server.",
+          description: "This command can only be used in a server.",
         }).toJSON(),
       ],
       ephemeral: true,

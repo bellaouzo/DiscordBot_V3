@@ -54,7 +54,7 @@ async function HandleCreate(
 ): Promise<void> {
   const { interactionResponder, componentRouter } = context.responders;
 
-  if (!interaction.guildId || !interaction.channel?.isTextBased()) {
+  if (!interaction.guild || !interaction.channel?.isTextBased()) {
     const embed = EmbedFactory.CreateError({
       title: "Invalid Channel",
       description: "Giveaways can only be created in server text channels.",
@@ -92,7 +92,7 @@ async function HandleCreate(
   await interactionResponder.Defer(interaction, true);
 
   const manager = new GiveawayManager(
-    interaction.guildId,
+    interaction.guild.id,
     context.databases.userDb
   );
   const endsAt = Date.now() + durationMs!;
@@ -288,9 +288,9 @@ async function HandleEnd(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guildId) {
+  if (!interaction.guild) {
     const embed = EmbedFactory.CreateError({
-      title: "Server Only",
+      title: "Guild Only",
       description: "This command can only be used in a server.",
     });
     await interactionResponder.Reply(interaction, {
@@ -302,7 +302,7 @@ async function HandleEnd(
 
   const messageId = interaction.options.getString("message_id", true);
   const manager = new GiveawayManager(
-    interaction.guildId,
+    interaction.guild.id,
     context.databases.userDb
   );
   const giveaway = manager.GetGiveaway(messageId);
@@ -369,9 +369,9 @@ async function HandleReroll(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guildId) {
+  if (!interaction.guild) {
     const embed = EmbedFactory.CreateError({
-      title: "Server Only",
+      title: "Guild Only",
       description: "This command can only be used in a server.",
     });
     await interactionResponder.Reply(interaction, {
@@ -383,7 +383,7 @@ async function HandleReroll(
 
   const messageId = interaction.options.getString("message_id", true);
   const manager = new GiveawayManager(
-    interaction.guildId,
+    interaction.guild.id,
     context.databases.userDb
   );
   const giveaway = manager.GetGiveaway(messageId);
@@ -457,9 +457,9 @@ async function HandleList(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guildId) {
+  if (!interaction.guild) {
     const embed = EmbedFactory.CreateError({
-      title: "Server Only",
+      title: "Guild Only",
       description: "This command can only be used in a server.",
     });
     await interactionResponder.Reply(interaction, {
@@ -470,7 +470,7 @@ async function HandleList(
   }
 
   const manager = new GiveawayManager(
-    interaction.guildId,
+    interaction.guild.id,
     context.databases.userDb
   );
   const activeGiveaways = manager.GetActiveGiveaways();

@@ -5,6 +5,10 @@ import { Logger } from "@shared/Logger";
 
 export type TempActionType = "ban" | "mute";
 
+function isTempActionType(value: unknown): value is TempActionType {
+  return value === "ban" || value === "mute";
+}
+
 export interface TempAction {
   id: number;
   action: TempActionType;
@@ -20,6 +24,10 @@ export interface TempAction {
 
 export type LockdownScope = "channel" | "category";
 
+function isLockdownScope(value: unknown): value is LockdownScope {
+  return value === "channel" || value === "category";
+}
+
 export interface Lockdown {
   id: number;
   scope: LockdownScope;
@@ -33,6 +41,10 @@ export interface Lockdown {
 }
 
 export type LinkFilterType = "allow" | "block";
+
+function isLinkFilterType(value: unknown): value is LinkFilterType {
+  return value === "allow" || value === "block";
+}
 
 export interface LinkFilter {
   id: number;
@@ -72,9 +84,13 @@ export class ModerationDatabase {
   }
 
   private MapTempAction(row: Record<string, unknown>): TempAction {
+    const action = row.action;
+    if (!isTempActionType(action)) {
+      throw new Error(`Invalid temp action type: ${action}`);
+    }
     return {
       id: Number(row.id),
-      action: row.action as TempActionType,
+      action,
       guild_id: String(row.guild_id),
       user_id: String(row.user_id),
       moderator_id: String(row.moderator_id),
@@ -87,9 +103,13 @@ export class ModerationDatabase {
   }
 
   private MapLockdown(row: Record<string, unknown>): Lockdown {
+    const scope = row.scope;
+    if (!isLockdownScope(scope)) {
+      throw new Error(`Invalid lockdown scope: ${scope}`);
+    }
     return {
       id: Number(row.id),
-      scope: row.scope as LockdownScope,
+      scope,
       guild_id: String(row.guild_id),
       target_id: String(row.target_id),
       applied_by: String(row.applied_by),
@@ -101,11 +121,15 @@ export class ModerationDatabase {
   }
 
   private MapLinkFilter(row: Record<string, unknown>): LinkFilter {
+    const filterType = row.type;
+    if (!isLinkFilterType(filterType)) {
+      throw new Error(`Invalid link filter type: ${filterType}`);
+    }
     return {
       id: Number(row.id),
       guild_id: String(row.guild_id),
       pattern: String(row.pattern),
-      type: row.type as LinkFilterType,
+      type: filterType,
       created_by: String(row.created_by),
       created_at: Number(row.created_at),
     };

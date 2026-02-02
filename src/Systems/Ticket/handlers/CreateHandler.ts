@@ -2,7 +2,6 @@ import {
   ChatInputCommandInteraction,
   StringSelectMenuInteraction,
   Guild,
-  ActionRowData,
   ActionRowComponentData,
   MessageFlags,
 } from "discord.js";
@@ -13,6 +12,7 @@ import {
   ComponentFactory,
   CreateTicketManager,
   GuildResourceLocator,
+  ToActionRowData,
 } from "@utilities";
 import { Logger } from "@shared/Logger";
 import { ComponentRouter } from "@shared/ComponentRouter";
@@ -109,9 +109,7 @@ export async function HandleTicketCreate(
         color: 0x5865f2,
       }).toJSON(),
     ],
-    components: [
-      row.toJSON(),
-    ] as unknown as ActionRowData<ActionRowComponentData>[],
+    components: [ToActionRowData<ActionRowComponentData>(row)],
     ephemeral: true,
   });
 }

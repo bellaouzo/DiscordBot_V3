@@ -23,12 +23,28 @@ async function ExecuteInsult(
   });
 
   if (!response.ok || !response.data) {
-    throw new Error(response.error ?? "Insult API request failed");
+    const embed = EmbedFactory.CreateError({
+      title: "API Error",
+      description: response.error ?? "Insult API request failed",
+    });
+    await context.responders.interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
   }
 
   const insult = response.data.insult;
   if (!insult) {
-    throw new Error("The insult service returned an empty response");
+    const embed = EmbedFactory.CreateError({
+      title: "API Error",
+      description: "The insult service returned an empty response",
+    });
+    await context.responders.interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
   }
 
   const embed = EmbedFactory.Create({

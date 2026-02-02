@@ -2,7 +2,6 @@ import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { CreateChannelManager, EmbedFactory } from "@utilities";
-import { LoadAppConfig } from "@config/AppConfig";
 import {
   CreateEmptySettings,
   NavigationIds,
@@ -31,7 +30,7 @@ async function ExecuteSetup(
   if (!interaction.guild) {
     const embed = EmbedFactory.CreateError({
       title: "Guild Only",
-      description: "Run this command inside a server to configure the bot.",
+      description: "This command can only be used in a server.",
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
@@ -42,7 +41,7 @@ async function ExecuteSetup(
 
   const guild = interaction.guild;
   const channelManager = CreateChannelManager({ guild, logger });
-  const loggingDefaults = LoadAppConfig().logging;
+  const loggingDefaults = context.appConfig.logging;
   const currentSettings =
     databases.serverDb.GetGuildSettings(guild.id) ??
     CreateEmptySettings(guild.id);
@@ -174,9 +173,6 @@ export const SetupCommand = CreateCommand({
   name: "setup",
   description: "Interactive first-time setup for roles and channels",
   group: "admin",
-  config: Config.create()
-    .anyPermission("ManageGuild", "Administrator")
-    .cooldownSeconds(3)
-    .build(),
+  config: Config.admin(),
   execute: ExecuteSetup,
 });

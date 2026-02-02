@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import * as fs from "fs";
 import { join } from "path";
 import { Logger } from "@shared/Logger";
+import { SafeParseJson, isStringArray } from "@utilities/SafeJson";
 
 export interface ScheduledEvent {
   id: number;
@@ -93,11 +94,21 @@ export class ServerDatabase {
     }
   }
 
+  private static readonly VALID_GUILD_SETTINGS_COLUMNS = new Set([
+    "delete_log_channel_id",
+    "production_log_channel_id",
+    "welcome_channel_id",
+  ]);
+
   private EnsureGuildSettingsColumns(): void {
     const columns = this.db
       .prepare("PRAGMA table_info(guild_settings)")
       .all() as Array<{ name: string }>;
+
     const ensureColumn = (name: string): void => {
+      if (!ServerDatabase.VALID_GUILD_SETTINGS_COLUMNS.has(name)) {
+        throw new Error(`Invalid column name for guild_settings: ${name}`);
+      }
       const has = columns.some((c) => c.name === name);
       if (!has) {
         this.db
@@ -105,9 +116,10 @@ export class ServerDatabase {
           .run();
       }
     };
-    ensureColumn("delete_log_channel_id");
-    ensureColumn("production_log_channel_id");
-    ensureColumn("welcome_channel_id");
+
+    for (const columnName of ServerDatabase.VALID_GUILD_SETTINGS_COLUMNS) {
+      ensureColumn(columnName);
+    }
   }
 
   private EnsureGuildEventIdColumn(): void {
@@ -471,18 +483,19 @@ export class ServerDatabase {
       return [];
     }
 
-    try {
-      const parsed = JSON.parse(value) as string[];
-      if (!Array.isArray(parsed)) {
-        return [];
+    const result = SafeParseJson(value, isStringArray);
+    if (!result.success || !result.data) {
+      if (result.error) {
+        this.logger.Warn("Failed to parse guild settings id list", {
+          error: result.error,
+        });
       }
-      return parsed
-        .map((item) => String(item).trim())
-        .filter((item) => item.length > 0);
-    } catch (error) {
-      this.logger.Warn("Failed to parse guild settings id list", { error });
       return [];
     }
+
+    return result.data
+      .map((item) => String(item).trim())
+      .filter((item) => item.length > 0);
   }
 
   private NormalizeIds(ids: string[]): string[] {

@@ -28,7 +28,7 @@ async function AddFilter(
   if (!guild) {
     const embed = EmbedFactory.CreateError({
       title: "Guild Only",
-      description: "This command must be used inside a server.",
+      description: "This command can only be used in a server.",
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
@@ -108,7 +108,7 @@ async function RemoveFilter(
   if (!guild) {
     const embed = EmbedFactory.CreateError({
       title: "Guild Only",
-      description: "This command must be used inside a server.",
+      description: "This command can only be used in a server.",
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
@@ -166,7 +166,7 @@ async function ListFilters(
   if (!guild) {
     const embed = EmbedFactory.CreateError({
       title: "Guild Only",
-      description: "This command must be used inside a server.",
+      description: "This command can only be used in a server.",
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],

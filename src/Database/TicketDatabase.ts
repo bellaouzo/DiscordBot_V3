@@ -3,13 +3,19 @@ import { Logger } from "@shared/Logger";
 import { join } from "path";
 import { ResolveDataDir } from "@config/DataConfig";
 
+export type TicketStatus = "open" | "claimed" | "closed";
+
+function isTicketStatus(value: unknown): value is TicketStatus {
+  return value === "open" || value === "claimed" || value === "closed";
+}
+
 export interface Ticket {
   id: number;
   user_id: string;
   guild_id: string;
   channel_id: string | null;
   category: string;
-  status: "open" | "claimed" | "closed";
+  status: TicketStatus;
   claimed_by: string | null;
   created_at: number;
   closed_at: number | null;
@@ -92,6 +98,64 @@ export class TicketDatabase {
   constructor(private readonly logger: Logger) {
     this.db = this.InitializeDatabase();
     this.CreateTables();
+  }
+
+  private MapTicket(row: Record<string, unknown>): Ticket {
+    const status = row.status;
+    if (!isTicketStatus(status)) {
+      throw new Error(`Invalid ticket status: ${status}`);
+    }
+    return {
+      id: Number(row.id),
+      user_id: String(row.user_id),
+      guild_id: String(row.guild_id),
+      channel_id: row.channel_id ? String(row.channel_id) : null,
+      category: String(row.category),
+      status,
+      claimed_by: row.claimed_by ? String(row.claimed_by) : null,
+      created_at: Number(row.created_at),
+      closed_at: row.closed_at ? Number(row.closed_at) : null,
+    };
+  }
+
+  private MapTicketMessage(row: Record<string, unknown>): TicketMessage {
+    return {
+      id: Number(row.id),
+      ticket_id: Number(row.ticket_id),
+      user_id: String(row.user_id),
+      content: String(row.content),
+      timestamp: Number(row.timestamp),
+    };
+  }
+
+  private MapTicketParticipant(
+    row: Record<string, unknown>
+  ): TicketParticipant {
+    return {
+      id: Number(row.id),
+      ticket_id: Number(row.ticket_id),
+      user_id: String(row.user_id),
+      added_by: String(row.added_by),
+      added_at: Number(row.added_at),
+      removed_by: row.removed_by ? String(row.removed_by) : undefined,
+      removed_at: row.removed_at ? Number(row.removed_at) : undefined,
+    };
+  }
+
+  private MapTicketReopenAudit(
+    row: Record<string, unknown>
+  ): TicketReopenAudit {
+    return {
+      id: Number(row.id),
+      prior_ticket_id: Number(row.prior_ticket_id),
+      new_ticket_id: Number(row.new_ticket_id),
+      guild_id: String(row.guild_id),
+      reopened_by: String(row.reopened_by),
+      reason: row.reason ? String(row.reason) : null,
+      prior_status: row.prior_status ? String(row.prior_status) : null,
+      transcript_url: row.transcript_url ? String(row.transcript_url) : null,
+      created_at: Number(row.created_at),
+    };
   }
 
   private InitializeDatabase(): Database.Database {
@@ -232,12 +296,14 @@ export class TicketDatabase {
 
   GetTicket(id: number): Ticket | null {
     const stmt = this.db.prepare("SELECT * FROM tickets WHERE id = ?");
-    return stmt.get(id) as Ticket | null;
+    const row = stmt.get(id) as Record<string, unknown> | undefined;
+    return row ? this.MapTicket(row) : null;
   }
 
   GetTicketByChannel(channel_id: string): Ticket | null {
     const stmt = this.db.prepare("SELECT * FROM tickets WHERE channel_id = ?");
-    return stmt.get(channel_id) as Ticket | null;
+    const row = stmt.get(channel_id) as Record<string, unknown> | undefined;
+    return row ? this.MapTicket(row) : null;
   }
 
   GetUserTickets(user_id: string, guild_id: string, status?: string): Ticket[] {
@@ -248,9 +314,14 @@ export class TicketDatabase {
       stmt = this.db.prepare(
         "SELECT * FROM tickets WHERE user_id = ? AND guild_id = ? AND status = ?"
       );
-      return stmt.all(user_id, guild_id, status) as Ticket[];
+      const rows = stmt.all(user_id, guild_id, status) as Record<
+        string,
+        unknown
+      >[];
+      return rows.map((row) => this.MapTicket(row));
     }
-    return stmt.all(user_id, guild_id) as Ticket[];
+    const rows = stmt.all(user_id, guild_id) as Record<string, unknown>[];
+    return rows.map((row) => this.MapTicket(row));
   }
 
   GetGuildTickets(guild_id: string, status?: string): Ticket[] {
@@ -259,9 +330,11 @@ export class TicketDatabase {
       stmt = this.db.prepare(
         "SELECT * FROM tickets WHERE guild_id = ? AND status = ?"
       );
-      return stmt.all(guild_id, status) as Ticket[];
+      const rows = stmt.all(guild_id, status) as Record<string, unknown>[];
+      return rows.map((row) => this.MapTicket(row));
     }
-    return stmt.all(guild_id) as Ticket[];
+    const rows = stmt.all(guild_id) as Record<string, unknown>[];
+    return rows.map((row) => this.MapTicket(row));
   }
 
   UpdateTicketStatus(
@@ -320,7 +393,8 @@ export class TicketDatabase {
     const stmt = this.db.prepare(
       "SELECT * FROM ticket_messages WHERE ticket_id = ? ORDER BY timestamp ASC"
     );
-    return stmt.all(ticket_id) as TicketMessage[];
+    const rows = stmt.all(ticket_id) as Record<string, unknown>[];
+    return rows.map((row) => this.MapTicketMessage(row));
   }
 
   DeleteTicket(id: number): boolean {
@@ -412,21 +486,24 @@ export class TicketDatabase {
     const stmt = this.db.prepare(
       "SELECT * FROM ticket_participants WHERE ticket_id = ? ORDER BY added_at ASC"
     );
-    return stmt.all(ticket_id) as TicketParticipant[];
+    const rows = stmt.all(ticket_id) as Record<string, unknown>[];
+    return rows.map((row) => this.MapTicketParticipant(row));
   }
 
   GetActiveParticipants(ticket_id: number): TicketParticipant[] {
     const stmt = this.db.prepare(
       "SELECT * FROM ticket_participants WHERE ticket_id = ? AND removed_by IS NULL ORDER BY added_at ASC"
     );
-    return stmt.all(ticket_id) as TicketParticipant[];
+    const rows = stmt.all(ticket_id) as Record<string, unknown>[];
+    return rows.map((row) => this.MapTicketParticipant(row));
   }
 
   GetParticipantHistory(ticket_id: number): TicketParticipant[] {
     const stmt = this.db.prepare(
       "SELECT * FROM ticket_participants WHERE ticket_id = ? ORDER BY added_at ASC"
     );
-    return stmt.all(ticket_id) as TicketParticipant[];
+    const rows = stmt.all(ticket_id) as Record<string, unknown>[];
+    return rows.map((row) => this.MapTicketParticipant(row));
   }
 
   RemoveParticipant(
@@ -485,8 +562,8 @@ export class TicketDatabase {
     const stmt = this.db.prepare(
       "SELECT * FROM ticket_reopen_audits WHERE prior_ticket_id = ? ORDER BY created_at DESC"
     );
-
-    return stmt.all(ticket_id) as TicketReopenAudit[];
+    const rows = stmt.all(ticket_id) as Record<string, unknown>[];
+    return rows.map((row) => this.MapTicketReopenAudit(row));
   }
 
   Close(): void {

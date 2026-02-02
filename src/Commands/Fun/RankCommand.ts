@@ -25,9 +25,9 @@ async function ExecuteRank(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guildId) {
+  if (!interaction.guild) {
     const embed = EmbedFactory.CreateError({
-      title: "Server Only",
+      title: "Guild Only",
       description: "This command can only be used in a server.",
     });
     await interactionResponder.Reply(interaction, {
@@ -38,8 +38,11 @@ async function ExecuteRank(
   }
 
   const targetUser = interaction.options.getUser("user") ?? interaction.user;
-  const levelManager = new LevelManager(interaction.guildId, context.databases.userDb);
-  
+  const levelManager = new LevelManager(
+    interaction.guild.id,
+    context.databases.userDb
+  );
+
   const userLevel = levelManager.GetUserLevel(targetUser.id);
   const rank = levelManager.GetUserRank(targetUser.id);
   const progressBar = BuildProgressBar(userLevel.progressPercent, 12);

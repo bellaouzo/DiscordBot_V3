@@ -4,18 +4,11 @@ import { join } from "path";
 import { CommandDefinition, RegisterCommand } from "@commands";
 import { Logger } from "@shared/Logger";
 
-export interface CommandLoaderResult {
-  readonly commands: SlashCommandBuilder[];
-  readonly modules: Map<string, CommandDefinition>;
-}
-
-export type CommandLoader = () => Promise<CommandLoaderResult>;
+export type CommandLoader = () => Promise<SlashCommandBuilder[]>;
 
 export function CreateCommandLoader(logger: Logger): CommandLoader {
   return async () => {
     const commands: SlashCommandBuilder[] = [];
-    const commandModules = new Map<string, CommandDefinition>();
-
     const commandsPath = join(__dirname, "..", "Commands");
 
     const isCommandFile = (file: string): boolean => {
@@ -50,12 +43,12 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
             "data" in exp &&
             "execute" in exp &&
             "group" in exp
-        ) as CommandDefinition[];
+        );
 
         for (const command of commandExports) {
-          commands.push(command.data);
-          commandModules.set(command.data.name, command);
-          RegisterCommand(command);
+          const cmd = command as CommandDefinition;
+          commands.push(cmd.data);
+          RegisterCommand(cmd);
         }
       } catch (error) {
         logger.Error("Failed to load command file", {
@@ -72,6 +65,6 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
       },
     });
 
-    return { commands, modules: commandModules };
+    return commands;
   };
 }

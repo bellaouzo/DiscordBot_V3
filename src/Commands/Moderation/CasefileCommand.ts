@@ -1,9 +1,9 @@
 import {
   ChatInputCommandInteraction,
-  GuildMember,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  GuildMember,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
@@ -190,7 +190,15 @@ async function ExecuteCasefile(
     context.responders;
 
   if (!interaction.guild) {
-    throw new Error("This command can only be used in a server.");
+    const embed = EmbedFactory.CreateError({
+      title: "Guild Only",
+      description: "This command can only be used in a server.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
   }
 
   const member = interaction.member as GuildMember | null;

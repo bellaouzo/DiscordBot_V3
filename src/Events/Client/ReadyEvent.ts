@@ -1,7 +1,11 @@
 import { Events } from "discord.js";
 import { CreateEvent, EventContext } from "../EventFactory";
-import { LoadAppConfig } from "@config/AppConfig";
-import { CreateChannelManager, EmbedFactory } from "@utilities";
+import {
+  CreateChannelManager,
+  EmbedFactory,
+  SafeParseJson,
+  isRecord,
+} from "@utilities";
 import { existsSync, readFileSync, unlinkSync } from "fs";
 import { join } from "path";
 import { ActivityType } from "discord.js";
@@ -12,6 +16,15 @@ interface DeployInfo {
   timestamp: string;
 }
 
+function isDeployInfo(data: unknown): data is DeployInfo {
+  if (!isRecord(data)) return false;
+  return (
+    typeof data.hash === "string" &&
+    typeof data.message === "string" &&
+    typeof data.timestamp === "string"
+  );
+}
+
 const DEPLOY_INFO_PATH = join(process.cwd(), "data", "deploy-info.json");
 const REPO_URL = "https://github.com/bellaouzo/DiscordBot_V3";
 
@@ -20,16 +33,16 @@ function ReadDeployInfo(logger: EventContext["logger"]): DeployInfo | null {
     return null;
   }
 
-  try {
-    const raw = readFileSync(DEPLOY_INFO_PATH, "utf8");
-    return JSON.parse(raw) as DeployInfo;
-  } catch (error) {
+  const raw = readFileSync(DEPLOY_INFO_PATH, "utf8");
+  const result = SafeParseJson(raw, isDeployInfo);
+  if (!result.success || !result.data) {
     logger.Warn("Failed to read deploy info file", {
-      error,
+      error: result.error,
       extra: { path: DEPLOY_INFO_PATH },
     });
     return null;
   }
+  return result.data;
 }
 
 function ClearDeployInfo(logger: EventContext["logger"]): void {
@@ -73,7 +86,6 @@ async function AnnounceDeploy(context: EventContext): Promise<void> {
     return truncate(lines.join("\n"));
   };
 
-  const config = LoadAppConfig();
   const sentGuilds: string[] = [];
   const commitUrl = `${REPO_URL}/commit/${info.hash}`;
 
@@ -84,8 +96,8 @@ async function AnnounceDeploy(context: EventContext): Promise<void> {
     });
 
     const channel = await channelManager.GetOrCreateTextChannel(
-      config.logging.deployLogChannelName,
-      config.logging.commandLogCategoryName
+      context.appConfig.logging.deployLogChannelName,
+      context.appConfig.logging.commandLogCategoryName
     );
 
     if (!channel) {

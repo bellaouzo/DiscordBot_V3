@@ -8,15 +8,19 @@ export type EventLoader = () => Promise<EventDefinition[]>;
 export function CreateEventLoader(logger: Logger): EventLoader {
   return async () => {
     const events: EventDefinition[] = [];
-
     const eventsPath = join(__dirname, "..", "Events");
+
+    const isEventFile = (file: string): boolean => {
+      if (typeof file !== "string") return false;
+      if (!/Event\.(js|ts)$/.test(file)) return false;
+      if (file.endsWith(".d.ts")) return false;
+      if (file.includes("EventFactory.")) return false;
+      if (file.includes("index.")) return false;
+      return true;
+    };
+
     const eventFiles = readdirSync(eventsPath, { recursive: true }).filter(
-      (file) =>
-        typeof file === "string" &&
-        file.endsWith(".js") &&
-        !file.includes("index.js") &&
-        !file.includes("registry.js") &&
-        !file.includes("EventFactory.js")
+      (file) => isEventFile(file as string)
     );
 
     for (const file of eventFiles) {

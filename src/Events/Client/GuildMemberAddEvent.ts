@@ -4,10 +4,8 @@ import { EmbedFactory } from "@utilities";
 
 async function ExecuteGuildMemberAddEvent(
   context: EventContext,
-  member: unknown
+  guildMember: GuildMember
 ): Promise<void> {
-  const guildMember = member as GuildMember;
-
   context.logger.Debug("GuildMemberAdd event triggered", {
     guildId: guildMember.guild?.id,
     userId: guildMember.user?.id,

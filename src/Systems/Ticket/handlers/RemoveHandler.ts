@@ -1,12 +1,11 @@
 import {
   ChatInputCommandInteraction,
   TextChannel,
-  ActionRowData,
   ActionRowComponentData,
   UserSelectMenuInteraction,
 } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EmbedFactory, ComponentFactory } from "@utilities";
+import { EmbedFactory, ComponentFactory, ToActionRowData } from "@utilities";
 import {
   CreateTicketServices,
   ValidateTicketChannelOrReply,
@@ -25,7 +24,11 @@ export async function HandleTicketRemove(
     return;
 
   const { ticketDb, ticketManager, guildResourceLocator } =
-    CreateTicketServices(logger, interaction.guild!, context.databases.ticketDb);
+    CreateTicketServices(
+      logger,
+      interaction.guild!,
+      context.databases.ticketDb
+    );
   const ticket = await GetTicketOrReply(
     ticketDb,
     interaction.channel as TextChannel,
@@ -100,12 +103,7 @@ export async function HandleTicketRemove(
         color: 0x5865f2,
       }).toJSON(),
     ],
-    components: [
-      row.toJSON(),
-    ] as unknown as ActionRowData<ActionRowComponentData>[],
+    components: [ToActionRowData<ActionRowComponentData>(row)],
     ephemeral: true,
   });
 }
-
-
-

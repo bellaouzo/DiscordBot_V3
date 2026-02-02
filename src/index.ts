@@ -15,7 +15,10 @@ import {
 } from "@database";
 import { CreateConsoleLogger, Logger } from "@shared/Logger";
 import { CreateResponders } from "@responders";
-import { RegisterInteractionHandlers } from "./interaction-handlers";
+import {
+  RegisterInteractionHandlers,
+  RegisterCommandHandler,
+} from "./interaction-handlers";
 import { TempActionScheduler } from "./Moderation/TempActionScheduler";
 import { RaidModeScheduler } from "./Moderation/RaidModeScheduler";
 import { GiveawayScheduler } from "@systems/Giveaway/GiveawayScheduler";
@@ -50,7 +53,10 @@ async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     token: config.discord.token,
     logger,
   });
-  const executeCommand = CreateCommandExecutor({ databases });
+  const executeCommand = CreateCommandExecutor({
+    databases,
+    appConfig: config,
+  });
   const tempScheduler = new TempActionScheduler({
     client: bot.client,
     db: databases.moderationDb,
@@ -67,7 +73,7 @@ async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     logger.Child({ phase: "giveaways" })
   );
 
-  const { commands, modules } = await loadCommands();
+  const commands = await loadCommands();
   const events = await loadEvents();
 
   RegisterEvents({
@@ -76,6 +82,7 @@ async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     logger,
     responders,
     databases,
+    appConfig: config,
   });
 
   RegisterInteractionHandlers({
@@ -86,24 +93,11 @@ async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     userSelectMenuRouter: responders.userSelectMenuRouter,
   });
 
-  bot.client.on("interactionCreate", async (interaction) => {
-    if (!interaction.isChatInputCommand()) {
-      return;
-    }
-
-    const command = modules.get(interaction.commandName);
-    if (!command) {
-      return;
-    }
-
-    const commandLogger = logger.Child({
-      command: command.data.name,
-      interactionId: interaction.id,
-      guildId: interaction.guildId ?? undefined,
-      userId: interaction.user.id,
-    });
-
-    await executeCommand(command, interaction, responders, commandLogger);
+  RegisterCommandHandler({
+    client: bot.client,
+    executeCommand,
+    responders,
+    logger,
   });
 
   await deployCommands(commands);
@@ -128,9 +122,9 @@ function SetupGracefulShutdown(resources: AppResources, logger: Logger): void {
     if (isShuttingDown) return;
     isShuttingDown = true;
 
-    // logger.Info(`Received ${signal}, shutting down gracefully...`, {
-    //   phase: "shutdown",
-    // });
+    logger.Info("Shutting down gracefully...", {
+      phase: "shutdown",
+    });
 
     try {
       resources.tempScheduler.Stop();

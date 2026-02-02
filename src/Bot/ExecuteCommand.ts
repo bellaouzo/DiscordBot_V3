@@ -3,6 +3,7 @@ import { CommandDefinition, CommandContext } from "@commands";
 import { Logger } from "@shared/Logger";
 import { ResponderSet } from "@responders";
 import { DatabaseSet } from "@database";
+import { AppConfig } from "@config/AppConfig";
 import {
   MiddlewareContext,
   RunMiddlewareChain,
@@ -11,9 +12,19 @@ import {
 
 export interface CommandExecutorDependencies {
   readonly databases: DatabaseSet;
+  readonly appConfig: AppConfig;
 }
 
-export function CreateCommandExecutor(deps: CommandExecutorDependencies) {
+export type CommandExecutor = (
+  command: CommandDefinition,
+  interaction: ChatInputCommandInteraction,
+  responders: ResponderSet,
+  commandLogger: Logger
+) => Promise<void>;
+
+export function CreateCommandExecutor(
+  deps: CommandExecutorDependencies
+): CommandExecutor {
   return async (
     command: CommandDefinition,
     interaction: ChatInputCommandInteraction,
@@ -33,6 +44,7 @@ export function CreateCommandExecutor(deps: CommandExecutorDependencies) {
       responders,
       config: command.config ?? {},
       databases: deps.databases,
+      appConfig: deps.appConfig,
     };
 
     const finalHandler = async (): Promise<void> => {
@@ -40,6 +52,7 @@ export function CreateCommandExecutor(deps: CommandExecutorDependencies) {
         responders,
         logger: commandLogger,
         databases: deps.databases,
+        appConfig: deps.appConfig,
       };
       await command.execute(interaction, commandContext);
     };

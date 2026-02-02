@@ -260,10 +260,10 @@ export const EconomyCommand = CreateCommand({
   },
   config: Config.utility(5),
   execute: async (interaction, context) => {
-    if (!interaction.guildId) {
+    if (!interaction.guild) {
       const embed = EmbedFactory.CreateError({
-        title: "Server Only",
-        description: "Economy commands can only be used in a server.",
+        title: "Guild Only",
+        description: "This command can only be used in a server.",
       });
 
       await context.responders.interactionResponder.Reply(interaction, {

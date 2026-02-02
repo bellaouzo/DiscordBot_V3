@@ -11,6 +11,18 @@ async function ExecuteBan(
   const { interactionResponder } = context.responders;
   const { logger } = context;
 
+  if (!interaction.guild) {
+    const embed = EmbedFactory.CreateError({
+      title: "Guild Only",
+      description: "This command can only be used in a server.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
+
   const targetUser = interaction.options.getUser("user");
   const targetUserId =
     targetUser?.id ?? interaction.options.getString("user_id");
@@ -47,18 +59,6 @@ async function ExecuteBan(
       });
       return;
     }
-  }
-
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
   }
 
   if (!targetUserId) {

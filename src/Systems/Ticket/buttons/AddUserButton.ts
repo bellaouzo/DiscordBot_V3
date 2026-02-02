@@ -1,9 +1,4 @@
-import {
-  ButtonInteraction,
-  Guild,
-  ActionRowData,
-  ActionRowComponentData,
-} from "discord.js";
+import { ButtonInteraction, Guild, ActionRowComponentData } from "discord.js";
 import { ComponentRouter } from "@shared/ComponentRouter";
 import { ButtonResponder } from "@responders";
 import { TicketDatabase, Ticket } from "@database";
@@ -13,6 +8,7 @@ import {
   ComponentFactory,
   CreateTicketManager,
   GuildResourceLocator,
+  ToActionRowData,
 } from "@utilities";
 import { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
 import { BUTTON_EXPIRATION_MS } from "@systems/Ticket/types/TicketTypes";
@@ -85,14 +81,10 @@ export async function RegisterAddUserButton(
             color: 0x5865f2,
           }).toJSON(),
         ],
-        components: [
-          row.toJSON(),
-        ] as unknown as ActionRowData<ActionRowComponentData>[],
+        components: [ToActionRowData<ActionRowComponentData>(row)],
         ephemeral: true,
       });
     },
     expiresInMs: BUTTON_EXPIRATION_MS,
   });
 }
-
-

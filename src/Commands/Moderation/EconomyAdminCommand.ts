@@ -5,18 +5,11 @@ import { EmbedFactory } from "@utilities";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { ITEM_MAP } from "@systems/Economy/items";
 
-function RequireGuild(
-  interaction: ChatInputCommandInteraction
-): asserts interaction is ChatInputCommandInteraction & { guildId: string } {
-  if (!interaction.guild) {
-    throw new Error("This command can only be used in a server.");
-  }
-}
-
-function RequirePositive(name: string, value: number): void {
+function ValidatePositive(name: string, value: number): string | null {
   if (!Number.isFinite(value) || value <= 0) {
-    throw new Error(`${name} must be greater than 0.`);
+    return `${name} must be greater than 0.`;
   }
+  return null;
 }
 
 function BuildBalanceEmbed(options: {
@@ -75,19 +68,38 @@ async function ExecuteEconomyAdmin(
   context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-  RequireGuild(interaction);
+
+  if (!interaction.guild) {
+    const embed = EmbedFactory.CreateError({
+      title: "Guild Only",
+      description: "This command can only be used in a server.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
 
   const targetUser = interaction.options.getUser("user", true);
   const subcommand = interaction.options.getSubcommand();
 
   const manager = new EconomyManager(
-    interaction.guildId,
+    interaction.guildId!,
     context.databases.userDb
   );
   if (subcommand === "setbalance") {
     const amount = interaction.options.getInteger("amount", true);
     if (amount < 0) {
-      throw new Error("Amount must be 0 or higher.");
+      const embed = EmbedFactory.CreateError({
+        title: "Invalid Amount",
+        description: "Amount must be 0 or higher.",
+      });
+      await interactionResponder.Reply(interaction, {
+        embeds: [embed.toJSON()],
+        ephemeral: true,
+      });
+      return;
     }
 
     const before = manager.GetBalance(targetUser.id);
@@ -110,7 +122,18 @@ async function ExecuteEconomyAdmin(
 
   if (subcommand === "addbalance") {
     const amount = interaction.options.getInteger("amount", true);
-    RequirePositive("Amount", amount);
+    const addError = ValidatePositive("Amount", amount);
+    if (addError) {
+      const embed = EmbedFactory.CreateError({
+        title: "Invalid Amount",
+        description: addError,
+      });
+      await interactionResponder.Reply(interaction, {
+        embeds: [embed.toJSON()],
+        ephemeral: true,
+      });
+      return;
+    }
 
     const before = manager.GetBalance(targetUser.id);
     const after = manager.AdjustBalance(targetUser.id, amount, 0);
@@ -131,7 +154,18 @@ async function ExecuteEconomyAdmin(
 
   if (subcommand === "removebalance") {
     const amount = interaction.options.getInteger("amount", true);
-    RequirePositive("Amount", amount);
+    const removeError = ValidatePositive("Amount", amount);
+    if (removeError) {
+      const embed = EmbedFactory.CreateError({
+        title: "Invalid Amount",
+        description: removeError,
+      });
+      await interactionResponder.Reply(interaction, {
+        embeds: [embed.toJSON()],
+        ephemeral: true,
+      });
+      return;
+    }
 
     const before = manager.GetBalance(targetUser.id);
     const after = manager.AdjustBalance(targetUser.id, -amount, 0);
@@ -159,11 +193,30 @@ async function ExecuteEconomyAdmin(
   if (subcommand === "giveitem" || subcommand === "takeitem") {
     const itemId = interaction.options.getString("item_id", true);
     const quantity = interaction.options.getInteger("quantity", true);
-    RequirePositive("Quantity", quantity);
+    const qtyError = ValidatePositive("Quantity", quantity);
+    if (qtyError) {
+      const embed = EmbedFactory.CreateError({
+        title: "Invalid Quantity",
+        description: qtyError,
+      });
+      await interactionResponder.Reply(interaction, {
+        embeds: [embed.toJSON()],
+        ephemeral: true,
+      });
+      return;
+    }
 
     const item = ITEM_MAP[itemId];
     if (!item) {
-      throw new Error("Invalid item id.");
+      const embed = EmbedFactory.CreateError({
+        title: "Invalid Item",
+        description: "Invalid item id.",
+      });
+      await interactionResponder.Reply(interaction, {
+        embeds: [embed.toJSON()],
+        ephemeral: true,
+      });
+      return;
     }
 
     const delta = subcommand === "giveitem" ? quantity : -quantity;
@@ -188,7 +241,14 @@ async function ExecuteEconomyAdmin(
     return;
   }
 
-  throw new Error("Unsupported subcommand.");
+  const embed = EmbedFactory.CreateError({
+    title: "Unknown Subcommand",
+    description: "Unsupported subcommand.",
+  });
+  await interactionResponder.Reply(interaction, {
+    embeds: [embed.toJSON()],
+    ephemeral: true,
+  });
 }
 
 export const EconomyAdminCommand = CreateCommand({

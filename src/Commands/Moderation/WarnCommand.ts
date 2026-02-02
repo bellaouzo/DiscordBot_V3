@@ -1,8 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  GuildMember,
-  PermissionFlagsBits,
-} from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { EmbedFactory, CreateWarnManager } from "@utilities";
@@ -10,23 +6,22 @@ import { PaginationPage } from "@shared/Paginator";
 
 const WARN_LIST_PAGE_SIZE = 6;
 
-function IsModerator(member: GuildMember | null): boolean {
-  if (!member) return false;
-
-  const permissions = member.permissions;
-  return (
-    permissions.has(PermissionFlagsBits.Administrator) ||
-    permissions.has(PermissionFlagsBits.KickMembers) ||
-    permissions.has(PermissionFlagsBits.BanMembers)
-  );
-}
-
 async function ExecuteWarn(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
+  const { interactionResponder } = context.responders;
+
   if (!interaction.guild) {
-    throw new Error("This command can only be used in a server.");
+    const embed = EmbedFactory.CreateError({
+      title: "Guild Only",
+      description: "This command can only be used in a server.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
   }
 
   const warnManager = CreateWarnManager({
@@ -36,21 +31,19 @@ async function ExecuteWarn(
   });
 
   const subcommand = interaction.options.getSubcommand(true);
-  const member = interaction.member as GuildMember | null;
-  const isModerator = IsModerator(member);
 
   if (subcommand === "add") {
-    await HandleAdd(interaction, context, warnManager, isModerator);
+    await HandleAdd(interaction, context, warnManager);
     return;
   }
 
   if (subcommand === "remove") {
-    await HandleRemove(interaction, context, warnManager, isModerator);
+    await HandleRemove(interaction, context, warnManager);
     return;
   }
 
   if (subcommand === "list") {
-    await HandleList(interaction, context, warnManager, isModerator);
+    await HandleList(interaction, context, warnManager);
     return;
   }
 }
@@ -58,23 +51,9 @@ async function ExecuteWarn(
 async function HandleAdd(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  warnManager: ReturnType<typeof CreateWarnManager>,
-  isModerator: boolean
+  warnManager: ReturnType<typeof CreateWarnManager>
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-
-  if (!isModerator) {
-    const embed = EmbedFactory.CreateError({
-      title: "Permission Denied",
-      description: "You do not have permission to warn users.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const targetUser = interaction.options.getUser("user", true);
   const reason = interaction.options.getString("reason") ?? null;
 
@@ -109,23 +88,9 @@ async function HandleAdd(
 async function HandleRemove(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  warnManager: ReturnType<typeof CreateWarnManager>,
-  isModerator: boolean
+  warnManager: ReturnType<typeof CreateWarnManager>
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-
-  if (!isModerator) {
-    const embed = EmbedFactory.CreateError({
-      title: "Permission Denied",
-      description: "You do not have permission to remove warnings.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const targetUser = interaction.options.getUser("user", true);
   const warningId = interaction.options.getInteger("warning_id");
 
@@ -200,24 +165,10 @@ async function HandleRemove(
 async function HandleList(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  warnManager: ReturnType<typeof CreateWarnManager>,
-  isModerator: boolean
+  warnManager: ReturnType<typeof CreateWarnManager>
 ): Promise<void> {
   const { interactionResponder, paginatedResponder } = context.responders;
   const targetUser = interaction.options.getUser("user") ?? interaction.user;
-
-  if (targetUser.id !== interaction.user.id && !isModerator) {
-    const embed = EmbedFactory.CreateError({
-      title: "Permission Denied",
-      description: "You can only view your own warnings.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const warnings = warnManager.GetUserWarnings(targetUser.id);
 
   if (warnings.length === 0) {

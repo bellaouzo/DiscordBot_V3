@@ -49,9 +49,9 @@ async function ExecuteProfile(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guildId || !interaction.guild) {
+  if (!interaction.guild) {
     const embed = EmbedFactory.CreateError({
-      title: "Server Only",
+      title: "Guild Only",
       description: "This command can only be used in a server.",
     });
     await interactionResponder.Reply(interaction, {
@@ -67,20 +67,20 @@ async function ExecuteProfile(
     .catch(() => null);
 
   const levelManager = new LevelManager(
-    interaction.guildId,
+    interaction.guild.id,
     context.databases.userDb
   );
   const economyManager = new EconomyManager(
-    interaction.guildId,
+    interaction.guild.id,
     context.databases.userDb
   );
   const warnManager = CreateWarnManager({
-    guildId: interaction.guildId,
+    guildId: interaction.guild.id,
     userDb: context.databases.userDb,
     logger: context.logger,
   });
   const noteManager = CreateNoteManager({
-    guildId: interaction.guildId,
+    guildId: interaction.guild.id,
     userDb: context.databases.userDb,
     logger: context.logger,
   });

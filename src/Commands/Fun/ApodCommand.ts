@@ -16,27 +16,28 @@ interface ApodResponse {
 
 const apiConfig = LoadApiConfig();
 
-function ValidateApodDate(input?: string | null): string | undefined {
+function ValidateApodDate(input?: string | null): {
+  date?: string;
+  error?: string;
+} {
   if (!input) {
-    return undefined;
+    return {};
   }
 
-  // Basic YYYY-MM-DD check
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input.trim());
   if (!match) {
-    throw new Error("Invalid date format. Use YYYY-MM-DD.");
+    return { error: "Invalid date format. Use YYYY-MM-DD." };
   }
 
   const [year, month, day] = match.slice(1).map(Number);
   const date = new Date(Date.UTC(year, month - 1, day));
 
-  // Ensure the constructed date matches the components (catches 2023-02-30)
   if (
     date.getUTCFullYear() !== year ||
     date.getUTCMonth() !== month - 1 ||
     date.getUTCDate() !== day
   ) {
-    throw new Error("Invalid calendar date.");
+    return { error: "Invalid calendar date." };
   }
 
   const today = new Date();
@@ -48,10 +49,10 @@ function ValidateApodDate(input?: string | null): string | undefined {
   const inputUTC = Date.UTC(year, month - 1, day);
 
   if (inputUTC > todayUTC) {
-    throw new Error("Date cannot be in the future.");
+    return { error: "Date cannot be in the future." };
   }
 
-  return input.trim();
+  return { date: input.trim() };
 }
 
 async function ExecuteApod(
@@ -59,23 +60,53 @@ async function ExecuteApod(
   context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-  const apodDate = ValidateApodDate(interaction.options.getString("date"));
+  const dateValidation = ValidateApodDate(
+    interaction.options.getString("date")
+  );
+
+  if (dateValidation.error) {
+    const embed = EmbedFactory.CreateError({
+      title: "Invalid Date",
+      description: dateValidation.error,
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
 
   const response = await RequestJson<ApodResponse>(apiConfig.apod.url, {
     query: {
       api_key: apiConfig.apod.apiKey,
-      ...(apodDate ? { date: apodDate } : {}),
+      ...(dateValidation.date ? { date: dateValidation.date } : {}),
     },
     timeoutMs: apiConfig.apod.timeoutMs,
   });
 
   if (!response.ok || !response.data) {
-    throw new Error(response.error ?? "APOD API request failed");
+    const embed = EmbedFactory.CreateError({
+      title: "API Error",
+      description: response.error ?? "APOD API request failed",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
   }
 
   const { title, url, hdurl, media_type, date } = response.data;
   if (!title) {
-    throw new Error("APOD API returned incomplete data");
+    const embed = EmbedFactory.CreateError({
+      title: "API Error",
+      description: "APOD API returned incomplete data",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
   }
 
   const imageUrl = media_type === "image" ? hdurl || url : undefined;

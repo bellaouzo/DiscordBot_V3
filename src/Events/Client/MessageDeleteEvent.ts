@@ -2,30 +2,25 @@ import { Events, Message, PartialMessage, TextChannel } from "discord.js";
 import { CreateEvent, EventContext } from "@events/EventFactory";
 import { CreateChannelManager } from "@utilities/ChannelManager";
 import { EmbedFactory } from "@utilities";
-import { LoadAppConfig } from "@config/AppConfig";
 
 async function ExecuteMessageDeleteEvent(
   context: EventContext,
-  ...args: unknown[]
+  deleted: Message | PartialMessage
 ): Promise<void> {
-  const deleted = args[0] as Message | PartialMessage | undefined;
-  if (!deleted) return;
-
-  const msg = deleted.partial ? deleted : (deleted as Message);
+  const msg = deleted;
 
   if (!msg.guild || !msg.channel || !msg.channel.isTextBased()) {
     return;
   }
 
-  const config = LoadAppConfig();
   const channelManager = CreateChannelManager({
     guild: msg.guild,
     logger: context.logger,
   });
 
   const logChannel = await channelManager.GetOrCreateTextChannel(
-    config.logging.messageDeleteChannelName,
-    config.logging.commandLogCategoryName
+    context.appConfig.logging.messageDeleteChannelName,
+    context.appConfig.logging.commandLogCategoryName
   );
 
   if (!logChannel) {

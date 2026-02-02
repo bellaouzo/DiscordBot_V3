@@ -29,9 +29,9 @@ async function ExecuteLeaderboard(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guildId) {
+  if (!interaction.guild) {
     const embed = EmbedFactory.CreateError({
-      title: "Server Only",
+      title: "Guild Only",
       description: "This command can only be used in a server.",
     });
     await interactionResponder.Reply(interaction, {
@@ -41,7 +41,8 @@ async function ExecuteLeaderboard(
     return;
   }
 
-  const type = (interaction.options.getString("type") ?? "xp") as LeaderboardType;
+  const type = (interaction.options.getString("type") ??
+    "xp") as LeaderboardType;
 
   if (type === "xp") {
     await ShowXpLeaderboard(interaction, context);
@@ -55,14 +56,18 @@ async function ShowXpLeaderboard(
   context: CommandContext
 ): Promise<void> {
   const { paginatedResponder } = context.responders;
-  const levelManager = new LevelManager(interaction.guildId!, context.databases.userDb);
+  const levelManager = new LevelManager(
+    interaction.guildId!,
+    context.databases.userDb
+  );
 
   const entries = levelManager.GetLeaderboard(50);
 
   if (entries.length === 0) {
     const embed = EmbedFactory.CreateWarning({
       title: "No XP Data",
-      description: "No one has earned any XP yet! Use economy commands to start earning.",
+      description:
+        "No one has earned any XP yet! Use economy commands to start earning.",
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
@@ -81,9 +86,11 @@ async function ShowXpLeaderboard(
     for (const entry of pageEntries) {
       const medal = GetMedalEmoji(entry.rank);
       let displayName = `<@${entry.userId}>`;
-      
+
       try {
-        const member = await guild.members.fetch(entry.userId).catch(() => null);
+        const member = await guild.members
+          .fetch(entry.userId)
+          .catch(() => null);
         if (member) {
           displayName = member.displayName;
         }
@@ -119,14 +126,18 @@ async function ShowCoinsLeaderboard(
   context: CommandContext
 ): Promise<void> {
   const { paginatedResponder } = context.responders;
-  const economyManager = new EconomyManager(interaction.guildId!, context.databases.userDb);
+  const economyManager = new EconomyManager(
+    interaction.guildId!,
+    context.databases.userDb
+  );
 
   const entries = economyManager.GetTopBalances(50);
 
   if (entries.length === 0) {
     const embed = EmbedFactory.CreateWarning({
       title: "No Economy Data",
-      description: "No one has any coins yet! Use `/economy daily` to get started.",
+      description:
+        "No one has any coins yet! Use `/economy daily` to get started.",
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
@@ -149,7 +160,9 @@ async function ShowCoinsLeaderboard(
       let displayName = `<@${entry.userId}>`;
 
       try {
-        const member = await guild.members.fetch(entry.userId).catch(() => null);
+        const member = await guild.members
+          .fetch(entry.userId)
+          .catch(() => null);
         if (member) {
           displayName = member.displayName;
         }
@@ -157,7 +170,9 @@ async function ShowCoinsLeaderboard(
         // Use mention fallback
       }
 
-      lines.push(`${medal} ${displayName} — **${entry.balance.toLocaleString()}** 🪙`);
+      lines.push(
+        `${medal} ${displayName} — **${entry.balance.toLocaleString()}** 🪙`
+      );
     }
 
     const embed = EmbedFactory.Create({

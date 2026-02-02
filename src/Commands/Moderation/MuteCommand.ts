@@ -12,20 +12,20 @@ import {
 function ValidateTargetMember(
   targetMember: GuildMember | null | undefined,
   interaction: ChatInputCommandInteraction
-): asserts targetMember is GuildMember {
+): string | null {
   if (!targetMember?.moderatable) {
-    throw new Error(
-      "I cannot timeout this user. They may be the server owner or have higher permissions than me."
-    );
+    return "I cannot timeout this user. They may be the server owner or have higher permissions than me.";
   }
 
   if (targetMember.id === interaction.user.id) {
-    throw new Error("You cannot timeout yourself.");
+    return "You cannot timeout yourself.";
   }
 
   if (targetMember.id === interaction.client.user.id) {
-    throw new Error("I cannot timeout myself.");
+    return "I cannot timeout myself.";
   }
+
+  return null;
 }
 
 async function ExecuteMute(
@@ -35,16 +35,24 @@ async function ExecuteMute(
   const { interactionResponder } = context.responders;
   const { logger } = context;
 
+  if (!interaction.guild) {
+    const embed = EmbedFactory.CreateError({
+      title: "Guild Only",
+      description: "This command can only be used in a server.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
+  const guild = interaction.guild;
+
   const targetUser = interaction.options.getUser("user", true);
   const reason =
     interaction.options.getString("reason") ?? "No reason provided";
   const notify = interaction.options.getBoolean("notify") ?? false;
   const subcommand = interaction.options.getSubcommand();
-
-  if (!interaction.guild) {
-    throw new Error("This command can only be used in a server.");
-  }
-  const guild = interaction.guild;
 
   const locator = CreateGuildResourceLocator({
     guild: interaction.guild,
@@ -110,7 +118,10 @@ async function ExecuteMute(
         if (!targetMember) {
           throw new Error("User is not a member of this server.");
         }
-        ValidateTargetMember(targetMember, interaction);
+        const validationError = ValidateTargetMember(targetMember, interaction);
+        if (validationError) {
+          throw new Error(validationError);
+        }
 
         await targetMember.timeout(durationMs, reason);
 

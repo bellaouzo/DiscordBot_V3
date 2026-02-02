@@ -4,11 +4,13 @@ import { ResponderSet } from "../Responders";
 import { MiddlewareConfiguration, AutoMiddleware } from "./Middleware";
 import { CommandConfig } from "./Middleware/CommandConfig";
 import { DatabaseSet } from "../Database";
+import { AppConfig } from "../Config/AppConfig";
 
 export interface CommandContext {
   readonly responders: ResponderSet;
   readonly logger: Logger;
   readonly databases: DatabaseSet;
+  readonly appConfig: AppConfig;
 }
 
 export type CommandExecutor = (

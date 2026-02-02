@@ -8,7 +8,7 @@ import {
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
+import { EmbedFactory, SafeParseJson } from "@utilities";
 import { LockdownScope } from "@database";
 
 type StoredOverwrite = {
@@ -17,6 +17,19 @@ type StoredOverwrite = {
   deny: string;
   type: OverwriteType;
 };
+
+function isStoredOverwriteArray(data: unknown): data is StoredOverwrite[] {
+  if (!Array.isArray(data)) return false;
+  return data.every(
+    (item) =>
+      typeof item === "object" &&
+      item !== null &&
+      "id" in item &&
+      "allow" in item &&
+      "deny" in item &&
+      "type" in item
+  );
+}
 
 function SerializeOverwrites(
   overwrites: Iterable<OverwriteResolvable>
@@ -54,8 +67,11 @@ function SerializeOverwrites(
 }
 
 function DeserializeOverwrites(serialized: string): OverwriteResolvable[] {
-  const parsed = JSON.parse(serialized) as StoredOverwrite[];
-  return parsed.map((entry) => ({
+  const result = SafeParseJson(serialized, isStoredOverwriteArray);
+  if (!result.success || !result.data) {
+    return [];
+  }
+  return result.data.map((entry) => ({
     id: entry.id,
     allow: BigInt(entry.allow),
     deny: BigInt(entry.deny),

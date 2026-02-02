@@ -4,6 +4,7 @@ import { Logger } from "@shared/Logger";
 import { ResponderSet } from "@responders";
 import { CommandConfig } from "@middleware/CommandConfig";
 import { DatabaseSet } from "@database";
+import { AppConfig } from "@config/AppConfig";
 import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
 import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
 import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
@@ -16,6 +17,7 @@ export interface MiddlewareContext {
   readonly responders: ResponderSet;
   readonly config: CommandConfig;
   readonly databases: DatabaseSet;
+  readonly appConfig: AppConfig;
 }
 
 export interface CommandMiddleware {

@@ -10,8 +10,6 @@ async function ExecuteBanList(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const subcommand = interaction.options.getSubcommand(false) ?? "list";
-
   if (!interaction.guild) {
     const embed = EmbedFactory.CreateError({
       title: "Guild Only",
@@ -23,6 +21,8 @@ async function ExecuteBanList(
     });
     return;
   }
+
+  const subcommand = interaction.options.getSubcommand(false) ?? "list";
 
   if (subcommand === "check") {
     await ExecuteBanCheck(interaction, context);

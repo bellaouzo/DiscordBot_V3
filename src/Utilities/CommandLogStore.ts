@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandDefinition } from "@commands";
+import { SafeParseJson, isRecord } from "./SafeJson";
 
 const LOG_DIR = path.resolve(process.cwd(), "logs");
 const LOG_FILE = path.join(LOG_DIR, "command-log.ndjson");
@@ -16,6 +17,15 @@ export type CommandLogEntry = {
   subcommand?: string;
   options?: Record<string, unknown>;
 };
+
+function isCommandLogEntry(data: unknown): data is CommandLogEntry {
+  if (!isRecord(data)) return false;
+  return (
+    typeof data.timestamp === "number" &&
+    typeof data.userId === "string" &&
+    typeof data.command === "string"
+  );
+}
 
 function EnsureLogDir(): void {
   if (!fs.existsSync(LOG_DIR)) {
@@ -63,18 +73,18 @@ export async function GetLogsForUser(
   const results: CommandLogEntry[] = [];
 
   for (let i = lines.length - 1; i >= 0 && results.length < limit; i--) {
-    try {
-      const entry = JSON.parse(lines[i]) as CommandLogEntry;
-      if (
-        entry.userId === userId &&
-        (!options?.guildId || entry.guildId === options.guildId) &&
-        (!options?.start || entry.timestamp >= options.start) &&
-        (!options?.end || entry.timestamp <= options.end)
-      ) {
-        results.push(entry);
-      }
-    } catch {
-      // skip malformed lines
+    const result = SafeParseJson(lines[i], isCommandLogEntry);
+    if (!result.success || !result.data) {
+      continue;
+    }
+    const entry = result.data;
+    if (
+      entry.userId === userId &&
+      (!options?.guildId || entry.guildId === options.guildId) &&
+      (!options?.start || entry.timestamp >= options.start) &&
+      (!options?.end || entry.timestamp <= options.end)
+    ) {
+      results.push(entry);
     }
   }
 

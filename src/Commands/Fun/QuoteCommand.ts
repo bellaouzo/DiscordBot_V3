@@ -17,25 +17,27 @@ interface Quote {
 
 const apiConfig = LoadApiConfig();
 
-async function FetchRandomQuote(): Promise<Quote> {
+async function FetchRandomQuote(): Promise<{ quote?: Quote; error?: string }> {
   const response = await RequestJson<QuoteResponse[]>(apiConfig.quote.url, {
     timeoutMs: apiConfig.quote.timeoutMs,
   });
 
   if (!response.ok || !response.data || response.data.length === 0) {
-    throw new Error(response.error ?? "Quote API request failed");
+    return { error: response.error ?? "Quote API request failed" };
   }
 
   const first = response.data[0];
   const text = first?.q?.trim();
 
   if (!text) {
-    throw new Error("Quote API returned empty data");
+    return { error: "Quote API returned empty data" };
   }
 
   return {
-    text,
-    author: first.a?.trim(),
+    quote: {
+      text,
+      author: first.a?.trim(),
+    },
   };
 }
 
@@ -45,12 +47,24 @@ async function ExecuteQuote(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  const quote = await FetchRandomQuote();
+  const result = await FetchRandomQuote();
+
+  if (result.error || !result.quote) {
+    const embed = EmbedFactory.CreateError({
+      title: "API Error",
+      description: result.error ?? "Failed to fetch quote",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
 
   const embed = EmbedFactory.Create({
     title: "🎲 Random Quote",
-    description: `"${quote.text}"`,
-    footer: quote.author ? `— ${quote.author}` : "Unknown author",
+    description: `"${result.quote.text}"`,
+    footer: result.quote.author ? `— ${result.quote.author}` : "Unknown author",
   });
 
   await interactionResponder.Reply(interaction, {
@@ -66,4 +80,3 @@ export const QuoteCommand = CreateCommand({
   config: Config.utility(3),
   execute: ExecuteQuote,
 });
-

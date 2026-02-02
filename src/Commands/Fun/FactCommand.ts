@@ -37,12 +37,28 @@ async function ExecuteFact(
   });
 
   if (!response.ok || !response.data) {
-    throw new Error(response.error ?? "Fact API request failed");
+    const embed = EmbedFactory.CreateError({
+      title: "API Error",
+      description: response.error ?? "Fact API request failed",
+    });
+    await context.responders.interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
   }
 
   const fact = GetFactText(response.data);
   if (!fact.text) {
-    throw new Error("The fact service returned an empty response");
+    const embed = EmbedFactory.CreateError({
+      title: "API Error",
+      description: "The fact service returned an empty response",
+    });
+    await context.responders.interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
   }
 
   const embed = EmbedFactory.Create({
@@ -63,4 +79,3 @@ export const FactCommand = CreateCommand({
   config: Config.utility(3),
   execute: ExecuteFact,
 });
-

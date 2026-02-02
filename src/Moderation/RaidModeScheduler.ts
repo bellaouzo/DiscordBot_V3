@@ -6,6 +6,7 @@ import {
 } from "discord.js";
 import { ModerationDatabase, RaidMode } from "@database";
 import { Logger } from "@shared/Logger";
+import { SafeParseJson } from "@utilities/SafeJson";
 
 const RAID_SWEEP_INTERVAL_MS = 10_000;
 
@@ -16,9 +17,25 @@ type StoredOverwrite = {
   type: OverwriteType;
 };
 
+function isStoredOverwriteArray(data: unknown): data is StoredOverwrite[] {
+  if (!Array.isArray(data)) return false;
+  return data.every(
+    (item) =>
+      typeof item === "object" &&
+      item !== null &&
+      "id" in item &&
+      "allow" in item &&
+      "deny" in item &&
+      "type" in item
+  );
+}
+
 function DeserializeOverwrites(serialized: string): OverwriteResolvable[] {
-  const parsed = JSON.parse(serialized) as StoredOverwrite[];
-  return parsed.map((entry) => ({
+  const result = SafeParseJson(serialized, isStoredOverwriteArray);
+  if (!result.success || !result.data) {
+    return [];
+  }
+  return result.data.map((entry) => ({
     id: entry.id,
     allow: BigInt(entry.allow),
     deny: BigInt(entry.deny),

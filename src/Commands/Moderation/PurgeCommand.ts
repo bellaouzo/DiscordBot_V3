@@ -7,22 +7,24 @@ function ValidatePurgeOptions(
   amount: number,
   before?: number,
   after?: number
-): void {
+): string | null {
   if (amount < 1 || amount > 100) {
-    throw new Error("Amount must be between 1 and 100 messages.");
+    return "Amount must be between 1 and 100 messages.";
   }
 
   if (before !== undefined && after !== undefined) {
-    throw new Error("Cannot use both before and after filters simultaneously.");
+    return "Cannot use both before and after filters simultaneously.";
   }
 
   if (before !== undefined && before < 0) {
-    throw new Error("Before filter must be a non-negative number.");
+    return "Before filter must be a non-negative number.";
   }
 
   if (after !== undefined && after < 0) {
-    throw new Error("After filter must be a non-negative number.");
+    return "After filter must be a non-negative number.";
   }
+
+  return null;
 }
 
 async function FetchMessagesToDelete(
@@ -71,7 +73,15 @@ async function ExecutePurge(
   const { interactionResponder } = context.responders;
 
   if (!interaction.channel?.isTextBased()) {
-    throw new Error("This command can only be used in text channels.");
+    const embed = EmbedFactory.CreateError({
+      title: "Invalid Channel",
+      description: "This command can only be used in text channels.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
   }
 
   const amount = interaction.options.getInteger("amount", true);
@@ -79,11 +89,23 @@ async function ExecutePurge(
   const beforeHours = interaction.options.getInteger("before");
   const afterHours = interaction.options.getInteger("after");
 
-  ValidatePurgeOptions(
+  const validationError = ValidatePurgeOptions(
     amount,
     beforeHours ?? undefined,
     afterHours ?? undefined
   );
+
+  if (validationError) {
+    const embed = EmbedFactory.CreateError({
+      title: "Invalid Options",
+      description: validationError,
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
 
   const channel = interaction.channel as TextChannel;
 

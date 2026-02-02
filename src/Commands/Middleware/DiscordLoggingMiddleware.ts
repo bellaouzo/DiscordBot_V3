@@ -1,7 +1,6 @@
 import { CommandMiddleware } from "./index";
 import { CreateDiscordLogger, DiscordLogger } from "@utilities/DiscordLogger";
 import { Guild } from "discord.js";
-import { LoadAppConfig } from "@config/AppConfig";
 import { AppendCommandLog } from "@utilities/CommandLogStore";
 
 let discordLogger: DiscordLogger | null = null;
@@ -18,11 +17,10 @@ export const DiscordLoggingMiddleware: CommandMiddleware = {
     try {
       if (!discordLogger) {
         const guild = context.interaction.guild as Guild;
-        const appConfig = LoadAppConfig();
         discordLogger = CreateDiscordLogger({
           guild,
           logger: context.logger,
-          config: appConfig.logging,
+          config: context.appConfig.logging,
         });
       }
 
@@ -44,4 +42,3 @@ export const DiscordLoggingMiddleware: CommandMiddleware = {
     }
   },
 };
-

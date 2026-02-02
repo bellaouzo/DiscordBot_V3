@@ -8,7 +8,7 @@ import {
   TextChannel,
   CategoryChannel,
 } from "discord.js";
-import { ComponentFactory } from "@utilities";
+import { ComponentFactory, ToActionRowData } from "@utilities";
 import { LoadAppConfig } from "@config/AppConfig";
 import {
   DEFAULT_ANNOUNCEMENT_CHANNEL,
@@ -150,9 +150,9 @@ export function BuildRoleSelectRow(
     });
   }
 
-  const row = ComponentFactory.CreateSelectMenuRow(
-    menu
-  ).toJSON() as unknown as ActionRowData<ActionRowComponentData>;
+  const row = ToActionRowData<ActionRowComponentData>(
+    ComponentFactory.CreateSelectMenuRow(menu)
+  );
 
   if (label) {
     return {
@@ -210,9 +210,9 @@ export function BuildTicketCategoryRow(
     menu.addOptions(option);
   });
 
-  return ComponentFactory.CreateSelectMenuRow(
-    menu
-  ).toJSON() as unknown as ActionRowData<ActionRowComponentData>;
+  return ToActionRowData<ActionRowComponentData>(
+    ComponentFactory.CreateSelectMenuRow(menu)
+  );
 }
 
 export function BuildChannelSelectRow(options: {
@@ -295,9 +295,9 @@ export function BuildChannelSelectRow(options: {
     );
   }
 
-  return ComponentFactory.CreateSelectMenuRow(
-    menu
-  ).toJSON() as unknown as ActionRowData<ActionRowComponentData>;
+  return ToActionRowData<ActionRowComponentData>(
+    ComponentFactory.CreateSelectMenuRow(menu)
+  );
 }
 
 export function BuildNavigationRow(

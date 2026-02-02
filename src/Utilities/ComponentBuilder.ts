@@ -5,7 +5,22 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
   UserSelectMenuBuilder,
+  ActionRowData,
+  ActionRowComponentData,
+  AnyComponentBuilder,
 } from "discord.js";
+
+export function ToActionRowData<
+  T extends ActionRowComponentData = ActionRowComponentData,
+>(row: ActionRowBuilder<AnyComponentBuilder>): ActionRowData<T> {
+  return row.toJSON() as unknown as ActionRowData<T>;
+}
+
+export function ToActionRowDataArray<
+  T extends ActionRowComponentData = ActionRowComponentData,
+>(rows: ActionRowBuilder<AnyComponentBuilder>[]): ActionRowData<T>[] {
+  return rows.map((row) => row.toJSON() as unknown as ActionRowData<T>);
+}
 
 export interface ButtonOptions {
   readonly label: string;
@@ -45,7 +60,7 @@ export interface UserSelectMenuOptions {
 
 export class ComponentFactory {
   static CreateButton(
-    options: ButtonOptions & { customId: string },
+    options: ButtonOptions & { customId: string }
   ): ButtonBuilder {
     const button = new ButtonBuilder()
       .setLabel(options.label)
@@ -61,7 +76,7 @@ export class ComponentFactory {
   }
 
   static CreateActionRow(
-    options: ActionRowOptions,
+    options: ActionRowOptions
   ): ActionRowBuilder<ButtonBuilder> {
     const row = new ActionRowBuilder<ButtonBuilder>();
 
@@ -79,7 +94,7 @@ export class ComponentFactory {
   static CreateHelpSectionButtons(
     sections: Array<{ name: string; icon?: string }>,
     interactionId: string,
-    currentIndex = -1,
+    currentIndex = -1
   ): ActionRowBuilder<ButtonBuilder>[] {
     const rows: ActionRowBuilder<ButtonBuilder>[] = [];
 
@@ -99,7 +114,7 @@ export class ComponentFactory {
         style:
           currentIndex === index ? ButtonStyle.Primary : ButtonStyle.Secondary,
         customId: `help:${interactionId}:section:${index}`,
-      }),
+      })
     );
 
     // Combine overview and sections (max 5 per row)
@@ -117,7 +132,7 @@ export class ComponentFactory {
   static CreatePaginationButtons(
     currentIndex: number,
     totalPages: number,
-    interactionId: string,
+    interactionId: string
   ): ActionRowBuilder<ButtonBuilder> {
     const isFirst = currentIndex === 0;
     const isLast = currentIndex === totalPages - 1;
@@ -151,12 +166,12 @@ export class ComponentFactory {
         label: "⏹",
         style: ButtonStyle.Danger,
         customId: `page:${interactionId}:stop`,
-      }),
+      })
     );
   }
 
   static CreateSelectMenuOption(
-    options: SelectMenuOption,
+    options: SelectMenuOption
   ): StringSelectMenuOptionBuilder {
     const option = new StringSelectMenuOptionBuilder()
       .setLabel(options.label)
@@ -191,7 +206,7 @@ export class ComponentFactory {
     }
 
     const selectOptions = options.options.map((opt) =>
-      this.CreateSelectMenuOption(opt),
+      this.CreateSelectMenuOption(opt)
     );
     menu.addOptions(selectOptions);
 
@@ -199,15 +214,15 @@ export class ComponentFactory {
   }
 
   static CreateSelectMenuRow(
-    selectMenu: StringSelectMenuBuilder,
+    selectMenu: StringSelectMenuBuilder
   ): ActionRowBuilder<StringSelectMenuBuilder> {
     return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-      selectMenu,
+      selectMenu
     );
   }
 
   static CreateUserSelectMenu(
-    options: UserSelectMenuOptions,
+    options: UserSelectMenuOptions
   ): UserSelectMenuBuilder {
     const menu = new UserSelectMenuBuilder()
       .setCustomId(options.customId)
@@ -229,10 +244,10 @@ export class ComponentFactory {
   }
 
   static CreateUserSelectMenuRow(
-    userSelectMenu: UserSelectMenuBuilder,
+    userSelectMenu: UserSelectMenuBuilder
   ): ActionRowBuilder<UserSelectMenuBuilder> {
     return new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(
-      userSelectMenu,
+      userSelectMenu
     );
   }
 }

@@ -1,11 +1,9 @@
 import Database from "better-sqlite3";
 import * as fs from "fs";
 import { Logger } from "@shared/Logger";
-import type {
-  InventoryEntry,
-  MarketRotation,
-} from "@systems/Economy/types";
+import type { InventoryEntry, MarketRotation } from "@systems/Economy/types";
 import { join } from "path";
+import { SafeParseJson, isStringArray } from "@utilities/SafeJson";
 
 export interface Warning {
   id: number;
@@ -67,6 +65,48 @@ export class UserDatabase {
   constructor(private readonly logger: Logger) {
     this.db = this.InitializeDatabase();
     this.CreateTables();
+  }
+
+  private MapNote(row: Record<string, unknown>): Note {
+    return {
+      id: Number(row.id),
+      user_id: String(row.user_id),
+      guild_id: String(row.guild_id),
+      moderator_id: String(row.moderator_id),
+      content: String(row.content),
+      created_at: Number(row.created_at),
+    };
+  }
+
+  private MapWarning(row: Record<string, unknown>): Warning {
+    return {
+      id: Number(row.id),
+      user_id: String(row.user_id),
+      guild_id: String(row.guild_id),
+      moderator_id: String(row.moderator_id),
+      reason: row.reason ? String(row.reason) : null,
+      created_at: Number(row.created_at),
+    };
+  }
+
+  private MapBalance(row: Record<string, unknown>): Balance {
+    return {
+      user_id: String(row.user_id),
+      guild_id: String(row.guild_id),
+      balance: Number(row.balance),
+      updated_at: Number(row.updated_at),
+    };
+  }
+
+  private MapUserXp(row: Record<string, unknown>): UserXp {
+    return {
+      user_id: String(row.user_id),
+      guild_id: String(row.guild_id),
+      xp: Number(row.xp),
+      level: Number(row.level),
+      total_xp_earned: Number(row.total_xp_earned),
+      updated_at: Number(row.updated_at),
+    };
   }
 
   private InitializeDatabase(): Database.Database {
@@ -224,28 +264,31 @@ export class UserDatabase {
       ${limit ? "LIMIT ?" : ""}
     `);
 
-    if (limit) {
-      return stmt.all(user_id, guild_id, limit) as Note[];
-    }
+    const rows = limit
+      ? (stmt.all(user_id, guild_id, limit) as Record<string, unknown>[])
+      : (stmt.all(user_id, guild_id) as Record<string, unknown>[]);
 
-    return stmt.all(user_id, guild_id) as Note[];
+    return rows.map((row) => this.MapNote(row));
   }
 
   GetNoteById(id: number, guild_id: string): Note | null {
     const stmt = this.db.prepare(
       "SELECT * FROM notes WHERE id = ? AND guild_id = ?"
     );
-    return stmt.get(id, guild_id) as Note | null;
+    const row = stmt.get(id, guild_id) as Record<string, unknown> | undefined;
+    return row ? this.MapNote(row) : null;
   }
 
   RemoveNoteById(id: number, guild_id: string): boolean {
-    const stmt = this.db.prepare("DELETE FROM notes WHERE id = ? AND guild_id = ?");
+    const stmt = this.db.prepare(
+      "DELETE FROM notes WHERE id = ? AND guild_id = ?"
+    );
     const result = stmt.run(id, guild_id);
     return result.changes > 0;
   }
 
   RemoveLatestNote(user_id: string, guild_id: string): Note | null {
-    const note = this.db
+    const row = this.db
       .prepare(
         `
         SELECT * FROM notes
@@ -254,12 +297,13 @@ export class UserDatabase {
         LIMIT 1
       `
       )
-      .get(user_id, guild_id) as Note | null;
+      .get(user_id, guild_id) as Record<string, unknown> | undefined;
 
-    if (!note) {
+    if (!row) {
       return null;
     }
 
+    const note = this.MapNote(row);
     const removed = this.RemoveNoteById(note.id, guild_id);
     return removed ? note : null;
   }
@@ -300,18 +344,19 @@ export class UserDatabase {
       ${limit ? "LIMIT ?" : ""}
     `);
 
-    if (limit) {
-      return stmt.all(user_id, guild_id, limit) as Warning[];
-    }
+    const rows = limit
+      ? (stmt.all(user_id, guild_id, limit) as Record<string, unknown>[])
+      : (stmt.all(user_id, guild_id) as Record<string, unknown>[]);
 
-    return stmt.all(user_id, guild_id) as Warning[];
+    return rows.map((row) => this.MapWarning(row));
   }
 
   GetWarningById(id: number, guild_id: string): Warning | null {
     const stmt = this.db.prepare(
       "SELECT * FROM warnings WHERE id = ? AND guild_id = ?"
     );
-    return stmt.get(id, guild_id) as Warning | null;
+    const row = stmt.get(id, guild_id) as Record<string, unknown> | undefined;
+    return row ? this.MapWarning(row) : null;
   }
 
   RemoveWarningById(id: number, guild_id: string): boolean {
@@ -323,7 +368,7 @@ export class UserDatabase {
   }
 
   RemoveLatestWarning(user_id: string, guild_id: string): Warning | null {
-    const warning = this.db
+    const row = this.db
       .prepare(
         `
         SELECT * FROM warnings
@@ -332,12 +377,13 @@ export class UserDatabase {
         LIMIT 1
       `
       )
-      .get(user_id, guild_id) as Warning | null;
+      .get(user_id, guild_id) as Record<string, unknown> | undefined;
 
-    if (!warning) {
+    if (!row) {
       return null;
     }
 
+    const warning = this.MapWarning(row);
     const removed = this.RemoveWarningById(warning.id, guild_id);
     return removed ? warning : null;
   }
@@ -346,7 +392,10 @@ export class UserDatabase {
     const stmt = this.db.prepare(
       "SELECT * FROM balances WHERE user_id = ? AND guild_id = ?"
     );
-    return stmt.get(user_id, guild_id) as Balance | null;
+    const row = stmt.get(user_id, guild_id) as
+      | Record<string, unknown>
+      | undefined;
+    return row ? this.MapBalance(row) : null;
   }
 
   EnsureBalance(
@@ -687,9 +736,10 @@ export class UserDatabase {
       return null;
     }
 
+    const itemsResult = SafeParseJson(row.items, isStringArray);
     return {
       guildId: row.guild_id,
-      items: JSON.parse(row.items) as string[],
+      items: itemsResult.success && itemsResult.data ? itemsResult.data : [],
       generatedAt: row.generated_at,
       expiresAt: row.expires_at,
     };
@@ -759,7 +809,10 @@ export class UserDatabase {
     const stmt = this.db.prepare(
       "SELECT * FROM user_xp WHERE user_id = ? AND guild_id = ?"
     );
-    return stmt.get(user_id, guild_id) as UserXp | null;
+    const row = stmt.get(user_id, guild_id) as
+      | Record<string, unknown>
+      | undefined;
+    return row ? this.MapUserXp(row) : null;
   }
 
   EnsureUserXp(user_id: string, guild_id: string): UserXp {
@@ -781,11 +834,11 @@ export class UserDatabase {
     return this.GetUserXp(user_id, guild_id)!;
   }
 
-  AddXp(data: {
-    user_id: string;
-    guild_id: string;
-    amount: number;
-  }): { userXp: UserXp; leveledUp: boolean; previousLevel: number } {
+  AddXp(data: { user_id: string; guild_id: string; amount: number }): {
+    userXp: UserXp;
+    leveledUp: boolean;
+    previousLevel: number;
+  } {
     const transaction = this.db.transaction(() => {
       const current = this.EnsureUserXp(data.user_id, data.guild_id);
       const previousLevel = current.level;
@@ -884,6 +937,12 @@ export class UserDatabase {
     return this.GetGiveawayByMessageId(data.message_id)!;
   }
 
+  private ParseWinners(winners: string | null): string[] | null {
+    if (!winners) return null;
+    const result = SafeParseJson(winners, isStringArray);
+    return result.success && result.data ? result.data : null;
+  }
+
   GetGiveawayByMessageId(message_id: string): Giveaway | null {
     const stmt = this.db.prepare(
       "SELECT * FROM giveaways WHERE message_id = ?"
@@ -909,7 +968,7 @@ export class UserDatabase {
     return {
       ...row,
       ended: row.ended === 1,
-      winners: row.winners ? JSON.parse(row.winners) : null,
+      winners: this.ParseWinners(row.winners),
     };
   }
 
@@ -934,7 +993,7 @@ export class UserDatabase {
     return rows.map((row) => ({
       ...row,
       ended: row.ended === 1,
-      winners: row.winners ? JSON.parse(row.winners) : null,
+      winners: this.ParseWinners(row.winners),
     }));
   }
 
@@ -960,7 +1019,7 @@ export class UserDatabase {
     return rows.map((row) => ({
       ...row,
       ended: row.ended === 1,
-      winners: row.winners ? JSON.parse(row.winners) : null,
+      winners: this.ParseWinners(row.winners),
     }));
   }
 

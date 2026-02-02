@@ -1,5 +1,6 @@
 import {
   ButtonInteraction,
+  ChatInputCommandInteraction,
   Client,
   Events,
   StringSelectMenuInteraction,
@@ -9,6 +10,8 @@ import { Logger } from "./Shared/Logger";
 import { ComponentRouter } from "./Shared/ComponentRouter";
 import { SelectMenuRouter } from "./Shared/SelectMenuRouter";
 import { UserSelectMenuRouter } from "./Shared/UserSelectMenuRouter";
+import { CommandDefinition, ResolveCommand } from "./Commands";
+import { ResponderSet } from "./Responders";
 
 export interface InteractionHandlerDependencies {
   readonly client: Client;
@@ -96,4 +99,47 @@ async function HandleUserSelectMenuInteraction(
       },
     });
   }
+}
+
+export type CommandExecutorFn = (
+  command: CommandDefinition,
+  interaction: ChatInputCommandInteraction,
+  responders: ResponderSet,
+  commandLogger: Logger
+) => Promise<void>;
+
+export interface CommandHandlerDependencies {
+  readonly client: Client;
+  readonly executeCommand: CommandExecutorFn;
+  readonly responders: ResponderSet;
+  readonly logger: Logger;
+}
+
+export function RegisterCommandHandler(
+  dependencies: CommandHandlerDependencies
+): void {
+  dependencies.client.on(Events.InteractionCreate, async (interaction) => {
+    if (!interaction.isChatInputCommand()) {
+      return;
+    }
+
+    const command = ResolveCommand(interaction.commandName);
+    if (!command) {
+      return;
+    }
+
+    const commandLogger = dependencies.logger.Child({
+      command: command.data.name,
+      interactionId: interaction.id,
+      guildId: interaction.guildId ?? undefined,
+      userId: interaction.user.id,
+    });
+
+    await dependencies.executeCommand(
+      command,
+      interaction,
+      dependencies.responders,
+      commandLogger
+    );
+  });
 }

@@ -1,8 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  GuildMember,
-  PermissionFlagsBits,
-} from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { EmbedFactory, CreateNoteManager } from "@utilities";
@@ -11,23 +7,22 @@ import { PaginationPage } from "@shared/Paginator";
 
 const NOTE_LIST_PAGE_SIZE = 6;
 
-function IsModerator(member: GuildMember | null): boolean {
-  if (!member) return false;
-
-  const permissions = member.permissions;
-  return (
-    permissions.has(PermissionFlagsBits.Administrator) ||
-    permissions.has(PermissionFlagsBits.KickMembers) ||
-    permissions.has(PermissionFlagsBits.BanMembers)
-  );
-}
-
 async function ExecuteNote(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
+  const { interactionResponder } = context.responders;
+
   if (!interaction.guild) {
-    throw new Error("This command can only be used in a server.");
+    const embed = EmbedFactory.CreateError({
+      title: "Guild Only",
+      description: "This command can only be used in a server.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
   }
 
   const noteManager = CreateNoteManager({
@@ -37,21 +32,19 @@ async function ExecuteNote(
   });
 
   const subcommand = interaction.options.getSubcommand(true);
-  const member = interaction.member as GuildMember | null;
-  const isModerator = IsModerator(member);
 
   if (subcommand === "add") {
-    await HandleAdd(interaction, context, noteManager, isModerator);
+    await HandleAdd(interaction, context, noteManager);
     return;
   }
 
   if (subcommand === "remove") {
-    await HandleRemove(interaction, context, noteManager, isModerator);
+    await HandleRemove(interaction, context, noteManager);
     return;
   }
 
   if (subcommand === "list") {
-    await HandleList(interaction, context, noteManager, isModerator);
+    await HandleList(interaction, context, noteManager);
     return;
   }
 }
@@ -59,23 +52,9 @@ async function ExecuteNote(
 async function HandleAdd(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  noteManager: ReturnType<typeof CreateNoteManager>,
-  isModerator: boolean
+  noteManager: ReturnType<typeof CreateNoteManager>
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-
-  if (!isModerator) {
-    const embed = EmbedFactory.CreateError({
-      title: "Permission Denied",
-      description: "You do not have permission to add notes.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const targetUser = interaction.options.getUser("user", true);
   const content = interaction.options.getString("content", true);
 
@@ -101,23 +80,9 @@ async function HandleAdd(
 async function HandleRemove(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  noteManager: ReturnType<typeof CreateNoteManager>,
-  isModerator: boolean
+  noteManager: ReturnType<typeof CreateNoteManager>
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-
-  if (!isModerator) {
-    const embed = EmbedFactory.CreateError({
-      title: "Permission Denied",
-      description: "You do not have permission to remove notes.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const targetUser = interaction.options.getUser("user", true);
   const noteId = interaction.options.getInteger("note_id");
 
@@ -190,24 +155,10 @@ async function HandleRemove(
 async function HandleList(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  noteManager: ReturnType<typeof CreateNoteManager>,
-  isModerator: boolean
+  noteManager: ReturnType<typeof CreateNoteManager>
 ): Promise<void> {
   const { interactionResponder, paginatedResponder } = context.responders;
   const targetUser = interaction.options.getUser("user") ?? interaction.user;
-
-  if (targetUser.id !== interaction.user.id && !isModerator) {
-    const embed = EmbedFactory.CreateError({
-      title: "Permission Denied",
-      description: "You can only view your own notes.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const notes = noteManager.GetUserNotes(targetUser.id);
 
   if (notes.length === 0) {
