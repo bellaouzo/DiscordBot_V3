@@ -5,5 +5,6 @@ export {
   createMockDatabaseSet,
   createMockAppConfig,
   createMockContext,
+  stubInteractionOptions,
 } from "./mocks";
-export type { MockInteractionOverrides } from "./mocks";
+export type { MockInteractionOverrides, MockOptionOverrides } from "./mocks";

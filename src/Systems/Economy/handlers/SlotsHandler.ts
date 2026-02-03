@@ -6,11 +6,7 @@ import {
   BuildDisabledSlotsButtons,
   BuildSlotsButtons,
 } from "@systems/Economy/utils/SlotsComponents";
-import {
-  MAX_BET,
-  MIN_BET,
-  SLOTS_TIMEOUT_MS,
-} from "@systems/Economy/constants";
+import { MAX_BET, MIN_BET, SLOTS_TIMEOUT_MS } from "@systems/Economy/constants";
 import { EmbedFactory } from "@utilities";
 import {
   AwardEconomyXp,
@@ -127,7 +123,10 @@ export async function HandleSlots(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
+  const manager = new EconomyManager(
+    interaction.guildId!,
+    context.databases.userDb
+  );
   let balance = manager.EnsureBalance(interaction.user.id);
 
   if (bet > balance) {
@@ -208,6 +207,7 @@ export async function HandleSlots(
         components: [BuildDisabledSlotsButtons(customIds)],
       });
     } finally {
+      void 0;
     }
   };
 
@@ -393,5 +393,3 @@ export async function HandleSlots(
     void finalizeTimeout();
   }, SLOTS_TIMEOUT_MS);
 }
-
-

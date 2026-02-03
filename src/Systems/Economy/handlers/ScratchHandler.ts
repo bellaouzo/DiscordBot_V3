@@ -157,6 +157,7 @@ export async function HandleScratch(
         ),
       });
     } finally {
+      void 0;
     }
   };
 

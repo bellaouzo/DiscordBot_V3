@@ -116,7 +116,10 @@ export async function HandleBlackjack(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
+  const manager = new EconomyManager(
+    interaction.guildId!,
+    context.databases.userDb
+  );
   let balance = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
   const charm = ITEM_MAP["dealer-charm"];
@@ -243,8 +246,8 @@ export async function HandleBlackjack(
       finalOutcome === "win" || finalOutcome === "blackjack"
         ? "win"
         : finalOutcome === "loss"
-        ? "loss"
-        : "neutral";
+          ? "loss"
+          : "neutral";
     AwardEconomyXp({
       interaction,
       context,
@@ -295,6 +298,7 @@ export async function HandleBlackjack(
         components: [BuildDisabledBlackjackButtons(customIds)],
       });
     } finally {
+      void 0;
     }
   };
 
@@ -316,8 +320,8 @@ export async function HandleBlackjack(
       outcome === "win" || outcome === "blackjack"
         ? "win"
         : outcome === "loss"
-        ? "loss"
-        : "neutral";
+          ? "loss"
+          : "neutral";
     AwardEconomyXp({
       interaction,
       context,
@@ -550,5 +554,3 @@ export async function HandleBlackjack(
     void finalizeTimeout();
   }, BJ_TIMEOUT_MS);
 }
-
-

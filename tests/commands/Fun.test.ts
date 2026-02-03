@@ -1,4 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import type { Guild, User } from "discord.js";
+import {
+  createMockInteraction,
+  createMockContext,
+  stubInteractionOptions,
+} from "../helpers";
 import { ApodCommand } from "@commands/Fun/ApodCommand";
 import { EconomyCommand } from "@commands/Fun/EconomyCommand";
 import { FactCommand } from "@commands/Fun/FactCommand";
@@ -43,6 +49,32 @@ describe("Fun commands", () => {
         expect(typeof cmd.group).toBe("string");
         expect(cmd.group).toBe("fun");
         expect(typeof cmd.execute).toBe("function");
+      });
+
+      it("execute does not throw", async () => {
+        const interaction = createMockInteraction({
+          guild: {
+            members: { fetch: vi.fn().mockResolvedValue(null) },
+          } as unknown as Guild,
+          user: {
+            id: "test-user",
+            displayAvatarURL: () => "https://example.com/avatar.png",
+            displayName: "TestUser",
+          } as unknown as User,
+        });
+        const context = createMockContext();
+        if (cmd === EconomyCommand) {
+          stubInteractionOptions(interaction, {
+            getSubcommand: () => "balance",
+            getSubcommandGroup: () => null,
+          });
+        }
+        if (cmd === NewsCommand || cmd === TranslateCommand) {
+          stubInteractionOptions(interaction, {
+            getString: () => "tech",
+          });
+        }
+        await expect(cmd.execute(interaction, context)).resolves.not.toThrow();
       });
     });
   }

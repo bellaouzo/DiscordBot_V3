@@ -11,11 +11,7 @@ import {
   BuildRpsPromptEmbed,
   BuildRpsResultEmbed,
 } from "@systems/Economy/utils/Embeds";
-import {
-  MAX_BET,
-  MIN_BET,
-  RPS_TIMEOUT_MS,
-} from "@systems/Economy/constants";
+import { MAX_BET, MIN_BET, RPS_TIMEOUT_MS } from "@systems/Economy/constants";
 import { RpsChoice } from "@systems/Economy/types";
 import { ITEM_MAP } from "@systems/Economy/items";
 import { EmbedFactory } from "@utilities";
@@ -69,7 +65,10 @@ export async function HandleRps(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
+  const manager = new EconomyManager(
+    interaction.guildId!,
+    context.databases.userDb
+  );
   let balanceValue = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
   const rerollItem = ITEM_MAP["reroll-token"];
@@ -141,6 +140,7 @@ export async function HandleRps(
         components: [BuildDisabledRpsButtons(customIds)],
       });
     } finally {
+      void 0;
     }
   };
 
@@ -213,8 +213,8 @@ export async function HandleRps(
       outcome === "win"
         ? "win"
         : outcome === "loss" && bet > 0
-        ? "loss"
-        : "neutral";
+          ? "loss"
+          : "neutral";
     AwardEconomyXp({
       interaction,
       context,
@@ -328,5 +328,3 @@ export async function HandleRps(
     void finalizeTimeout();
   }, RPS_TIMEOUT_MS);
 }
-
-

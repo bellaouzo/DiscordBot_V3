@@ -1,4 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import type { Guild, User } from "discord.js";
+import {
+  createMockInteraction,
+  createMockContext,
+  stubInteractionOptions,
+} from "../helpers";
 import { BanCommand } from "@commands/Moderation/BanCommand";
 import { BanListCommand } from "@commands/Moderation/BanListCommand";
 import { CasefileCommand } from "@commands/Moderation/CasefileCommand";
@@ -45,6 +51,43 @@ describe("Moderation commands", () => {
         expect(typeof cmd.group).toBe("string");
         expect(cmd.group).toBe("moderation");
         expect(typeof cmd.execute).toBe("function");
+      });
+
+      it("execute does not throw", async () => {
+        const mockUser = { id: "mod-user", username: "ModUser" };
+        const kickableMember = {
+          kick: vi.fn().mockResolvedValue(undefined),
+          kickable: true,
+        };
+        const interaction = createMockInteraction({
+          guild: {
+            members: {
+              cache: { get: vi.fn().mockReturnValue(undefined) },
+              fetch: vi.fn().mockResolvedValue(kickableMember),
+              unban: vi.fn().mockResolvedValue(undefined),
+            },
+            bans: {
+              fetch: vi.fn().mockResolvedValue({
+                values: () => [],
+                user: { tag: "BannedUser#1234" },
+              }),
+            },
+            channels: { cache: { get: vi.fn().mockReturnValue(null) } },
+          } as unknown as Guild,
+          user: mockUser as unknown as User,
+        });
+        if (cmd === KickCommand) {
+          stubInteractionOptions(interaction, {
+            getUser: () => ({ id: "target-id", username: "KickTarget" }),
+          });
+        }
+        if (cmd === UnbanCommand) {
+          stubInteractionOptions(interaction, {
+            getString: () => "user-id-123",
+          });
+        }
+        const context = createMockContext();
+        await expect(cmd.execute(interaction, context)).resolves.not.toThrow();
       });
     });
   }

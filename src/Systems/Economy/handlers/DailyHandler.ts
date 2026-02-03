@@ -9,7 +9,10 @@ export async function HandleDaily(
   context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
+  const manager = new EconomyManager(
+    interaction.guildId!,
+    context.databases.userDb
+  );
 
   try {
     const result = manager.ClaimDaily(interaction.user.id);
@@ -26,7 +29,6 @@ export async function HandleDaily(
       ephemeral: true,
     });
   } finally {
+    void 0;
   }
 }
-
-

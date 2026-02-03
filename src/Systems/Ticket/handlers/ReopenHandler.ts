@@ -43,9 +43,14 @@ export async function HandleTicketReopen(
   );
 
   const { ticketDb, ticketManager, guildResourceLocator } =
-    CreateTicketServices(logger, interaction.guild!, context.databases.ticketDb, {
-      ticketCategoryId: settings?.ticket_category_id ?? null,
-    });
+    CreateTicketServices(
+      logger,
+      interaction.guild!,
+      context.databases.ticketDb,
+      {
+        ticketCategoryId: settings?.ticket_category_id ?? null,
+      }
+    );
 
   try {
     const prior = ticketDb.GetTicket(ticketId);
@@ -144,8 +149,6 @@ export async function HandleTicketReopen(
     });
     throw error;
   } finally {
+    void 0;
   }
 }
-
-
-

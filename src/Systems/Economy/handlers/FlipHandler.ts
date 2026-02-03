@@ -12,11 +12,7 @@ import {
   BuildFlipPromptEmbed,
   BuildFlipResultEmbed,
 } from "@systems/Economy/utils/Embeds";
-import {
-  FLIP_TIMEOUT_MS,
-  MAX_BET,
-  MIN_BET,
-} from "@systems/Economy/constants";
+import { FLIP_TIMEOUT_MS, MAX_BET, MIN_BET } from "@systems/Economy/constants";
 import { FlipChoice } from "@systems/Economy/types";
 import {
   AwardEconomyXp,
@@ -52,7 +48,10 @@ export async function HandleFlip(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
+  const manager = new EconomyManager(
+    interaction.guildId!,
+    context.databases.userDb
+  );
   let balanceValue = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
   const luckyCoin = ITEM_MAP["lucky-coin"];
@@ -125,6 +124,7 @@ export async function HandleFlip(
         components: [BuildDisabledFlipButtons(customIds)],
       });
     } finally {
+      void 0;
     }
   };
 
@@ -201,8 +201,7 @@ export async function HandleFlip(
       note: notes.length ? notes.map((n) => `• ${n}`).join("\n") : undefined,
     });
 
-    const outcome: EconomyOutcome =
-      win ? "win" : bet > 0 ? "loss" : "neutral";
+    const outcome: EconomyOutcome = win ? "win" : bet > 0 ? "loss" : "neutral";
     AwardEconomyXp({
       interaction,
       context,
@@ -298,5 +297,3 @@ export async function HandleFlip(
     void finalizeTimeout();
   }, FLIP_TIMEOUT_MS);
 }
-
-

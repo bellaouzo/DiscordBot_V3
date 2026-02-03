@@ -6,11 +6,7 @@ import {
   BuildDisabledWheelButtons,
   BuildWheelButtons,
 } from "@systems/Economy/utils/WheelComponents";
-import {
-  MAX_BET,
-  MIN_BET,
-  WHEEL_TIMEOUT_MS,
-} from "@systems/Economy/constants";
+import { MAX_BET, MIN_BET, WHEEL_TIMEOUT_MS } from "@systems/Economy/constants";
 import { EmbedFactory } from "@utilities";
 import {
   AwardEconomyXp,
@@ -135,6 +131,7 @@ export async function HandleWheel(
         components: [BuildDisabledWheelButtons(customIds)],
       });
     } finally {
+      void 0;
     }
   };
 
