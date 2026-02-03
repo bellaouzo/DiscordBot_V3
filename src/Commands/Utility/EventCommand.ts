@@ -27,18 +27,6 @@ async function ExecuteEventCreate(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const timeInput = interaction.options.getString("time", true);
   const title = interaction.options.getString("title", true);
   const shouldNotify = interaction.options.getBoolean("shouldnotify") ?? false;
@@ -72,7 +60,7 @@ async function ExecuteEventCreate(
   const db = context.databases.serverDb;
   try {
     const event = db.CreateEvent({
-      guild_id: interaction.guild.id,
+      guild_id: interaction.guild!.id,
       title,
       scheduled_at: scheduledAt,
       should_notify: shouldNotify,
@@ -116,25 +104,13 @@ async function ExecuteEventList(
 ): Promise<void> {
   const { interactionResponder, paginatedResponder } = context.responders;
 
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const limit = interaction.options.getInteger("limit") ?? 10;
   const safeLimit = Math.min(Math.max(limit, 1), 25);
 
   const db = context.databases.serverDb;
   try {
     const events = db
-      .ListUpcomingEvents(interaction.guild.id)
+      .ListUpcomingEvents(interaction.guild!.id)
       .slice(0, safeLimit);
 
     if (events.length === 0) {
@@ -215,23 +191,11 @@ async function ExecuteEventCancel(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const eventId = interaction.options.getInteger("id", true);
 
   const db = context.databases.serverDb;
   try {
-    const event = db.GetEventById(eventId, interaction.guild.id);
+    const event = db.GetEventById(eventId, interaction.guild!.id);
     if (!event) {
       const embed = EmbedFactory.CreateWarning({
         title: "Not Found",
@@ -244,7 +208,7 @@ async function ExecuteEventCancel(
       return;
     }
 
-    const deleted = db.DeleteEvent(eventId, interaction.guild.id);
+    const deleted = db.DeleteEvent(eventId, interaction.guild!.id);
     if (!deleted) {
       const embed = EmbedFactory.CreateError({
         title: "Cancel Failed",

@@ -20,22 +20,10 @@ async function AddFilter(
   context: CommandContext,
   type: LinkFilterType
 ): Promise<void> {
-  const guild = interaction.guild;
+  const guild = interaction.guild!;
   const pattern = NormalizePattern(
     interaction.options.getString("pattern", true)
   );
-
-  if (!guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await context.responders.interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
 
   if (pattern.length === 0) {
     const embed = EmbedFactory.CreateError({
@@ -99,23 +87,11 @@ async function RemoveFilter(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const guild = interaction.guild;
+  const guild = interaction.guild!;
   const pattern = NormalizePattern(
     interaction.options.getString("pattern", true)
   );
   const type = interaction.options.getString("type", true) as LinkFilterType;
-
-  if (!guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await context.responders.interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
 
   const db = context.databases.moderationDb;
   try {
@@ -162,18 +138,7 @@ async function ListFilters(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const guild = interaction.guild;
-  if (!guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await context.responders.interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
+  const guild = interaction.guild!;
 
   const db = context.databases.moderationDb;
   try {

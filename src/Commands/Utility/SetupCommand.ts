@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
-import { CreateChannelManager, EmbedFactory } from "@utilities";
+import { CreateChannelManager } from "@utilities";
 import {
   CreateEmptySettings,
   NavigationIds,
@@ -27,19 +27,7 @@ async function ExecuteSetup(
   } = context.responders;
   const { logger, databases } = context;
 
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
-  const guild = interaction.guild;
+  const guild = interaction.guild!;
   const channelManager = CreateChannelManager({ guild, logger });
   const loggingDefaults = context.appConfig.logging;
   const currentSettings =

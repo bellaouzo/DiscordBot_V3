@@ -1,6 +1,7 @@
 import { PermissionFlagsBits } from "discord.js";
 
 export interface CommandConfig {
+  readonly guildOnly?: boolean;
   readonly permissions?: {
     readonly required?: (keyof typeof PermissionFlagsBits)[];
     readonly requireAny?: boolean;
@@ -21,6 +22,11 @@ export class CommandConfigBuilder {
 
   static create(): CommandConfigBuilder {
     return new CommandConfigBuilder();
+  }
+
+  guildOnly(): this {
+    this.config = { ...this.config, guildOnly: true };
+    return this;
   }
 
   permissions(...perms: (keyof typeof PermissionFlagsBits)[]): this {
@@ -124,14 +130,21 @@ export const Config = {
 
   // Combined helpers
   mod: (cooldownSeconds = 5) =>
-    CommandConfigBuilder.create().hasModRole().cooldownSeconds(cooldownSeconds),
+    CommandConfigBuilder.create()
+      .guildOnly()
+      .hasModRole()
+      .cooldownSeconds(cooldownSeconds),
 
   admin: (cooldownSeconds = 10) =>
     CommandConfigBuilder.create()
+      .guildOnly()
       .permissions("Administrator")
       .cooldownSeconds(cooldownSeconds)
       .build(),
 
   utility: (cooldownSeconds = 1) =>
-    CommandConfigBuilder.create().cooldownSeconds(cooldownSeconds).build(),
+    CommandConfigBuilder.create()
+      .guildOnly()
+      .cooldownSeconds(cooldownSeconds)
+      .build(),
 };

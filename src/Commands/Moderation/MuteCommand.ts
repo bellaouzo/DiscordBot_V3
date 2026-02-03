@@ -35,18 +35,7 @@ async function ExecuteMute(
   const { interactionResponder } = context.responders;
   const { logger } = context;
 
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-  const guild = interaction.guild;
+  const guild = interaction.guild!;
 
   const targetUser = interaction.options.getUser("user", true);
   const reason =
@@ -55,7 +44,7 @@ async function ExecuteMute(
   const subcommand = interaction.options.getSubcommand();
 
   const locator = CreateGuildResourceLocator({
-    guild: interaction.guild,
+    guild,
     logger,
   });
 

@@ -189,18 +189,6 @@ async function ExecuteCasefile(
   const { buttonResponder, paginatedResponder, componentRouter } =
     context.responders;
 
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const member = interaction.member as GuildMember | null;
   const isMod = IsModerator(member);
   if (!isMod) {
@@ -216,13 +204,14 @@ async function ExecuteCasefile(
   }
 
   const targetUser = interaction.options.getUser("user", true);
+  const guild = interaction.guild!;
   const warnManager = CreateWarnManager({
-    guildId: interaction.guild.id,
+    guildId: guild.id,
     userDb: context.databases.userDb,
     logger: context.logger,
   });
   const noteManager = CreateNoteManager({
-    guildId: interaction.guild.id,
+    guildId: guild.id,
     userDb: context.databases.userDb,
     logger: context.logger,
   });
@@ -231,7 +220,7 @@ async function ExecuteCasefile(
   const warnings = warnManager.GetUserWarnings(targetUser.id);
   const notes = noteManager.GetUserNotes(targetUser.id);
   const kickEvents = modDb.ListModerationEvents({
-    guild_id: interaction.guild.id,
+    guild_id: guild.id,
     user_id: targetUser.id,
     action: "kick",
   });
@@ -239,7 +228,7 @@ async function ExecuteCasefile(
   const recentKick = kickEvents[0];
 
   const banEvents = modDb.ListModerationEvents({
-    guild_id: interaction.guild.id,
+    guild_id: guild.id,
     user_id: targetUser.id,
     action: "ban",
   });
@@ -247,7 +236,7 @@ async function ExecuteCasefile(
   const recentBan = banEvents[0];
 
   const muteHistory = modDb.ListUserTempActions({
-    guild_id: interaction.guild.id,
+    guild_id: guild.id,
     user_id: targetUser.id,
     action: "mute",
     limit: 50,
@@ -260,13 +249,13 @@ async function ExecuteCasefile(
   const notePages = buildNotePages(notes, targetUser.tag);
 
   const activeTempMute = modDb.GetActiveTempActionForUser({
-    guild_id: interaction.guild.id,
+    guild_id: guild.id,
     user_id: targetUser.id,
     action: "mute",
   });
 
   const locator = CreateGuildResourceLocator({
-    guild: interaction.guild,
+    guild,
     logger: context.logger,
   });
   const targetMember = await locator.GetMember(targetUser.id).catch(() => null);

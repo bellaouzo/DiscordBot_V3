@@ -11,22 +11,8 @@ async function ExecuteNote(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const { interactionResponder } = context.responders;
-
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const noteManager = CreateNoteManager({
-    guildId: interaction.guild.id,
+    guildId: interaction.guild!.id,
     userDb: context.databases.userDb,
     logger: context.logger,
   });

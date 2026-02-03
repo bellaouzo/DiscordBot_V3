@@ -1,6 +1,5 @@
 import { CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
 import { MIN_BET, MAX_BET } from "@systems/Economy/constants";
 import { HandleBalance } from "@systems/Economy/handlers/BalanceHandler";
 import { HandleDaily } from "@systems/Economy/handlers/DailyHandler";
@@ -260,19 +259,6 @@ export const EconomyCommand = CreateCommand({
   },
   config: Config.utility(5),
   execute: async (interaction, context) => {
-    if (!interaction.guild) {
-      const embed = EmbedFactory.CreateError({
-        title: "Guild Only",
-        description: "This command can only be used in a server.",
-      });
-
-      await context.responders.interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        ephemeral: true,
-      });
-      return;
-    }
-
     const subcommandGroup = interaction.options.getSubcommandGroup(false);
     const subcommand = interaction.options.getSubcommand(true);
 

@@ -10,18 +10,6 @@ async function ExecuteBanList(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await context.responders.interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const subcommand = interaction.options.getSubcommand(false) ?? "list";
 
   if (subcommand === "check") {
@@ -38,36 +26,31 @@ async function ExecuteBanListPages(
 ): Promise<void> {
   const { paginatedResponder, interactionResponder } = context.responders;
 
-  try {
-    const bans = await interaction.guild!.bans.fetch();
-    const banEntries = Array.from(bans.values());
+  const bans = await interaction.guild!.bans.fetch();
+  const banEntries = Array.from(bans.values());
 
-    if (banEntries.length === 0) {
-      const embed = EmbedFactory.CreateWarning({
-        title: "Ban List Empty",
-        description: "There are no banned users for this server.",
-      });
-      await interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        ephemeral: true,
-      });
-      return;
-    }
-
-    const pages = BuildBanPages(banEntries);
-
-    await paginatedResponder.Send({
-      interaction,
-      pages,
-      ephemeral: true,
-      ownerId: interaction.user.id,
-      timeoutMs: 1000 * 60 * 3,
-      idleTimeoutMs: 1000 * 60 * 2,
+  if (banEntries.length === 0) {
+    const embed = EmbedFactory.CreateWarning({
+      title: "Ban List Empty",
+      description: "There are no banned users for this server.",
     });
-  } catch (error) {
-    context.logger.Error("Failed to fetch ban list", { error });
-    throw error;
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
   }
+
+  const pages = BuildBanPages(banEntries);
+
+  await paginatedResponder.Send({
+    interaction,
+    pages,
+    ephemeral: true,
+    ownerId: interaction.user.id,
+    timeoutMs: 1000 * 60 * 3,
+    idleTimeoutMs: 1000 * 60 * 2,
+  });
 }
 
 async function ExecuteBanCheck(
@@ -78,44 +61,39 @@ async function ExecuteBanCheck(
   const userOption = interaction.options.getUser("user", true);
   const userId = userOption.id;
 
-  try {
-    const bans = await interaction.guild!.bans.fetch();
-    const ban = bans.get(userId);
+  const bans = await interaction.guild!.bans.fetch();
+  const ban = bans.get(userId);
 
-    if (!ban) {
-      const embed = EmbedFactory.CreateWarning({
-        title: "User Not Banned",
-        description: `User \`${userId}\` is **not** banned.`,
-      });
-      await interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        ephemeral: true,
-      });
-      return;
-    }
-
-    const embed = EmbedFactory.Create({
-      title: "🔎 Ban Check",
-      description: `User **${ban.user.tag}** is currently banned.`,
+  if (!ban) {
+    const embed = EmbedFactory.CreateWarning({
+      title: "User Not Banned",
+      description: `User \`${userId}\` is **not** banned.`,
     });
-
-    embed.addFields([
-      { name: "User ID", value: ban.user.id, inline: true },
-      {
-        name: "Reason",
-        value: ban.reason ?? "No reason provided",
-        inline: false,
-      },
-    ]);
-
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
       ephemeral: true,
     });
-  } catch (error) {
-    context.logger.Error("Failed to check ban status", { error });
-    throw error;
+    return;
   }
+
+  const embed = EmbedFactory.Create({
+    title: "🔎 Ban Check",
+    description: `User **${ban.user.tag}** is currently banned.`,
+  });
+
+  embed.addFields([
+    { name: "User ID", value: ban.user.id, inline: true },
+    {
+      name: "Reason",
+      value: ban.reason ?? "No reason provided",
+      inline: false,
+    },
+  ]);
+
+  await interactionResponder.Reply(interaction, {
+    embeds: [embed.toJSON()],
+    ephemeral: true,
+  });
 }
 
 function BuildBanPages(bans: GuildBan[]): PaginationPage[] {

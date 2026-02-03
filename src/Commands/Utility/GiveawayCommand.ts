@@ -9,6 +9,7 @@ import {
   ThreadChannel,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { GiveawayManager } from "@systems/Giveaway/GiveawayManager";
 import { ParseDuration } from "@utilities/Duration";
@@ -288,21 +289,9 @@ async function HandleEnd(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const messageId = interaction.options.getString("message_id", true);
   const manager = new GiveawayManager(
-    interaction.guild.id,
+    interaction.guild!.id,
     context.databases.userDb
   );
   const giveaway = manager.GetGiveaway(messageId);
@@ -333,7 +322,7 @@ async function HandleEnd(
 
   await interactionResponder.Defer(interaction, true);
 
-  const channel = await interaction.guild?.channels.fetch(giveaway.channel_id);
+  const channel = await interaction.guild!.channels.fetch(giveaway.channel_id);
   const guildChannel =
     channel && channel.isTextBased()
       ? (channel as GuildTextChannel)
@@ -369,21 +358,9 @@ async function HandleReroll(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const messageId = interaction.options.getString("message_id", true);
   const manager = new GiveawayManager(
-    interaction.guild.id,
+    interaction.guild!.id,
     context.databases.userDb
   );
   const giveaway = manager.GetGiveaway(messageId);
@@ -457,20 +434,8 @@ async function HandleList(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const manager = new GiveawayManager(
-    interaction.guild.id,
+    interaction.guild!.id,
     context.databases.userDb
   );
   const activeGiveaways = manager.GetActiveGiveaways();
@@ -561,12 +526,10 @@ export const GiveawayCommand = CreateCommand({
         sub.setName("list").setDescription("List all active giveaways")
       );
   },
-  config: {
-    permissions: {
-      required: ["ManageMessages"],
-      requireAny: false,
-    },
-    cooldown: { seconds: 5 },
-  },
+  config: Config.create()
+    .guildOnly()
+    .permissions("ManageMessages")
+    .cooldownSeconds(5)
+    .build(),
   execute: ExecuteGiveaway,
 });

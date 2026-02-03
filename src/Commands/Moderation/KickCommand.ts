@@ -10,25 +10,13 @@ async function ExecuteKick(
   const { interactionResponder } = context.responders;
   const { logger } = context;
 
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const targetUser = interaction.options.getUser("user", true);
   const reason =
     interaction.options.getString("reason") ?? "No reason provided";
   const notify = interaction.options.getBoolean("notify") ?? false;
 
   const locator = CreateGuildResourceLocator({
-    guild: interaction.guild,
+    guild: interaction.guild!,
     logger,
   });
   const modDb = context.databases.moderationDb;

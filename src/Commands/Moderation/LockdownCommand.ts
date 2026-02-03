@@ -290,18 +290,6 @@ async function ExecuteLockdown(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await context.responders.interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const sub = interaction.options.getSubcommand(true);
 
   if (sub === "channel") {

@@ -32,18 +32,6 @@ async function ExecuteSlowmode(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const seconds = interaction.options.getInteger("seconds", true);
   if (seconds < 0 || seconds > MAX_SLOWMODE) {
     const embed = EmbedFactory.CreateError({

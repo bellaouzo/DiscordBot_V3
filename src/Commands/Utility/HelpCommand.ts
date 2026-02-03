@@ -47,35 +47,30 @@ async function ExecuteHelp(
     context.responders;
   const { logger } = context;
 
-  try {
-    const allCommands = await GetAllCommandsCached();
-    const categories = BuildCategoryViews(allCommands);
+  const allCommands = await GetAllCommandsCached();
+  const categories = BuildCategoryViews(allCommands);
 
-    const overview = CreateOverviewPayload(categories, interaction.id);
+  const overview = CreateOverviewPayload(categories, interaction.id);
 
-    RegisterHelpButtons({
-      categories,
-      componentRouter,
-      buttonResponder,
-      interaction,
-      ownerId: interaction.user.id,
+  RegisterHelpButtons({
+    categories,
+    componentRouter,
+    buttonResponder,
+    interaction,
+    ownerId: interaction.user.id,
+  });
+
+  const response = await interactionResponder.Reply(interaction, {
+    content: overview.content,
+    embeds: overview.embeds,
+    components: overview.components,
+    ephemeral: true,
+  });
+
+  if (!response.success) {
+    logger.Warn("Help command failed to send reply", {
+      userId: interaction.user.id,
     });
-
-    const response = await interactionResponder.Reply(interaction, {
-      content: overview.content,
-      embeds: overview.embeds,
-      components: overview.components,
-      ephemeral: true,
-    });
-
-    if (!response.success) {
-      logger.Warn("Help command failed to send reply", {
-        userId: interaction.user.id,
-      });
-    }
-  } catch (error) {
-    logger.Error("Help command failed", { error });
-    throw error;
   }
 }
 
@@ -579,5 +574,3 @@ export const HelpCommand = CreateCommand({
   config: Config.utility(0),
   execute: ExecuteHelp,
 });
-
-

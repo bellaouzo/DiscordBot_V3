@@ -49,38 +49,26 @@ async function ExecuteProfile(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const targetUser = interaction.options.getUser("user") ?? interaction.user;
-  const targetMember = await interaction.guild.members
-    .fetch({ user: targetUser.id, withPresences: true })
+  const targetMember = await interaction
+    .guild!.members.fetch({ user: targetUser.id, withPresences: true })
     .catch(() => null);
 
   const levelManager = new LevelManager(
-    interaction.guild.id,
+    interaction.guild!.id,
     context.databases.userDb
   );
   const economyManager = new EconomyManager(
-    interaction.guild.id,
+    interaction.guild!.id,
     context.databases.userDb
   );
   const warnManager = CreateWarnManager({
-    guildId: interaction.guild.id,
+    guildId: interaction.guild!.id,
     userDb: context.databases.userDb,
     logger: context.logger,
   });
   const noteManager = CreateNoteManager({
-    guildId: interaction.guild.id,
+    guildId: interaction.guild!.id,
     userDb: context.databases.userDb,
     logger: context.logger,
   });

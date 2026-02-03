@@ -9,24 +9,12 @@ async function ExecuteUnban(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "This command can only be used in a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const userId = interaction.options.getString("user", true);
   const reason =
     interaction.options.getString("reason") ?? "No reason provided";
 
-  const bannedUser = await interaction.guild.bans
-    .fetch(userId)
+  const bannedUser = await interaction
+    .guild!.bans.fetch(userId)
     .catch(() => null);
 
   if (!bannedUser) {

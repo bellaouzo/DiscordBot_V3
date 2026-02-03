@@ -9,6 +9,7 @@ import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
 import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
 import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
+import { GuildMiddleware } from "@middleware/GuildMiddleware";
 
 export interface MiddlewareContext {
   readonly interaction: ChatInputCommandInteraction;
@@ -63,6 +64,7 @@ export { LoggingMiddleware } from "@middleware/LoggingMiddleware";
 export { PermissionMiddleware } from "@middleware/PermissionMiddleware";
 export { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 export { CooldownMiddleware } from "@middleware/CooldownMiddleware";
+export { GuildMiddleware } from "@middleware/GuildMiddleware";
 export { DiscordLoggingMiddleware } from "@middleware/DiscordLoggingMiddleware";
 export * from "@middleware/CommandConfig";
 
@@ -71,6 +73,10 @@ export function AutoMiddleware(
 ): MiddlewareConfiguration {
   const before: CommandMiddleware[] = [LoggingMiddleware];
   const after: CommandMiddleware[] = [ErrorMiddleware];
+
+  if (config?.guildOnly) {
+    before.push(GuildMiddleware);
+  }
 
   if (config) {
     const needsPermissionCheck =

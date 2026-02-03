@@ -51,20 +51,7 @@ async function ExecuteAnnouncement(
   const { interactionResponder } = context.responders;
   const { logger, databases } = context;
 
-  if (!interaction.guild) {
-    await interactionResponder.Reply(interaction, {
-      embeds: [
-        EmbedFactory.CreateError({
-          title: "Guild Only",
-          description: "This command can only be used in a server.",
-        }).toJSON(),
-      ],
-      ephemeral: true,
-    });
-    return;
-  }
-
-  const settings = databases.serverDb.GetGuildSettings(interaction.guild.id);
+  const settings = databases.serverDb.GetGuildSettings(interaction.guild!.id);
   const announcementChannelId = settings?.announcement_channel_id ?? null;
 
   const title = interaction.options.getString("title");
@@ -89,14 +76,15 @@ async function ExecuteAnnouncement(
     return;
   }
 
+  const guild = interaction.guild!;
   const channelManager = CreateChannelManager({
-    guild: interaction.guild,
+    guild,
     logger,
   });
 
   let targetChannel =
     announcementChannelId &&
-    (await interaction.guild.channels.fetch(announcementChannelId));
+    (await guild.channels.fetch(announcementChannelId));
 
   if (!targetChannel || targetChannel.type !== ChannelType.GuildText) {
     targetChannel = await channelManager.GetOrCreateTextChannel(
@@ -188,6 +176,9 @@ export const AnnouncementCommand = CreateCommand({
           .setRequired(false)
       );
   },
-  config: Config.create().anyPermission("ManageGuild", "Administrator").build(),
+  config: Config.create()
+    .guildOnly()
+    .anyPermission("ManageGuild", "Administrator")
+    .build(),
   execute: ExecuteAnnouncement,
 });
