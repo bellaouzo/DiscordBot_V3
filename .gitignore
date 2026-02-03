@@ -9,6 +9,9 @@ dist/
 .idea/
 .cursor/
 
+# Tests
+coverage/
+
 # Environment variables
 .env
 

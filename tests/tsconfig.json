@@ -1,0 +1,32 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "..",
+    "rootDir": "..",
+    "paths": {
+      "@commands": ["src/Commands/index"],
+      "@commands/*": ["src/Commands/*"],
+      "@systems": ["src/Systems"],
+      "@systems/*": ["src/Systems/*"],
+      "@middleware": ["src/Commands/Middleware/index"],
+      "@middleware/*": ["src/Commands/Middleware/*"],
+      "@bot": ["src/Bot/index"],
+      "@bot/*": ["src/Bot/*"],
+      "@database": ["src/Database/index"],
+      "@database/*": ["src/Database/*"],
+      "@utilities": ["src/Utilities/index"],
+      "@utilities/*": ["src/Utilities/*"],
+      "@shared": ["src/Shared/index"],
+      "@shared/*": ["src/Shared/*"],
+      "@responders": ["src/Responders/index"],
+      "@responders/*": ["src/Responders/*"],
+      "@events": ["src/Events/index"],
+      "@events/*": ["src/Events/*"],
+      "@config": ["src/Config/AppConfig"],
+      "@config/*": ["src/Config/*"]
+    },
+    "noEmit": true
+  },
+  "include": ["**/*"],
+  "exclude": ["node_modules"]
+}
