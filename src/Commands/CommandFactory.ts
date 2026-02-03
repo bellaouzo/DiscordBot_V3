@@ -6,6 +6,9 @@ import { CommandConfig } from "./Middleware/CommandConfig";
 import { DatabaseSet } from "../Database";
 import { AppConfig } from "../Config/AppConfig";
 
+/**
+ * Context passed to command execute functions: responders, logger, databases, app config.
+ */
 export interface CommandContext {
   readonly responders: ResponderSet;
   readonly logger: Logger;
@@ -13,11 +16,17 @@ export interface CommandContext {
   readonly appConfig: AppConfig;
 }
 
+/**
+ * Function that runs when a slash command is invoked. Receives the interaction and context.
+ */
 export type CommandExecutor = (
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ) => Promise<void>;
 
+/**
+ * Registered command: slash builder data, group, execute function, and optional middleware/config.
+ */
 export interface CommandDefinition {
   readonly data: SlashCommandBuilder;
   readonly group: string;
@@ -26,6 +35,9 @@ export interface CommandDefinition {
   readonly config?: CommandConfig;
 }
 
+/**
+ * Options for creating a command. Middleware defaults to AutoMiddleware(config) when omitted.
+ */
 export interface CommandFactoryOptions {
   readonly name: string;
   readonly description: string;
@@ -36,6 +48,12 @@ export interface CommandFactoryOptions {
   readonly config?: CommandConfig;
 }
 
+/**
+ * Creates a slash command definition. Uses AutoMiddleware(options.config) when middleware is not provided.
+ *
+ * @param options - Name, description, group, optional configure callback, execute, and optional middleware/config
+ * @returns Command definition for the registry
+ */
 export function CreateCommand(
   options: CommandFactoryOptions
 ): CommandDefinition {

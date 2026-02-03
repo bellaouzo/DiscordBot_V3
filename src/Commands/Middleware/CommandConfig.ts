@@ -1,5 +1,9 @@
 import { PermissionFlagsBits } from "discord.js";
 
+/**
+ * Command configuration: guild-only, permissions, cooldown, role/mod/owner, and optional custom data.
+ * Used by AutoMiddleware to add GuildMiddleware, PermissionMiddleware, CooldownMiddleware.
+ */
 export interface CommandConfig {
   readonly guildOnly?: boolean;
   readonly permissions?: {
@@ -17,9 +21,13 @@ export interface CommandConfig {
   readonly custom?: Map<string, unknown>;
 }
 
+/**
+ * Fluent builder for CommandConfig. Chain methods then call build().
+ */
 export class CommandConfigBuilder {
   private config: CommandConfig = {};
 
+  /** Creates a new builder. */
   static create(): CommandConfigBuilder {
     return new CommandConfigBuilder();
   }
@@ -96,16 +104,18 @@ export class CommandConfigBuilder {
     return this;
   }
 
+  /** Returns the built config. */
   build(): CommandConfig {
     return this.config;
   }
 }
 
-// Convenience functions
+/**
+ * Convenience helpers for command config. mod(), admin(), utility() include guildOnly and cooldown.
+ */
 export const Config = {
   create: () => CommandConfigBuilder.create(),
 
-  // Quick permission helpers
   requirePermissions: (...perms: (keyof typeof PermissionFlagsBits)[]) =>
     CommandConfigBuilder.create()
       .permissions(...perms)

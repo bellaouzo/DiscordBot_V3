@@ -11,6 +11,9 @@ import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
 import { GuildMiddleware } from "@middleware/GuildMiddleware";
 
+/**
+ * Context passed to middleware: interaction, command, logger, responders, config, databases, appConfig.
+ */
 export interface MiddlewareContext {
   readonly interaction: ChatInputCommandInteraction;
   readonly command: CommandDefinition;
@@ -21,6 +24,9 @@ export interface MiddlewareContext {
   readonly appConfig: AppConfig;
 }
 
+/**
+ * Middleware unit: name and execute(context, next). Call next() to continue the chain.
+ */
 export interface CommandMiddleware {
   readonly name: string;
   readonly execute: (
@@ -29,11 +35,21 @@ export interface CommandMiddleware {
   ) => Promise<void>;
 }
 
+/**
+ * Optional before/after middleware arrays for a command.
+ */
 export interface MiddlewareConfiguration {
   readonly before?: CommandMiddleware[];
   readonly after?: CommandMiddleware[];
 }
 
+/**
+ * Runs the middleware array then the final handler. Each middleware receives context and next.
+ *
+ * @param middleware - Ordered list of middleware
+ * @param context - Shared context
+ * @param finalHandler - Called after all middleware invoke next()
+ */
 export async function RunMiddlewareChain(
   middleware: CommandMiddleware[],
   context: MiddlewareContext,
@@ -68,6 +84,13 @@ export { GuildMiddleware } from "@middleware/GuildMiddleware";
 export { DiscordLoggingMiddleware } from "@middleware/DiscordLoggingMiddleware";
 export * from "@middleware/CommandConfig";
 
+/**
+ * Builds default before/after middleware from config: Logging, optional GuildOnly/Permission/Cooldown, Error.
+ * Used by CreateCommand when command middleware is not provided.
+ *
+ * @param config - Optional command config; guildOnly, permissions, modRole, owner, role, cooldown drive which middleware are added
+ * @returns before and after middleware arrays
+ */
 export function AutoMiddleware(
   config?: CommandConfig
 ): MiddlewareConfiguration {

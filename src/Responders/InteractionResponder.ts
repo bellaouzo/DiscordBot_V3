@@ -15,9 +15,19 @@ import {
 
 type InteractionLike = ChatInputCommandInteraction | ButtonInteraction;
 
+/**
+ * Handles slash command and button interactions: reply, edit, defer, follow-up, and action wrappers.
+ */
 export class InteractionResponder {
   constructor(private readonly logger: Logger) {}
 
+  /**
+   * Sends an initial reply. No-op if already replied or deferred.
+   *
+   * @param interaction - Slash or button interaction
+   * @param options - Content, embeds, components, ephemeral, etc.
+   * @returns Success flag and message
+   */
   async Reply(
     interaction: InteractionLike,
     options: ResponseOptions
@@ -42,6 +52,13 @@ export class InteractionResponder {
     }
   }
 
+  /**
+   * Edits the existing reply. Fails if not yet replied or deferred.
+   *
+   * @param interaction - Slash or button interaction
+   * @param options - Content, embeds, components, etc.
+   * @returns Success flag and message
+   */
   async Edit(
     interaction: InteractionLike,
     options: ResponseOptions
@@ -65,6 +82,13 @@ export class InteractionResponder {
     }
   }
 
+  /**
+   * Sends a follow-up message after an initial reply.
+   *
+   * @param interaction - Slash or button interaction
+   * @param options - Content, embeds, components, ephemeral, etc.
+   * @returns Success flag and message
+   */
   async FollowUp(
     interaction: InteractionLike,
     options: ResponseOptions
@@ -85,6 +109,13 @@ export class InteractionResponder {
     }
   }
 
+  /**
+   * Defers the reply (shows "thinking"). Ephemeral when options is true or when options.ephemeral is true.
+   *
+   * @param interaction - Slash or button interaction
+   * @param options - Ephemeral flag or message options; false = public defer
+   * @returns Success flag and message
+   */
   async Defer(
     interaction: InteractionLike,
     options: ResponderMessageOptions | boolean = false
@@ -123,6 +154,11 @@ export class InteractionResponder {
     }
   }
 
+  /**
+   * Replies immediately, runs the action, then optionally edits with follow-up content.
+   *
+   * @param options - Interaction, initial message, action, and optional follow-up (string or function)
+   */
   async WithAction(options: ResponseActionOptions): Promise<void> {
     await this.Reply(
       options.interaction,
@@ -147,6 +183,13 @@ export class InteractionResponder {
     }
   }
 
+  /**
+   * Sends a DM to a user.
+   *
+   * @param user - Target user
+   * @param message - Text to send
+   * @returns true if sent, false on failure (e.g. DMs disabled)
+   */
   async SendDm(user: User, message: string): Promise<boolean> {
     try {
       await user.send(message);

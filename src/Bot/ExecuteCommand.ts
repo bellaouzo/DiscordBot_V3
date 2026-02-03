@@ -10,11 +10,17 @@ import {
   DiscordLoggingMiddleware,
 } from "@middleware";
 
+/**
+ * Dependencies for the command executor: databases and app config.
+ */
 export interface CommandExecutorDependencies {
   readonly databases: DatabaseSet;
   readonly appConfig: AppConfig;
 }
 
+/**
+ * Runs a command: builds middleware context, runs before/after middleware chain, then command.execute.
+ */
 export type CommandExecutor = (
   command: CommandDefinition,
   interaction: ChatInputCommandInteraction,
@@ -22,6 +28,13 @@ export type CommandExecutor = (
   commandLogger: Logger
 ) => Promise<void>;
 
+/**
+ * Creates the executor that runs command middleware then the command handler.
+ * After middleware includes DiscordLoggingMiddleware for command logging.
+ *
+ * @param deps - Databases and app config
+ * @returns CommandExecutor function
+ */
 export function CreateCommandExecutor(
   deps: CommandExecutorDependencies
 ): CommandExecutor {

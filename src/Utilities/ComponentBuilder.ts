@@ -10,18 +10,25 @@ import {
   AnyComponentBuilder,
 } from "discord.js";
 
+/**
+ * Converts an action row builder to JSON suitable for API payloads.
+ */
 export function ToActionRowData<
   T extends ActionRowComponentData = ActionRowComponentData,
 >(row: ActionRowBuilder<AnyComponentBuilder>): ActionRowData<T> {
   return row.toJSON() as unknown as ActionRowData<T>;
 }
 
+/**
+ * Converts an array of action row builders to JSON.
+ */
 export function ToActionRowDataArray<
   T extends ActionRowComponentData = ActionRowComponentData,
 >(rows: ActionRowBuilder<AnyComponentBuilder>[]): ActionRowData<T>[] {
   return rows.map((row) => row.toJSON() as unknown as ActionRowData<T>);
 }
 
+/** Options for creating a button. */
 export interface ButtonOptions {
   readonly label: string;
   readonly style?: ButtonStyle;
@@ -29,11 +36,13 @@ export interface ButtonOptions {
   readonly disabled?: boolean;
 }
 
+/** Options for an action row of buttons; customIds align with buttons by index. */
 export interface ActionRowOptions {
   readonly buttons: ButtonOptions[];
   readonly customIds: string[];
 }
 
+/** Single option for a string select menu. */
 export interface SelectMenuOption {
   readonly label: string;
   readonly description?: string;
@@ -41,6 +50,7 @@ export interface SelectMenuOption {
   readonly value: string;
 }
 
+/** Options for a string select menu. */
 export interface SelectMenuOptions {
   readonly customId: string;
   readonly placeholder?: string;
@@ -50,6 +60,7 @@ export interface SelectMenuOptions {
   readonly disabled?: boolean;
 }
 
+/** Options for a user select menu. */
 export interface UserSelectMenuOptions {
   readonly customId: string;
   readonly placeholder?: string;
@@ -58,7 +69,11 @@ export interface UserSelectMenuOptions {
   readonly disabled?: boolean;
 }
 
+/**
+ * Factory for Discord components: buttons, action rows, string select menus, user select menus.
+ */
 export class ComponentFactory {
+  /** Builds a button from options and customId. */
   static CreateButton(
     options: ButtonOptions & { customId: string }
   ): ButtonBuilder {
@@ -75,6 +90,7 @@ export class ComponentFactory {
     return button;
   }
 
+  /** Builds an action row of buttons; customIds must match buttons length. */
   static CreateActionRow(
     options: ActionRowOptions
   ): ActionRowBuilder<ButtonBuilder> {
@@ -170,6 +186,7 @@ export class ComponentFactory {
     );
   }
 
+  /** Builds a string select menu option. */
   static CreateSelectMenuOption(
     options: SelectMenuOption
   ): StringSelectMenuOptionBuilder {
@@ -188,6 +205,7 @@ export class ComponentFactory {
     return option;
   }
 
+  /** Builds a string select menu from options. */
   static CreateSelectMenu(options: SelectMenuOptions): StringSelectMenuBuilder {
     const menu = new StringSelectMenuBuilder()
       .setCustomId(options.customId)
@@ -221,6 +239,7 @@ export class ComponentFactory {
     );
   }
 
+  /** Builds a user select menu from options. */
   static CreateUserSelectMenu(
     options: UserSelectMenuOptions
   ): UserSelectMenuBuilder {

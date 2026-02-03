@@ -77,12 +77,18 @@ class ResourceCache<T> {
   }
 }
 
+/**
+ * Options for creating a guild resource locator. Cache TTL is optional (default 60s).
+ */
 export interface GuildResourceLocatorOptions {
   readonly guild: Guild;
   readonly logger?: Logger;
   readonly cacheTtlMs?: number;
 }
 
+/**
+ * Fetches guild channels, roles, and members by ID or name. Ensure* methods throw if not found.
+ */
 export interface GuildResourceLocator {
   GetChannel(id: Snowflake): Promise<GuildBasedChannel | null>;
   GetChannelByName(name: string): Promise<GuildBasedChannel | null>;
@@ -98,6 +104,12 @@ export interface GuildResourceLocator {
   EnsureMember(id: Snowflake): Promise<GuildMember>;
 }
 
+/**
+ * Creates a locator for the given guild with optional caching and logger.
+ *
+ * @param options - Guild, optional logger, optional cacheTtlMs
+ * @returns GuildResourceLocator instance
+ */
 export function CreateGuildResourceLocator(
   options: GuildResourceLocatorOptions
 ): GuildResourceLocator {

@@ -2,15 +2,18 @@ import { config as loadEnv } from "dotenv";
 import { existsSync } from "fs";
 import { resolve } from "path";
 
+/** Discord bot token (DISCORD_TOKEN). */
 export interface DiscordConfig {
   readonly token: string;
 }
 
+/** Application and guild IDs for slash command deployment (CLIENT_ID, GUILD_ID). */
 export interface DeploymentConfig {
   readonly clientId: string;
   readonly guildId: string;
 }
 
+/** Channel/category names for command logs, delete logs, deploy logs. */
 export interface LoggingConfig {
   readonly commandLogChannelName: string;
   readonly commandLogCategoryName: string;
@@ -18,10 +21,12 @@ export interface LoggingConfig {
   readonly deployLogChannelName: string;
 }
 
+/** API keys (e.g. OPENWEATHER_API_KEY). */
 export interface ApiKeysConfig {
   readonly openWeatherMapApiKey: string | null;
 }
 
+/** Root app config: discord, deployment, logging, apiKeys. */
 export interface AppConfig {
   readonly discord: DiscordConfig;
   readonly deployment: DeploymentConfig;
@@ -68,6 +73,12 @@ function RequireEnv(variableName: string): string {
   return value;
 }
 
+/**
+ * Loads .env (from project root or APP_ENV_PATH), validates required vars, and returns AppConfig.
+ * Throws if DISCORD_TOKEN, CLIENT_ID, or GUILD_ID are missing or empty.
+ *
+ * @returns AppConfig with discord, deployment, logging, apiKeys
+ */
 export function LoadAppConfig(): AppConfig {
   InitializeEnvironment();
 

@@ -16,12 +16,18 @@ export interface FieldOptions {
   readonly inline?: boolean;
 }
 
+/**
+ * Factory for Discord embeds with preset colors and helpers for success, warning, error, and help.
+ */
 export class EmbedFactory {
   private static readonly DEFAULT_COLOR = 0x5865f2;
   private static readonly SUCCESS_COLOR = 0x57f287;
   private static readonly WARNING_COLOR = 0xfee75c;
   private static readonly ERROR_COLOR = 0xed4245;
 
+  /**
+   * Builds an embed from options. Timestamp is set unless timestamp is false.
+   */
   static Create(options: EmbedOptions = {}): EmbedBuilder {
     const embed = new EmbedBuilder();
 
@@ -38,22 +44,26 @@ export class EmbedFactory {
     return embed;
   }
 
+  /** Same as Create with success (green) color. */
   static CreateSuccess(options: Omit<EmbedOptions, "color">): EmbedBuilder {
     return this.Create({ ...options, color: this.SUCCESS_COLOR });
   }
 
+  /** Same as Create with warning (yellow) color. */
   static CreateWarning(options: Omit<EmbedOptions, "color">): EmbedBuilder {
     return this.Create({ ...options, color: this.WARNING_COLOR });
   }
 
+  /** Same as Create with error (red) color. */
   static CreateError(options: Omit<EmbedOptions, "color">): EmbedBuilder {
     return this.Create({ ...options, color: this.ERROR_COLOR });
   }
 
+  /** Builds a help category embed with section title, description, and command count footer. */
   static CreateHelpSection(
     sectionName: string,
     description: string,
-    commandCount: number,
+    commandCount: number
   ): EmbedBuilder {
     return this.Create({
       title: `📁 ${sectionName} Commands`,
@@ -65,9 +75,10 @@ export class EmbedFactory {
     });
   }
 
+  /** Builds the main help overview embed with total commands and category count. */
   static CreateHelpOverview(
     totalCommands: number,
-    categoryCount: number,
+    categoryCount: number
   ): EmbedBuilder {
     return this.Create({
       title: "🤖 Bot Command Overview",
@@ -85,7 +96,7 @@ export class EmbedFactory {
       status: string;
       created_at: number;
       tags?: string[];
-    }>,
+    }>
   ): EmbedBuilder {
     const embed = this.Create({
       title: "🎫 Your Tickets",
@@ -137,7 +148,7 @@ export class EmbedFactory {
 
   static CreateTicketClaimed(
     ticketId: number,
-    claimedBy: string,
+    claimedBy: string
   ): EmbedBuilder {
     return this.CreateSuccess({
       title: "📌 Ticket Claimed",

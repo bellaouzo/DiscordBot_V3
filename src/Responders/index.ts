@@ -26,6 +26,9 @@ export { InteractionResponder } from "./InteractionResponder";
 export { ButtonResponder } from "./ButtonResponder";
 export { PaginatedResponder } from "./PaginatedResponder";
 
+/**
+ * Set of responders and routers passed to commands via context.responders.
+ */
 export interface ResponderSet {
   readonly interactionResponder: InteractionResponder;
   readonly buttonResponder: ButtonResponder;
@@ -35,8 +38,14 @@ export interface ResponderSet {
   readonly userSelectMenuRouter: UserSelectMenuRouter;
 }
 
+/**
+ * Creates the default responder set. Use optional dependencies to override logger.
+ *
+ * @param dependencies - Optional logger or other overrides
+ * @returns ResponderSet for command context
+ */
 export function CreateResponders(
-  dependencies?: ResponderDependencies,
+  dependencies?: ResponderDependencies
 ): ResponderSet {
   const logger = ResolveResponderLogger(dependencies);
   const componentRouter = CreateComponentRouter(logger);
@@ -48,7 +57,7 @@ export function CreateResponders(
     interactionResponder,
     buttonResponder,
     componentRouter,
-    logger,
+    logger
   );
 
   return {
