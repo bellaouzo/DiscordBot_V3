@@ -77,5 +77,6 @@ CI runs these on push/PR to `main`; see [.github/workflows/ci.yml](../.github/wo
 ## Next steps
 
 - [Configuration reference](CONFIGURATION.md) – All env vars and defaults
+- [Writing commands](WRITING_COMMANDS.md) – Command structure, middleware, responders
 - [Contributing](CONTRIBUTING.md) – Coding standards and PR process
-- [README](../README.md) – Architecture, examples, and middleware usage
+- [README](../README.md) – Architecture, examples, and quick start
