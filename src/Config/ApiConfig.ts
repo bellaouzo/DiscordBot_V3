@@ -21,6 +21,10 @@ interface TranslateConfig extends EndpointConfig {
   readonly apiKey: string | null;
 }
 
+interface RobloxBridgeConfig extends EndpointConfig {
+  readonly apiKey: string;
+}
+
 export interface ApiConfig {
   readonly quote: EndpointConfig;
   readonly meme: EndpointConfig;
@@ -33,6 +37,7 @@ export interface ApiConfig {
   readonly weather: WeatherConfig;
   readonly translate: TranslateConfig;
   readonly insult: EndpointConfig;
+  readonly robloxBridge: RobloxBridgeConfig;
 }
 
 const DEFAULTS: ApiConfig = {
@@ -65,6 +70,11 @@ const DEFAULTS: ApiConfig = {
   insult: {
     url: "https://evilinsult.com/generate_insult.php",
     timeoutMs: 5000,
+  },
+  robloxBridge: {
+    url: "",
+    timeoutMs: 8000,
+    apiKey: "",
   },
 };
 
@@ -163,6 +173,14 @@ export function LoadApiConfig(): ApiConfig {
         process.env.API_INSULT_TIMEOUT_MS,
         DEFAULTS.insult.timeoutMs
       ),
+    },
+    robloxBridge: {
+      url: process.env.ROBLOX_BRIDGE_API_URL || DEFAULTS.robloxBridge.url,
+      timeoutMs: toNumber(
+        process.env.API_ROBLOX_BRIDGE_TIMEOUT_MS,
+        DEFAULTS.robloxBridge.timeoutMs
+      ),
+      apiKey: process.env.ROBLOX_BRIDGE_API_KEY || DEFAULTS.robloxBridge.apiKey,
     },
   };
 }
