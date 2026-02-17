@@ -23,6 +23,13 @@ interface RobloxBridgeSettings {
   readonly timeoutMs: number;
 }
 
+interface DiscordModeratorInfo {
+  readonly id: string;
+  readonly username: string;
+  readonly tag: string;
+  readonly globalName?: string;
+}
+
 interface RobloxPresencePlayer {
   readonly userId: number;
   readonly playerName: string;
@@ -185,7 +192,8 @@ async function PostKickCommand(
   settings: RobloxBridgeSettings,
   playerName: string,
   reason: string,
-  serverId: string
+  serverId: string,
+  moderator: DiscordModeratorInfo
 ): Promise<string> {
   const response = await RequestJson<RobloxBridgeCommandResponse>(
     BuildBridgeCommandUrl(settings.url),
@@ -200,6 +208,7 @@ async function PostKickCommand(
         payload: {
           playerName,
           reason,
+          discordUser: moderator,
         },
         target: {
           scope: "server",
@@ -300,6 +309,12 @@ async function ExecuteRoblox(
 
   const playerName = interaction.options.getString("player", true).trim();
   const reason = interaction.options.getString("reason", true).trim();
+  const moderator: DiscordModeratorInfo = {
+    id: interaction.user.id,
+    username: interaction.user.username,
+    tag: interaction.user.tag,
+    globalName: interaction.user.globalName ?? undefined,
+  };
 
   if (!playerName || !reason) {
     const embed = EmbedFactory.CreateError({
@@ -425,7 +440,8 @@ async function ExecuteRoblox(
           settings,
           playerName,
           reason,
-          presenceMatch.serverId
+          presenceMatch.serverId,
+          moderator
         );
 
         outcome = await PollKickResult(settings, commandId);
