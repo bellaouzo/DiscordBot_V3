@@ -151,7 +151,7 @@ export const Config = {
       .hasModRole()
       .cooldownSeconds(cooldownSeconds),
 
-  admin: (cooldownSeconds = 10) =>
+  admin: (cooldownSeconds = 4) =>
     CommandConfigBuilder.create()
       .guildOnly()
       .hasAdminRole()
