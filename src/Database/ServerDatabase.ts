@@ -25,6 +25,8 @@ export interface GuildSettings {
   delete_log_channel_id: string | null;
   production_log_channel_id: string | null;
   welcome_channel_id: string | null;
+  roblox_linked_discord_user_id: string | null;
+  roblox_linked_at: number | null;
   created_at: number;
   updated_at: number;
 }
@@ -94,10 +96,15 @@ export class ServerDatabase {
     }
   }
 
-  private static readonly VALID_GUILD_SETTINGS_COLUMNS = new Set([
-    "delete_log_channel_id",
-    "production_log_channel_id",
-    "welcome_channel_id",
+  private static readonly VALID_GUILD_SETTINGS_COLUMNS = new Map<
+    string,
+    "TEXT" | "INTEGER"
+  >([
+    ["delete_log_channel_id", "TEXT"],
+    ["production_log_channel_id", "TEXT"],
+    ["welcome_channel_id", "TEXT"],
+    ["roblox_linked_discord_user_id", "TEXT"],
+    ["roblox_linked_at", "INTEGER"],
   ]);
 
   private EnsureGuildSettingsColumns(): void {
@@ -106,18 +113,21 @@ export class ServerDatabase {
       .all() as Array<{ name: string }>;
 
     const ensureColumn = (name: string): void => {
-      if (!ServerDatabase.VALID_GUILD_SETTINGS_COLUMNS.has(name)) {
+      const columnType = ServerDatabase.VALID_GUILD_SETTINGS_COLUMNS.get(name);
+      if (!columnType) {
         throw new Error(`Invalid column name for guild_settings: ${name}`);
       }
       const has = columns.some((c) => c.name === name);
       if (!has) {
         this.db
-          .prepare(`ALTER TABLE guild_settings ADD COLUMN ${name} TEXT`)
+          .prepare(
+            `ALTER TABLE guild_settings ADD COLUMN ${name} ${columnType}`
+          )
           .run();
       }
     };
 
-    for (const columnName of ServerDatabase.VALID_GUILD_SETTINGS_COLUMNS) {
+    for (const columnName of ServerDatabase.VALID_GUILD_SETTINGS_COLUMNS.keys()) {
       ensureColumn(columnName);
     }
   }
@@ -335,7 +345,7 @@ export class ServerDatabase {
 
     const stmt = this.db.prepare(
       `
-      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, command_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, created_at, updated_at
+      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, command_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, roblox_linked_discord_user_id, roblox_linked_at, created_at, updated_at
       FROM guild_settings
       WHERE guild_id = ?
     `
@@ -352,6 +362,8 @@ export class ServerDatabase {
           delete_log_channel_id: string | null;
           production_log_channel_id: string | null;
           welcome_channel_id?: string | null;
+          roblox_linked_discord_user_id?: string | null;
+          roblox_linked_at?: number | null;
           created_at: number;
           updated_at: number;
         }
@@ -383,6 +395,13 @@ export class ServerDatabase {
       welcome_channel_id: row.welcome_channel_id
         ? String(row.welcome_channel_id)
         : null,
+      roblox_linked_discord_user_id: row.roblox_linked_discord_user_id
+        ? String(row.roblox_linked_discord_user_id)
+        : null,
+      roblox_linked_at:
+        row.roblox_linked_at !== null && row.roblox_linked_at !== undefined
+          ? Number(row.roblox_linked_at)
+          : null,
       created_at: Number(row.created_at),
       updated_at: Number(row.updated_at),
     };
@@ -398,6 +417,8 @@ export class ServerDatabase {
     delete_log_channel_id?: string | null;
     production_log_channel_id?: string | null;
     welcome_channel_id?: string | null;
+    roblox_linked_discord_user_id?: string | null;
+    roblox_linked_at?: number | null;
   }): GuildSettings {
     const existing = this.GetGuildSettings(settings.guild_id);
     const now = Date.now();
@@ -425,6 +446,12 @@ export class ServerDatabase {
       null;
     const welcomeChannelId =
       settings.welcome_channel_id ?? existing?.welcome_channel_id ?? null;
+    const robloxLinkedDiscordUserId =
+      settings.roblox_linked_discord_user_id ??
+      existing?.roblox_linked_discord_user_id ??
+      null;
+    const robloxLinkedAt =
+      settings.roblox_linked_at ?? existing?.roblox_linked_at ?? null;
     const createdAt = existing?.created_at ?? now;
 
     const stmt = this.db.prepare(
@@ -439,10 +466,12 @@ export class ServerDatabase {
         delete_log_channel_id,
         production_log_channel_id,
         welcome_channel_id,
+        roblox_linked_discord_user_id,
+        roblox_linked_at,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(guild_id) DO UPDATE SET
         admin_role_ids = excluded.admin_role_ids,
         mod_role_ids = excluded.mod_role_ids,
@@ -452,6 +481,8 @@ export class ServerDatabase {
         delete_log_channel_id = excluded.delete_log_channel_id,
         production_log_channel_id = excluded.production_log_channel_id,
         welcome_channel_id = excluded.welcome_channel_id,
+        roblox_linked_discord_user_id = excluded.roblox_linked_discord_user_id,
+        roblox_linked_at = excluded.roblox_linked_at,
         updated_at = excluded.updated_at
     `
     );
@@ -466,6 +497,8 @@ export class ServerDatabase {
       deleteLogChannelId,
       productionLogChannelId,
       welcomeChannelId,
+      robloxLinkedDiscordUserId,
+      robloxLinkedAt,
       createdAt,
       now
     );

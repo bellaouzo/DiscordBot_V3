@@ -17,6 +17,7 @@ export interface CommandConfig {
   };
   readonly role?: string;
   readonly modRole?: boolean;
+  readonly adminRole?: boolean;
   readonly owner?: boolean;
   readonly custom?: Map<string, unknown>;
 }
@@ -91,6 +92,11 @@ export class CommandConfigBuilder {
     return this;
   }
 
+  hasAdminRole(): this {
+    this.config = { ...this.config, adminRole: true };
+    return this;
+  }
+
   owner(): this {
     this.config = { ...this.config, owner: true };
     return this;
@@ -148,7 +154,7 @@ export const Config = {
   admin: (cooldownSeconds = 10) =>
     CommandConfigBuilder.create()
       .guildOnly()
-      .permissions("Administrator")
+      .hasAdminRole()
       .cooldownSeconds(cooldownSeconds)
       .build(),
 

@@ -55,6 +55,8 @@ export function CreateEmptySettings(guild_id: string): GuildSettings {
     delete_log_channel_id: null,
     production_log_channel_id: null,
     welcome_channel_id: null,
+    roblox_linked_discord_user_id: null,
+    roblox_linked_at: null,
     created_at: Date.now(),
     updated_at: Date.now(),
   };
