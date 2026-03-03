@@ -137,5 +137,5 @@ export interface KickExecutionOutcome {
   readonly commandId?: string;
 }
 
-export const RESULT_POLL_INTERVAL_MS = 1500;
+export const RESULT_POLL_INTERVAL_MS = 3000;
 export const RESULT_POLL_TIMEOUT_MS = 20000;

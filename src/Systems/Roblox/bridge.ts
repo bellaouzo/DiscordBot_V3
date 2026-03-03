@@ -9,6 +9,7 @@ import type {
   RobloxPresenceMatch,
   RobloxPresenceResponse,
   RobloxCommandResultResponse,
+  RobloxCommandResultPayload,
   RobloxApiKeyStatusResponse,
   RobloxApiKeyDeleteResponse,
   RobloxGroupAuditResponse,
@@ -244,7 +245,7 @@ export async function PostKickCommand(
     },
   );
 
-  if (!response.ok || !response.data?.ok || !response.data?.data?.id) {
+  if (!response.ok) {
     throw new Error(
       ExtractErrorMessage(response.data?.error) ??
         response.error ??
@@ -252,7 +253,16 @@ export async function PostKickCommand(
     );
   }
 
-  return response.data.data.id;
+  const body = response.data as RobloxBridgeCommandResponse & { id?: string };
+  const id = body?.data?.id ?? body?.id;
+  if (!id) {
+    throw new Error(
+      ExtractErrorMessage(body?.error) ??
+        response.error ??
+        "Failed to post kick command",
+    );
+  }
+  return id;
 }
 
 export async function RequestApiKeyStatus(
@@ -275,7 +285,7 @@ export async function RequestApiKeyStatus(
     return { configured: false };
   }
 
-  if (!response.ok || !response.data?.ok) {
+  if (!response.ok) {
     throw new Error(
       ExtractErrorMessage(response.data?.error) ??
         response.error ??
@@ -283,7 +293,15 @@ export async function RequestApiKeyStatus(
     );
   }
 
-  return response.data.data;
+  const body = response.data as
+    | RobloxApiKeyStatusResponse
+    | RobloxApiKeyStatusResponse["data"];
+  const data = body && "data" in body && body.data ? body.data : body;
+  if (data && typeof data === "object" && "configured" in data) {
+    return data as RobloxApiKeyStatusResponse["data"];
+  }
+
+  return { configured: false };
 }
 
 export async function RequestApiKeyDelete(
@@ -469,7 +487,7 @@ export async function PollKickResult(
       continue;
     }
 
-    if (!response.ok || !response.data?.ok) {
+    if (!response.ok) {
       return {
         kind: "failure",
         code: "RESULT_REQUEST_FAILED",
@@ -481,7 +499,11 @@ export async function PollKickResult(
       };
     }
 
-    const result = response.data.data?.result;
+    const payload = response.data as RobloxCommandResultResponse & {
+      result?: RobloxCommandResultPayload;
+    };
+    const result =
+      payload?.data?.result ?? payload?.result;
     if (!result) {
       await Delay(RESULT_POLL_INTERVAL_MS);
       continue;
