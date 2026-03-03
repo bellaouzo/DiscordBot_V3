@@ -94,11 +94,61 @@ interface RobloxApiKeyStatusResponse {
     readonly guildId?: string;
     readonly keyType?: string;
     readonly targetId?: string;
+    readonly groupId?: string;
+    readonly universeId?: string;
     readonly createdAt?: number;
     readonly updatedAt?: number;
   };
   readonly error?: string | RobloxBridgeError;
 }
+
+/**
+ * Bridge group-audit contract: GET /api/v1/roblox/group/audit?guild_id=&player=|user_id=
+ * Exactly one of player or user_id. Auth: x-api-key. Error codes: NOT_CONNECTED,
+ * KEY_TYPE_EXPERIENCE, INSUFFICIENT_SCOPE, MEMBER_NOT_FOUND, RATE_LIMITED, UPSTREAM_ERROR.
+ */
+interface RobloxGroupAuditData {
+  readonly guildId?: string;
+  readonly entries?: readonly unknown[];
+  readonly player?: string;
+  readonly userId?: string;
+}
+
+interface RobloxGroupAuditResponse {
+  readonly ok?: boolean;
+  readonly data?: RobloxGroupAuditData;
+  readonly error?: string | RobloxBridgeError;
+}
+
+/**
+ * Bridge group/info contract: GET /api/v1/roblox/group/info?guild_id=
+ * Requires group API key. Error: NO_GROUP_KEY when key missing or not group type.
+ */
+interface RobloxGroupInfoData {
+  readonly id?: string;
+  readonly displayName?: string;
+  readonly description?: string;
+  readonly owner?: { readonly id?: string; readonly type?: string };
+  readonly memberCount?: number;
+  readonly publicEntryAllowed?: boolean;
+  readonly locked?: boolean;
+  readonly verified?: boolean;
+  readonly createTime?: string;
+  readonly updateTime?: string;
+  readonly path?: string;
+}
+
+interface RobloxGroupInfoResponse {
+  readonly ok?: boolean;
+  readonly data?: RobloxGroupInfoData;
+  readonly error?: string | RobloxBridgeError;
+}
+
+/**
+ * Follow-up bridge contracts (same auth + error style):
+ * - Group rank set: POST /api/v1/roblox/group/rank with guild_id, target (player or user_id), role_id or rank. No group_id; bridge uses stored group key.
+ * - DataStore: GET/POST /api/v1/roblox/datastore/... with guild_id, key; bridge uses stored universe key (keyType "user", target_id = Universe ID). No universe_id from bot.
+ */
 
 interface RobloxApiKeyDeleteResponse {
   readonly ok?: boolean;
@@ -163,7 +213,7 @@ function BuildApiKeySetupUrl(
 ): string {
   const url = new URL("/roblox/apikey", baseUrl);
   const expires = Math.floor(Date.now() / 1000) + 900;
-  
+
   const canonical = `expires=${expires}&guild_id=${guildId}&user_id=${userId}`;
   const sig = createHmac("sha256", urlSigningSecret)
     .update(canonical)
@@ -197,6 +247,27 @@ function BuildPresenceFindUrl(baseUrl: string, playerName: string): string {
 function BuildCommandResultUrl(baseUrl: string, commandId: string): string {
   const url = new URL("/api/v1/commands/result", baseUrl);
   url.searchParams.set("id", commandId);
+  return url.toString();
+}
+
+function BuildGroupAuditUrl(
+  baseUrl: string,
+  guildId: string,
+  options: { player?: string; userId?: string },
+): string {
+  const url = new URL("/api/v1/roblox/group/audit", baseUrl);
+  url.searchParams.set("guild_id", guildId);
+  if (options.player !== undefined && options.player !== "") {
+    url.searchParams.set("player", options.player);
+  } else if (options.userId !== undefined && options.userId !== "") {
+    url.searchParams.set("user_id", options.userId);
+  }
+  return url.toString();
+}
+
+function BuildGroupInfoUrl(baseUrl: string, guildId: string): string {
+  const url = new URL("/api/v1/roblox/group/info", baseUrl);
+  url.searchParams.set("guild_id", guildId);
   return url.toString();
 }
 
@@ -385,6 +456,70 @@ async function RequestApiKeyDelete(
         "Failed to delete Roblox API key",
     );
   }
+}
+
+async function RequestGroupAudit(
+  settings: RobloxBridgeSettings,
+  guildId: string,
+  options: { player?: string; userId?: string },
+): Promise<RobloxGroupAuditResponse> {
+  const url = BuildGroupAuditUrl(settings.url, guildId, options);
+  const response = await RequestJson<RobloxGroupAuditResponse>(url, {
+    method: "GET",
+    headers: {
+      "x-api-key": settings.apiKey,
+      "User-Agent": "DiscordBotV3/RobloxCommand",
+    },
+    timeoutMs: settings.timeoutMs,
+  });
+
+  const err = response.data?.error;
+  const code = typeof err === "object" && err?.code ? err.code : undefined;
+  const message =
+    (typeof err === "object" && err?.message) ||
+    (typeof err === "string" ? err : undefined) ||
+    response.error ||
+    "Group audit request failed";
+
+  if (!response.ok || response.data?.ok === false) {
+    const e = new Error(message) as Error & { code?: string };
+    e.code = code;
+    throw e;
+  }
+
+  return response.data ?? {};
+}
+
+async function RequestGroupInfo(
+  settings: RobloxBridgeSettings,
+  guildId: string,
+): Promise<RobloxGroupInfoResponse> {
+  const url = BuildGroupInfoUrl(settings.url, guildId);
+  const response = await RequestJson<RobloxGroupInfoResponse>(url, {
+    method: "GET",
+    headers: {
+      "x-api-key": settings.apiKey,
+      "User-Agent": "DiscordBotV3/RobloxCommand",
+    },
+    timeoutMs: settings.timeoutMs,
+  });
+
+  const err = response.data?.error;
+  const code =
+    typeof err === "object" && err?.code ? err.code : undefined;
+  const message =
+    (typeof err === "object" && err?.message) ||
+    (typeof err === "string" ? err : undefined) ||
+    response.error ||
+    "Group info request failed";
+
+  if (!response.ok || response.data?.ok === false) {
+    const e = new Error(message) as Error & { code?: string };
+    e.code = code;
+    throw e;
+  }
+
+  return response.data ?? {};
 }
 
 function BuildStatusEmbed(options: {
@@ -666,6 +801,297 @@ async function ExecuteKickSubcommand(
   }
 }
 
+function GroupAuditErrorTitle(code: string | undefined): string {
+  switch (code) {
+    case "NOT_CONNECTED":
+      return "Roblox Not Connected";
+    case "NO_GROUP_KEY":
+      return "No Group Key";
+    case "KEY_TYPE_EXPERIENCE":
+      return "Group Audit Not Available";
+    case "INSUFFICIENT_SCOPE":
+      return "Insufficient API Key Scope";
+    case "MEMBER_NOT_FOUND":
+      return "Member Not Found";
+    case "RATE_LIMITED":
+      return "Rate Limited";
+    case "UPSTREAM_ERROR":
+      return "Roblox API Error";
+    case "INVALID_API_KEY":
+      return "Invalid API Key";
+    case "SIGNATURE_INVALID":
+    case "SIGNATURE_USED":
+      return "Setup Link Invalid";
+    default:
+      return "Group Audit Failed";
+  }
+}
+
+function GroupAuditErrorMessage(code: string | undefined, fallback: string): string {
+  switch (code) {
+    case "NOT_CONNECTED":
+      return "No Roblox API key is configured for this server. Run `/roblox connect` to set one up.";
+    case "NO_GROUP_KEY":
+      return "This server must have a **group** API key configured. Run `/roblox connect` and link a group key.";
+    case "KEY_TYPE_EXPERIENCE":
+      return "Group audit is only available when this server is linked with a **group** API key. This server is linked with an experience (universe) key.";
+    case "INSUFFICIENT_SCOPE":
+      return "The configured API key does not have permission to read group membership. Check key scopes in Roblox Creator Hub.";
+    case "MEMBER_NOT_FOUND":
+      return "The player was not found in the group or the name/ID is invalid.";
+    case "RATE_LIMITED":
+      return "Too many requests. Please try again in a moment.";
+    case "UPSTREAM_ERROR":
+      return "The Roblox API returned an error. Please try again later.";
+    case "INVALID_API_KEY":
+      return "Roblox rejected the API key. Some endpoints (e.g. group info) only support **user (creator)** API keys, not group keys. In Roblox Creator Hub, create a key with the right scopes and reconnect using **User** (experience) if your bridge requires it for this action.";
+    case "SIGNATURE_INVALID":
+    case "SIGNATURE_USED":
+      return "The setup link is invalid or has already been used. Run `/roblox connect` again to get a new link.";
+    default:
+      return fallback;
+  }
+}
+
+async function ExecuteGroupAuditSubcommand(
+  interaction: ChatInputCommandInteraction,
+  context: CommandContext,
+  settings: RobloxBridgeSettings,
+): Promise<void> {
+  const { interactionResponder } = context.responders;
+  const hasAccess = await EnsureAdminAccess(interaction, context);
+  if (!hasAccess) {
+    return;
+  }
+
+  const guildId = interaction.guild!.id;
+  const player = interaction.options.getString("player", true).trim();
+  if (!player) {
+    const embed = EmbedFactory.CreateError({
+      title: "Invalid Input",
+      description: "Player name is required.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
+
+  const status = await RequestApiKeyStatus(settings, guildId);
+  if (!status?.configured) {
+    const embed = EmbedFactory.CreateError({
+      title: GroupAuditErrorTitle("NOT_CONNECTED"),
+      description: GroupAuditErrorMessage("NOT_CONNECTED", ""),
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
+
+  if (status.keyType !== "group") {
+    const embed = EmbedFactory.CreateError({
+      title: GroupAuditErrorTitle("KEY_TYPE_EXPERIENCE"),
+      description: GroupAuditErrorMessage("KEY_TYPE_EXPERIENCE", ""),
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
+
+  try {
+    const result = await RequestGroupAudit(settings, guildId, { player });
+    const data = result.data;
+    const entries = data?.entries ?? [];
+    const displayName = data?.player ?? data?.userId ?? player;
+    const entryCount = Array.isArray(entries) ? entries.length : 0;
+
+    const embed = EmbedFactory.CreateSuccess({
+      title: "Group Audit",
+      description: `Audit result for **${displayName}** in the linked group.`,
+    });
+    embed.addFields([
+      { name: "Player", value: displayName, inline: true },
+      { name: "Entries", value: String(entryCount), inline: true },
+    ]);
+    if (entryCount > 0 && Array.isArray(entries)) {
+      const preview = entries.slice(0, 5).map((e, i) => {
+        const row = typeof e === "object" && e !== null && "role" in e
+          ? `${(e as { role?: string }).role ?? "—"}`
+          : String(e);
+        return `${i + 1}. ${row}`;
+      }).join("\n");
+      const more = entryCount > 5 ? `\n_… and ${entryCount - 5} more_` : "";
+      embed.addFields([
+        { name: "Details", value: preview + more, inline: false },
+      ]);
+    }
+
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+  } catch (error) {
+    const code = (error as Error & { code?: string }).code;
+    const message = (error as Error).message;
+    const embed = EmbedFactory.CreateError({
+      title: GroupAuditErrorTitle(code),
+      description: GroupAuditErrorMessage(code, message),
+    });
+    if (code) {
+      embed.addFields([{ name: "Code", value: code, inline: true }]);
+    }
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+  }
+}
+
+async function ExecuteGroupInfoSubcommand(
+  interaction: ChatInputCommandInteraction,
+  context: CommandContext,
+  settings: RobloxBridgeSettings,
+): Promise<void> {
+  const { interactionResponder } = context.responders;
+  const hasAccess = await EnsureAdminAccess(interaction, context);
+  if (!hasAccess) {
+    return;
+  }
+
+  const guildId = interaction.guild!.id;
+
+  const status = await RequestApiKeyStatus(settings, guildId);
+  if (!status?.configured) {
+    const embed = EmbedFactory.CreateError({
+      title: GroupAuditErrorTitle("NOT_CONNECTED"),
+      description: GroupAuditErrorMessage("NOT_CONNECTED", ""),
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
+
+  if (status.keyType !== "group") {
+    const embed = EmbedFactory.CreateError({
+      title: GroupAuditErrorTitle("NO_GROUP_KEY"),
+      description: GroupAuditErrorMessage("NO_GROUP_KEY", ""),
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
+
+  try {
+    const result = await RequestGroupInfo(settings, guildId);
+    const data = result.data;
+
+    const embed = EmbedFactory.CreateSuccess({
+      title: "Group Info",
+      description: data?.displayName
+        ? `**${data.displayName}**`
+        : "Linked Roblox group.",
+    });
+
+    if (data?.id) {
+      embed.addFields([{ name: "Group ID", value: data.id, inline: true }]);
+    }
+    if (data?.displayName) {
+      embed.addFields([
+        { name: "Name", value: data.displayName, inline: true },
+      ]);
+    }
+    if (data?.memberCount !== undefined && data?.memberCount !== null) {
+      embed.addFields([
+        { name: "Members", value: String(data.memberCount), inline: true },
+      ]);
+    }
+    if (data?.description !== undefined && data?.description !== "") {
+      const desc =
+        data.description.length > 1024
+          ? `${data.description.slice(0, 1021)}...`
+          : data.description;
+      embed.addFields([{ name: "Description", value: desc, inline: false }]);
+    }
+    if (data?.path) {
+      embed.addFields([{ name: "Path", value: data.path, inline: false }]);
+    }
+    if (data?.publicEntryAllowed !== undefined) {
+      embed.addFields([
+        {
+          name: "Public Entry",
+          value: data.publicEntryAllowed ? "Yes" : "No",
+          inline: true,
+        },
+      ]);
+    }
+    if (data?.locked !== undefined) {
+      embed.addFields([
+        {
+          name: "Locked",
+          value: data.locked ? "Yes" : "No",
+          inline: true,
+        },
+      ]);
+    }
+    if (data?.verified !== undefined) {
+      embed.addFields([
+        {
+          name: "Verified",
+          value: data.verified ? "Yes" : "No",
+          inline: true,
+        },
+      ]);
+    }
+    if (data?.owner?.id) {
+      embed.addFields([
+        {
+          name: "Owner ID",
+          value: data.owner.id,
+          inline: true,
+        },
+      ]);
+    }
+    if (data?.createTime) {
+      embed.addFields([
+        { name: "Created", value: data.createTime, inline: true },
+      ]);
+    }
+    if (data?.updateTime) {
+      embed.addFields([
+        { name: "Updated", value: data.updateTime, inline: true },
+      ]);
+    }
+
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+  } catch (error) {
+    const code = (error as Error & { code?: string }).code;
+    const message = (error as Error).message;
+    const embed = EmbedFactory.CreateError({
+      title: GroupAuditErrorTitle(code),
+      description: GroupAuditErrorMessage(code, message),
+    });
+    if (code) {
+      embed.addFields([{ name: "Code", value: code, inline: true }]);
+    }
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+  }
+}
+
 async function ExecuteConnectSubcommand(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
@@ -822,8 +1248,7 @@ async function ExecuteDisconnectSubcommand(
 
   const embed = EmbedFactory.CreateSuccess({
     title: "Roblox Disconnected",
-    description:
-      "Successfully removed the Roblox API key for this server.",
+    description: "Successfully removed the Roblox API key for this server.",
   });
 
   await interactionResponder.Reply(interaction, {
@@ -860,6 +1285,16 @@ async function ExecuteRoblox(
   try {
     if (subcommand === "kick") {
       await ExecuteKickSubcommand(interaction, context, settings);
+      return;
+    }
+
+    if (subcommand === "group-audit") {
+      await ExecuteGroupAuditSubcommand(interaction, context, settings);
+      return;
+    }
+
+    if (subcommand === "group-info") {
+      await ExecuteGroupInfoSubcommand(interaction, context, settings);
       return;
     }
 
@@ -924,6 +1359,22 @@ export const RobloxCommand = CreateCommand({
               .setDescription("Reason for kicking the player")
               .setRequired(true),
           ),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName("group-audit")
+          .setDescription("Look up a player's group membership (group key required)")
+          .addStringOption((option) =>
+            option
+              .setName("player")
+              .setDescription("Roblox player name to look up")
+              .setRequired(true),
+          ),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName("group-info")
+          .setDescription("View the linked Roblox group's info (group key required)"),
       )
       .addSubcommand((subcommand) =>
         subcommand

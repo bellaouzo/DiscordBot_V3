@@ -120,9 +120,7 @@ describe("Roblox API Key subcommands", () => {
           expect.objectContaining({
             components: [
               expect.objectContaining({
-                data: expect.objectContaining({
-                  url: expect.stringMatching(/expires=\d+&guild_id=guild-1&sig=[a-f0-9]{64}&user_id=admin-1/),
-                }),
+                url: expect.stringMatching(/expires=\d+&guild_id=guild-1&sig=[a-f0-9]{64}&user_id=admin-1/),
               }),
             ],
           }),
