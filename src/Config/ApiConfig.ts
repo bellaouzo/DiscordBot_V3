@@ -23,6 +23,7 @@ interface TranslateConfig extends EndpointConfig {
 
 interface RobloxBridgeConfig extends EndpointConfig {
   readonly apiKey: string;
+  readonly urlSigningSecret: string;
 }
 
 export interface ApiConfig {
@@ -75,6 +76,7 @@ const DEFAULTS: ApiConfig = {
     url: "",
     timeoutMs: 8000,
     apiKey: "",
+    urlSigningSecret: "",
   },
 };
 
@@ -181,6 +183,9 @@ export function LoadApiConfig(): ApiConfig {
         DEFAULTS.robloxBridge.timeoutMs
       ),
       apiKey: process.env.ROBLOX_BRIDGE_API_KEY || DEFAULTS.robloxBridge.apiKey,
+      urlSigningSecret:
+        process.env.ROBLOX_BRIDGE_URL_SIGNING_SECRET ||
+        DEFAULTS.robloxBridge.urlSigningSecret,
     },
   };
 }

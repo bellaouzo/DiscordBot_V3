@@ -1,11 +1,11 @@
 import {
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonInteraction,
   ButtonStyle,
   ChatInputCommandInteraction,
   PermissionFlagsBits,
 } from "discord.js";
+import { createHmac } from "crypto";
 import { LoadApiConfig } from "@config/ApiConfig";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
@@ -27,6 +27,7 @@ interface RobloxBridgeCommandResponse {
 interface RobloxBridgeSettings {
   readonly url: string;
   readonly apiKey: string;
+  readonly urlSigningSecret: string;
   readonly timeoutMs: number;
 }
 
@@ -86,33 +87,23 @@ interface RobloxCommandResultResponse {
   readonly error?: string | RobloxBridgeError;
 }
 
-interface RobloxAuthUrlResponse {
+interface RobloxApiKeyStatusResponse {
   readonly ok?: boolean;
   readonly data?: {
-    readonly authUrl?: string;
-    readonly launchUrl?: string;
-    readonly state?: string;
+    readonly configured?: boolean;
+    readonly guildId?: string;
+    readonly keyType?: string;
+    readonly targetId?: string;
+    readonly createdAt?: number;
+    readonly updatedAt?: number;
   };
   readonly error?: string | RobloxBridgeError;
 }
 
-interface RobloxLinkStatusResponse {
+interface RobloxApiKeyDeleteResponse {
   readonly ok?: boolean;
   readonly data?: {
-    readonly linked?: boolean;
-    readonly linkedAt?: number;
-    readonly expiresAt?: number;
-    readonly robloxUserId?: number | null;
-    readonly robloxUsername?: string | null;
-    readonly robloxDisplayName?: string | null;
-  };
-  readonly error?: string | RobloxBridgeError;
-}
-
-interface RobloxUnlinkResponse {
-  readonly ok?: boolean;
-  readonly data?: {
-    readonly unlinked?: boolean;
+    readonly deleted?: boolean;
   };
   readonly error?: string | RobloxBridgeError;
 }
@@ -132,6 +123,7 @@ const apiConfig = LoadApiConfig();
 function EnsureRobloxBridgeSettings(): RobloxBridgeSettings {
   const url = apiConfig.robloxBridge.url.trim();
   const apiKey = apiConfig.robloxBridge.apiKey.trim();
+  const urlSigningSecret = apiConfig.robloxBridge.urlSigningSecret.trim();
 
   if (!url) {
     throw new Error(
@@ -145,9 +137,16 @@ function EnsureRobloxBridgeSettings(): RobloxBridgeSettings {
     );
   }
 
+  if (!urlSigningSecret) {
+    throw new Error(
+      "Roblox bridge URL signing secret is not configured. Set ROBLOX_BRIDGE_URL_SIGNING_SECRET.",
+    );
+  }
+
   return {
     url,
     apiKey,
+    urlSigningSecret,
     timeoutMs: apiConfig.robloxBridge.timeoutMs,
   };
 }
@@ -156,36 +155,36 @@ function BuildBridgeCommandUrl(baseUrl: string): string {
   return new URL("/api/v1/commands/post", baseUrl).toString();
 }
 
-function BuildRobloxAuthUrlUrl(
+function BuildApiKeySetupUrl(
   baseUrl: string,
   guildId: string,
   userId: string,
+  urlSigningSecret: string,
 ): string {
-  const url = new URL("/api/v1/roblox/auth/url", baseUrl);
+  const url = new URL("/roblox/apikey", baseUrl);
+  const expires = Math.floor(Date.now() / 1000) + 900;
+  
+  const canonical = `expires=${expires}&guild_id=${guildId}&user_id=${userId}`;
+  const sig = createHmac("sha256", urlSigningSecret)
+    .update(canonical)
+    .digest("hex");
+
+  url.searchParams.set("expires", String(expires));
   url.searchParams.set("guild_id", guildId);
+  url.searchParams.set("sig", sig);
   url.searchParams.set("user_id", userId);
   return url.toString();
 }
 
-function BuildRobloxLinkStatusUrl(
-  baseUrl: string,
-  guildId: string,
-  userId: string,
-): string {
-  const url = new URL("/api/v1/roblox/link/status", baseUrl);
+function BuildApiKeyStatusUrl(baseUrl: string, guildId: string): string {
+  const url = new URL("/api/v1/roblox/apikey", baseUrl);
   url.searchParams.set("guild_id", guildId);
-  url.searchParams.set("user_id", userId);
   return url.toString();
 }
 
-function BuildRobloxLinkUnlinkUrl(
-  baseUrl: string,
-  guildId: string,
-  userId: string,
-): string {
-  const url = new URL("/api/v1/roblox/link", baseUrl);
+function BuildApiKeyDeleteUrl(baseUrl: string, guildId: string): string {
+  const url = new URL("/api/v1/roblox/apikey", baseUrl);
   url.searchParams.set("guild_id", guildId);
-  url.searchParams.set("user_id", userId);
   return url.toString();
 }
 
@@ -235,7 +234,7 @@ function FormatDiscordTimestamp(value: number | undefined): string | null {
   return seconds > 0 ? `<t:${seconds}:f>` : null;
 }
 
-async function EnsureOAuthAdminAccess(
+async function EnsureAdminAccess(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
 ): Promise<boolean> {
@@ -245,7 +244,8 @@ async function EnsureOAuthAdminAccess(
 
   const embed = EmbedFactory.CreateError({
     title: "Admin Only",
-    description: "You need Administrator permission to manage Roblox OAuth.",
+    description:
+      "You need Administrator permission to manage Roblox API key settings.",
   });
 
   await context.responders.interactionResponder.Reply(interaction, {
@@ -331,13 +331,12 @@ async function PostKickCommand(
   return response.data.data.id;
 }
 
-async function RequestOAuthLinkUrl(
+async function RequestApiKeyStatus(
   settings: RobloxBridgeSettings,
   guildId: string,
-  userId: string,
-): Promise<string> {
-  const response = await RequestJson<RobloxAuthUrlResponse>(
-    BuildRobloxAuthUrlUrl(settings.url, guildId, userId),
+): Promise<RobloxApiKeyStatusResponse["data"]> {
+  const response = await RequestJson<RobloxApiKeyStatusResponse>(
+    BuildApiKeyStatusUrl(settings.url, guildId),
     {
       method: "GET",
       headers: {
@@ -348,59 +347,27 @@ async function RequestOAuthLinkUrl(
     },
   );
 
-  if (!response.ok || !response.data?.ok || !response.data.data) {
+  if (response.status === 404) {
+    return { configured: false };
+  }
+
+  if (!response.ok || !response.data?.ok) {
     throw new Error(
       ExtractErrorMessage(response.data?.error) ??
         response.error ??
-        "Failed to create Roblox OAuth link URL",
-    );
-  }
-
-  const launchUrl = response.data.data.launchUrl?.trim();
-  const authUrl = response.data.data.authUrl?.trim();
-  const buttonUrl = launchUrl || authUrl;
-  if (!buttonUrl) {
-    throw new Error("Missing OAuth launch URL");
-  }
-
-  return buttonUrl;
-}
-
-async function RequestOAuthLinkStatus(
-  settings: RobloxBridgeSettings,
-  guildId: string,
-  userId: string,
-): Promise<RobloxLinkStatusResponse["data"]> {
-  const response = await RequestJson<RobloxLinkStatusResponse>(
-    BuildRobloxLinkStatusUrl(settings.url, guildId, userId),
-    {
-      method: "GET",
-      headers: {
-        "x-api-key": settings.apiKey,
-        "User-Agent": "DiscordBotV3/RobloxCommand",
-      },
-      timeoutMs: settings.timeoutMs,
-    },
-  );
-
-  if (!response.ok || !response.data?.ok || !response.data.data) {
-    throw new Error(
-      ExtractErrorMessage(response.data?.error) ??
-        response.error ??
-        "Failed to fetch Roblox link status",
+        "Failed to fetch Roblox API key status",
     );
   }
 
   return response.data.data;
 }
 
-async function RequestOAuthUnlink(
+async function RequestApiKeyDelete(
   settings: RobloxBridgeSettings,
   guildId: string,
-  userId: string,
 ): Promise<void> {
-  const response = await RequestJson<RobloxUnlinkResponse>(
-    BuildRobloxLinkUnlinkUrl(settings.url, guildId, userId),
+  const response = await RequestJson<RobloxApiKeyDeleteResponse>(
+    BuildApiKeyDeleteUrl(settings.url, guildId),
     {
       method: "DELETE",
       headers: {
@@ -415,91 +382,74 @@ async function RequestOAuthUnlink(
     throw new Error(
       ExtractErrorMessage(response.data?.error) ??
         response.error ??
-        "Failed to unlink Roblox OAuth account",
+        "Failed to delete Roblox API key",
     );
   }
 }
 
-function GetGuildLinkedDiscordUserId(
-  context: CommandContext,
-  guildId: string,
-): string | null {
-  const settings = context.databases.serverDb.GetGuildSettings(guildId);
-  const linkedUserId = settings?.roblox_linked_discord_user_id?.trim();
-  return linkedUserId && linkedUserId.length > 0 ? linkedUserId : null;
-}
-
 function BuildStatusEmbed(options: {
-  linked: boolean;
+  configured: boolean;
   linkedDiscordUserId?: string;
-  linkedAt?: number;
-  expiresAt?: number;
-  robloxUserId?: number | null;
-  robloxUsername?: string | null;
-  robloxDisplayName?: string | null;
+  keyType?: string;
+  targetId?: string;
+  createdAt?: number;
+  updatedAt?: number;
 }) {
-  if (!options.linked) {
+  if (!options.configured) {
     return EmbedFactory.CreateError({
-      title: "Roblox Not Linked",
+      title: "Roblox Not Connected",
       description:
-        "No active Roblox OAuth link was found for this guild/user pair. Run `/roblox connect` to start linking.",
+        "No Roblox API key has been configured for this server. Run `/roblox connect` to set one up.",
     });
   }
 
   const embed = EmbedFactory.CreateSuccess({
     title: "Roblox Connected",
-    description: "This server has an active Roblox OAuth link.",
+    description: "This server has a Roblox Open Cloud API key configured.",
   });
 
   if (options.linkedDiscordUserId) {
     embed.addFields([
       {
-        name: "Linked By",
+        name: "Configured By",
         value: `<@${options.linkedDiscordUserId}>`,
         inline: true,
       },
     ]);
   }
 
-  const linkedAtText = FormatDiscordTimestamp(options.linkedAt);
-  if (linkedAtText) {
-    embed.addFields([{ name: "Linked At", value: linkedAtText, inline: true }]);
-  }
-
-  const expiresAtText = FormatDiscordTimestamp(options.expiresAt);
-  if (expiresAtText) {
+  if (options.keyType) {
     embed.addFields([
-      { name: "Token Expires", value: expiresAtText, inline: true },
+      {
+        name: "Key Type",
+        value: options.keyType === "group" ? "Group" : "User (Experience)",
+        inline: true,
+      },
     ]);
   }
 
-  const username = options.robloxUsername?.trim() || null;
-  const displayName = options.robloxDisplayName?.trim() || null;
-  const robloxUserId = options.robloxUserId ?? null;
-  const robloxAccountLabel =
-    displayName && username
-      ? `${displayName} (@${username})`
-      : username
-        ? `@${username}`
-        : displayName
-          ? displayName
-          : "Unknown Roblox account";
-
-  embed.addFields([
-    {
-      name: "Roblox Account",
-      value: robloxAccountLabel,
-      inline: true,
-    },
-  ]);
-
-  if (robloxUserId !== null && robloxUserId !== undefined) {
+  if (options.targetId) {
+    const idLabel = options.keyType === "group" ? "Group ID" : "Universe ID";
     embed.addFields([
       {
-        name: "Roblox User ID",
-        value: String(robloxUserId),
+        name: idLabel,
+        value: options.targetId,
         inline: true,
       },
+    ]);
+  }
+
+  const createdAtText = FormatDiscordTimestamp(options.createdAt);
+  if (createdAtText) {
+    embed.addFields([
+      { name: "Created At", value: createdAtText, inline: true },
+    ]);
+  }
+
+  const updatedAtText = FormatDiscordTimestamp(options.updatedAt);
+  if (updatedAtText) {
+    embed.addFields([
+      { name: "Updated At", value: updatedAtText, inline: true },
     ]);
   }
 
@@ -721,64 +671,21 @@ async function ExecuteConnectSubcommand(
   context: CommandContext,
   settings: RobloxBridgeSettings,
 ): Promise<void> {
-  const { interactionResponder, componentRouter, buttonResponder } =
-    context.responders;
-  const hasAccess = await EnsureOAuthAdminAccess(interaction, context);
+  const { interactionResponder } = context.responders;
+  const hasAccess = await EnsureAdminAccess(interaction, context);
   if (!hasAccess) {
     return;
   }
 
   const guildId = interaction.guild!.id;
   const currentUserId = interaction.user.id;
-  const existingLinkedUserId = GetGuildLinkedDiscordUserId(context, guildId);
 
-  if (existingLinkedUserId) {
-    const existingStatus = await RequestOAuthLinkStatus(
-      settings,
-      guildId,
-      existingLinkedUserId,
-    );
-
-    if (existingStatus?.linked) {
-      const embed = EmbedFactory.CreateError({
-        title: "Account Already Linked",
-        description: `A Roblox account is already linked for this server by <@${existingLinkedUserId}>. Run \`/roblox disconnect\` first.`,
-      });
-      await interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        ephemeral: true,
-      });
-      return;
-    }
-
-    context.databases.serverDb.UpsertGuildSettings({
-      guild_id: guildId,
-      roblox_linked_discord_user_id: null,
-      roblox_linked_at: null,
-    });
-  }
-
-  const currentStatus = await RequestOAuthLinkStatus(
-    settings,
-    guildId,
-    currentUserId,
-  );
-  if (currentStatus?.linked) {
-    const linkedAt = currentStatus.linkedAt ?? Date.now();
-    context.databases.serverDb.UpsertGuildSettings({
-      guild_id: guildId,
-      roblox_linked_discord_user_id: currentUserId,
-      roblox_linked_at: linkedAt,
-    });
-
-    const embed = BuildStatusEmbed({
-      linked: true,
-      linkedDiscordUserId: currentUserId,
-      linkedAt,
-      expiresAt: currentStatus.expiresAt,
-      robloxUserId: currentStatus.robloxUserId,
-      robloxUsername: currentStatus.robloxUsername,
-      robloxDisplayName: currentStatus.robloxDisplayName,
+  const existingStatus = await RequestApiKeyStatus(settings, guildId);
+  if (existingStatus?.configured) {
+    const embed = EmbedFactory.CreateError({
+      title: "API Key Already Configured",
+      description:
+        "A Roblox API key is already configured for this server. Run `/roblox disconnect` first to remove it.",
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
@@ -787,76 +694,31 @@ async function ExecuteConnectSubcommand(
     return;
   }
 
-  const buttonUrl = await RequestOAuthLinkUrl(settings, guildId, currentUserId);
-
-  const checkStatusButtonRegistration = componentRouter.RegisterButton({
-    ownerId: currentUserId,
-    expiresInMs: 1000 * 60 * 10,
-    handler: async (buttonInteraction: ButtonInteraction) => {
-      const statusAfterAuth = await RequestOAuthLinkStatus(
-        settings,
-        guildId,
-        currentUserId,
-      );
-      const linked = Boolean(statusAfterAuth?.linked);
-
-      if (linked) {
-        const linkedAt = statusAfterAuth?.linkedAt ?? Date.now();
-        context.databases.serverDb.UpsertGuildSettings({
-          guild_id: guildId,
-          roblox_linked_discord_user_id: currentUserId,
-          roblox_linked_at: linkedAt,
-        });
-      }
-
-      const embed = BuildStatusEmbed({
-        linked,
-        linkedDiscordUserId: linked ? currentUserId : undefined,
-        linkedAt: statusAfterAuth?.linkedAt,
-        expiresAt: statusAfterAuth?.expiresAt,
-        robloxUserId: statusAfterAuth?.robloxUserId,
-        robloxUsername: statusAfterAuth?.robloxUsername,
-        robloxDisplayName: statusAfterAuth?.robloxDisplayName,
-      });
-
-      const components = linked
-        ? []
-        : [
-            new ActionRowBuilder<ButtonBuilder>().addComponents(
-              new ButtonBuilder()
-                .setLabel("Connect Roblox")
-                .setStyle(ButtonStyle.Link)
-                .setURL(buttonUrl),
-              new ButtonBuilder()
-                .setCustomId(checkStatusButtonRegistration.customId)
-                .setLabel("Check Link Status")
-                .setStyle(ButtonStyle.Secondary),
-            ),
-          ];
-
-      await buttonResponder.Update(buttonInteraction, {
-        embeds: [embed.toJSON()],
-        components: components.map((row) => row.toJSON()) as never,
-      });
-    },
-  });
+  const setupUrl = BuildApiKeySetupUrl(
+    settings.url,
+    guildId,
+    currentUserId,
+    settings.urlSigningSecret,
+  );
 
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
-      .setLabel("Connect Roblox")
+      .setLabel("Open Setup Page")
       .setStyle(ButtonStyle.Link)
-      .setURL(buttonUrl),
-    new ButtonBuilder()
-      .setCustomId(checkStatusButtonRegistration.customId)
-      .setLabel("Check Link Status")
-      .setStyle(ButtonStyle.Secondary),
+      .setURL(setupUrl),
   );
 
   const embed = EmbedFactory.Create({
-    title: "Connect Roblox Account",
+    title: "Connect Roblox API Key",
     description:
-      "Use the button below to connect your Roblox account for this server, then click **Check Link Status** after you finish in the browser.\n\nCurrent OAuth scope is limited to basic identity (`openid/profile`). Group actions will require additional approved scopes later.",
-    footer: "After completing OAuth in browser, run /roblox status.",
+      "Click the button below to open the API key setup page. You will need your Roblox Open Cloud API key and your Universe ID (or Group ID).\n\nAfter completing setup, run `/roblox status` to verify.",
+    footer: "After completing setup in browser, run /roblox status.",
+  });
+
+  context.databases.serverDb.UpsertGuildSettings({
+    guild_id: guildId,
+    roblox_linked_discord_user_id: currentUserId,
+    roblox_linked_at: Date.now(),
   });
 
   await interactionResponder.Reply(interaction, {
@@ -872,49 +734,35 @@ async function ExecuteStatusSubcommand(
   settings: RobloxBridgeSettings,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-  const hasAccess = await EnsureOAuthAdminAccess(interaction, context);
+  const hasAccess = await EnsureAdminAccess(interaction, context);
   if (!hasAccess) {
     return;
   }
 
   const guildId = interaction.guild!.id;
-  const targetUserId =
-    GetGuildLinkedDiscordUserId(context, guildId) ?? interaction.user.id;
+  const guildSettings = context.databases.serverDb.GetGuildSettings(guildId);
+  const linkedDiscordUserId =
+    guildSettings?.roblox_linked_discord_user_id?.trim() || undefined;
 
-  const status = await RequestOAuthLinkStatus(settings, guildId, targetUserId);
-  const linked = Boolean(status?.linked);
+  const status = await RequestApiKeyStatus(settings, guildId);
+  const configured = Boolean(status?.configured);
 
-  if (linked) {
-    const linkedAt = status?.linkedAt ?? Date.now();
+  if (!configured) {
     context.databases.serverDb.UpsertGuildSettings({
       guild_id: guildId,
-      roblox_linked_discord_user_id: targetUserId,
-      roblox_linked_at: linkedAt,
+      roblox_linked_discord_user_id: null,
+      roblox_linked_at: null,
     });
-
-    const embed = BuildStatusEmbed({
-      linked: true,
-      linkedDiscordUserId: targetUserId,
-      linkedAt,
-      expiresAt: status?.expiresAt,
-      robloxUserId: status?.robloxUserId,
-      robloxUsername: status?.robloxUsername,
-      robloxDisplayName: status?.robloxDisplayName,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
   }
 
-  context.databases.serverDb.UpsertGuildSettings({
-    guild_id: guildId,
-    roblox_linked_discord_user_id: null,
-    roblox_linked_at: null,
+  const embed = BuildStatusEmbed({
+    configured,
+    linkedDiscordUserId: configured ? linkedDiscordUserId : undefined,
+    keyType: status?.keyType,
+    targetId: status?.targetId,
+    createdAt: status?.createdAt,
+    updatedAt: status?.updatedAt,
   });
-
-  const embed = BuildStatusEmbed({ linked: false });
 
   await interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
@@ -928,21 +776,19 @@ async function ExecuteDisconnectSubcommand(
   settings: RobloxBridgeSettings,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-  const hasAccess = await EnsureOAuthAdminAccess(interaction, context);
+  const hasAccess = await EnsureAdminAccess(interaction, context);
   if (!hasAccess) {
     return;
   }
 
   const guildId = interaction.guild!.id;
-  const linkedUserId = GetGuildLinkedDiscordUserId(context, guildId);
-  const targetUserId = linkedUserId ?? interaction.user.id;
 
-  const status = await RequestOAuthLinkStatus(settings, guildId, targetUserId);
-  if (!status?.linked) {
+  const status = await RequestApiKeyStatus(settings, guildId);
+  if (!status?.configured) {
     const embed = EmbedFactory.CreateError({
       title: "Nothing to Disconnect",
       description:
-        "No Roblox account is connected for this server. Run `/roblox connect` first.",
+        "No Roblox API key is configured for this server. Run `/roblox connect` first.",
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
@@ -952,13 +798,13 @@ async function ExecuteDisconnectSubcommand(
   }
 
   try {
-    await RequestOAuthUnlink(settings, guildId, targetUserId);
+    await RequestApiKeyDelete(settings, guildId);
   } catch (error) {
     const embed = EmbedFactory.CreateError({
       title: "Roblox Disconnect Failed",
       description:
         ExtractErrorMessage(error) ??
-        "Unable to unlink the Roblox OAuth connection from backend. Please try again later.",
+        "Unable to remove the Roblox API key. Please try again later.",
     });
 
     await interactionResponder.Reply(interaction, {
@@ -975,8 +821,9 @@ async function ExecuteDisconnectSubcommand(
   });
 
   const embed = EmbedFactory.CreateSuccess({
-    title: "Roblox Disconnect Complete",
-    description: "Successfully unlinked Roblox OAuth for this server.",
+    title: "Roblox Disconnected",
+    description:
+      "Successfully removed the Roblox API key for this server.",
   });
 
   await interactionResponder.Reply(interaction, {
@@ -1081,17 +928,17 @@ export const RobloxCommand = CreateCommand({
       .addSubcommand((subcommand) =>
         subcommand
           .setName("connect")
-          .setDescription("Connect Roblox OAuth for this server"),
+          .setDescription("Set up a Roblox Open Cloud API key for this server"),
       )
       .addSubcommand((subcommand) =>
         subcommand
           .setName("status")
-          .setDescription("View Roblox OAuth connection status"),
+          .setDescription("View Roblox API key connection status"),
       )
       .addSubcommand((subcommand) =>
         subcommand
           .setName("disconnect")
-          .setDescription("Clear bot-side Roblox connection metadata"),
+          .setDescription("Remove the Roblox API key for this server"),
       );
   },
 });
