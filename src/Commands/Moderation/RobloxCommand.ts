@@ -135,13 +135,13 @@ function EnsureRobloxBridgeSettings(): RobloxBridgeSettings {
 
   if (!url) {
     throw new Error(
-      "Roblox bridge API URL is not configured. Set ROBLOX_BRIDGE_API_URL."
+      "Roblox bridge API URL is not configured. Set ROBLOX_BRIDGE_API_URL.",
     );
   }
 
   if (!apiKey) {
     throw new Error(
-      "Roblox bridge API key is not configured. Set ROBLOX_BRIDGE_API_KEY."
+      "Roblox bridge API key is not configured. Set ROBLOX_BRIDGE_API_KEY.",
     );
   }
 
@@ -159,7 +159,7 @@ function BuildBridgeCommandUrl(baseUrl: string): string {
 function BuildRobloxAuthUrlUrl(
   baseUrl: string,
   guildId: string,
-  userId: string
+  userId: string,
 ): string {
   const url = new URL("/api/v1/roblox/auth/url", baseUrl);
   url.searchParams.set("guild_id", guildId);
@@ -170,7 +170,7 @@ function BuildRobloxAuthUrlUrl(
 function BuildRobloxLinkStatusUrl(
   baseUrl: string,
   guildId: string,
-  userId: string
+  userId: string,
 ): string {
   const url = new URL("/api/v1/roblox/link/status", baseUrl);
   url.searchParams.set("guild_id", guildId);
@@ -181,7 +181,7 @@ function BuildRobloxLinkStatusUrl(
 function BuildRobloxLinkUnlinkUrl(
   baseUrl: string,
   guildId: string,
-  userId: string
+  userId: string,
 ): string {
   const url = new URL("/api/v1/roblox/link", baseUrl);
   url.searchParams.set("guild_id", guildId);
@@ -237,7 +237,7 @@ function FormatDiscordTimestamp(value: number | undefined): string | null {
 
 async function EnsureOAuthAdminAccess(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<boolean> {
   if (interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
     return true;
@@ -257,7 +257,7 @@ async function EnsureOAuthAdminAccess(
 
 async function FindPlayerPresence(
   settings: RobloxBridgeSettings,
-  playerName: string
+  playerName: string,
 ): Promise<RobloxPresenceMatch | null> {
   const response = await RequestJson<RobloxPresenceResponse>(
     BuildPresenceFindUrl(settings.url, playerName),
@@ -268,14 +268,14 @@ async function FindPlayerPresence(
         "User-Agent": "DiscordBotV3/RobloxCommand",
       },
       timeoutMs: settings.timeoutMs,
-    }
+    },
   );
 
   if (!response.ok) {
     throw new Error(
       ExtractErrorMessage(response.data?.error) ??
         response.error ??
-        "Presence lookup failed"
+        "Presence lookup failed",
     );
   }
 
@@ -293,7 +293,7 @@ async function PostKickCommand(
   playerName: string,
   reason: string,
   serverId: string,
-  moderator: DiscordModeratorInfo
+  moderator: DiscordModeratorInfo,
 ): Promise<string> {
   const response = await RequestJson<RobloxBridgeCommandResponse>(
     BuildBridgeCommandUrl(settings.url),
@@ -317,14 +317,14 @@ async function PostKickCommand(
         source: "discord-bot",
       },
       timeoutMs: settings.timeoutMs,
-    }
+    },
   );
 
   if (!response.ok || !response.data?.ok || !response.data?.data?.id) {
     throw new Error(
       ExtractErrorMessage(response.data?.error) ??
         response.error ??
-        "Failed to post kick command"
+        "Failed to post kick command",
     );
   }
 
@@ -334,7 +334,7 @@ async function PostKickCommand(
 async function RequestOAuthLinkUrl(
   settings: RobloxBridgeSettings,
   guildId: string,
-  userId: string
+  userId: string,
 ): Promise<string> {
   const response = await RequestJson<RobloxAuthUrlResponse>(
     BuildRobloxAuthUrlUrl(settings.url, guildId, userId),
@@ -345,14 +345,14 @@ async function RequestOAuthLinkUrl(
         "User-Agent": "DiscordBotV3/RobloxCommand",
       },
       timeoutMs: settings.timeoutMs,
-    }
+    },
   );
 
   if (!response.ok || !response.data?.ok || !response.data.data) {
     throw new Error(
       ExtractErrorMessage(response.data?.error) ??
         response.error ??
-        "Failed to create Roblox OAuth link URL"
+        "Failed to create Roblox OAuth link URL",
     );
   }
 
@@ -369,7 +369,7 @@ async function RequestOAuthLinkUrl(
 async function RequestOAuthLinkStatus(
   settings: RobloxBridgeSettings,
   guildId: string,
-  userId: string
+  userId: string,
 ): Promise<RobloxLinkStatusResponse["data"]> {
   const response = await RequestJson<RobloxLinkStatusResponse>(
     BuildRobloxLinkStatusUrl(settings.url, guildId, userId),
@@ -380,14 +380,14 @@ async function RequestOAuthLinkStatus(
         "User-Agent": "DiscordBotV3/RobloxCommand",
       },
       timeoutMs: settings.timeoutMs,
-    }
+    },
   );
 
   if (!response.ok || !response.data?.ok || !response.data.data) {
     throw new Error(
       ExtractErrorMessage(response.data?.error) ??
         response.error ??
-        "Failed to fetch Roblox link status"
+        "Failed to fetch Roblox link status",
     );
   }
 
@@ -397,7 +397,7 @@ async function RequestOAuthLinkStatus(
 async function RequestOAuthUnlink(
   settings: RobloxBridgeSettings,
   guildId: string,
-  userId: string
+  userId: string,
 ): Promise<void> {
   const response = await RequestJson<RobloxUnlinkResponse>(
     BuildRobloxLinkUnlinkUrl(settings.url, guildId, userId),
@@ -408,21 +408,21 @@ async function RequestOAuthUnlink(
         "User-Agent": "DiscordBotV3/RobloxCommand",
       },
       timeoutMs: settings.timeoutMs,
-    }
+    },
   );
 
   if (!response.ok || !response.data?.ok) {
     throw new Error(
       ExtractErrorMessage(response.data?.error) ??
         response.error ??
-        "Failed to unlink Roblox OAuth account"
+        "Failed to unlink Roblox OAuth account",
     );
   }
 }
 
 function GetGuildLinkedDiscordUserId(
   context: CommandContext,
-  guildId: string
+  guildId: string,
 ): string | null {
   const settings = context.databases.serverDb.GetGuildSettings(guildId);
   const linkedUserId = settings?.roblox_linked_discord_user_id?.trim();
@@ -468,7 +468,9 @@ function BuildStatusEmbed(options: {
 
   const expiresAtText = FormatDiscordTimestamp(options.expiresAt);
   if (expiresAtText) {
-    embed.addFields([{ name: "Token Expires", value: expiresAtText, inline: true }]);
+    embed.addFields([
+      { name: "Token Expires", value: expiresAtText, inline: true },
+    ]);
   }
 
   const username = options.robloxUsername?.trim() || null;
@@ -506,7 +508,7 @@ function BuildStatusEmbed(options: {
 
 async function PollKickResult(
   settings: RobloxBridgeSettings,
-  commandId: string
+  commandId: string,
 ): Promise<KickExecutionOutcome> {
   const start = Date.now();
 
@@ -520,7 +522,7 @@ async function PollKickResult(
           "User-Agent": "DiscordBotV3/RobloxCommand",
         },
         timeoutMs: settings.timeoutMs,
-      }
+      },
     );
 
     if (response.status === 404) {
@@ -572,7 +574,7 @@ async function PollKickResult(
 async function ExecuteKickSubcommand(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  settings: RobloxBridgeSettings
+  settings: RobloxBridgeSettings,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const playerName = interaction.options.getString("player", true).trim();
@@ -667,7 +669,9 @@ async function ExecuteKickSubcommand(
             "Unable to complete the kick command through the Roblox bridge.",
         });
         if (outcome.code) {
-          embed.addFields([{ name: "Code", value: outcome.code, inline: true }]);
+          embed.addFields([
+            { name: "Code", value: outcome.code, inline: true },
+          ]);
         }
         if (outcome.commandId) {
           embed.addFields([
@@ -688,7 +692,7 @@ async function ExecuteKickSubcommand(
           playerName,
           reason,
           presenceMatch.serverId,
-          moderator
+          moderator,
         );
 
         outcome = await PollKickResult(settings, commandId);
@@ -715,7 +719,7 @@ async function ExecuteKickSubcommand(
 async function ExecuteConnectSubcommand(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  settings: RobloxBridgeSettings
+  settings: RobloxBridgeSettings,
 ): Promise<void> {
   const { interactionResponder, componentRouter, buttonResponder } =
     context.responders;
@@ -732,7 +736,7 @@ async function ExecuteConnectSubcommand(
     const existingStatus = await RequestOAuthLinkStatus(
       settings,
       guildId,
-      existingLinkedUserId
+      existingLinkedUserId,
     );
 
     if (existingStatus?.linked) {
@@ -754,7 +758,11 @@ async function ExecuteConnectSubcommand(
     });
   }
 
-  const currentStatus = await RequestOAuthLinkStatus(settings, guildId, currentUserId);
+  const currentStatus = await RequestOAuthLinkStatus(
+    settings,
+    guildId,
+    currentUserId,
+  );
   if (currentStatus?.linked) {
     const linkedAt = currentStatus.linkedAt ?? Date.now();
     context.databases.serverDb.UpsertGuildSettings({
@@ -779,11 +787,7 @@ async function ExecuteConnectSubcommand(
     return;
   }
 
-  const buttonUrl = await RequestOAuthLinkUrl(
-    settings,
-    guildId,
-    currentUserId
-  );
+  const buttonUrl = await RequestOAuthLinkUrl(settings, guildId, currentUserId);
 
   const checkStatusButtonRegistration = componentRouter.RegisterButton({
     ownerId: currentUserId,
@@ -792,7 +796,7 @@ async function ExecuteConnectSubcommand(
       const statusAfterAuth = await RequestOAuthLinkStatus(
         settings,
         guildId,
-        currentUserId
+        currentUserId,
       );
       const linked = Boolean(statusAfterAuth?.linked);
 
@@ -826,7 +830,7 @@ async function ExecuteConnectSubcommand(
               new ButtonBuilder()
                 .setCustomId(checkStatusButtonRegistration.customId)
                 .setLabel("Check Link Status")
-                .setStyle(ButtonStyle.Secondary)
+                .setStyle(ButtonStyle.Secondary),
             ),
           ];
 
@@ -845,7 +849,7 @@ async function ExecuteConnectSubcommand(
     new ButtonBuilder()
       .setCustomId(checkStatusButtonRegistration.customId)
       .setLabel("Check Link Status")
-      .setStyle(ButtonStyle.Secondary)
+      .setStyle(ButtonStyle.Secondary),
   );
 
   const embed = EmbedFactory.Create({
@@ -865,7 +869,7 @@ async function ExecuteConnectSubcommand(
 async function ExecuteStatusSubcommand(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  settings: RobloxBridgeSettings
+  settings: RobloxBridgeSettings,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const hasAccess = await EnsureOAuthAdminAccess(interaction, context);
@@ -877,11 +881,7 @@ async function ExecuteStatusSubcommand(
   const targetUserId =
     GetGuildLinkedDiscordUserId(context, guildId) ?? interaction.user.id;
 
-  const status = await RequestOAuthLinkStatus(
-    settings,
-    guildId,
-    targetUserId
-  );
+  const status = await RequestOAuthLinkStatus(settings, guildId, targetUserId);
   const linked = Boolean(status?.linked);
 
   if (linked) {
@@ -925,7 +925,7 @@ async function ExecuteStatusSubcommand(
 async function ExecuteDisconnectSubcommand(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  settings: RobloxBridgeSettings
+  settings: RobloxBridgeSettings,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const hasAccess = await EnsureOAuthAdminAccess(interaction, context);
@@ -937,11 +937,7 @@ async function ExecuteDisconnectSubcommand(
   const linkedUserId = GetGuildLinkedDiscordUserId(context, guildId);
   const targetUserId = linkedUserId ?? interaction.user.id;
 
-  const status = await RequestOAuthLinkStatus(
-    settings,
-    guildId,
-    targetUserId
-  );
+  const status = await RequestOAuthLinkStatus(settings, guildId, targetUserId);
   if (!status?.linked) {
     const embed = EmbedFactory.CreateError({
       title: "Nothing to Disconnect",
@@ -980,8 +976,7 @@ async function ExecuteDisconnectSubcommand(
 
   const embed = EmbedFactory.CreateSuccess({
     title: "Roblox Disconnect Complete",
-    description:
-      "Successfully unlinked Roblox OAuth for this server.",
+    description: "Successfully unlinked Roblox OAuth for this server.",
   });
 
   await interactionResponder.Reply(interaction, {
@@ -992,7 +987,7 @@ async function ExecuteDisconnectSubcommand(
 
 async function ExecuteRoblox(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const subcommand = interaction.options.getSubcommand();
   let settings: RobloxBridgeSettings;
@@ -1062,40 +1057,41 @@ export const RobloxCommand = CreateCommand({
   name: "roblox",
   description: "Roblox bridge actions",
   group: "moderation",
-  config: Config.mod().build(),
+  config: Config.admin(),
   execute: ExecuteRoblox,
   configure: (builder) => {
-    builder.addSubcommand((subcommand) =>
-      subcommand
-        .setName("kick")
-        .setDescription("Kick a Roblox player remotely")
-        .addStringOption((option) =>
-          option
-            .setName("player")
-            .setDescription("Roblox player name")
-            .setRequired(true)
-        )
-        .addStringOption((option) =>
-          option
-            .setName("reason")
-            .setDescription("Reason for kicking the player")
-            .setRequired(true)
-        )
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("connect")
-        .setDescription("Connect Roblox OAuth for this server")
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("status")
-        .setDescription("View Roblox OAuth connection status")
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("disconnect")
-        .setDescription("Clear bot-side Roblox connection metadata")
-    );
+    builder
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName("kick")
+          .setDescription("Kick a Roblox player remotely")
+          .addStringOption((option) =>
+            option
+              .setName("player")
+              .setDescription("Roblox player name")
+              .setRequired(true),
+          )
+          .addStringOption((option) =>
+            option
+              .setName("reason")
+              .setDescription("Reason for kicking the player")
+              .setRequired(true),
+          ),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName("connect")
+          .setDescription("Connect Roblox OAuth for this server"),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName("status")
+          .setDescription("View Roblox OAuth connection status"),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName("disconnect")
+          .setDescription("Clear bot-side Roblox connection metadata"),
+      );
   },
 });
