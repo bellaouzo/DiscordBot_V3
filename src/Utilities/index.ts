@@ -9,6 +9,7 @@
  * - TranscriptGenerator: Generate ticket transcripts
  * - ChannelManager: Channel operations
  * - DiscordLogger: Log to Discord channels
+ * - AppealManager: Appeal system operations
  * - WarnManager: User warning operations
  * - NoteManager: User note operations
  * - Duration: Parse and format durations
@@ -23,6 +24,7 @@ export * from "./TranscriptGenerator";
 export * from "./ChannelManager";
 export * from "./DiscordLogger";
 export * from "./WarnManager";
+export * from "./AppealManager";
 export * from "./NoteManager";
 export * from "./Duration";
 export * from "./ApiClient";

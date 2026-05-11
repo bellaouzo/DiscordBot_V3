@@ -132,6 +132,10 @@ export function createMockResponderSet(): ResponderSet {
     Register: vi.fn(),
     Handle: vi.fn().mockResolvedValue(undefined),
   };
+  const modalRouter = {
+    RegisterModal: vi.fn(),
+    HandleModal: vi.fn().mockResolvedValue(undefined),
+  };
 
   return {
     interactionResponder:
@@ -146,6 +150,7 @@ export function createMockResponderSet(): ResponderSet {
       selectMenuRouter as unknown as ResponderSet["selectMenuRouter"],
     userSelectMenuRouter:
       userSelectMenuRouter as unknown as ResponderSet["userSelectMenuRouter"],
+    modalRouter: modalRouter as unknown as ResponderSet["modalRouter"],
   };
 }
 

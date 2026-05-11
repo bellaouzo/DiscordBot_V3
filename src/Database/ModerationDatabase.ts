@@ -75,6 +75,41 @@ export interface RaidModeChannelState {
   rate_limit_per_user: number;
 }
 
+export type AppealActionType = "warning" | "mute" | "ban" | "kick";
+
+function isAppealActionType(value: unknown): value is AppealActionType {
+  return (
+    value === "warning" ||
+    value === "mute" ||
+    value === "ban" ||
+    value === "kick"
+  );
+}
+
+export type AppealStatus = "open" | "approved" | "denied";
+
+function isAppealStatus(value: unknown): value is AppealStatus {
+  return value === "open" || value === "approved" || value === "denied";
+}
+
+export interface Appeal {
+  id: number;
+  guild_id: string;
+  user_id: string;
+  action_type: AppealActionType;
+  action_ref: string | null;
+  reason: string;
+  evidence: string | null;
+  status: AppealStatus;
+  review_channel_id: string | null;
+  review_message_id: string | null;
+  resolved_by: string | null;
+  resolved_reason: string | null;
+  created_at: number;
+  updated_at: number;
+  resolved_at: number | null;
+}
+
 export class ModerationDatabase {
   private db: Database.Database;
 
@@ -158,6 +193,44 @@ export class ModerationDatabase {
       channel_id: String(row.channel_id),
       overwrites: String(row.overwrites),
       rate_limit_per_user: Number(row.rate_limit_per_user),
+    };
+  }
+
+  private MapAppeal(row: Record<string, unknown>): Appeal {
+    const actionType = row.action_type;
+    const status = row.status;
+
+    if (!isAppealActionType(actionType)) {
+      throw new Error(`Invalid appeal action type: ${actionType}`);
+    }
+
+    if (!isAppealStatus(status)) {
+      throw new Error(`Invalid appeal status: ${status}`);
+    }
+
+    return {
+      id: Number(row.id),
+      guild_id: String(row.guild_id),
+      user_id: String(row.user_id),
+      action_type: actionType,
+      action_ref: row.action_ref ? String(row.action_ref) : null,
+      reason: String(row.reason),
+      evidence: row.evidence ? String(row.evidence) : null,
+      status,
+      review_channel_id: row.review_channel_id
+        ? String(row.review_channel_id)
+        : null,
+      review_message_id: row.review_message_id
+        ? String(row.review_message_id)
+        : null,
+      resolved_by: row.resolved_by ? String(row.resolved_by) : null,
+      resolved_reason: row.resolved_reason ? String(row.resolved_reason) : null,
+      created_at: Number(row.created_at),
+      updated_at: Number(row.updated_at),
+      resolved_at:
+        row.resolved_at === null || row.resolved_at === undefined
+          ? null
+          : Number(row.resolved_at),
     };
   }
 
@@ -259,6 +332,28 @@ export class ModerationDatabase {
 
         CREATE INDEX IF NOT EXISTS idx_mod_events_user ON moderation_events(guild_id, user_id, action);
         CREATE INDEX IF NOT EXISTS idx_mod_events_created ON moderation_events(created_at);
+
+        CREATE TABLE IF NOT EXISTS appeals (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          guild_id TEXT NOT NULL,
+          user_id TEXT NOT NULL,
+          action_type TEXT NOT NULL,
+          action_ref TEXT,
+          reason TEXT NOT NULL,
+          evidence TEXT,
+          status TEXT NOT NULL DEFAULT 'open',
+          review_channel_id TEXT,
+          review_message_id TEXT,
+          resolved_by TEXT,
+          resolved_reason TEXT,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          resolved_at INTEGER
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_appeals_guild_status ON appeals(guild_id, status, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_appeals_user ON appeals(guild_id, user_id, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_appeals_action ON appeals(guild_id, action_type, action_ref);
       `);
     } catch (error) {
       this.logger.Error("Failed to create moderation tables", { error });
@@ -344,6 +439,12 @@ export class ModerationDatabase {
       "UPDATE temp_actions SET processed = 1, updated_at = ? WHERE id = ?"
     );
     const result = stmt.run(updated_at, id);
+    return result.changes > 0;
+  }
+
+  RemoveTempActionById(id: number): boolean {
+    const stmt = this.db.prepare("DELETE FROM temp_actions WHERE id = ?");
+    const result = stmt.run(id);
     return result.changes > 0;
   }
 
@@ -695,6 +796,26 @@ export class ModerationDatabase {
     return row?.count ?? 0;
   }
 
+  RemoveModerationEventById(data: {
+    id: number;
+    guild_id: string;
+    action?: "kick" | "ban";
+  }): boolean {
+    const stmt = data.action
+      ? this.db.prepare(
+          "DELETE FROM moderation_events WHERE id = ? AND guild_id = ? AND action = ?"
+        )
+      : this.db.prepare(
+          "DELETE FROM moderation_events WHERE id = ? AND guild_id = ?"
+        );
+
+    const result = data.action
+      ? stmt.run(data.id, data.guild_id, data.action)
+      : stmt.run(data.id, data.guild_id);
+
+    return result.changes > 0;
+  }
+
   ListUserTempActions(options: {
     guild_id: string;
     user_id: string;
@@ -724,6 +845,156 @@ export class ModerationDatabase {
         >[]);
 
     return rows.map((row) => this.MapTempAction(row));
+  }
+
+  AddAppeal(data: {
+    guild_id: string;
+    user_id: string;
+    action_type: AppealActionType;
+    action_ref?: string | null;
+    reason: string;
+    evidence?: string | null;
+    review_channel_id?: string | null;
+    review_message_id?: string | null;
+  }): Appeal {
+    const now = Date.now();
+    const stmt = this.db.prepare(`
+      INSERT INTO appeals (
+        guild_id,
+        user_id,
+        action_type,
+        action_ref,
+        reason,
+        evidence,
+        status,
+        review_channel_id,
+        review_message_id,
+        created_at,
+        updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?)
+    `);
+
+    const id = stmt.run(
+      data.guild_id,
+      data.user_id,
+      data.action_type,
+      data.action_ref ?? null,
+      data.reason.trim(),
+      data.evidence?.trim() ?? null,
+      data.review_channel_id ?? null,
+      data.review_message_id ?? null,
+      now,
+      now
+    ).lastInsertRowid as number;
+
+    const appeal = this.GetAppealById(id);
+    if (!appeal) {
+      throw new Error("Failed to create appeal");
+    }
+
+    return appeal;
+  }
+
+  GetAppealById(id: number): Appeal | null {
+    const stmt = this.db.prepare("SELECT * FROM appeals WHERE id = ?");
+    const row = stmt.get(id) as Record<string, unknown> | undefined;
+    return row ? this.MapAppeal(row) : null;
+  }
+
+  ListAppeals(options: {
+    guild_id: string;
+    user_id?: string;
+    status?: AppealStatus;
+    action_type?: AppealActionType;
+    limit?: number;
+  }): Appeal[] {
+    const conditions = ["guild_id = ?"];
+    const params: (string | number)[] = [options.guild_id];
+
+    if (options.user_id) {
+      conditions.push("user_id = ?");
+      params.push(options.user_id);
+    }
+
+    if (options.status) {
+      conditions.push("status = ?");
+      params.push(options.status);
+    }
+
+    if (options.action_type) {
+      conditions.push("action_type = ?");
+      params.push(options.action_type);
+    }
+
+    let query = `
+      SELECT *
+      FROM appeals
+      WHERE ${conditions.join(" AND ")}
+      ORDER BY created_at DESC
+    `;
+
+    if (options.limit && options.limit > 0) {
+      query += " LIMIT ?";
+      params.push(options.limit);
+    }
+
+    const stmt = this.db.prepare(query);
+    const rows = stmt.all(...params) as Record<string, unknown>[];
+    return rows.map((row) => this.MapAppeal(row));
+  }
+
+  UpdateAppealReviewMessage(data: {
+    id: number;
+    review_channel_id: string;
+    review_message_id: string;
+  }): boolean {
+    const updated_at = Date.now();
+    const stmt = this.db.prepare(
+      `
+      UPDATE appeals
+      SET review_channel_id = ?, review_message_id = ?, updated_at = ?
+      WHERE id = ?
+    `
+    );
+    const result = stmt.run(
+      data.review_channel_id,
+      data.review_message_id,
+      updated_at,
+      data.id
+    );
+    return result.changes > 0;
+  }
+
+  ResolveAppeal(data: {
+    id: number;
+    status: Exclude<AppealStatus, "open">;
+    resolved_by: string;
+    resolved_reason?: string | null;
+  }): Appeal | null {
+    const now = Date.now();
+    const stmt = this.db.prepare(
+      `
+      UPDATE appeals
+      SET status = ?, resolved_by = ?, resolved_reason = ?, resolved_at = ?, updated_at = ?
+      WHERE id = ? AND status = 'open'
+    `
+    );
+
+    const result = stmt.run(
+      data.status,
+      data.resolved_by,
+      data.resolved_reason ?? null,
+      now,
+      now,
+      data.id
+    );
+
+    if (result.changes === 0) {
+      return null;
+    }
+
+    return this.GetAppealById(data.id);
   }
 
   Close(): void {

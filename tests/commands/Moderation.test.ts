@@ -20,6 +20,7 @@ import { SlowmodeCommand } from "@commands/Moderation/SlowmodeCommand";
 import { TempActionsCommand } from "@commands/Moderation/TempActionsCommand";
 import { UnbanCommand } from "@commands/Moderation/UnbanCommand";
 import { WarnCommand } from "@commands/Moderation/WarnCommand";
+import { AppealCommand } from "@commands/Moderation/AppealCommand";
 
 const moderationCommands = [
   { name: "BanCommand", cmd: BanCommand },
@@ -37,6 +38,7 @@ const moderationCommands = [
   { name: "TempActionsCommand", cmd: TempActionsCommand },
   { name: "UnbanCommand", cmd: UnbanCommand },
   { name: "WarnCommand", cmd: WarnCommand },
+  { name: "AppealCommand", cmd: AppealCommand },
 ];
 
 describe("Moderation commands", () => {

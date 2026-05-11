@@ -3,6 +3,7 @@ import {
   ChatInputCommandInteraction,
   Client,
   Events,
+  ModalSubmitInteraction,
   StringSelectMenuInteraction,
   UserSelectMenuInteraction,
 } from "discord.js";
@@ -10,6 +11,7 @@ import { Logger } from "./Shared/Logger";
 import { ComponentRouter } from "./Shared/ComponentRouter";
 import { SelectMenuRouter } from "./Shared/SelectMenuRouter";
 import { UserSelectMenuRouter } from "./Shared/UserSelectMenuRouter";
+import { ModalRouter } from "./Shared/ModalRouter";
 import { CommandDefinition, ResolveCommand } from "./Commands";
 import { ResponderSet } from "./Responders";
 
@@ -19,6 +21,7 @@ export interface InteractionHandlerDependencies {
   readonly componentRouter: ComponentRouter;
   readonly selectMenuRouter: SelectMenuRouter;
   readonly userSelectMenuRouter: UserSelectMenuRouter;
+  readonly modalRouter: ModalRouter;
 }
 
 export function RegisterInteractionHandlers(
@@ -41,6 +44,12 @@ export function RegisterInteractionHandlers(
       await HandleUserSelectMenuInteraction(
         interaction,
         dependencies.userSelectMenuRouter,
+        dependencies.logger
+      );
+    } else if (interaction.isModalSubmit()) {
+      await HandleModalInteraction(
+        interaction,
+        dependencies.modalRouter,
         dependencies.logger
       );
     }
@@ -94,6 +103,21 @@ async function HandleUserSelectMenuInteraction(
   const handled = await router.HandleUserSelectMenu(interaction);
   if (!handled) {
     logger.Debug("Unhandled user select menu interaction", {
+      extra: {
+        customId: interaction.customId,
+      },
+    });
+  }
+}
+
+async function HandleModalInteraction(
+  interaction: ModalSubmitInteraction,
+  router: ModalRouter,
+  logger: Logger
+): Promise<void> {
+  const handled = await router.HandleModal(interaction);
+  if (!handled) {
+    logger.Debug("Unhandled modal interaction", {
       extra: {
         customId: interaction.customId,
       },

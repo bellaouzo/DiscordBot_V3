@@ -14,6 +14,7 @@ import {
   UserSelectMenuRouter,
   CreateUserSelectMenuRouter,
 } from "../Shared/UserSelectMenuRouter";
+import { ModalRouter, CreateModalRouter } from "../Shared/ModalRouter";
 export type {
   ResponseOptions,
   ResponseResult,
@@ -36,6 +37,7 @@ export interface ResponderSet {
   readonly componentRouter: ComponentRouter;
   readonly selectMenuRouter: SelectMenuRouter;
   readonly userSelectMenuRouter: UserSelectMenuRouter;
+  readonly modalRouter: ModalRouter;
 }
 
 /**
@@ -51,6 +53,7 @@ export function CreateResponders(
   const componentRouter = CreateComponentRouter(logger);
   const selectMenuRouter = CreateSelectMenuRouter(logger);
   const userSelectMenuRouter = CreateUserSelectMenuRouter(logger);
+  const modalRouter = CreateModalRouter(logger);
   const interactionResponder = new InteractionResponder(logger);
   const buttonResponder = new ButtonResponder(logger);
   const paginatedResponder = new PaginatedResponder(
@@ -67,5 +70,6 @@ export function CreateResponders(
     componentRouter,
     selectMenuRouter,
     userSelectMenuRouter,
+    modalRouter,
   };
 }

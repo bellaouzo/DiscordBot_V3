@@ -50,6 +50,7 @@ export function CreateEmptySettings(guild_id: string): GuildSettings {
     admin_role_ids: [],
     mod_role_ids: [],
     ticket_category_id: null,
+    appeal_review_category_id: null,
     command_log_channel_id: null,
     announcement_channel_id: null,
     delete_log_channel_id: null,
@@ -105,6 +106,7 @@ export async function SanitizeGuildSettings(
   return {
     ...settings,
     ticket_category_id: ticketCategoryId,
+    appeal_review_category_id: settings.appeal_review_category_id,
     command_log_channel_id: commandLogChannelId,
     announcement_channel_id: announcementChannelId,
     delete_log_channel_id: deleteLogChannelId,

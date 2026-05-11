@@ -345,8 +345,7 @@ export async function RequestGroupAudit(
   });
 
   const err = response.data?.error;
-  const code =
-    typeof err === "object" && err?.code ? err.code : undefined;
+  const code = typeof err === "object" && err?.code ? err.code : undefined;
   const message =
     (typeof err === "object" && err?.message) ||
     (typeof err === "string" ? err : undefined) ||
@@ -377,8 +376,7 @@ export async function RequestGroupInfo(
   });
 
   const err = response.data?.error;
-  const code =
-    typeof err === "object" && err?.code ? err.code : undefined;
+  const code = typeof err === "object" && err?.code ? err.code : undefined;
   const message =
     (typeof err === "object" && err?.message) ||
     (typeof err === "string" ? err : undefined) ||
@@ -502,8 +500,7 @@ export async function PollKickResult(
     const payload = response.data as RobloxCommandResultResponse & {
       result?: RobloxCommandResultPayload;
     };
-    const result =
-      payload?.data?.result ?? payload?.result;
+    const result = payload?.data?.result ?? payload?.result;
     if (!result) {
       await Delay(RESULT_POLL_INTERVAL_MS);
       continue;

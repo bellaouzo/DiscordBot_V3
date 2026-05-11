@@ -20,6 +20,7 @@ export interface GuildSettings {
   admin_role_ids: string[];
   mod_role_ids: string[];
   ticket_category_id: string | null;
+  appeal_review_category_id: string | null;
   command_log_channel_id: string | null;
   announcement_channel_id: string | null;
   delete_log_channel_id: string | null;
@@ -100,6 +101,7 @@ export class ServerDatabase {
     string,
     "TEXT" | "INTEGER"
   >([
+    ["appeal_review_category_id", "TEXT"],
     ["delete_log_channel_id", "TEXT"],
     ["production_log_channel_id", "TEXT"],
     ["welcome_channel_id", "TEXT"],
@@ -345,7 +347,7 @@ export class ServerDatabase {
 
     const stmt = this.db.prepare(
       `
-      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, command_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, roblox_linked_discord_user_id, roblox_linked_at, created_at, updated_at
+      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, appeal_review_category_id, command_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, roblox_linked_discord_user_id, roblox_linked_at, created_at, updated_at
       FROM guild_settings
       WHERE guild_id = ?
     `
@@ -357,6 +359,7 @@ export class ServerDatabase {
           admin_role_ids: string;
           mod_role_ids: string;
           ticket_category_id: string | null;
+          appeal_review_category_id?: string | null;
           command_log_channel_id: string | null;
           announcement_channel_id: string | null;
           delete_log_channel_id: string | null;
@@ -379,6 +382,9 @@ export class ServerDatabase {
       mod_role_ids: this.ParseIdList(row.mod_role_ids),
       ticket_category_id: row.ticket_category_id
         ? String(row.ticket_category_id)
+        : null,
+      appeal_review_category_id: row.appeal_review_category_id
+        ? String(row.appeal_review_category_id)
         : null,
       command_log_channel_id: row.command_log_channel_id
         ? String(row.command_log_channel_id)
@@ -412,6 +418,7 @@ export class ServerDatabase {
     admin_role_ids?: string[];
     mod_role_ids?: string[];
     ticket_category_id?: string | null;
+    appeal_review_category_id?: string | null;
     command_log_channel_id?: string | null;
     announcement_channel_id?: string | null;
     delete_log_channel_id?: string | null;
@@ -430,6 +437,10 @@ export class ServerDatabase {
     );
     const ticketCategoryId =
       settings.ticket_category_id ?? existing?.ticket_category_id ?? null;
+    const appealReviewCategoryId =
+      settings.appeal_review_category_id ??
+      existing?.appeal_review_category_id ??
+      null;
     const commandLogChannelId =
       settings.command_log_channel_id ??
       existing?.command_log_channel_id ??
@@ -461,6 +472,7 @@ export class ServerDatabase {
         admin_role_ids,
         mod_role_ids,
         ticket_category_id,
+        appeal_review_category_id,
         command_log_channel_id,
         announcement_channel_id,
         delete_log_channel_id,
@@ -471,11 +483,12 @@ export class ServerDatabase {
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(guild_id) DO UPDATE SET
         admin_role_ids = excluded.admin_role_ids,
         mod_role_ids = excluded.mod_role_ids,
         ticket_category_id = excluded.ticket_category_id,
+        appeal_review_category_id = excluded.appeal_review_category_id,
         command_log_channel_id = excluded.command_log_channel_id,
         announcement_channel_id = excluded.announcement_channel_id,
         delete_log_channel_id = excluded.delete_log_channel_id,
@@ -492,6 +505,7 @@ export class ServerDatabase {
       JSON.stringify(adminRoles),
       JSON.stringify(modRoles),
       ticketCategoryId,
+      appealReviewCategoryId,
       commandLogChannelId,
       announcementChannelId,
       deleteLogChannelId,

@@ -91,6 +91,7 @@ async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     componentRouter: responders.componentRouter,
     selectMenuRouter: responders.selectMenuRouter,
     userSelectMenuRouter: responders.userSelectMenuRouter,
+    modalRouter: responders.modalRouter,
   });
 
   RegisterCommandHandler({
