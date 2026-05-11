@@ -13,6 +13,7 @@ import type { Logger } from "@shared/Logger";
 import type { AppConfig } from "@config/AppConfig";
 
 export interface MockInteractionOverrides {
+  id?: string;
   createdTimestamp?: number;
   replied?: boolean;
   deferred?: boolean;
@@ -63,6 +64,7 @@ export function createMockInteraction(
 
   return {
     createdTimestamp,
+    id: overrides.id ?? "123456789012345678",
     get replied() {
       return replied;
     },

@@ -29,3 +29,4 @@ export * from "./NoteManager";
 export * from "./Duration";
 export * from "./ApiClient";
 export * from "./SafeJson";
+export * from "./ConfigGuard";

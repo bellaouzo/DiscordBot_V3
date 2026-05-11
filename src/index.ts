@@ -5,7 +5,13 @@ import { CreateCommandLoader } from "@bot/CreateCommandLoader";
 import { CreateCommandExecutor } from "@bot/ExecuteCommand";
 import { CreateEventLoader } from "@bot/CreateEventLoader";
 import { RegisterEvents } from "@bot/RegisterEvents";
+import { ReplaceCommands } from "@commands";
 import { LoadAppConfig } from "@config/AppConfig";
+import {
+  ListMissingRequiredFeatureApiKeys,
+  ListStrictStartupFeatureViolations,
+  StrictFeatureKeysEnabled,
+} from "@config/ApiConfig";
 import {
   ModerationDatabase,
   UserDatabase,
@@ -35,6 +41,29 @@ interface AppResources {
 async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
   const config = LoadAppConfig();
   const logger = rootLogger.Child({ phase: "bootstrap" });
+  const strictFeatureKeys = StrictFeatureKeysEnabled();
+  const strictViolations = strictFeatureKeys
+    ? ListStrictStartupFeatureViolations()
+    : [];
+  if (strictFeatureKeys && strictViolations.length > 0) {
+    throw new Error(
+      `Strict feature key validation failed:\n${strictViolations
+        .map((entry) => `- ${entry.message}`)
+        .join("\n")}`
+    );
+  }
+
+  const missingApiKeys = ListMissingRequiredFeatureApiKeys();
+  if (!strictFeatureKeys && missingApiKeys.length > 0) {
+    logger.Warn("Required API keys are missing for optional features", {
+      extra: {
+        missing: missingApiKeys.map((entry) => ({
+          feature: entry.feature,
+          envVar: entry.envVar,
+        })),
+      },
+    });
+  }
 
   // Create shared database instances
   const databases: DatabaseSet = {
@@ -73,7 +102,8 @@ async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     logger.Child({ phase: "giveaways" })
   );
 
-  const commands = await loadCommands();
+  const loadedCommands = await loadCommands();
+  ReplaceCommands(loadedCommands.definitions);
   const events = await loadEvents();
 
   RegisterEvents({
@@ -101,7 +131,7 @@ async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     logger,
   });
 
-  await deployCommands(commands);
+  await deployCommands(loadedCommands.slashData);
   await bot.Start(config.discord.token);
   tempScheduler.Start();
   raidScheduler.Start();

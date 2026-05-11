@@ -1,14 +1,20 @@
 import { SlashCommandBuilder } from "discord.js";
 import { readdirSync } from "fs";
 import { join } from "path";
-import { CommandDefinition, RegisterCommand } from "@commands";
+import { CommandDefinition } from "@commands";
 import { Logger } from "@shared/Logger";
 
-export type CommandLoader = () => Promise<SlashCommandBuilder[]>;
+export interface LoadedCommands {
+  readonly definitions: CommandDefinition[];
+  readonly slashData: SlashCommandBuilder[];
+}
+
+export type CommandLoader = () => Promise<LoadedCommands>;
 
 export function CreateCommandLoader(logger: Logger): CommandLoader {
   return async () => {
-    const commands: SlashCommandBuilder[] = [];
+    const definitions: CommandDefinition[] = [];
+    const slashData: SlashCommandBuilder[] = [];
     const commandsPath = join(__dirname, "..", "Commands");
 
     const isCommandFile = (file: string): boolean => {
@@ -47,8 +53,8 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
 
         for (const command of commandExports) {
           const cmd = command as CommandDefinition;
-          commands.push(cmd.data);
-          RegisterCommand(cmd);
+          definitions.push(cmd);
+          slashData.push(cmd.data);
         }
       } catch (error) {
         logger.Error("Failed to load command file", {
@@ -61,10 +67,10 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
     logger.Debug("Loaded all commands", {
       timestamp: new Date().toISOString(),
       extra: {
-        command_count: commands.length,
+          command_count: definitions.length,
       },
     });
 
-    return commands;
+    return { definitions, slashData };
   };
 }

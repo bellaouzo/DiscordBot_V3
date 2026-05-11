@@ -23,23 +23,22 @@ export const ErrorMiddleware: CommandMiddleware = {
         error: errorDetails,
       });
 
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Something went wrong while executing this command.";
-
       const message = CreateErrorMessage({
         title: "Command Failed",
-        description: errorMessage,
+        description:
+          "Something went wrong while executing this command. Please try again in a moment.",
         hint: "The incident has been logged.",
       });
 
-      if (context.interaction.replied || context.interaction.deferred) {
-        await context.responders.interactionResponder.Edit(
-          context.interaction,
-          message
-        );
-      } else {
+      try {
+        if (context.interaction.replied || context.interaction.deferred) {
+          await context.responders.interactionResponder.Edit(
+            context.interaction,
+            message
+          );
+          return;
+        }
+
         await context.responders.interactionResponder.Reply(
           context.interaction,
           {
@@ -47,6 +46,13 @@ export const ErrorMiddleware: CommandMiddleware = {
             ephemeral: true,
           }
         );
+      } catch (responderError) {
+        context.logger.Error("Failed to send command error response", {
+          command: context.command.data.name,
+          interactionId: context.interaction.id,
+          userId: context.interaction.user.id,
+          error: responderError,
+        });
       }
     }
   },

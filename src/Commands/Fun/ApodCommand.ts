@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware/CommandConfig";
-import { EmbedFactory } from "@utilities";
+import { EmbedFactory, RequireFeatureApiKey } from "@utilities";
 import { RequestJson } from "@utilities/ApiClient";
 import { LoadApiConfig } from "@config/ApiConfig";
 
@@ -60,6 +60,24 @@ async function ExecuteApod(
   context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
+  const apiKey = RequireFeatureApiKey({
+    feature: "apod",
+    context,
+    commandName: "apod",
+  });
+  if (!apiKey) {
+    const embed = EmbedFactory.CreateError({
+      title: "APOD Unavailable",
+      description:
+        "APOD functionality is not configured. Please ask the bot owner to set API_APOD_KEY.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
+
   const dateValidation = ValidateApodDate(
     interaction.options.getString("date")
   );
@@ -78,7 +96,7 @@ async function ExecuteApod(
 
   const response = await RequestJson<ApodResponse>(apiConfig.apod.url, {
     query: {
-      api_key: apiConfig.apod.apiKey,
+      api_key: apiKey,
       ...(dateValidation.date ? { date: dateValidation.date } : {}),
     },
     timeoutMs: apiConfig.apod.timeoutMs,

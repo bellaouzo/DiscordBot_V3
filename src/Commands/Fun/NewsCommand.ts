@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
+import { EmbedFactory, RequireFeatureApiKey } from "@utilities";
 import { RequestJson } from "@utilities/ApiClient";
 import { LoadApiConfig } from "@config/ApiConfig";
 
@@ -24,14 +24,6 @@ type NewsApiResponse = {
 const apiConfig = LoadApiConfig();
 const DEFAULT_LIMIT = 5;
 const MAX_LIMIT = 10;
-
-function EnsureNewsApiKey(): string {
-  const key = apiConfig.news.apiKey?.trim();
-  if (!key) {
-    throw new Error("News API key is not configured. Set API_NEWS_KEY.");
-  }
-  return key;
-}
 
 function Truncate(text: string, max = 220): string {
   const trimmed = text.trim();
@@ -87,6 +79,7 @@ function BuildNewsEmbed(
 }
 
 async function FetchTopHeadlines(
+  apiKey: string,
   limit: number,
   country: string,
   category?: string | null
@@ -96,7 +89,7 @@ async function FetchTopHeadlines(
     `${apiConfig.news.url}/top-headlines`,
     {
       query: {
-        apiKey: EnsureNewsApiKey(),
+        apiKey,
         country,
         category: category ?? undefined,
         pageSize: limit,
@@ -118,6 +111,7 @@ async function FetchTopHeadlines(
 }
 
 async function FetchSearchResults(
+  apiKey: string,
   query: string,
   limit: number,
   sort: string
@@ -127,7 +121,7 @@ async function FetchSearchResults(
     `${apiConfig.news.url}/everything`,
     {
       query: {
-        apiKey: EnsureNewsApiKey(),
+        apiKey,
         q: query,
         pageSize: limit,
         sortBy: sort,
@@ -154,6 +148,24 @@ async function ExecuteNews(
   context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
+  const apiKey = RequireFeatureApiKey({
+    feature: "news",
+    context,
+    commandName: "news",
+  });
+  if (!apiKey) {
+    const embed = EmbedFactory.CreateError({
+      title: "News Unavailable",
+      description:
+        "News functionality is not configured. Please ask the bot owner to set API_NEWS_KEY.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      ephemeral: true,
+    });
+    return;
+  }
+
   const subcommand = interaction.options.getSubcommand();
   const limitInput = interaction.options.getInteger("limit");
   const limit = Math.min(Math.max(limitInput ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
@@ -162,7 +174,7 @@ async function ExecuteNews(
     const country = interaction.options.getString("country") ?? "us";
     const category = interaction.options.getString("category");
 
-    const articles = await FetchTopHeadlines(limit, country, category);
+    const articles = await FetchTopHeadlines(apiKey, limit, country, category);
     const embed = BuildNewsEmbed("🗞️ Top Headlines", articles);
 
     await interactionResponder.Reply(interaction, {
@@ -174,7 +186,7 @@ async function ExecuteNews(
   const query = interaction.options.getString("query", true).trim();
   const sort = interaction.options.getString("sort") ?? "publishedAt";
 
-  const articles = await FetchSearchResults(query, limit, sort);
+  const articles = await FetchSearchResults(apiKey, query, limit, sort);
   const embed = BuildNewsEmbed(`🔎 News for "${query}"`, articles);
 
   await interactionResponder.Reply(interaction, {

@@ -6,11 +6,11 @@ interface EndpointConfig {
 }
 
 interface ApodConfig extends EndpointConfig {
-  readonly apiKey: string;
+  readonly apiKey: string | null;
 }
 
 interface NewsConfig extends EndpointConfig {
-  readonly apiKey: string;
+  readonly apiKey: string | null;
 }
 
 interface WeatherConfig extends EndpointConfig {
@@ -25,6 +25,12 @@ interface RobloxBridgeConfig extends EndpointConfig {
   readonly apiKey: string;
   readonly urlSigningSecret: string;
 }
+
+export type ApiFeatureWithRequiredKey =
+  | "apod"
+  | "news"
+  | "weather"
+  | "robloxBridge";
 
 export interface ApiConfig {
   readonly quote: EndpointConfig;
@@ -41,6 +47,13 @@ export interface ApiConfig {
   readonly robloxBridge: RobloxBridgeConfig;
 }
 
+const REQUIRED_FEATURE_ENV: Record<ApiFeatureWithRequiredKey, string> = {
+  apod: "API_APOD_KEY",
+  news: "API_NEWS_KEY",
+  weather: "OPENWEATHER_API_KEY",
+  robloxBridge: "ROBLOX_BRIDGE_API_KEY",
+};
+
 const DEFAULTS: ApiConfig = {
   quote: { url: "https://zenquotes.io/api/random", timeoutMs: 6000 },
   meme: { url: "https://meme-api.com/gimme", timeoutMs: 5000 },
@@ -51,12 +64,12 @@ const DEFAULTS: ApiConfig = {
   apod: {
     url: "https://api.nasa.gov/planetary/apod",
     timeoutMs: 8000,
-    apiKey: "KuUCs835dtn1U03B930ggRRxNVoBE1mb00vXVYxF",
+    apiKey: null,
   },
   news: {
     url: "https://newsapi.org/v2",
     timeoutMs: 7000,
-    apiKey: "797ad4f3fa334d5e968f59127c41e929",
+    apiKey: null,
   },
   weather: {
     url: "https://api.openweathermap.org/data/2.5",
@@ -143,7 +156,7 @@ export function LoadApiConfig(): ApiConfig {
         process.env.API_APOD_TIMEOUT_MS,
         DEFAULTS.apod.timeoutMs
       ),
-      apiKey: process.env.API_APOD_KEY || DEFAULTS.apod.apiKey,
+      apiKey: process.env.API_APOD_KEY?.trim() || DEFAULTS.apod.apiKey,
     },
     news: {
       url: process.env.API_NEWS_URL || DEFAULTS.news.url,
@@ -151,7 +164,7 @@ export function LoadApiConfig(): ApiConfig {
         process.env.API_NEWS_TIMEOUT_MS,
         DEFAULTS.news.timeoutMs
       ),
-      apiKey: process.env.API_NEWS_KEY || DEFAULTS.news.apiKey,
+      apiKey: process.env.API_NEWS_KEY?.trim() || DEFAULTS.news.apiKey,
     },
     weather: {
       url: process.env.API_WEATHER_URL || DEFAULTS.weather.url,
@@ -188,4 +201,83 @@ export function LoadApiConfig(): ApiConfig {
         DEFAULTS.robloxBridge.urlSigningSecret,
     },
   };
+}
+
+export function GetRequiredFeatureApiKey(
+  feature: ApiFeatureWithRequiredKey,
+  config: ApiConfig = LoadApiConfig()
+): {
+  readonly apiKey: string | null;
+  readonly envVar: string;
+  readonly configured: boolean;
+} {
+  const envVar = REQUIRED_FEATURE_ENV[feature];
+
+  if (feature === "weather") {
+    const apiKey = config.weather.apiKey?.trim() || null;
+    return { apiKey, envVar, configured: Boolean(apiKey) };
+  }
+
+  if (feature === "apod") {
+    const apiKey = config.apod.apiKey?.trim() || null;
+    return { apiKey, envVar, configured: Boolean(apiKey) };
+  }
+
+  if (feature === "news") {
+    const apiKey = config.news.apiKey?.trim() || null;
+    return { apiKey, envVar, configured: Boolean(apiKey) };
+  }
+
+  const apiKey = config.robloxBridge.apiKey.trim();
+  return { apiKey: apiKey || null, envVar, configured: apiKey.length > 0 };
+}
+
+export function ListMissingRequiredFeatureApiKeys(
+  config: ApiConfig = LoadApiConfig()
+): Array<{ readonly feature: ApiFeatureWithRequiredKey; readonly envVar: string }> {
+  const features: ApiFeatureWithRequiredKey[] = [
+    "apod",
+    "news",
+    "weather",
+    "robloxBridge",
+  ];
+
+  return features
+    .map((feature) => ({ feature, result: GetRequiredFeatureApiKey(feature, config) }))
+    .filter(({ result }) => !result.configured)
+    .map(({ feature, result }) => ({ feature, envVar: result.envVar }));
+}
+
+export interface StrictStartupViolation {
+  readonly message: string;
+}
+
+export function StrictFeatureKeysEnabled(): boolean {
+  ensureEnvLoaded();
+  const raw = process.env.BOT_STRICT_FEATURE_KEYS?.trim().toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes";
+}
+
+export function ListStrictStartupFeatureViolations(
+  config: ApiConfig = LoadApiConfig()
+): StrictStartupViolation[] {
+  const violations: StrictStartupViolation[] = [];
+  for (const entry of ListMissingRequiredFeatureApiKeys(config)) {
+    violations.push({
+      message: `Missing optional feature key: set ${entry.envVar} (${entry.feature})`,
+    });
+  }
+
+  const bridgeUrl = config.robloxBridge.url.trim();
+  if (bridgeUrl.length > 0) {
+    const signingSecret = config.robloxBridge.urlSigningSecret.trim();
+    if (signingSecret.length === 0) {
+      violations.push({
+        message:
+          "ROBLOX_BRIDGE_API_URL is set; set ROBLOX_BRIDGE_URL_SIGNING_SECRET",
+      });
+    }
+  }
+
+  return violations;
 }

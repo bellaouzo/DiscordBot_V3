@@ -16,6 +16,15 @@ export function RegisterCommands(commands: CommandDefinition[]): void {
   commands.forEach(RegisterCommand);
 }
 
+export function ReplaceCommands(commands: CommandDefinition[]): void {
+  registry.clear();
+  RegisterCommands(commands);
+}
+
+export function ClearCommands(): void {
+  registry.clear();
+}
+
 export function AllCommands(): CommandDefinition[] {
   return Array.from(registry.values());
 }

@@ -3,6 +3,8 @@ import {
   ChatInputCommandInteraction,
   Client,
   Events,
+  Interaction,
+  MessageFlags,
   ModalSubmitInteraction,
   StringSelectMenuInteraction,
   UserSelectMenuInteraction,
@@ -28,32 +30,48 @@ export function RegisterInteractionHandlers(
   dependencies: InteractionHandlerDependencies
 ): void {
   dependencies.client.on(Events.InteractionCreate, async (interaction) => {
-    if (interaction.isButton()) {
-      await HandleButtonInteraction(
-        interaction,
-        dependencies.componentRouter,
-        dependencies.logger
-      );
-    } else if (interaction.isStringSelectMenu()) {
-      await HandleSelectMenuInteraction(
-        interaction,
-        dependencies.selectMenuRouter,
-        dependencies.logger
-      );
-    } else if (interaction.isUserSelectMenu()) {
-      await HandleUserSelectMenuInteraction(
-        interaction,
-        dependencies.userSelectMenuRouter,
-        dependencies.logger
-      );
-    } else if (interaction.isModalSubmit()) {
-      await HandleModalInteraction(
-        interaction,
-        dependencies.modalRouter,
-        dependencies.logger
-      );
-    }
+    await DispatchComponentInteraction(interaction, dependencies);
   });
+}
+
+async function DispatchComponentInteraction(
+  interaction: Interaction,
+  dependencies: InteractionHandlerDependencies
+): Promise<void> {
+  if (interaction.isButton()) {
+    await HandleButtonInteraction(
+      interaction,
+      dependencies.componentRouter,
+      dependencies.logger
+    );
+    return;
+  }
+
+  if (interaction.isStringSelectMenu()) {
+    await HandleSelectMenuInteraction(
+      interaction,
+      dependencies.selectMenuRouter,
+      dependencies.logger
+    );
+    return;
+  }
+
+  if (interaction.isUserSelectMenu()) {
+    await HandleUserSelectMenuInteraction(
+      interaction,
+      dependencies.userSelectMenuRouter,
+      dependencies.logger
+    );
+    return;
+  }
+
+  if (interaction.isModalSubmit()) {
+    await HandleModalInteraction(
+      interaction,
+      dependencies.modalRouter,
+      dependencies.logger
+    );
+  }
 }
 
 async function HandleButtonInteraction(
@@ -63,11 +81,11 @@ async function HandleButtonInteraction(
 ): Promise<void> {
   const handled = await router.HandleButton(interaction);
   if (!handled) {
-    logger.Debug("Unhandled button interaction", {
-      extra: {
-        customId: interaction.customId,
-      },
-    });
+    await ReplyToUnhandledInteraction(
+      interaction,
+      logger,
+      "Unhandled button interaction"
+    );
   }
 }
 
@@ -78,20 +96,11 @@ async function HandleSelectMenuInteraction(
 ): Promise<void> {
   const handled = await router.HandleSelectMenu(interaction);
   if (!handled) {
-    logger.Debug("Unhandled select menu interaction", {
-      extra: {
-        customId: interaction.customId,
-      },
-    });
-
-    if (!interaction.deferred && !interaction.replied) {
-      await interaction
-        .reply({
-          content: "This interaction is no longer available.",
-          flags: 64,
-        })
-        .catch(() => {});
-    }
+    await ReplyToUnhandledInteraction(
+      interaction,
+      logger,
+      "Unhandled select menu interaction"
+    );
   }
 }
 
@@ -102,11 +111,11 @@ async function HandleUserSelectMenuInteraction(
 ): Promise<void> {
   const handled = await router.HandleUserSelectMenu(interaction);
   if (!handled) {
-    logger.Debug("Unhandled user select menu interaction", {
-      extra: {
-        customId: interaction.customId,
-      },
-    });
+    await ReplyToUnhandledInteraction(
+      interaction,
+      logger,
+      "Unhandled user select menu interaction"
+    );
   }
 }
 
@@ -117,12 +126,39 @@ async function HandleModalInteraction(
 ): Promise<void> {
   const handled = await router.HandleModal(interaction);
   if (!handled) {
-    logger.Debug("Unhandled modal interaction", {
-      extra: {
-        customId: interaction.customId,
-      },
-    });
+    await ReplyToUnhandledInteraction(
+      interaction,
+      logger,
+      "Unhandled modal interaction"
+    );
   }
+}
+
+async function ReplyToUnhandledInteraction(
+  interaction:
+    | ButtonInteraction
+    | StringSelectMenuInteraction
+    | UserSelectMenuInteraction
+    | ModalSubmitInteraction,
+  logger: Logger,
+  logMessage: string
+): Promise<void> {
+  logger.Debug(logMessage, {
+    extra: {
+      customId: interaction.customId,
+    },
+  });
+
+  if (interaction.deferred || interaction.replied) {
+    return;
+  }
+
+  await interaction
+    .reply({
+      content: "This interaction is no longer available.",
+      flags: MessageFlags.Ephemeral,
+    })
+    .catch(() => {});
 }
 
 export type CommandExecutorFn = (

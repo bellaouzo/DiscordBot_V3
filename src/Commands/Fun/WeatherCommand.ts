@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
-import { EmbedFactory, RequestJson } from "@utilities";
+import { EmbedFactory, RequestJson, RequireFeatureApiKey } from "@utilities";
 import { LoadApiConfig } from "@config/ApiConfig";
 
 interface WeatherData {
@@ -84,7 +84,11 @@ async function ExecuteWeather(
   context: CommandContext
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-  const apiKey = apiConfig.weather.apiKey;
+  const apiKey = RequireFeatureApiKey({
+    feature: "weather",
+    context,
+    commandName: "weather",
+  });
 
   if (!apiKey) {
     const embed = EmbedFactory.CreateError({

@@ -8,7 +8,7 @@ Guidelines for contributing to Discord Bot V3: coding standards, scripts, and wh
 2. **Test:** `npm run test` must pass.
 3. **Format:** Code should follow project style. Run `npm run format` to apply Prettier to `src/`, or `npm run format:check` to verify without changing files.
 
-CI runs `npm run lint` and `npm run test` on push and pull requests to `main`; see [.github/workflows/ci.yml](../.github/workflows/ci.yml).
+CI runs `npm run lint`, `npm run test`, and a [Gitleaks](https://github.com/gitleaks/gitleaks) scan on push and pull requests to `main`/`master`. Workflow: [.github/workflows/ci.yml](../.github/workflows/ci.yml). The leak scan uses full git history (`fetch-depth: 0`) so moved or renamed secrets in older commits are still detected.
 
 ## Coding standards
 
@@ -23,6 +23,13 @@ CI runs `npm run lint` and `npm run test` on push and pull requests to `main`; s
 - **Middleware** – `src/Commands/Middleware/` (logging, permissions, cooldowns, guild-only, error handling). Add new middleware there and wire it in `AutoMiddleware` or command config as needed.
 - **Systems** – Economy, Giveaway, Leveling, Setup, Ticket in `src/Systems/`.
 - **Tests** – Vitest tests in `tests/`; mirror `src/` layout (e.g. `tests/commands/`, `tests/systems/`). Use helpers and mocks from `tests/helpers/`.
+
+### Reference docs for contributors
+
+- Architecture boundaries: [ARCHITECTURE_MAP.md](./ARCHITECTURE_MAP.md)
+- Ownership and feature responsibility: [MODULE_OWNERSHIP.md](./MODULE_OWNERSHIP.md)
+- Test strategy and coverage expectations: [TESTING_STRATEGY.md](./TESTING_STRATEGY.md)
+- Configuration and secret handling: [CONFIGURATION.md](./CONFIGURATION.md)
 
 ## Commits and PRs
 
