@@ -65,12 +65,15 @@ export class EventScheduler {
       const channelId = settings?.announcement_channel_id;
 
       if (!channelId) {
-        this.logger.Warn("No announcement channel configured for event notification", {
-          extra: {
-            guildId: event.guild_id,
-            eventId: event.guild_event_id,
+        this.logger.Warn(
+          "No announcement channel configured for event notification",
+          {
+            extra: {
+              guildId: event.guild_id,
+              eventId: event.guild_event_id,
+            },
           },
-        });
+        );
         this.serverDb.MarkEventNotified(event.id, Date.now());
         return;
       }

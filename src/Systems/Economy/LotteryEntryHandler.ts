@@ -51,7 +51,10 @@ export function RegisterLotteryEntryHandler(options: {
       }
 
       if (
-        context.databases.userDb.HasLotteryEntry(lottery.id, buttonInteraction.user.id)
+        context.databases.userDb.HasLotteryEntry(
+          lottery.id,
+          buttonInteraction.user.id,
+        )
       ) {
         await context.responders.buttonResponder.Reply(buttonInteraction, {
           content: "You already entered this lottery.",
@@ -79,7 +82,10 @@ export function RegisterLotteryEntryHandler(options: {
         return;
       }
 
-      economyManager.AdjustBalance(buttonInteraction.user.id, -lottery.entry_cost);
+      economyManager.AdjustBalance(
+        buttonInteraction.user.id,
+        -lottery.entry_cost,
+      );
       const added = context.databases.userDb.AddLotteryEntry(
         lottery.id,
         buttonInteraction.user.id,
@@ -87,7 +93,10 @@ export function RegisterLotteryEntryHandler(options: {
       );
 
       if (!added) {
-        economyManager.AdjustBalance(buttonInteraction.user.id, lottery.entry_cost);
+        economyManager.AdjustBalance(
+          buttonInteraction.user.id,
+          lottery.entry_cost,
+        );
         await context.responders.buttonResponder.Reply(buttonInteraction, {
           content: "Could not enter the lottery.",
           flags: MessageFlags.Ephemeral,
@@ -96,8 +105,9 @@ export function RegisterLotteryEntryHandler(options: {
       }
 
       const updated = context.databases.userDb.GetLotteryById(lottery.id);
-      const entryCount = context.databases.userDb.GetLotteryEntries(lottery.id)
-        .length;
+      const entryCount = context.databases.userDb.GetLotteryEntries(
+        lottery.id,
+      ).length;
 
       if (updated) {
         const { embed, row } = manager.CreateLotteryMessage({

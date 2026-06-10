@@ -99,8 +99,7 @@ export function MapGuildSettings(
       : null,
     starboard_emoji: row.starboard_emoji ? String(row.starboard_emoji) : "⭐",
     starboard_threshold:
-      row.starboard_threshold !== null &&
-      row.starboard_threshold !== undefined
+      row.starboard_threshold !== null && row.starboard_threshold !== undefined
         ? Number(row.starboard_threshold)
         : 3,
     roblox_linked_discord_user_id: row.roblox_linked_discord_user_id

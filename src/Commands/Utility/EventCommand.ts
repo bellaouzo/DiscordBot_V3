@@ -340,7 +340,9 @@ export const EventCommand = CreateCommand({
       .addSubcommand((sub) =>
         sub
           .setName("about")
-          .setDescription("Learn what scheduled events are and how to use them"),
+          .setDescription(
+            "Learn what scheduled events are and how to use them",
+          ),
       );
   },
   execute: async (interaction, context) => {

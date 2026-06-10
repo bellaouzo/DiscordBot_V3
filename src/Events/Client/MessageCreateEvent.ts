@@ -2,11 +2,7 @@ import type { Message, SendableChannels, TextChannel } from "discord.js";
 import { Events } from "discord.js";
 import type { EventContext } from "@events/EventFactory";
 import { CreateEvent } from "@events/EventFactory";
-import {
-  EmbedFactory,
-  IsModerator,
-  ResolveMessageMember,
-} from "@utilities";
+import { EmbedFactory, IsModerator, ResolveMessageMember } from "@utilities";
 import { AwardChatXp } from "@systems/Leveling/ChatXp";
 
 async function ExecuteMessageCreateEvent(

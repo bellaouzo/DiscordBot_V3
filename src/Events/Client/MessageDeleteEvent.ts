@@ -15,10 +15,11 @@ async function ExecuteMessageDeleteEvent(
     return;
   }
 
-  const reactionRolePanel = context.databases.serverDb.GetReactionRolePanelByMessage(
-    msg.guild.id,
-    msg.id,
-  );
+  const reactionRolePanel =
+    context.databases.serverDb.GetReactionRolePanelByMessage(
+      msg.guild.id,
+      msg.id,
+    );
 
   if (reactionRolePanel) {
     context.databases.serverDb.DeleteReactionRolePanel(reactionRolePanel.id);

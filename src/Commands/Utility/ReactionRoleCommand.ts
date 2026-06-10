@@ -1,4 +1,8 @@
-import type { ChatInputCommandInteraction, Message, TextChannel } from "discord.js";
+import type {
+  ChatInputCommandInteraction,
+  Message,
+  TextChannel,
+} from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
@@ -171,10 +175,11 @@ async function ExecuteAdd(
 
   const { panel } = resolved;
 
-  const existing = context.databases.serverDb.GetReactionRoleMappingByPanelAndEmoji(
-    panel.id,
-    emoji,
-  );
+  const existing =
+    context.databases.serverDb.GetReactionRoleMappingByPanelAndEmoji(
+      panel.id,
+      emoji,
+    );
 
   if (existing) {
     const embed = EmbedFactory.CreateWarning({
@@ -198,7 +203,9 @@ async function ExecuteAdd(
       role_id: roleOption.id,
     });
 
-    const mappings = context.databases.serverDb.ListReactionRoleMappings(panel.id);
+    const mappings = context.databases.serverDb.ListReactionRoleMappings(
+      panel.id,
+    );
     await RefreshReactionRolePanel(guild, panel, mappings);
 
     const embed = EmbedFactory.CreateSuccess({
@@ -252,10 +259,11 @@ async function ExecuteRemove(
   }
 
   const { panel } = resolved;
-  const removed = context.databases.serverDb.RemoveReactionRoleMappingByPanelAndEmoji(
-    panel.id,
-    emoji,
-  );
+  const removed =
+    context.databases.serverDb.RemoveReactionRoleMappingByPanelAndEmoji(
+      panel.id,
+      emoji,
+    );
 
   if (!removed) {
     const embed = EmbedFactory.CreateWarning({
@@ -276,7 +284,9 @@ async function ExecuteRemove(
       await reaction.remove().catch(() => null);
     }
 
-    const mappings = context.databases.serverDb.ListReactionRoleMappings(panel.id);
+    const mappings = context.databases.serverDb.ListReactionRoleMappings(
+      panel.id,
+    );
     await RefreshReactionRolePanel(guild, panel, mappings);
 
     const embed = EmbedFactory.CreateSuccess({
@@ -291,7 +301,8 @@ async function ExecuteRemove(
     context.logger.Error("Failed to remove reaction role mapping", { error });
     const embed = EmbedFactory.CreateError({
       title: "Remove Failed",
-      description: "Mapping was removed from the database, but the panel message could not be updated.",
+      description:
+        "Mapping was removed from the database, but the panel message could not be updated.",
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
@@ -439,7 +450,9 @@ export const ReactionRoleCommand = CreateCommand({
       .addSubcommand((sub) =>
         sub
           .setName("about")
-          .setDescription("Learn what reaction roles are and how to set them up"),
+          .setDescription(
+            "Learn what reaction roles are and how to set them up",
+          ),
       );
   },
   execute: async (interaction, context) => {

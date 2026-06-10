@@ -210,7 +210,9 @@ export const TicketCommand = CreateCommand({
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
         .setName("about")
-        .setDescription("Learn what support tickets are and how to set them up"),
+        .setDescription(
+          "Learn what support tickets are and how to set them up",
+        ),
     );
   },
   execute: ExecuteTicket,

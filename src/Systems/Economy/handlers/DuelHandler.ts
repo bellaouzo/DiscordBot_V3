@@ -3,21 +3,19 @@ import type {
   ChatInputCommandInteraction,
   TextChannel,
 } from "discord.js";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from "discord.js";
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  MessageFlags,
+} from "discord.js";
 import type { CommandContext } from "@commands";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
-import {
-  DUEL_TIMEOUT_MS,
-  MAX_BET,
-  MIN_BET,
-} from "@systems/Economy/constants";
+import { DUEL_TIMEOUT_MS, MAX_BET, MIN_BET } from "@systems/Economy/constants";
 import type { DuelGame } from "@database/User/Stores/DuelStore";
 import type { FlipChoice, RpsChoice } from "@systems/Economy/types";
 import { DetermineRpsOutcome } from "@systems/Economy/utils/rpsLogic";
-import {
-  FlipCoin,
-  OppositeFlipChoice,
-} from "@systems/Economy/utils/flipLogic";
+import { FlipCoin, OppositeFlipChoice } from "@systems/Economy/utils/flipLogic";
 import { EmbedFactory, RequireGuild } from "@utilities";
 
 const duelRpsChoices = new Map<
@@ -375,100 +373,100 @@ export async function HandleDuelChallenge(
     const declineId = `duel_decline_${duelId}`;
 
     const acceptRegistration = componentRouter.RegisterButton({
-        customId: acceptId,
-        expiresInMs: DUEL_TIMEOUT_MS,
-        handler: async (buttonInteraction: ButtonInteraction) => {
-          const current = context.databases.userDb.GetDuelById(duelId);
-          if (!current || current.status !== "pending") {
-            await buttonResponder.Reply(buttonInteraction, {
-              content: "This duel is no longer available.",
-              flags: MessageFlags.Ephemeral,
-            });
-            return;
-          }
+      customId: acceptId,
+      expiresInMs: DUEL_TIMEOUT_MS,
+      handler: async (buttonInteraction: ButtonInteraction) => {
+        const current = context.databases.userDb.GetDuelById(duelId);
+        if (!current || current.status !== "pending") {
+          await buttonResponder.Reply(buttonInteraction, {
+            content: "This duel is no longer available.",
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
 
-          if (buttonInteraction.user.id !== current.opponent_id) {
-            await buttonResponder.Reply(buttonInteraction, {
-              content: "Only the challenged player can accept.",
-              flags: MessageFlags.Ephemeral,
-            });
-            return;
-          }
+        if (buttonInteraction.user.id !== current.opponent_id) {
+          await buttonResponder.Reply(buttonInteraction, {
+            content: "Only the challenged player can accept.",
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
 
-          if (!context.databases.userDb.ActivateDuel(duelId)) {
-            await buttonResponder.Reply(buttonInteraction, {
-              content: "This duel was already handled.",
-              flags: MessageFlags.Ephemeral,
-            });
-            return;
-          }
+        if (!context.databases.userDb.ActivateDuel(duelId)) {
+          await buttonResponder.Reply(buttonInteraction, {
+            content: "This duel was already handled.",
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
 
-          const challengerBalanceNow = manager.EnsureBalance(
-            current.challenger_id,
-          );
-          const opponentBalanceNow = manager.EnsureBalance(current.opponent_id);
-          if (
-            challengerBalanceNow < current.bet ||
-            opponentBalanceNow < current.bet
-          ) {
-            context.databases.userDb.CancelDuel(duelId);
-            await buttonResponder.Reply(buttonInteraction, {
-              content: "One player no longer has enough coins.",
-              flags: MessageFlags.Ephemeral,
-            });
-            return;
-          }
+        const challengerBalanceNow = manager.EnsureBalance(
+          current.challenger_id,
+        );
+        const opponentBalanceNow = manager.EnsureBalance(current.opponent_id);
+        if (
+          challengerBalanceNow < current.bet ||
+          opponentBalanceNow < current.bet
+        ) {
+          context.databases.userDb.CancelDuel(duelId);
+          await buttonResponder.Reply(buttonInteraction, {
+            content: "One player no longer has enough coins.",
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
 
-          manager.AdjustBalance(current.challenger_id, -current.bet);
-          manager.AdjustBalance(current.opponent_id, -current.bet);
+        manager.AdjustBalance(current.challenger_id, -current.bet);
+        manager.AdjustBalance(current.opponent_id, -current.bet);
 
-          dispose.forEach((fn) => fn());
-          await startActiveDuel(buttonInteraction, current);
-        },
-      });
+        dispose.forEach((fn) => fn());
+        await startActiveDuel(buttonInteraction, current);
+      },
+    });
     dispose.push(acceptRegistration.dispose);
 
     const declineRegistration = componentRouter.RegisterButton({
-        customId: declineId,
-        expiresInMs: DUEL_TIMEOUT_MS,
-        handler: async (buttonInteraction: ButtonInteraction) => {
-          const current = context.databases.userDb.GetDuelById(duelId);
-          if (!current || current.status !== "pending") {
-            await buttonResponder.Reply(buttonInteraction, {
-              content: "This duel is no longer available.",
-              flags: MessageFlags.Ephemeral,
-            });
-            return;
-          }
-
-          if (
-            buttonInteraction.user.id !== current.opponent_id &&
-            buttonInteraction.user.id !== current.challenger_id
-          ) {
-            await buttonResponder.Reply(buttonInteraction, {
-              content: "Only the duel participants can decline.",
-              flags: MessageFlags.Ephemeral,
-            });
-            return;
-          }
-
-          context.databases.userDb.CancelDuel(duelId);
-          dispose.forEach((fn) => fn());
-
-          const embed = EmbedFactory.CreateWarning({
-            title: "Duel Declined",
-            description: "The duel was declined.",
-          });
-          await buttonInteraction.message.edit({
-            embeds: [embed.toJSON()],
-            components: [],
-          });
+      customId: declineId,
+      expiresInMs: DUEL_TIMEOUT_MS,
+      handler: async (buttonInteraction: ButtonInteraction) => {
+        const current = context.databases.userDb.GetDuelById(duelId);
+        if (!current || current.status !== "pending") {
           await buttonResponder.Reply(buttonInteraction, {
-            content: "Duel declined.",
+            content: "This duel is no longer available.",
             flags: MessageFlags.Ephemeral,
           });
-        },
-      });
+          return;
+        }
+
+        if (
+          buttonInteraction.user.id !== current.opponent_id &&
+          buttonInteraction.user.id !== current.challenger_id
+        ) {
+          await buttonResponder.Reply(buttonInteraction, {
+            content: "Only the duel participants can decline.",
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+
+        context.databases.userDb.CancelDuel(duelId);
+        dispose.forEach((fn) => fn());
+
+        const embed = EmbedFactory.CreateWarning({
+          title: "Duel Declined",
+          description: "The duel was declined.",
+        });
+        await buttonInteraction.message.edit({
+          embeds: [embed.toJSON()],
+          components: [],
+        });
+        await buttonResponder.Reply(buttonInteraction, {
+          content: "Duel declined.",
+          flags: MessageFlags.Ephemeral,
+        });
+      },
+    });
     dispose.push(declineRegistration.dispose);
   };
 

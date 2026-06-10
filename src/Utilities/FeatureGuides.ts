@@ -27,12 +27,10 @@ export const FEATURE_GUIDES: readonly FeatureGuide[] = [
     key: "reactionrole",
     name: "Reaction Roles",
     icon: "🎭",
-    summary:
-      "Lets members self-assign roles by reacting to a panel message.",
+    summary: "Lets members self-assign roles by reacting to a panel message.",
     howItWorks:
       "Staff post a reaction role panel. Each emoji on that message maps to a role. Members react to get the role and can remove their reaction to remove the role.",
-    setup:
-      "`/reactionrole panel` → `/reactionrole add emoji:🎮 role:@Role`",
+    setup: "`/reactionrole panel` → `/reactionrole add emoji:🎮 role:@Role`",
     command: "/reactionrole",
   },
   {

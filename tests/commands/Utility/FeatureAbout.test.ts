@@ -18,11 +18,16 @@ describe("Feature about subcommands", () => {
 
     await StarboardCommand.execute(interaction, context);
 
-    expect(context.responders.interactionResponder.Reply).toHaveBeenCalledOnce();
+    expect(
+      context.responders.interactionResponder.Reply,
+    ).toHaveBeenCalledOnce();
 
     const payload = vi.mocked(context.responders.interactionResponder.Reply)
       .mock.calls[0][1];
-    const embed = payload.embeds?.[0] as { title?: string; fields?: Array<{ name: string }> };
+    const embed = payload.embeds?.[0] as {
+      title?: string;
+      fields?: Array<{ name: string }>;
+    };
 
     expect(embed?.title).toContain("Starboard");
     expect(embed?.fields?.some((field) => field.name === "How it works")).toBe(

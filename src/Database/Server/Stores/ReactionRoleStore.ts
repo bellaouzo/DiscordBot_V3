@@ -225,8 +225,8 @@ export class ReactionRoleStore {
       `,
       )
       .all(guild_id) as Array<
-        MappingRow & { message_id: string; channel_id: string }
-      >;
+      MappingRow & { message_id: string; channel_id: string }
+    >;
 
     return rows.map((row) => ({
       id: row.id,

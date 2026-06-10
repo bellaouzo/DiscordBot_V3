@@ -1,6 +1,9 @@
 import type { Guild, TextChannel } from "discord.js";
 import type { ServerDatabase } from "@database";
-import type { ReactionRoleMapping, ReactionRolePanel } from "@database/Server/Types";
+import type {
+  ReactionRoleMapping,
+  ReactionRolePanel,
+} from "@database/Server/Types";
 import { EmbedFactory, FormatReactionEmojiForDisplay } from "@utilities";
 
 type PanelResolveError = {
@@ -142,7 +145,9 @@ export async function RefreshReactionRolePanel(
     return;
   }
 
-  const message = await (channel as TextChannel).messages.fetch(panel.message_id);
+  const message = await (channel as TextChannel).messages.fetch(
+    panel.message_id,
+  );
   const embed = EmbedFactory.Create({
     title: "Reaction Roles",
     description: BuildReactionRolePanelDescription(mappings),

@@ -322,7 +322,9 @@ export const LinkFilterCommand = CreateCommand({
       .addSubcommand((sub) =>
         sub
           .setName("about")
-          .setDescription("Learn what the link filter does and how to configure it"),
+          .setDescription(
+            "Learn what the link filter does and how to configure it",
+          ),
       );
   },
 });

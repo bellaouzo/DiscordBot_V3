@@ -4,10 +4,7 @@ import { join } from "path";
 import { tmpdir } from "os";
 import { ServerDatabase } from "@database/ServerDatabase";
 import { UserDatabase } from "@database/UserDatabase";
-import {
-  AwardChatXp,
-  ResetChatXpCooldowns,
-} from "@systems/Leveling/ChatXp";
+import { AwardChatXp, ResetChatXpCooldowns } from "@systems/Leveling/ChatXp";
 import { createMockLogger } from "../../helpers";
 
 describe("ChatXp", () => {

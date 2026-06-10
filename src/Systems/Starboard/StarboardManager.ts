@@ -161,7 +161,10 @@ export class StarboardManager {
         return;
       }
 
-      await this.UpdateStarboardMessage(existing.starboard_message_id, starCount);
+      await this.UpdateStarboardMessage(
+        existing.starboard_message_id,
+        starCount,
+      );
       this.serverDb.UpdateStarboardEntryCount(
         resolvedMessage.guild.id,
         resolvedMessage.id,
@@ -267,9 +270,9 @@ export class StarboardManager {
         }
 
         try {
-          const starboardMessage = await (channel as TextChannel).messages.fetch(
-            starboardMessageId,
-          );
+          const starboardMessage = await (
+            channel as TextChannel
+          ).messages.fetch(starboardMessageId);
           const embed = starboardMessage.embeds[0];
           if (!embed) {
             return;

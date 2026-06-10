@@ -25,7 +25,11 @@ function BuildSettingsEmbed(
   });
 
   embed.addFields(
-    { name: "XP per message", value: `${settings.xp_per_message}`, inline: true },
+    {
+      name: "XP per message",
+      value: `${settings.xp_per_message}`,
+      inline: true,
+    },
     {
       name: "Cooldown",
       value: `${settings.cooldown_seconds}s`,
@@ -364,9 +368,7 @@ export const XpConfigCommand = CreateCommand({
               ),
           )
           .addSubcommand((sub) =>
-            sub
-              .setName("list")
-              .setDescription("List excluded channels"),
+            sub.setName("list").setDescription("List excluded channels"),
           ),
       )
       .addSubcommand((sub) =>

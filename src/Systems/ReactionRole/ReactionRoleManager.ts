@@ -7,10 +7,7 @@ import type {
 } from "discord.js";
 import type { ServerDatabase } from "@database";
 import type { Logger } from "@shared/Logger";
-import {
-  NormalizeReactionEmoji,
-  ValidateAssignableRole,
-} from "@utilities";
+import { NormalizeReactionEmoji, ValidateAssignableRole } from "@utilities";
 
 export class ReactionRoleManager {
   constructor(

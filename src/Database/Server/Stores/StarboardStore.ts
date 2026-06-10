@@ -26,10 +26,7 @@ function MapEntry(row: StarboardRow): StarboardEntry {
 export class StarboardStore {
   constructor(private readonly db: Database.Database) {}
 
-  GetEntry(
-    guild_id: string,
-    source_message_id: string,
-  ): StarboardEntry | null {
+  GetEntry(guild_id: string, source_message_id: string): StarboardEntry | null {
     const row = this.db
       .prepare(
         "SELECT * FROM starboard_entries WHERE guild_id = ? AND source_message_id = ?",

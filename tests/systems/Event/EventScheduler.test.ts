@@ -22,7 +22,10 @@ describe("EventScheduler", () => {
       created_by: string;
     }>;
     settings?: { announcement_channel_id: string | null } | null;
-    channel?: { isTextBased: () => boolean; send: ReturnType<typeof vi.fn> } | null;
+    channel?: {
+      isTextBased: () => boolean;
+      send: ReturnType<typeof vi.fn>;
+    } | null;
   }) {
     const send = vi.fn().mockResolvedValue(undefined);
     const channel = overrides?.channel ?? {
@@ -33,11 +36,13 @@ describe("EventScheduler", () => {
       ListEventsDueForNotification: vi
         .fn()
         .mockReturnValue(overrides?.dueEvents ?? []),
-      GetGuildSettings: vi.fn().mockReturnValue(
-        overrides?.settings === undefined
-          ? { announcement_channel_id: "announce-1" }
-          : overrides.settings,
-      ),
+      GetGuildSettings: vi
+        .fn()
+        .mockReturnValue(
+          overrides?.settings === undefined
+            ? { announcement_channel_id: "announce-1" }
+            : overrides.settings,
+        ),
       MarkEventNotified: vi.fn().mockReturnValue(true),
     };
     const client = {
@@ -76,7 +81,10 @@ describe("EventScheduler", () => {
     scheduler.Stop();
 
     expect(send).toHaveBeenCalled();
-    expect(serverDb.MarkEventNotified).toHaveBeenCalledWith(1, expect.any(Number));
+    expect(serverDb.MarkEventNotified).toHaveBeenCalledWith(
+      1,
+      expect.any(Number),
+    );
   });
 
   it("marks notified when announcement channel is missing", async () => {
@@ -107,7 +115,10 @@ describe("EventScheduler", () => {
     await vi.runOnlyPendingTimersAsync();
     scheduler.Stop();
 
-    expect(serverDb.MarkEventNotified).toHaveBeenCalledWith(2, expect.any(Number));
+    expect(serverDb.MarkEventNotified).toHaveBeenCalledWith(
+      2,
+      expect.any(Number),
+    );
     expect(logger.Warn).toHaveBeenCalledWith(
       "No announcement channel configured for event notification",
       expect.any(Object),

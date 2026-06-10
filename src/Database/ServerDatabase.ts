@@ -217,7 +217,9 @@ export class ServerDatabase {
     const columns = this.db
       .prepare("PRAGMA table_info(events)")
       .all() as Array<{ name: string }>;
-    const hasNotifiedAt = columns.some((column) => column.name === "notified_at");
+    const hasNotifiedAt = columns.some(
+      (column) => column.name === "notified_at",
+    );
 
     if (!hasNotifiedAt) {
       this.db
@@ -453,10 +455,7 @@ export class ServerDatabase {
     );
   }
 
-  DeleteStarboardEntry(
-    guild_id: string,
-    source_message_id: string,
-  ): boolean {
+  DeleteStarboardEntry(guild_id: string, source_message_id: string): boolean {
     return this.starboard.DeleteEntry(guild_id, source_message_id);
   }
 

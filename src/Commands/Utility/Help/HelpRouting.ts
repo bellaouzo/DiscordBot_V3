@@ -63,7 +63,9 @@ export function RegisterHelpButtons(options: {
       {
         ownerId,
         handler: async (buttonInteraction) => {
-          const parsed = ParseCategoryPageNavCustomId(buttonInteraction.customId);
+          const parsed = ParseCategoryPageNavCustomId(
+            buttonInteraction.customId,
+          );
           if (!parsed) {
             return;
           }

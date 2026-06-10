@@ -117,9 +117,9 @@ describe("ReactionRoleCommand", () => {
       ]),
       GetReactionRoleMappingByPanelAndEmoji: vi.fn().mockReturnValue(null),
       AddReactionRoleMapping: vi.fn(),
-      ListReactionRoleMappings: vi.fn().mockReturnValue([
-        { emoji: "🎮", role_id: "role-1" },
-      ]),
+      ListReactionRoleMappings: vi
+        .fn()
+        .mockReturnValue([{ emoji: "🎮", role_id: "role-1" }]),
     };
     const context = createMockContext({
       databases: { serverDb } as never,
@@ -198,10 +198,9 @@ describe("ReactionRoleCommand", () => {
 
     await ReactionRoleCommand.execute(interaction, context);
 
-    expect(serverDb.RemoveReactionRoleMappingByPanelAndEmoji).toHaveBeenCalledWith(
-      3,
-      "🎮",
-    );
+    expect(
+      serverDb.RemoveReactionRoleMappingByPanelAndEmoji,
+    ).toHaveBeenCalledWith(3, "🎮");
     expect(removeReaction).toHaveBeenCalled();
     expect(edit).toHaveBeenCalledOnce();
   });
@@ -217,9 +216,7 @@ describe("ReactionRoleCommand", () => {
             .mockResolvedValueOnce({
               isTextBased: () => true,
               messages: {
-                fetch: vi
-                  .fn()
-                  .mockRejectedValue(new Error("Unknown Message")),
+                fetch: vi.fn().mockRejectedValue(new Error("Unknown Message")),
               },
             })
             .mockResolvedValueOnce({
@@ -256,9 +253,9 @@ describe("ReactionRoleCommand", () => {
           created_at: Date.now(),
         },
       ]),
-      ListReactionRoleMappings: vi.fn().mockReturnValue([
-        { emoji: "🎮", role_id: "role-1" },
-      ]),
+      ListReactionRoleMappings: vi
+        .fn()
+        .mockReturnValue([{ emoji: "🎮", role_id: "role-1" }]),
       DeleteReactionRolePanel: vi.fn().mockReturnValue(true),
     };
     const context = createMockContext({

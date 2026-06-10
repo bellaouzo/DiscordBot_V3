@@ -184,7 +184,9 @@ export const AppealCommand = CreateCommand({
       .addSubcommand((sub) =>
         sub
           .setName("about")
-          .setDescription("Learn what moderation appeals are and how they work"),
+          .setDescription(
+            "Learn what moderation appeals are and how they work",
+          ),
       );
   },
 });

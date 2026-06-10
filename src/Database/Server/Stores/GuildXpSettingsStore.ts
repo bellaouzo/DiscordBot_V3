@@ -1,6 +1,9 @@
 import type Database from "better-sqlite3";
 import { ParseIdList } from "@database/Server/Mappers";
-import type { GuildXpSettings, GuildXpSettingsRow } from "@database/Server/Types";
+import type {
+  GuildXpSettings,
+  GuildXpSettingsRow,
+} from "@database/Server/Types";
 import {
   CHAT_XP_DEFAULT_COOLDOWN_SECONDS,
   CHAT_XP_DEFAULT_DAILY_CAP,
@@ -60,8 +63,7 @@ export class GuildXpSettingsStore {
       guild_id: settings.guild_id,
       enabled: settings.enabled ?? existing.enabled,
       xp_per_message: settings.xp_per_message ?? existing.xp_per_message,
-      cooldown_seconds:
-        settings.cooldown_seconds ?? existing.cooldown_seconds,
+      cooldown_seconds: settings.cooldown_seconds ?? existing.cooldown_seconds,
       min_message_length:
         settings.min_message_length ?? existing.min_message_length,
       daily_cap: settings.daily_cap ?? existing.daily_cap,

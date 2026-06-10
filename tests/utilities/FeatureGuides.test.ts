@@ -27,9 +27,9 @@ describe("FeatureGuides", () => {
     const embed = BuildFeatureGuideEmbed(guide!);
 
     expect(embed.data.title).toContain("Reaction Roles");
-    expect(embed.data.fields?.some((field) => field.name === "How it works")).toBe(
-      true,
-    );
+    expect(
+      embed.data.fields?.some((field) => field.name === "How it works"),
+    ).toBe(true);
   });
 
   it("appends a what-is-this hint to status embeds", () => {

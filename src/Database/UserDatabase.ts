@@ -457,9 +457,7 @@ export class UserDatabase {
     return this.chatXpDaily.AddEarned(user_id, guild_id, day_key, amount);
   }
 
-  CreateDuel(
-    data: Parameters<DuelStore["CreateDuel"]>[0],
-  ) {
+  CreateDuel(data: Parameters<DuelStore["CreateDuel"]>[0]) {
     return this.duels.CreateDuel(data);
   }
 
@@ -487,9 +485,7 @@ export class UserDatabase {
     return this.duels.ListPendingByChallenger(guild_id, challenger_id);
   }
 
-  CreateLottery(
-    data: Parameters<LotteryStore["CreateLottery"]>[0],
-  ) {
+  CreateLottery(data: Parameters<LotteryStore["CreateLottery"]>[0]) {
     return this.lotteries.CreateLottery(data);
   }
 
