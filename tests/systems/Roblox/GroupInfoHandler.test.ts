@@ -44,7 +44,9 @@ describe("ExecuteGroupInfoSubcommand", () => {
       expect.objectContaining({
         flags: MessageFlags.Ephemeral,
         embeds: expect.arrayContaining([
-          expect.objectContaining({ title: expect.stringMatching(/Not Connected/i) }),
+          expect.objectContaining({
+            title: expect.stringMatching(/Not Connected/i),
+          }),
         ]),
       }),
     );

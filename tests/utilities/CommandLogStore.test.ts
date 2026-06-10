@@ -64,9 +64,7 @@ describe("CommandLogStore", () => {
       guildId: "guild-1",
       user: { id: "user-1" } as never,
     });
-    (
-      interaction as unknown as { channelId: string }
-    ).channelId = "channel-1";
+    (interaction as unknown as { channelId: string }).channelId = "channel-1";
     stubInteractionOptions(interaction, {
       getSubcommand: (required?: boolean) =>
         required === false ? "export" : "export",

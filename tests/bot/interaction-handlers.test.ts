@@ -19,9 +19,11 @@ vi.mock("@commands", async (importOriginal) => {
 function createMockClient() {
   const handlers = new Map<string, (...args: unknown[]) => Promise<void>>();
   return {
-    on: vi.fn((event: string, handler: (...args: unknown[]) => Promise<void>) => {
-      handlers.set(event, handler);
-    }),
+    on: vi.fn(
+      (event: string, handler: (...args: unknown[]) => Promise<void>) => {
+        handlers.set(event, handler);
+      },
+    ),
     emitInteraction: async (interaction: unknown) => {
       const handler = handlers.get(Events.InteractionCreate);
       if (handler) {
@@ -31,7 +33,9 @@ function createMockClient() {
   };
 }
 
-function createComponentInteraction(type: "button" | "select" | "userSelect" | "modal") {
+function createComponentInteraction(
+  type: "button" | "select" | "userSelect" | "modal",
+) {
   const reply = vi.fn().mockResolvedValue(undefined);
   return {
     customId: "test:interaction",
@@ -112,7 +116,11 @@ describe("RegisterInteractionHandlers", () => {
   });
 
   it.each([
-    ["select", "HandleSelectMenu", "Unhandled select menu interaction"] as const,
+    [
+      "select",
+      "HandleSelectMenu",
+      "Unhandled select menu interaction",
+    ] as const,
     [
       "userSelect",
       "HandleUserSelectMenu",
@@ -192,16 +200,18 @@ describe("RegisterInteractionHandlers", () => {
     });
 
     const interaction = createComponentInteraction("button");
-    interaction.reply = vi.fn().mockRejectedValue(
-      new DiscordAPIError(
-        { message: "Unknown interaction", code: 10062 },
-        10062,
-        404,
-        "POST",
-        "https://discord.com/api/v10/interactions/x/callback",
-        {},
-      ),
-    );
+    interaction.reply = vi
+      .fn()
+      .mockRejectedValue(
+        new DiscordAPIError(
+          { message: "Unknown interaction", code: 10062 },
+          10062,
+          404,
+          "POST",
+          "https://discord.com/api/v10/interactions/x/callback",
+          {},
+        ),
+      );
 
     await client.emitInteraction(interaction);
 

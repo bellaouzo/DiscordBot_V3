@@ -5,10 +5,7 @@ import {
   type Guild,
   type TextChannel,
 } from "discord.js";
-import {
-  createMockContext,
-  createMockInteraction,
-} from "../../helpers";
+import { createMockContext, createMockInteraction } from "../../helpers";
 import {
   HandlePanel,
   RegisterAppealPanelButton,

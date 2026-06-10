@@ -96,7 +96,9 @@ describe("GiveawayScheduler", () => {
     scheduler.Start();
     scheduler.Start();
 
-    expect(logger.Warn).toHaveBeenCalledWith("GiveawayScheduler already running");
+    expect(logger.Warn).toHaveBeenCalledWith(
+      "GiveawayScheduler already running",
+    );
     scheduler.Stop();
   });
 

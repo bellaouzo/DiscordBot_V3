@@ -30,9 +30,9 @@ describe("RaidModeScheduler", () => {
       },
     };
     const db = {
-      ListExpiredRaidModes: vi.fn().mockReturnValue([
-        { id: 9, guild_id: "guild-1" },
-      ]),
+      ListExpiredRaidModes: vi
+        .fn()
+        .mockReturnValue([{ id: 9, guild_id: "guild-1" }]),
       ListRaidModeChannelStates: vi.fn().mockReturnValue([
         {
           channel_id: "channel-1",
@@ -64,9 +64,9 @@ describe("RaidModeScheduler", () => {
     const markCleared = vi.fn();
     const clearStates = vi.fn();
     const db = {
-      ListExpiredRaidModes: vi.fn().mockReturnValue([
-        { id: 10, guild_id: "guild-missing" },
-      ]),
+      ListExpiredRaidModes: vi
+        .fn()
+        .mockReturnValue([{ id: 10, guild_id: "guild-missing" }]),
       ListRaidModeChannelStates: vi.fn(),
       MarkRaidModeCleared: markCleared,
       ClearRaidModeChannelStates: clearStates,

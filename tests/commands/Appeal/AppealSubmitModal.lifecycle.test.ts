@@ -35,9 +35,7 @@ vi.mock("@utilities/AppealManager", () => ({
   })),
 }));
 
-function createGuild(overrides?: {
-  createChannel?: () => Promise<unknown>;
-}) {
+function createGuild(overrides?: { createChannel?: () => Promise<unknown> }) {
   const reviewChannel = {
     id: "review-channel",
     type: ChannelType.GuildText,

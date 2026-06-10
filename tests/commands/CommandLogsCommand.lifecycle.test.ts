@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { CommandLogsCommand } from "@commands/Utility/CommandLogsCommand";
-import { createMockContext, createMockInteraction, stubInteractionOptions } from "../helpers";
+import {
+  createMockContext,
+  createMockInteraction,
+  stubInteractionOptions,
+} from "../helpers";
 
 describe("CommandLogsCommand lifecycle", () => {
   it("edits with invalid end date error", async () => {

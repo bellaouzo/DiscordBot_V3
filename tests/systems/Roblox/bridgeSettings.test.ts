@@ -45,18 +45,14 @@ describe("bridgeSettings", () => {
     delete process.env.ROBLOX_BRIDGE_API_URL;
     const { EnsureRobloxBridgeSettings } = await loadModule();
 
-    expect(() => EnsureRobloxBridgeSettings()).toThrow(
-      "ROBLOX_BRIDGE_API_URL",
-    );
+    expect(() => EnsureRobloxBridgeSettings()).toThrow("ROBLOX_BRIDGE_API_URL");
   });
 
   it("throws when API key is missing", async () => {
     delete process.env.ROBLOX_BRIDGE_API_KEY;
     const { EnsureRobloxBridgeSettings } = await loadModule();
 
-    expect(() => EnsureRobloxBridgeSettings()).toThrow(
-      "ROBLOX_BRIDGE_API_KEY",
-    );
+    expect(() => EnsureRobloxBridgeSettings()).toThrow("ROBLOX_BRIDGE_API_KEY");
   });
 
   it("throws when signing secret is missing", async () => {

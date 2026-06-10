@@ -11,10 +11,11 @@ describe("DebugCommand lifecycle", () => {
 
     await DebugCommand.execute(interaction, context);
 
-    expect(context.responders.interactionResponder.Reply).toHaveBeenCalledOnce();
-    const payload =
-      vi.mocked(context.responders.interactionResponder.Reply).mock
-        .calls[0][1];
+    expect(
+      context.responders.interactionResponder.Reply,
+    ).toHaveBeenCalledOnce();
+    const payload = vi.mocked(context.responders.interactionResponder.Reply)
+      .mock.calls[0][1];
     const embed = payload.embeds?.[0] as {
       title?: string;
       data?: { title?: string; fields?: Array<{ name: string }> };

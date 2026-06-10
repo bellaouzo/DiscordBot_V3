@@ -101,10 +101,7 @@ describe("Ticket remove user lifecycle", () => {
       context.databases.ticketDb.GetActiveParticipants as ReturnType<
         typeof vi.fn
       >
-    ).mockReturnValue([
-      { user_id: "user-1" },
-      { user_id: "user-2" },
-    ]);
+    ).mockReturnValue([{ user_id: "user-1" }, { user_id: "user-2" }]);
 
     vi.mocked(CreateTicketServices).mockReturnValue({
       guildResourceLocator: {

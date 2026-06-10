@@ -53,7 +53,10 @@ describe("Paginator", () => {
       registrations,
       paginator: new Paginator({
         interaction: interaction as never,
-        pages: overrides?.pages ?? [{ content: "Page 1" }, { content: "Page 2" }],
+        pages: overrides?.pages ?? [
+          { content: "Page 1" },
+          { content: "Page 2" },
+        ],
         interactionResponder: interactionResponder as never,
         buttonResponder: buttonResponder as never,
         componentRouter: componentRouter as never,
@@ -80,7 +83,8 @@ describe("Paginator", () => {
   });
 
   it("registers navigation buttons and replies with the first page", async () => {
-    const { paginator, componentRouter, interactionResponder } = createOptions();
+    const { paginator, componentRouter, interactionResponder } =
+      createOptions();
 
     await paginator.Start();
 
@@ -95,15 +99,13 @@ describe("Paginator", () => {
   });
 
   it("navigates to the next page when next button is pressed", async () => {
-    const {
-      paginator,
-      registrations,
-      interactionResponder,
-      buttonResponder,
-    } = createOptions();
+    const { paginator, registrations, interactionResponder, buttonResponder } =
+      createOptions();
 
     await paginator.Start();
-    const next = registrations.find((entry) => entry.customId.endsWith(":next"));
+    const next = registrations.find((entry) =>
+      entry.customId.endsWith(":next"),
+    );
     expect(next).toBeDefined();
 
     await next?.handler({ user: { id: "owner-1" } } as never);
@@ -119,7 +121,9 @@ describe("Paginator", () => {
     const { paginator, registrations, interactionResponder } = createOptions();
 
     await paginator.Start();
-    const stop = registrations.find((entry) => entry.customId.endsWith(":stop"));
+    const stop = registrations.find((entry) =>
+      entry.customId.endsWith(":stop"),
+    );
     expect(stop).toBeDefined();
 
     await stop?.handler({ user: { id: "owner-1" } } as never);
@@ -134,7 +138,9 @@ describe("Paginator", () => {
     const { paginator, registrations, interactionResponder } = createOptions();
 
     await paginator.Start();
-    const prev = registrations.find((entry) => entry.customId.endsWith(":prev"));
+    const prev = registrations.find((entry) =>
+      entry.customId.endsWith(":prev"),
+    );
     await prev?.handler({ user: { id: "owner-1" } } as never);
 
     expect(interactionResponder.Edit).toHaveBeenCalledWith(
@@ -144,18 +150,18 @@ describe("Paginator", () => {
   });
 
   it("ignores navigation after pagination is stopped", async () => {
-    const {
-      paginator,
-      registrations,
-      interactionResponder,
-      buttonResponder,
-    } = createOptions();
+    const { paginator, registrations, interactionResponder, buttonResponder } =
+      createOptions();
 
     await paginator.Start();
-    const stop = registrations.find((entry) => entry.customId.endsWith(":stop"));
+    const stop = registrations.find((entry) =>
+      entry.customId.endsWith(":stop"),
+    );
     await stop?.handler({ user: { id: "owner-1" } } as never);
 
-    const next = registrations.find((entry) => entry.customId.endsWith(":next"));
+    const next = registrations.find((entry) =>
+      entry.customId.endsWith(":next"),
+    );
     await next?.handler({ user: { id: "owner-1" } } as never);
 
     expect(buttonResponder.DeferUpdate).toHaveBeenCalledTimes(2);

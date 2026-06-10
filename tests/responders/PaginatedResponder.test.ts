@@ -48,7 +48,9 @@ describe("PaginatedResponder", () => {
 
     const paginatorModule = await import("@shared/Paginator");
     const instances = (
-      paginatorModule as { __mockInstances: Array<{ Start: ReturnType<typeof vi.fn> }> }
+      paginatorModule as {
+        __mockInstances: Array<{ Start: ReturnType<typeof vi.fn> }>;
+      }
     ).__mockInstances;
     expect(instances.at(-1)?.Start).toHaveBeenCalled();
   });

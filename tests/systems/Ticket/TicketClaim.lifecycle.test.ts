@@ -113,7 +113,9 @@ describe("Ticket claim lifecycle", () => {
       buttonInteraction,
       expect.objectContaining({ flags: MessageFlags.Ephemeral }),
     );
-    expect(context.databases.ticketDb.UpdateTicketStatus).not.toHaveBeenCalled();
+    expect(
+      context.databases.ticketDb.UpdateTicketStatus,
+    ).not.toHaveBeenCalled();
   });
 
   it("replies when ticket is closed or missing", async () => {

@@ -14,7 +14,9 @@ describe("EnsureAdminAccess", () => {
     const allowed = await EnsureAdminAccess(interaction, context);
 
     expect(allowed).toBe(true);
-    expect(context.responders.interactionResponder.Reply).not.toHaveBeenCalled();
+    expect(
+      context.responders.interactionResponder.Reply,
+    ).not.toHaveBeenCalled();
   });
 
   it("denies users without administrator permission", async () => {
