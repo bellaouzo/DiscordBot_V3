@@ -1,14 +1,9 @@
+import type { Client, Guild, TextChannel } from "discord.js";
+import { ButtonStyle, MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import type { Appeal, AppealActionType, AppealStatus } from "@database";
+import type { AppealableActionOption } from "@utilities";
 import {
-  ButtonStyle,
-  Client,
-  Guild,
-  MessageFlags,
-  TextChannel,
-} from "discord.js";
-import { CommandContext } from "@commands";
-import { Appeal, AppealActionType, AppealStatus } from "@database";
-import {
-  AppealableActionOption,
   ComponentFactory,
   EmbedFactory,
   IsAppealReviewer,

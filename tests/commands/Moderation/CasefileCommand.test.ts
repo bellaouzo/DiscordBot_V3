@@ -98,9 +98,9 @@ describe("CasefileCommand behavior", () => {
     ).mockReturnValue(null);
     const context = createMockContext({ databases });
     await CasefileCommand.execute(interaction, context);
-    expect(context.responders.componentRouter.RegisterButton).toHaveBeenCalledTimes(
-      5,
-    );
+    expect(
+      context.responders.componentRouter.RegisterButton,
+    ).toHaveBeenCalledTimes(5);
     expect(context.responders.interactionResponder.Reply).toHaveBeenCalledWith(
       interaction,
       expect.objectContaining({

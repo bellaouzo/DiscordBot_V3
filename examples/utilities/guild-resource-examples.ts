@@ -1,7 +1,12 @@
-import { ChatInputCommandInteraction, Guild } from "discord.js";
-import { Logger } from "../../src/Shared/Logger";
-import { CreateGuildResourceLocator } from "../../src/Utilities";
-import { CommandContext } from "../../src/Commands/CommandFactory";
+import type {
+  ChatInputCommandInteraction,
+  Guild} from "discord.js";
+import {
+  MessageFlags,
+} from "discord.js";
+import type { Logger } from "@shared/Logger";
+import { CreateGuildResourceLocator } from "@utilities";
+import type { CommandContext } from "@commands";
 
 /**
  * Examples of using the GuildResourceLocator utility
@@ -72,7 +77,7 @@ export async function ExampleCommandUsage(
   if (!interaction.guild) {
     await context.responders.interactionResponder.Reply(interaction, {
       content: "❌ This command requires a guild context.",
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -95,6 +100,6 @@ export async function ExampleCommandUsage(
 
   await context.responders.interactionResponder.Reply(interaction, {
     content,
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }

@@ -1,7 +1,7 @@
-import { ButtonInteraction } from "discord.js";
-import { CommandContext } from "@commands";
-import { ButtonResponder } from "@responders";
-import { CategoryView } from "@commands/Utility/Help/HelpTypes";
+import type { ButtonInteraction } from "discord.js";
+import type { CommandContext } from "@commands";
+import type { ButtonResponder } from "@responders";
+import type { CategoryView } from "@commands/Utility/Help/HelpTypes";
 import {
   BuildCategoryRows,
   BuildPaginationRow,

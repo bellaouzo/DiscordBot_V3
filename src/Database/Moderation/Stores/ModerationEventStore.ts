@@ -1,6 +1,6 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { MapModerationEvent } from "@database/Moderation/Mappers";
-import { ModerationEvent } from "@database/Moderation/Types";
+import type { ModerationEvent } from "@database/Moderation/Types";
 
 export class ModerationEventStore {
   constructor(private readonly db: Database.Database) {}

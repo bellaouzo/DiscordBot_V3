@@ -1,12 +1,13 @@
+import type { ChatInputCommandInteraction } from "discord.js";
 import {
-  ChatInputCommandInteraction,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   MessageFlags,
 } from "discord.js";
-import { CommandContext } from "@commands";
+import type { CommandContext } from "@commands";
 import {
+  RequireGuild,
   CreateNoteManager,
   CreateWarnManager,
   EmbedFactory,
@@ -28,7 +29,7 @@ export async function HandleCasefileQuery(
     context.responders;
 
   const targetUser = interaction.options.getUser("user", true);
-  const guild = interaction.guild!;
+  const guild = RequireGuild(interaction);
   const warnManager = CreateWarnManager({
     guildId: guild.id,
     userDb: context.databases.userDb,
@@ -115,9 +116,9 @@ export async function HandleCasefileQuery(
       kickEvents.length === 0
         ? "None recorded"
         : `Count: **${kickCount}**\nLatest: ${new Date(
-            recentKick!.created_at,
+            recentKick?.created_at ?? 0,
           ).toLocaleString()}${
-            recentKick!.reason ? `\nReason: ${recentKick!.reason}` : ""
+            recentKick?.reason ? `\nReason: ${recentKick.reason}` : ""
           }`,
     inline: false,
   });
@@ -128,13 +129,13 @@ export async function HandleCasefileQuery(
       banEvents.length === 0
         ? "None recorded"
         : `Count: **${banCount}**\nLatest: ${new Date(
-            recentBan!.created_at,
+            recentBan?.created_at ?? 0,
           ).toLocaleString()}${
-            recentBan!.reason ? `\nReason: ${recentBan!.reason}` : ""
+            recentBan?.reason ? `\nReason: ${recentBan.reason}` : ""
           }${
-            recentBan!.duration_ms
+            recentBan?.duration_ms
               ? `\nDuration: ${Math.round(
-                  recentBan!.duration_ms / 1000 / 60,
+                  recentBan.duration_ms / 1000 / 60,
                 )} min`
               : ""
           }`,

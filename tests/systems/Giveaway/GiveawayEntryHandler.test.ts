@@ -9,10 +9,12 @@ describe("GiveawayEntryHandler", () => {
     vi.clearAllMocks();
   });
 
-  function setupHandler(giveawayOverrides?: Partial<{
-    ended: boolean;
-    ends_at: number;
-  }>) {
+  function setupHandler(
+    giveawayOverrides?: Partial<{
+      ended: boolean;
+      ends_at: number;
+    }>,
+  ) {
     const context = createMockContext();
     const databases = context.databases;
     const manager = new GiveawayManager("guild-1", databases.userDb);
@@ -54,7 +56,9 @@ describe("GiveawayEntryHandler", () => {
     });
 
     const registration = (
-      context.responders.componentRouter.RegisterButton as ReturnType<typeof vi.fn>
+      context.responders.componentRouter.RegisterButton as ReturnType<
+        typeof vi.fn
+      >
     ).mock.calls[0][0];
 
     return { context, registration, manager, channel };

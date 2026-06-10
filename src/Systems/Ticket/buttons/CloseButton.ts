@@ -1,7 +1,8 @@
-import { ButtonInteraction, Guild, MessageFlags } from "discord.js";
-import { ButtonResponder } from "@responders";
-import { DatabaseSet } from "@database";
-import { Logger } from "@shared/Logger";
+import type { ButtonInteraction, Guild } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { ButtonResponder } from "@responders";
+import type { DatabaseSet } from "@database";
+import type { Logger } from "@shared/Logger";
 import {
   EmbedFactory,
   TranscriptGenerator,
@@ -12,7 +13,7 @@ import {
   CreateTicketServices,
   ParseTicketButtonCustomId,
 } from "@systems/Ticket/validation/TicketValidation";
-import { CreateTicketLogService } from "@systems/Ticket/services/TicketLogService";
+import type { CreateTicketLogService } from "@systems/Ticket/services/TicketLogService";
 
 export async function HandleCloseButton(
   buttonInteraction: ButtonInteraction,

@@ -69,9 +69,7 @@ describe("PurgeCommand behavior", () => {
     const channel = {
       isTextBased: () => true,
       messages: {
-        fetch: vi
-          .fn()
-          .mockResolvedValue(new Map([["msg-1", message]])),
+        fetch: vi.fn().mockResolvedValue(new Map([["msg-1", message]])),
       },
       bulkDelete,
     };
@@ -87,7 +85,9 @@ describe("PurgeCommand behavior", () => {
     });
     const context = createMockContext();
     await PurgeCommand.execute(interaction, context);
-    expect(context.responders.interactionResponder.WithAction).toHaveBeenCalled();
+    expect(
+      context.responders.interactionResponder.WithAction,
+    ).toHaveBeenCalled();
     expect(bulkDelete).toHaveBeenCalledWith([message], true);
   });
 });

@@ -1,11 +1,11 @@
-import {
-  IsTicketStatus,
+import type {
   Ticket,
   TicketCategoryConfig,
   TicketMessage,
   TicketParticipant,
   TicketReopenAudit,
 } from "@database/Ticket/Types";
+import { IsTicketStatus } from "@database/Ticket/Types";
 
 export function MapTicket(row: Record<string, unknown>): Ticket {
   const status = row.status;

@@ -1,5 +1,7 @@
-import { Events, GuildMember, TextChannel } from "discord.js";
-import { CreateEvent, EventContext } from "@events/EventFactory";
+import type { GuildMember, TextChannel } from "discord.js";
+import { Events } from "discord.js";
+import type { EventContext } from "@events/EventFactory";
+import { CreateEvent } from "@events/EventFactory";
 import { EmbedFactory } from "@utilities";
 
 async function ExecuteGuildMemberAddEvent(

@@ -1,5 +1,6 @@
-import { GuildMember, PermissionFlagsBits } from "discord.js";
-import { GuildSettings } from "@database/ServerDatabase";
+import type { GuildMember } from "discord.js";
+import { PermissionFlagsBits } from "discord.js";
+import type { GuildSettings } from "@database/ServerDatabase";
 
 export interface StaffPermissionOptions {
   adminRoleIds?: string[];

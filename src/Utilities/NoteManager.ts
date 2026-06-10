@@ -1,5 +1,5 @@
-import { UserDatabase, Note } from "@database";
-import { Logger } from "@shared/Logger";
+import type { UserDatabase, Note } from "@database";
+import type { Logger } from "@shared/Logger";
 
 export interface NoteManagerOptions {
   readonly guildId: string;

@@ -4,7 +4,7 @@ import { CommandLogsCommand } from "@commands/Utility/CommandLogsCommand";
 import { DebugCommand } from "@commands/Utility/DebugCommand";
 import { EventCommand } from "@commands/Utility/EventCommand";
 import { GiveawayCommand } from "@commands/Utility/GiveawayCommand";
-import { HelpCommand } from "@commands/Utility/HelpCommand";
+import { HelpCommand } from "@commands/Utility/Help/HelpCommand";
 import { PingCommand } from "@commands/Utility/PingCommand";
 import { PollCommand } from "@commands/Utility/PollCommand";
 import { PresenceCommand } from "@commands/Utility/PresenceCommand";

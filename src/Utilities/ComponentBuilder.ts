@@ -1,3 +1,8 @@
+import type {
+  ActionRowData,
+  ActionRowComponentData,
+  AnyComponentBuilder,
+} from "discord.js";
 import {
   ButtonBuilder,
   ButtonStyle,
@@ -5,9 +10,6 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
   UserSelectMenuBuilder,
-  ActionRowData,
-  ActionRowComponentData,
-  AnyComponentBuilder,
 } from "discord.js";
 
 /**

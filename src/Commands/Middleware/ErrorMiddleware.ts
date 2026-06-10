@@ -1,5 +1,5 @@
 import { MessageFlags } from "discord.js";
-import { CommandMiddleware } from "./index";
+import type { CommandMiddleware } from "./index";
 import { CreateErrorMessage } from "@responders/MessageFactory";
 
 export const ErrorMiddleware: CommandMiddleware = {

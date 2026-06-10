@@ -40,11 +40,21 @@ Optional variables and defaults are documented in [CONFIGURATION.md](CONFIGURATI
 
 ## 3. Run the bot
 
+For day-to-day development (recommended):
+
+```bash
+npm run dev:watch
+```
+
+This runs TypeScript in watch mode and restarts the bot when `dist/` changes.
+
+For a one-shot compile and start:
+
 ```bash
 npm run dev
 ```
 
-This compiles TypeScript and starts the bot. Slash commands are deployed to the guild specified by `GUILD_ID` on startup. If you see the bot online in Discord, setup is complete.
+Slash commands are deployed to the guild specified by `GUILD_ID` on startup. If you see the bot online in Discord, setup is complete.
 
 ## 4. Run lint and tests
 
@@ -52,11 +62,17 @@ Before committing, run:
 
 ```bash
 npm run lint
+npm run lint:examples
 npm run test
+npm run test:coverage
+npm run check:commands
 ```
 
 - **Lint:** Runs `tsc --noEmit` and ESLint on `src/` and `tests/`.
+- **Examples lint:** ESLint on `examples/` reference files.
 - **Test:** Runs the Vitest test suite.
+- **Coverage:** Runs tests with coverage gates (global branch floor: 42%).
+- **Command check:** Verifies no duplicate top-level slash command names.
 
 CI runs these on push/PR to `main`; see [.github/workflows/ci.yml](../.github/workflows/ci.yml).
 

@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import { join } from "path";
 import { ResolveDataDir } from "@config/DataConfig";
-import { Logger } from "@shared/Logger";
+import type { Logger } from "@shared/Logger";
 import { EventStore } from "@database/Server/Stores/EventStore";
 import { GuildSettingsStore } from "@database/Server/Stores/GuildSettingsStore";
 import { CommandCooldownStore } from "@database/Server/Stores/CommandCooldownStore";
@@ -194,7 +194,10 @@ export class ServerDatabase {
     return this.guildSettings.GetGuildSettings(guild_id);
   }
 
-  GetCommandCooldownExpiry(userId: string, commandName: string): number | undefined {
+  GetCommandCooldownExpiry(
+    userId: string,
+    commandName: string,
+  ): number | undefined {
     return this.commandCooldowns.GetExpiry(userId, commandName);
   }
 

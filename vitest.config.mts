@@ -14,11 +14,11 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov"],
       include: ["src/**/*.ts"],
-      exclude: ["src/index.ts", "**/*.d.ts", "**/index.ts"],
+      exclude: ["src/index.ts", "**/*.d.ts"],
       thresholds: {
         lines: 55,
         functions: 58,
-        branches: 32,
+        branches: 42,
         statements: 55,
         "src/Database/User/Stores/**": {
           lines: 75,
@@ -47,7 +47,7 @@ export default defineConfig({
         "src/Commands/Middleware/CooldownMiddleware.ts": {
           lines: 65,
           functions: 100,
-          branches: 45,
+          branches: 55,
           statements: 65,
         },
         "src/Systems/Ticket/validation/**": {
@@ -83,7 +83,7 @@ export default defineConfig({
         "src/Systems/Economy/handlers/**": {
           lines: 48,
           functions: 30,
-          branches: 25,
+          branches: 35,
           statements: 47,
         },
         "src/Utilities/GuildMemberResolver.ts": {

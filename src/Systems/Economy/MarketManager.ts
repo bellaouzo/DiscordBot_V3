@@ -1,4 +1,4 @@
-import { UserDatabase } from "@database";
+import type { UserDatabase } from "@database";
 import { EconomyManager } from "./EconomyManager";
 import { MARKET_ROTATION_MS, MARKET_ROTATION_SIZE } from "./constants";
 import { ITEM_MAP, DEFAULT_ROTATION_IDS } from "./items";

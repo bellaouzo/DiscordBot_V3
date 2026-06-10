@@ -1,12 +1,10 @@
-import {
-  ChatInputCommandInteraction,
-  GuildBan,
-  MessageFlags,
-} from "discord.js";
-import { CommandContext, CreateCommand } from "@commands";
+import type { ChatInputCommandInteraction, GuildBan } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
-import { PaginationPage } from "@shared/Paginator";
+import { RequireGuild, EmbedFactory } from "@utilities";
+import type { PaginationPage } from "@shared/Paginator";
 
 const PAGE_SIZE = 10;
 
@@ -30,7 +28,7 @@ async function ExecuteBanListPages(
 ): Promise<void> {
   const { paginatedResponder, interactionResponder } = context.responders;
 
-  const bans = await interaction.guild!.bans.fetch();
+  const bans = await RequireGuild(interaction).bans.fetch();
   const banEntries = Array.from(bans.values());
 
   if (banEntries.length === 0) {
@@ -65,7 +63,7 @@ async function ExecuteBanCheck(
   const userOption = interaction.options.getUser("user", true);
   const userId = userOption.id;
 
-  const bans = await interaction.guild!.bans.fetch();
+  const bans = await RequireGuild(interaction).bans.fetch();
   const ban = bans.get(userId);
 
   if (!ban) {

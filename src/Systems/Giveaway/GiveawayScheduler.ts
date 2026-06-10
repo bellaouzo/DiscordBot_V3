@@ -1,6 +1,6 @@
-import { Client, TextChannel } from "discord.js";
-import { UserDatabase } from "@database";
-import { Logger } from "@shared/Logger";
+import type { Client, TextChannel } from "discord.js";
+import type { UserDatabase } from "@database";
+import type { Logger } from "@shared/Logger";
 import { GiveawayManager } from "./GiveawayManager";
 
 const POLL_INTERVAL_MS = 30_000; // Check every 30 seconds

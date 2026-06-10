@@ -1,5 +1,5 @@
-import { Client, TextChannel } from "discord.js";
-import { Logger } from "@shared/Logger";
+import type { Client, TextChannel } from "discord.js";
+import type { Logger } from "@shared/Logger";
 import { ModerationDatabase } from "@database";
 import { ParseOverwrites } from "@commands/Moderation/shared/OverwriteSerialization";
 

@@ -1,4 +1,4 @@
-import { APIApplicationCommandOptionChoice } from "discord.js";
+import type { APIApplicationCommandOptionChoice } from "discord.js";
 
 export const THIS_CONFIG = {
   yesNoChoices: [

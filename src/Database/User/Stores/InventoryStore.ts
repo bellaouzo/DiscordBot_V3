@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import type { InventoryEntry } from "@systems/Economy/types";
 
 export class InventoryStore {

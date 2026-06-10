@@ -1,5 +1,7 @@
-import { Events, Message, PartialMessage, TextChannel } from "discord.js";
-import { CreateEvent, EventContext } from "@events/EventFactory";
+import type { Message, PartialMessage, TextChannel } from "discord.js";
+import { Events } from "discord.js";
+import type { EventContext } from "@events/EventFactory";
+import { CreateEvent } from "@events/EventFactory";
 import { CreateChannelManager } from "@utilities/ChannelManager";
 import { EmbedFactory } from "@utilities";
 

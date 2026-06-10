@@ -1,6 +1,6 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { MapScheduledEvent } from "@database/Server/Mappers";
-import { EventRow, ScheduledEvent } from "@database/Server/Types";
+import type { EventRow, ScheduledEvent } from "@database/Server/Types";
 
 export class EventStore {
   constructor(private readonly db: Database.Database) {}

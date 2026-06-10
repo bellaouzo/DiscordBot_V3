@@ -1,10 +1,7 @@
-import {
-  ChatInputCommandInteraction,
-  Guild,
-  MessageFlags,
-} from "discord.js";
-import { CommandContext } from "@commands";
-import { AppealActionType } from "@database";
+import type { ChatInputCommandInteraction, Guild } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import type { AppealActionType } from "@database";
 import {
   ComponentFactory,
   CreateAppealManager,
@@ -12,10 +9,8 @@ import {
   ToActionRowData,
 } from "@utilities";
 import { BuildActionSelectOptions } from "@commands/Moderation/Appeal/AppealShared";
-import {
-  AppealStartInteraction,
-  RegisterAppealSelectFlow,
-} from "@commands/Moderation/Appeal/AppealSubmitSelectFlow";
+import type { AppealStartInteraction } from "@commands/Moderation/Appeal/AppealSubmitSelectFlow";
+import { RegisterAppealSelectFlow } from "@commands/Moderation/Appeal/AppealSubmitSelectFlow";
 
 export async function BeginAppealSubmission(data: {
   interaction: AppealStartInteraction;

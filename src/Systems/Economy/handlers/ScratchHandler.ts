@@ -1,9 +1,9 @@
-import {
+import type {
   ButtonInteraction,
   ChatInputCommandInteraction,
-  MessageFlags,
 } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import {
   BuildScratchButtons,
@@ -21,13 +21,11 @@ import {
   MIN_BET,
   SCRATCH_TIMEOUT_MS,
 } from "@systems/Economy/constants";
-import { ScratchSymbol } from "@systems/Economy/types";
+import type { ScratchSymbol } from "@systems/Economy/types";
 import { ITEM_MAP } from "@systems/Economy/items";
-import { EmbedFactory } from "@utilities";
-import {
-  AwardEconomyXp,
-  EconomyOutcome,
-} from "@systems/Economy/utils/EconomyXp";
+import { RequireGuild, EmbedFactory } from "@utilities";
+import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
+import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 import {
   ApplyScratchBonusLossRefund,
   ApplyScratchBonusPayout,
@@ -68,7 +66,7 @@ export async function HandleScratch(
   }
 
   const manager = new EconomyManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
   let balance = manager.EnsureBalance(interaction.user.id);

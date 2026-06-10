@@ -224,7 +224,9 @@ describe("AppealCommand behavior", () => {
       interaction,
       expect.objectContaining({
         embeds: expect.arrayContaining([
-          expect.objectContaining({ title: expect.stringContaining("No Appeals") }),
+          expect.objectContaining({
+            title: expect.stringContaining("No Appeals"),
+          }),
         ]),
       }),
     );

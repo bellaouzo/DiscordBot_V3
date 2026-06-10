@@ -1,4 +1,4 @@
-import { ScratchSymbol } from "@systems/Economy/types";
+import type { ScratchSymbol } from "@systems/Economy/types";
 
 export const SCRATCH_COLUMNS = 3;
 export const SCRATCH_ROWS = 3;
@@ -27,12 +27,15 @@ export const SCRATCH_HIDDEN_ICONS = [
 export function CountScratchSymbols(
   reveals: ReadonlyArray<ScratchSymbol | null>,
 ): Record<ScratchSymbol, number> {
-  return reveals.reduce<Record<ScratchSymbol, number>>((acc, sym) => {
-    if (sym) {
-      acc[sym] = (acc[sym] ?? 0) + 1;
-    }
-    return acc;
-  }, { ...EMPTY_SYMBOL_COUNTS });
+  return reveals.reduce<Record<ScratchSymbol, number>>(
+    (acc, sym) => {
+      if (sym) {
+        acc[sym] = (acc[sym] ?? 0) + 1;
+      }
+      return acc;
+    },
+    { ...EMPTY_SYMBOL_COUNTS },
+  );
 }
 
 export function ComputeScratchPayout(

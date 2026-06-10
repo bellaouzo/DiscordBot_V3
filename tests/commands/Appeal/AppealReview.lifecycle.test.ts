@@ -136,10 +136,14 @@ describe("Appeal review button lifecycle", () => {
       user: { id: "mod-1" },
       client: {
         guilds: {
-          fetch: vi.fn().mockResolvedValue({ id: "guild-1", name: "Test Guild" }),
+          fetch: vi
+            .fn()
+            .mockResolvedValue({ id: "guild-1", name: "Test Guild" }),
         },
         users: {
-          fetch: vi.fn().mockResolvedValue({ send: vi.fn().mockResolvedValue(undefined) }),
+          fetch: vi
+            .fn()
+            .mockResolvedValue({ send: vi.fn().mockResolvedValue(undefined) }),
         },
       },
       fields: {

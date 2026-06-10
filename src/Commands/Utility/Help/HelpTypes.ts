@@ -1,4 +1,8 @@
-import { ActionRowComponentData, ActionRowData, APIEmbed } from "discord.js";
+import type {
+  ActionRowComponentData,
+  ActionRowData,
+  APIEmbed,
+} from "discord.js";
 
 export interface CommandInfo {
   readonly name: string;

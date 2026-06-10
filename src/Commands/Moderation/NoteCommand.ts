@@ -1,9 +1,11 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { EmbedFactory, CreateNoteManager } from "@utilities";
-import { Note } from "@database";
-import { PaginationPage } from "@shared/Paginator";
+import { RequireGuild, EmbedFactory, CreateNoteManager } from "@utilities";
+import type { Note } from "@database";
+import type { PaginationPage } from "@shared/Paginator";
 
 const NOTE_LIST_PAGE_SIZE = 6;
 
@@ -12,7 +14,7 @@ async function ExecuteNote(
   context: CommandContext,
 ): Promise<void> {
   const noteManager = CreateNoteManager({
-    guildId: interaction.guild!.id,
+    guildId: RequireGuild(interaction).id,
     userDb: context.databases.userDb,
     logger: context.logger,
   });

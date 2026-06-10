@@ -1,10 +1,7 @@
-import {
-  CreateNoteManager,
-  CreateWarnManager,
-  EmbedFactory,
-} from "@utilities";
-import { PaginationPage } from "@shared/Paginator";
-import { ModerationDatabase } from "@database";
+import type { CreateNoteManager, CreateWarnManager } from "@utilities";
+import { EmbedFactory } from "@utilities";
+import type { PaginationPage } from "@shared/Paginator";
+import type { ModerationDatabase } from "@database";
 
 export function buildWarningPages(
   warnings: ReturnType<ReturnType<typeof CreateWarnManager>["GetUserWarnings"]>,

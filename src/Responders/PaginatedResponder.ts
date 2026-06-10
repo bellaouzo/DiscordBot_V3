@@ -1,13 +1,14 @@
-import {
+import type {
   ChatInputCommandInteraction,
   ButtonInteraction,
   MessageFlags,
 } from "discord.js";
-import { Logger } from "../Shared/Logger";
-import { InteractionResponder } from "./InteractionResponder";
-import { ButtonResponder } from "./ButtonResponder";
-import { ComponentRouter } from "../Shared/ComponentRouter";
-import { CreatePaginator, PaginationPage } from "../Shared/Paginator";
+import type { Logger } from "../Shared/Logger";
+import type { InteractionResponder } from "./InteractionResponder";
+import type { ButtonResponder } from "./ButtonResponder";
+import type { ComponentRouter } from "../Shared/ComponentRouter";
+import type { PaginationPage } from "../Shared/Paginator";
+import { CreatePaginator } from "../Shared/Paginator";
 
 export interface PaginatedMessageOptions {
   readonly interaction: ChatInputCommandInteraction | ButtonInteraction;

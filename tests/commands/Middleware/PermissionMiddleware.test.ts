@@ -1,4 +1,5 @@
-import { GuildMember, MessageFlags } from "discord.js";
+import type { GuildMember } from "discord.js";
+import { MessageFlags } from "discord.js";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
 import {

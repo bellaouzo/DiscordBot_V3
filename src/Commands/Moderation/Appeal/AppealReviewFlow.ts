@@ -1,9 +1,6 @@
-import {
-  ChannelType,
-  ChatInputCommandInteraction,
-  MessageFlags,
-} from "discord.js";
-import { CommandContext } from "@commands";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { ChannelType, MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import {
   CreateAppealManager,
   EmbedFactory,

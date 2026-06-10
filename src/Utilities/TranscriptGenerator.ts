@@ -1,5 +1,5 @@
-import { Ticket, TicketMessage, TicketParticipant } from "@database";
-import { Guild, User } from "discord.js";
+import type { Ticket, TicketMessage, TicketParticipant } from "@database";
+import type { Guild, User } from "discord.js";
 
 export interface GenerateTranscriptOptions {
   readonly ticket: Ticket;

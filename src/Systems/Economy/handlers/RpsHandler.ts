@@ -1,9 +1,9 @@
-import {
+import type {
   ButtonInteraction,
   ChatInputCommandInteraction,
-  MessageFlags,
 } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import {
   BuildDisabledRpsButtons,
@@ -16,13 +16,11 @@ import {
   BuildRpsResultEmbed,
 } from "@systems/Economy/utils/Embeds";
 import { MAX_BET, MIN_BET, RPS_TIMEOUT_MS } from "@systems/Economy/constants";
-import { RpsChoice } from "@systems/Economy/types";
+import type { RpsChoice } from "@systems/Economy/types";
 import { ITEM_MAP } from "@systems/Economy/items";
-import { EmbedFactory } from "@utilities";
-import {
-  AwardEconomyXp,
-  EconomyOutcome,
-} from "@systems/Economy/utils/EconomyXp";
+import { RequireGuild, EmbedFactory } from "@utilities";
+import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
+import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 
 interface RpsCustomIds {
   rock: string;
@@ -70,7 +68,7 @@ export async function HandleRps(
   }
 
   const manager = new EconomyManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
   let balanceValue = manager.EnsureBalance(interaction.user.id);

@@ -64,8 +64,12 @@ describe("SetupCommand behavior", () => {
         components: expect.any(Array),
       }),
     );
-    expect(context.responders.selectMenuRouter.RegisterSelectMenu).toHaveBeenCalled();
-    expect(context.responders.componentRouter.RegisterButton).toHaveBeenCalled();
+    expect(
+      context.responders.selectMenuRouter.RegisterSelectMenu,
+    ).toHaveBeenCalled();
+    expect(
+      context.responders.componentRouter.RegisterButton,
+    ).toHaveBeenCalled();
   });
 
   it("denies users without configured admin role via permission middleware", async () => {

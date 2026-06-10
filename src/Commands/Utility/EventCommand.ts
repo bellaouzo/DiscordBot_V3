@@ -1,12 +1,15 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import {
+  RequireGuild,
   EmbedFactory,
   IsModerator,
   ResolveInteractionMember,
 } from "@utilities";
-import { PaginationPage } from "@shared/Paginator";
+import type { PaginationPage } from "@shared/Paginator";
 
 const EVENT_LIST_PAGE_SIZE = 8;
 
@@ -32,7 +35,7 @@ async function ExecuteEventCreate(
   const { interactionResponder } = context.responders;
 
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
   );
   const member = await ResolveInteractionMember(interaction);
   if (!IsModerator(member, settings)) {
@@ -80,7 +83,7 @@ async function ExecuteEventCreate(
   const db = context.databases.serverDb;
   try {
     const event = db.CreateEvent({
-      guild_id: interaction.guild!.id,
+      guild_id: RequireGuild(interaction).id,
       title,
       scheduled_at: scheduledAt,
       should_notify: shouldNotify,
@@ -130,7 +133,7 @@ async function ExecuteEventList(
   const db = context.databases.serverDb;
   try {
     const events = db
-      .ListUpcomingEvents(interaction.guild!.id)
+      .ListUpcomingEvents(RequireGuild(interaction).id)
       .slice(0, safeLimit);
 
     if (events.length === 0) {
@@ -215,7 +218,7 @@ async function ExecuteEventCancel(
 
   const db = context.databases.serverDb;
   try {
-    const event = db.GetEventById(eventId, interaction.guild!.id);
+    const event = db.GetEventById(eventId, RequireGuild(interaction).id);
     if (!event) {
       const embed = EmbedFactory.CreateWarning({
         title: "Not Found",
@@ -229,7 +232,7 @@ async function ExecuteEventCancel(
     }
 
     const settings = context.databases.serverDb.GetGuildSettings(
-      interaction.guild!.id,
+      RequireGuild(interaction).id,
     );
     const member = await ResolveInteractionMember(interaction);
     const isCreator = event.created_by === interaction.user.id;
@@ -247,7 +250,7 @@ async function ExecuteEventCancel(
       return;
     }
 
-    const deleted = db.DeleteEvent(eventId, interaction.guild!.id);
+    const deleted = db.DeleteEvent(eventId, RequireGuild(interaction).id);
     if (!deleted) {
       const embed = EmbedFactory.CreateError({
         title: "Cancel Failed",

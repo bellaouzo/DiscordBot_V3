@@ -1,12 +1,9 @@
-import {
-  ChatInputCommandInteraction,
-  ChannelType,
-  Role,
-  MessageFlags,
-} from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction, Role } from "discord.js";
+import { ChannelType, MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { EmbedFactory, CreateChannelManager } from "@utilities";
+import { RequireGuild, EmbedFactory, CreateChannelManager } from "@utilities";
 
 type MentionType = "none" | "everyone" | "here" | "role";
 type AnnouncementKind = "info" | "update" | "maintenance" | "event";
@@ -56,7 +53,9 @@ async function ExecuteAnnouncement(
   const { interactionResponder } = context.responders;
   const { logger, databases } = context;
 
-  const settings = databases.serverDb.GetGuildSettings(interaction.guild!.id);
+  const settings = databases.serverDb.GetGuildSettings(
+    RequireGuild(interaction).id,
+  );
   const announcementChannelId = settings?.announcement_channel_id ?? null;
 
   const title = interaction.options.getString("title");
@@ -81,7 +80,7 @@ async function ExecuteAnnouncement(
     return;
   }
 
-  const guild = interaction.guild!;
+  const guild = RequireGuild(interaction);
   const channelManager = CreateChannelManager({
     guild,
     logger,

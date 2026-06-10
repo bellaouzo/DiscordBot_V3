@@ -1,5 +1,6 @@
-import { MessageFlags, UserSelectMenuInteraction } from "discord.js";
-import { Logger } from "./Logger";
+import type { UserSelectMenuInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { Logger } from "./Logger";
 import { randomUUID } from "crypto";
 
 export interface RegisterUserSelectMenuOptions {

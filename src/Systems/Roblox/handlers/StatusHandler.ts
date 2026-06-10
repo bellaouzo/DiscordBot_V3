@@ -1,6 +1,7 @@
+import { RequireGuild } from "@utilities";
 import { MessageFlags } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
-import type { CommandContext } from "@commands/CommandFactory";
+import type { CommandContext } from "@commands";
 import type { RobloxBridgeSettings } from "@systems/Roblox/types";
 import {
   EnsureAdminAccess,
@@ -19,7 +20,7 @@ export async function ExecuteStatusSubcommand(
     return;
   }
 
-  const guildId = interaction.guild!.id;
+  const guildId = RequireGuild(interaction).id;
   const guildSettings = context.databases.serverDb.GetGuildSettings(guildId);
   const linkedDiscordUserId =
     guildSettings?.roblox_linked_discord_user_id?.trim() || undefined;

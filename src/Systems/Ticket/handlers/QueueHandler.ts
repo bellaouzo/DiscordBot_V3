@@ -1,6 +1,11 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
-import { EmbedFactory, ResolveInteractionMember } from "@utilities";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import {
+  RequireGuild,
+  EmbedFactory,
+  ResolveInteractionMember,
+} from "@utilities";
 import {
   CreateTicketServices,
   HasStaffPermissions,
@@ -19,7 +24,7 @@ export async function HandleTicketQueue(
   }
 
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
   );
   const member = await ResolveInteractionMember(interaction);
 
@@ -42,21 +47,26 @@ export async function HandleTicketQueue(
 
   const { ticketDb } = CreateTicketServices(
     logger,
-    interaction.guild!,
+    RequireGuild(interaction),
     context.databases.ticketDb,
     context.databases.serverDb,
   );
 
-  const openTickets = ticketDb.GetGuildTickets(interaction.guild!.id, "open");
+  const openTickets = ticketDb.GetGuildTickets(
+    RequireGuild(interaction).id,
+    "open",
+  );
   const claimedTickets = ticketDb.GetGuildTickets(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
     "claimed",
   );
   const activeTickets = [...openTickets, ...claimedTickets].sort(
     (a, b) => a.created_at - b.created_at,
   );
 
-  const categories = ticketDb.EnsureCategoryConfigs(interaction.guild!.id);
+  const categories = ticketDb.EnsureCategoryConfigs(
+    RequireGuild(interaction).id,
+  );
   const tagMap = ticketDb.GetTagsForTickets(
     activeTickets.map((ticket) => ticket.id),
   );

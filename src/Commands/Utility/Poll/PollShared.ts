@@ -1,6 +1,7 @@
-import { ChannelType, Message, TextChannel } from "discord.js";
+import type { Message, TextChannel } from "discord.js";
+import { ChannelType } from "discord.js";
 import { EmbedFactory } from "@utilities";
-import { PaginationPage } from "@shared/Paginator";
+import type { PaginationPage } from "@shared/Paginator";
 
 export const MIN_DURATION_MINUTES = 5;
 export const MAX_DURATION_MINUTES = 10080;

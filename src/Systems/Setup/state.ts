@@ -1,11 +1,11 @@
-import {
+import type {
   CategoryChannel,
-  ChannelType,
   ChatInputCommandInteraction,
   Role,
   TextChannel,
 } from "discord.js";
-import { GuildSettings } from "@database/ServerDatabase";
+import { ChannelType } from "discord.js";
+import type { GuildSettings } from "@database/ServerDatabase";
 
 export interface SetupDraft {
   adminRoleIds: string[];

@@ -1,20 +1,16 @@
 import { PaginatedResponder } from "./PaginatedResponder";
 import { InteractionResponder } from "./InteractionResponder";
 import { ButtonResponder } from "./ButtonResponder";
-import { ResolveResponderLogger, ResponderDependencies } from "./ResponseTypes";
-import {
-  ComponentRouter,
-  CreateComponentRouter,
-} from "../Shared/ComponentRouter";
-import {
-  SelectMenuRouter,
-  CreateSelectMenuRouter,
-} from "../Shared/SelectMenuRouter";
-import {
-  UserSelectMenuRouter,
-  CreateUserSelectMenuRouter,
-} from "../Shared/UserSelectMenuRouter";
-import { ModalRouter, CreateModalRouter } from "../Shared/ModalRouter";
+import type { ResponderDependencies } from "./ResponseTypes";
+import { ResolveResponderLogger } from "./ResponseTypes";
+import type { ComponentRouter } from "../Shared/ComponentRouter";
+import { CreateComponentRouter } from "../Shared/ComponentRouter";
+import type { SelectMenuRouter } from "../Shared/SelectMenuRouter";
+import { CreateSelectMenuRouter } from "../Shared/SelectMenuRouter";
+import type { UserSelectMenuRouter } from "../Shared/UserSelectMenuRouter";
+import { CreateUserSelectMenuRouter } from "../Shared/UserSelectMenuRouter";
+import type { ModalRouter } from "../Shared/ModalRouter";
+import { CreateModalRouter } from "../Shared/ModalRouter";
 export type {
   ResponseOptions,
   ResponseResult,

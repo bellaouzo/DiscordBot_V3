@@ -1,14 +1,11 @@
-import { ChatInputCommandInteraction } from "discord.js";
-import { CommandDefinition, CommandContext } from "@commands";
-import { Logger } from "@shared/Logger";
-import { ResponderSet } from "@responders";
-import { DatabaseSet } from "@database";
-import { AppConfig } from "@config/AppConfig";
-import {
-  MiddlewareContext,
-  RunMiddlewareChain,
-  DiscordLoggingMiddleware,
-} from "@middleware";
+import type { ChatInputCommandInteraction } from "discord.js";
+import type { CommandDefinition, CommandContext } from "@commands";
+import type { Logger } from "@shared/Logger";
+import type { ResponderSet } from "@responders";
+import type { DatabaseSet } from "@database";
+import type { AppConfig } from "@config/AppConfig";
+import type { MiddlewareContext } from "@middleware";
+import { RunMiddlewareChain, DiscordLoggingMiddleware } from "@middleware";
 import { RecordCooldown } from "@middleware/CooldownMiddleware";
 
 /**

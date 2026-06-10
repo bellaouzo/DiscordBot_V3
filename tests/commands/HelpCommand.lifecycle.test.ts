@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { SlashCommandBuilder } from "discord.js";
 import type { ButtonInteraction } from "discord.js";
-import { HelpCommand } from "@commands/Utility/HelpCommand";
+import { HelpCommand } from "@commands/Utility/Help/HelpCommand";
 import { CreateResponders } from "@responders";
 import {
   createMockInteraction,

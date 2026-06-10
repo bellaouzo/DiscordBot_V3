@@ -1,5 +1,5 @@
 import { EmbedFactory } from "@utilities";
-import { ScratchSymbol } from "../../types";
+import type { ScratchSymbol } from "../../types";
 import { BuildGridDisplay } from "./shared";
 
 export function BuildScratchPromptEmbed(options: {

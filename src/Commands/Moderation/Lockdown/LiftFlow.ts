@@ -1,12 +1,12 @@
-import {
+import type {
   ChatInputCommandInteraction,
   TextChannel,
   CategoryChannel,
-  MessageFlags,
 } from "discord.js";
-import { CommandContext } from "@commands";
-import { EmbedFactory } from "@utilities";
-import { LockdownScope } from "@database";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { RequireGuild, EmbedFactory } from "@utilities";
+import type { LockdownScope } from "@database";
 import { ParseOverwrites } from "@commands/Moderation/shared/OverwriteSerialization";
 
 export async function HandleUnlockTarget(
@@ -17,7 +17,11 @@ export async function HandleUnlockTarget(
 ): Promise<void> {
   const db = context.databases.moderationDb;
   try {
-    const record = db.GetActiveLockdown(scope, interaction.guild!.id, targetId);
+    const record = db.GetActiveLockdown(
+      scope,
+      RequireGuild(interaction).id,
+      targetId,
+    );
     if (!record) {
       const embed = EmbedFactory.CreateWarning({
         title: "Not Locked",
@@ -31,7 +35,7 @@ export async function HandleUnlockTarget(
     }
 
     const overwrites = ParseOverwrites(record.overwrites);
-    const channel = interaction.guild!.channels.cache.get(targetId);
+    const channel = RequireGuild(interaction).channels.cache.get(targetId);
 
     if (!channel || !("permissionOverwrites" in channel)) {
       const embed = EmbedFactory.CreateError({
@@ -71,7 +75,7 @@ export async function HandleLockdownStatus(
 ): Promise<void> {
   const db = context.databases.moderationDb;
   try {
-    const active = db.ListActiveLockdowns(interaction.guild!.id);
+    const active = db.ListActiveLockdowns(RequireGuild(interaction).id);
     if (active.length === 0) {
       const embed = EmbedFactory.CreateWarning({
         title: "No Active Lockdowns",

@@ -1,6 +1,6 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { MapTicketParticipant } from "@database/Ticket/Mappers";
-import { TicketParticipant } from "@database/Ticket/Types";
+import type { TicketParticipant } from "@database/Ticket/Types";
 
 export class TicketParticipantStore {
   constructor(private readonly db: Database.Database) {}

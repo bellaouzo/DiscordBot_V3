@@ -1,7 +1,10 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import {
+  RequireGuild,
   CreateAppealManager,
   CreateWarnManager,
   EmbedFactory,
@@ -12,7 +15,7 @@ async function ExecuteModHistory(
   context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-  const guild = interaction.guild!;
+  const guild = RequireGuild(interaction);
   const userId = interaction.user.id;
 
   const warnManager = CreateWarnManager({

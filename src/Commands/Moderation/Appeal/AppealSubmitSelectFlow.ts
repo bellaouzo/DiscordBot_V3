@@ -1,15 +1,18 @@
-import {
-  ActionRowBuilder,
+import type {
   ButtonInteraction,
   ChatInputCommandInteraction,
   Guild,
+} from "discord.js";
+import {
+  ActionRowBuilder,
   MessageFlags,
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
 } from "discord.js";
-import { CommandContext } from "@commands";
-import { AppealableActionOption, EmbedFactory } from "@utilities";
+import type { CommandContext } from "@commands";
+import type { AppealableActionOption } from "@utilities";
+import { EmbedFactory } from "@utilities";
 import { ParseActionOptionValue } from "@commands/Moderation/Appeal/AppealShared";
 import { ProcessAppealSubmission } from "@commands/Moderation/Appeal/AppealSubmitModalFlow";
 

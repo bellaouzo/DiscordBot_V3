@@ -1,8 +1,8 @@
-import { Client, ClientEvents } from "discord.js";
-import { Logger } from "@shared/Logger";
-import { ResponderSet } from "@responders";
-import { DatabaseSet } from "@database";
-import { AppConfig } from "@config/AppConfig";
+import type { Client, ClientEvents } from "discord.js";
+import type { Logger } from "@shared/Logger";
+import type { ResponderSet } from "@responders";
+import type { DatabaseSet } from "@database";
+import type { AppConfig } from "@config/AppConfig";
 
 export interface EventContext {
   readonly client: Client;

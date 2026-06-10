@@ -1,11 +1,10 @@
-import {
+import type {
   ActionRowComponentData,
   ActionRowData,
-  ButtonStyle,
-  ComponentType,
   InteractionButtonComponentData,
 } from "discord.js";
-import { AllowedButtonStyle } from "../types";
+import { ButtonStyle, ComponentType } from "discord.js";
+import type { AllowedButtonStyle } from "../types";
 
 interface FlipButtonIds {
   heads: string;

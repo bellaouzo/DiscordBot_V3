@@ -1,4 +1,4 @@
-import { CommandMiddleware } from "./index";
+import type { CommandMiddleware } from "./index";
 
 export const LoggingMiddleware: CommandMiddleware = {
   name: "logging",

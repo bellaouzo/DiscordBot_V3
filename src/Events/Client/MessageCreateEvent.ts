@@ -1,5 +1,7 @@
-import { Events, Message, TextChannel } from "discord.js";
-import { CreateEvent, EventContext } from "@events/EventFactory";
+import type { Message, TextChannel } from "discord.js";
+import { Events } from "discord.js";
+import type { EventContext } from "@events/EventFactory";
+import { CreateEvent } from "@events/EventFactory";
 import { EmbedFactory, IsModerator, ResolveMessageMember } from "@utilities";
 
 async function ExecuteMessageCreateEvent(

@@ -7,7 +7,7 @@ This folder contains practical examples of how to use the Discord Bot V3 framewo
 **New to the framework?** Start here:
 
 1. **[Starter Template](basic/starter-template.ts)** - 🟢 **Beginner** - Complete working command you can copy and run immediately
-2. Copy it to `src/Commands/utility/your-command.ts`
+2. Copy it to `src/Commands/Utility/your-command.ts`
 3. Modify the name, description, and logic
 4. Run `npm run dev` and test it!
 
@@ -59,7 +59,7 @@ This folder contains practical examples of how to use the Discord Bot V3 framewo
 
 ```bash
 # 1. Copy starter template
-cp examples/basic/starter-template.ts src/Commands/utility/my-command.ts
+cp examples/basic/starter-template.ts src/Commands/Utility/my-command.ts
 
 # 2. Edit the file
 # - Change name from "starter-template" to "my-command"

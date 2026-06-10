@@ -1,9 +1,11 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
-import { PaginationPage } from "@shared/Paginator";
-import { TempAction } from "@database";
+import { RequireGuild, EmbedFactory } from "@utilities";
+import type { PaginationPage } from "@shared/Paginator";
+import type { TempAction } from "@database";
 
 const TEMP_ACTIONS_PAGE_SIZE = 6;
 
@@ -44,7 +46,7 @@ async function ExecuteTempActions(
 ): Promise<void> {
   const { interactionResponder, paginatedResponder } = context.responders;
   const db = context.databases.moderationDb;
-  const pending = db.ListPendingTempActions(interaction.guild!.id);
+  const pending = db.ListPendingTempActions(RequireGuild(interaction).id);
 
   if (pending.length === 0) {
     const embed = EmbedFactory.CreateWarning({

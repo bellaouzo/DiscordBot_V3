@@ -189,7 +189,9 @@ describe("AppealAdminCommand behavior", () => {
       interaction,
       expect.objectContaining({
         embeds: expect.arrayContaining([
-          expect.objectContaining({ title: expect.stringContaining("Permission Denied") }),
+          expect.objectContaining({
+            title: expect.stringContaining("Permission Denied"),
+          }),
         ]),
       }),
     );

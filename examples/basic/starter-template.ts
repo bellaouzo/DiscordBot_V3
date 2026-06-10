@@ -1,6 +1,7 @@
-import { ChatInputCommandInteraction } from "discord.js";
-import { CommandContext, CreateCommand } from "../../src/Commands";
-import { Config } from "../../src/Commands/Middleware/CommandConfig";
+import type { ChatInputCommandInteraction } from "discord.js";
+import type { CommandContext} from "@commands";
+import { CreateCommand } from "@commands";
+import { Config } from "@middleware";
 
 /**
  * STARTER TEMPLATE COMMAND

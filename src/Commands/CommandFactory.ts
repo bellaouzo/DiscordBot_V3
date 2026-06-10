@@ -1,5 +1,5 @@
+import type { ChatInputCommandInteraction } from "discord.js";
 import {
-  ChatInputCommandInteraction,
   SlashCommandBuilder,
   SlashCommandSubcommandBuilder,
   SlashCommandStringOption,
@@ -12,12 +12,13 @@ export {
   SlashCommandStringOption,
   SlashCommandIntegerOption,
 };
-import { Logger } from "../Shared/Logger";
-import { ResponderSet } from "../Responders";
-import { MiddlewareConfiguration, AutoMiddleware } from "./Middleware";
-import { CommandConfig } from "./Middleware/CommandConfig";
-import { DatabaseSet } from "../Database";
-import { AppConfig } from "../Config/AppConfig";
+import type { Logger } from "../Shared/Logger";
+import type { ResponderSet } from "../Responders";
+import type { MiddlewareConfiguration } from "./Middleware";
+import { AutoMiddleware } from "./Middleware";
+import type { CommandConfig } from "./Middleware/CommandConfig";
+import type { DatabaseSet } from "../Database";
+import type { AppConfig } from "../Config/AppConfig";
 
 /**
  * Context passed to command execute functions: responders, logger, databases, app config.

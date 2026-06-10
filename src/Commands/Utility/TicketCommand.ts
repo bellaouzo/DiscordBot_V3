@@ -1,14 +1,14 @@
-import {
+import type {
   ChatInputCommandInteraction,
   SlashCommandSubcommandBuilder,
   SlashCommandSubcommandGroupBuilder,
 } from "discord.js";
-import {
+import type {
   CommandContext,
-  CreateCommand,
   SlashCommandBuilder,
   SlashCommandStringOption,
 } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware/CommandConfig";
 
 import { HandleTicketCreate } from "@systems/Ticket/handlers/CreateHandler";

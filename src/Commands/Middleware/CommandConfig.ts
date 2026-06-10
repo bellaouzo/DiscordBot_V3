@@ -1,7 +1,7 @@
-import { PermissionFlagsBits } from "discord.js";
+import type { PermissionFlagsBits } from "discord.js";
 
 /**
- * Command configuration: guild-only, permissions, cooldown, role/mod/owner, and optional custom data.
+ * Command configuration: guild-only, permissions, cooldown, role/mod/owner.
  * Used by AutoMiddleware to add GuildMiddleware, PermissionMiddleware, CooldownMiddleware.
  */
 export interface CommandConfig {
@@ -19,7 +19,6 @@ export interface CommandConfig {
   readonly modRole?: boolean;
   readonly adminRole?: boolean;
   readonly owner?: boolean;
-  readonly custom?: Map<string, unknown>;
 }
 
 /**
@@ -99,14 +98,6 @@ export class CommandConfigBuilder {
 
   owner(): this {
     this.config = { ...this.config, owner: true };
-    return this;
-  }
-
-  custom(key: string, value: unknown): this {
-    if (!this.config.custom) {
-      this.config = { ...this.config, custom: new Map() };
-    }
-    this.config.custom!.set(key, value);
     return this;
   }
 

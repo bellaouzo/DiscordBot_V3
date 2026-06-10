@@ -1,13 +1,16 @@
-import {
+import type {
   ButtonInteraction,
-  ButtonStyle,
   ActionRowData,
   ActionRowComponentData,
 } from "discord.js";
-import { ComponentRouter } from "@shared/ComponentRouter";
-import { ButtonResponder } from "@responders";
+import { ButtonStyle } from "discord.js";
+import type { ComponentRouter } from "@shared/ComponentRouter";
+import type { ButtonResponder } from "@responders";
 import { EmbedFactory, ComponentFactory } from "@utilities";
-import { TicketInfo, TicketListPage } from "@systems/Ticket/types/TicketTypes";
+import type {
+  TicketInfo,
+  TicketListPage,
+} from "@systems/Ticket/types/TicketTypes";
 
 export function CreateTicketListPage(
   tickets: TicketInfo[],

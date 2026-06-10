@@ -30,11 +30,30 @@ This repository favors fast unit and focused integration-style tests around comm
 - For failures, assert safe fallback messages and logging paths.
 - Avoid brittle snapshot-only tests; assert specific key fields and outcomes.
 
+## Infrastructure Tests
+
+- **Command loader:** `tests/bot/CreateCommandLoader.test.ts` loads every `*Command.ts` file and asserts no duplicate names.
+- **Bootstrap smoke:** `tests/bootstrap.smoke.test.ts` validates config loading and full command discovery.
+- **Duplicate command guard:** `npm run check:commands` statically scans top-level `CreateCommand({ name })` values.
+
+## Coverage Expectations
+
+- Global branch coverage floor: **42%** (raised from 32%).
+- Economy handler branch floor: **35%**.
+- Run `npm run test:coverage` before opening a PR; CI enforces the same gates.
+
+## Examples
+
+Reference files under `examples/` are linted via `npm run lint:examples` and should use the same path aliases as production code (`@commands`, `@middleware`, `@utilities`).
+
 ## Adding New Features Checklist
 
 1. Add/extend tests in at least one behavior path and one failure path.
 2. If persistence changes, add or update database tests with meaningful assertions.
 3. If interaction flow is multi-step, include a lifecycle test that executes registered callbacks.
 4. Run:
-   - `npx tsc --noEmit`
+   - `npm run lint`
+   - `npm run lint:examples`
    - `npm test`
+   - `npm run test:coverage`
+   - `npm run check:commands`

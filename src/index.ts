@@ -12,14 +12,15 @@ import {
   ListStrictStartupFeatureViolations,
   StrictFeatureKeysEnabled,
 } from "@config/ApiConfig";
+import type { DatabaseSet } from "@database";
 import {
   ModerationDatabase,
   UserDatabase,
   ServerDatabase,
   TicketDatabase,
-  DatabaseSet,
 } from "@database";
-import { CreateConsoleLogger, Logger } from "@shared/Logger";
+import type { Logger } from "@shared/Logger";
+import { CreateConsoleLogger } from "@shared/Logger";
 import { CreateResponders } from "@responders";
 import {
   RegisterInteractionHandlers,
@@ -32,7 +33,7 @@ import { GiveawayScheduler } from "@systems/Giveaway/GiveawayScheduler";
 import { RegisterAppealPanelButton } from "@commands/Moderation/Appeal/AppealPanelFlow";
 import { RegisterTicketButtons } from "@systems/Ticket/TicketButtonRegistry";
 import { RegisterTicketPanelButton } from "@systems/Ticket/TicketPanelFlow";
-import { Client } from "discord.js";
+import type { Client } from "discord.js";
 
 interface AppResources {
   client: Client;

@@ -1,11 +1,12 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext } from "@commands";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EmbedFactory, ToActionRowData, ToEmbedData } from "@utilities";
 import { GiveawayManager } from "@systems/Giveaway/GiveawayManager";
 import { RegisterGiveawayEntryHandler } from "@systems/Giveaway/GiveawayEntryHandler";
 import { ParseDuration } from "@utilities/Duration";
+import type { GuildTextChannel } from "@commands/Utility/Giveaway/GiveawayShared";
 import {
-  GuildTextChannel,
   MAX_DURATION_MINUTES,
   MIN_DURATION_MINUTES,
   RequireModerator,
@@ -62,7 +63,7 @@ export async function HandleCreate(
     interaction.guild.id,
     context.databases.userDb,
   );
-  const endsAt = Date.now() + durationMs!;
+  const endsAt = Date.now() + (durationMs ?? 0);
 
   const { embed, row, customId } = manager.CreateGiveawayMessage({
     prize,

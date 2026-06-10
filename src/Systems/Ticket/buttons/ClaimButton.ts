@@ -1,13 +1,18 @@
-import { ButtonInteraction, MessageFlags } from "discord.js";
-import { ButtonResponder } from "@responders";
-import { TicketDatabase } from "@database";
-import { EmbedFactory, ResolveInteractionMember } from "@utilities";
+import type { ButtonInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { ButtonResponder } from "@responders";
+import type { TicketDatabase } from "@database";
+import {
+  EmbedFactory,
+  RequireGuildFromInteraction,
+  ResolveInteractionMember,
+} from "@utilities";
 import {
   HasStaffPermissions,
   ParseTicketButtonCustomId,
 } from "@systems/Ticket/validation/TicketValidation";
-import { DatabaseSet } from "@database";
-import { Logger } from "@shared/Logger";
+import type { DatabaseSet } from "@database";
+import type { Logger } from "@shared/Logger";
 
 export async function HandleClaimButton(
   buttonInteraction: ButtonInteraction,
@@ -24,7 +29,7 @@ export async function HandleClaimButton(
   }
 
   const settings = options.databases.serverDb.GetGuildSettings(
-    buttonInteraction.guild!.id,
+    RequireGuildFromInteraction(buttonInteraction).id,
   );
   const member = await ResolveInteractionMember(buttonInteraction);
 

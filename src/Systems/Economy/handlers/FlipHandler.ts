@@ -1,9 +1,10 @@
-import {
+import { RequireGuild } from "@utilities";
+import type {
   ButtonInteraction,
   ChatInputCommandInteraction,
-  MessageFlags,
 } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { ITEM_MAP } from "@systems/Economy/items";
 import {
@@ -17,11 +18,9 @@ import {
   BuildFlipResultEmbed,
 } from "@systems/Economy/utils/Embeds";
 import { FLIP_TIMEOUT_MS, MAX_BET, MIN_BET } from "@systems/Economy/constants";
-import { FlipChoice } from "@systems/Economy/types";
-import {
-  AwardEconomyXp,
-  EconomyOutcome,
-} from "@systems/Economy/utils/EconomyXp";
+import type { FlipChoice } from "@systems/Economy/types";
+import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
+import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 
 interface FlipCustomIds {
   heads: string;
@@ -53,7 +52,7 @@ export async function HandleFlip(
   }
 
   const manager = new EconomyManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
   let balanceValue = manager.EnsureBalance(interaction.user.id);

@@ -1,9 +1,11 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
-import { LinkFilterType } from "@database";
-import { PaginationPage } from "@shared/Paginator";
+import { RequireGuild, EmbedFactory } from "@utilities";
+import type { LinkFilterType } from "@database";
+import type { PaginationPage } from "@shared/Paginator";
 
 const FILTER_LIST_PAGE_SIZE = 15;
 
@@ -67,7 +69,7 @@ async function AddFilter(
   context: CommandContext,
   type: LinkFilterType,
 ): Promise<void> {
-  const guild = interaction.guild!;
+  const guild = RequireGuild(interaction);
   const pattern = NormalizePattern(
     interaction.options.getString("pattern", true),
   );
@@ -134,7 +136,7 @@ async function RemoveFilter(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
 ): Promise<void> {
-  const guild = interaction.guild!;
+  const guild = RequireGuild(interaction);
   const pattern = NormalizePattern(
     interaction.options.getString("pattern", true),
   );
@@ -185,7 +187,7 @@ async function ListFilters(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
 ): Promise<void> {
-  const guild = interaction.guild!;
+  const guild = RequireGuild(interaction);
   const { interactionResponder, paginatedResponder } = context.responders;
 
   const db = context.databases.moderationDb;

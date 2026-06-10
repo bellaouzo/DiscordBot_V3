@@ -1,16 +1,18 @@
-import {
+import type {
   Appeal,
-  IsAppealActionType,
-  IsAppealStatus,
-  IsLinkFilterType,
-  IsLockdownScope,
-  IsTempActionType,
   LinkFilter,
   Lockdown,
   ModerationEvent,
   RaidMode,
   RaidModeChannelState,
   TempAction,
+} from "@database/Moderation/Types";
+import {
+  IsAppealActionType,
+  IsAppealStatus,
+  IsLinkFilterType,
+  IsLockdownScope,
+  IsTempActionType,
 } from "@database/Moderation/Types";
 
 export function MapTempAction(row: Record<string, unknown>): TempAction {

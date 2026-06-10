@@ -1,10 +1,10 @@
 import { randomUUID } from "crypto";
-import {
+import type {
   StringSelectMenuInteraction,
   InteractionReplyOptions,
-  MessageFlags,
 } from "discord.js";
-import { Logger } from "./Logger";
+import { MessageFlags } from "discord.js";
+import type { Logger } from "./Logger";
 
 export type SelectMenuHandler = (
   interaction: StringSelectMenuInteraction,

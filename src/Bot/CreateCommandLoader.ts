@@ -1,8 +1,8 @@
-import { SlashCommandBuilder } from "discord.js";
-import { readdirSync } from "fs";
+import type { SlashCommandBuilder } from "discord.js";
+import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
-import { CommandDefinition } from "@commands";
-import { Logger } from "@shared/Logger";
+import type { CommandDefinition } from "@commands";
+import type { Logger } from "@shared/Logger";
 
 export interface LoadError {
   readonly file: string;
@@ -17,7 +17,15 @@ export interface LoadedCommands {
 
 export type CommandLoader = () => Promise<LoadedCommands>;
 
-function isCommandFile(file: string): boolean {
+function isReExportOnlyBarrel(filePath: string): boolean {
+  const content = readFileSync(filePath, "utf-8");
+  if (content.includes("CreateCommand(")) {
+    return false;
+  }
+  return /export\s+\{[^}]+\}\s+from\s+["']/.test(content);
+}
+
+function isCommandFile(file: string, commandsPath: string): boolean {
   if (typeof file !== "string") return false;
   if (!/Command\.(js|ts)$/.test(file)) return false;
   if (file.endsWith(".d.ts")) return false;
@@ -27,6 +35,12 @@ function isCommandFile(file: string): boolean {
   if (file.includes("registry.") || file.includes("index.")) {
     return false;
   }
+
+  const filePath = join(commandsPath, file);
+  if (isReExportOnlyBarrel(filePath)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -67,7 +81,7 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
     const commandsPath = join(__dirname, "..", "Commands");
 
     const files = readdirSync(commandsPath, { recursive: true }).filter(
-      (file) => isCommandFile(file as string),
+      (file) => isCommandFile(file as string, commandsPath),
     );
 
     for (const file of files) {

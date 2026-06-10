@@ -1,6 +1,6 @@
 import { MessageFlags } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
-import type { CommandContext } from "@commands/CommandFactory";
+import type { CommandContext } from "@commands";
 import { EmbedFactory } from "@utilities";
 import type {
   RobloxBridgeSettings,

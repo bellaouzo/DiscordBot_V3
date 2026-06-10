@@ -1,22 +1,21 @@
-import {
+import type {
   ButtonInteraction,
   ChatInputCommandInteraction,
   Client,
-  DiscordAPIError,
-  Events,
   Interaction,
-  MessageFlags,
   ModalSubmitInteraction,
   StringSelectMenuInteraction,
   UserSelectMenuInteraction,
 } from "discord.js";
-import { Logger } from "./Shared/Logger";
-import { ComponentRouter } from "./Shared/ComponentRouter";
-import { SelectMenuRouter } from "./Shared/SelectMenuRouter";
-import { UserSelectMenuRouter } from "./Shared/UserSelectMenuRouter";
-import { ModalRouter } from "./Shared/ModalRouter";
-import { CommandDefinition, ResolveCommand } from "./Commands";
-import { ResponderSet } from "./Responders";
+import { DiscordAPIError, Events, MessageFlags } from "discord.js";
+import type { Logger } from "@shared/Logger";
+import type { ComponentRouter } from "@shared/ComponentRouter";
+import type { SelectMenuRouter } from "@shared/SelectMenuRouter";
+import type { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
+import type { ModalRouter } from "@shared/ModalRouter";
+import type { CommandDefinition } from "@commands";
+import { ResolveCommand } from "@commands";
+import type { ResponderSet } from "@responders";
 
 export interface InteractionHandlerDependencies {
   readonly client: Client;

@@ -1,11 +1,11 @@
-import {
+import type {
   APIInteractionGuildMember,
   ButtonInteraction,
   ChatInputCommandInteraction,
-  GuildMember,
   Message,
   PartialGuildMember,
 } from "discord.js";
+import { GuildMember } from "discord.js";
 
 type InteractionWithMember = ChatInputCommandInteraction | ButtonInteraction;
 

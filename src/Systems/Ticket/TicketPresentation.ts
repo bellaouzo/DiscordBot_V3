@@ -1,13 +1,13 @@
-import {
+import type {
   Guild,
   TextChannel,
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonStyle,
 } from "discord.js";
-import { TicketDatabase, Ticket } from "@database";
-import { Logger } from "@shared/Logger";
+import { ButtonStyle } from "discord.js";
+import type { TicketDatabase, Ticket } from "@database";
+import type { Logger } from "@shared/Logger";
 import { EmbedFactory, ComponentFactory } from "@utilities";
 
 export interface TicketPresentationOptions {

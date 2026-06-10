@@ -1,4 +1,4 @@
-import {
+import type {
   GuildMember,
   APIInteractionGuildMember,
   APIEmbed,
@@ -6,8 +6,8 @@ import {
   ActionRowComponentData,
   TextChannel,
 } from "discord.js";
-import { TicketDatabase, Ticket } from "@database";
-import { CreateTicketManager } from "@utilities/TicketManager";
+import type { TicketDatabase, Ticket } from "@database";
+import type { CreateTicketManager } from "@utilities/TicketManager";
 
 export const BUTTON_EXPIRATION_MS = 1000 * 60 * 60 * 24;
 

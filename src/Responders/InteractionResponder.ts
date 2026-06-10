@@ -1,17 +1,17 @@
-import {
+import type {
   ChatInputCommandInteraction,
-  MessageFlags,
   User,
   ButtonInteraction,
 } from "discord.js";
-import { Logger } from "../Shared/Logger";
-import {
+import { MessageFlags } from "discord.js";
+import type { Logger } from "../Shared/Logger";
+import type {
   ResponseOptions,
   ResponseResult,
   ResponseActionOptions,
   ResponderMessageOptions,
-  ConvertToInteractionFlags,
 } from "./ResponseTypes";
+import { ConvertToInteractionFlags } from "./ResponseTypes";
 
 type InteractionLike = ChatInputCommandInteraction | ButtonInteraction;
 

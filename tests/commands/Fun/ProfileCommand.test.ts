@@ -86,12 +86,12 @@ describe("ProfileCommand behavior", () => {
       context.responders.interactionResponder.Reply as ReturnType<typeof vi.fn>
     ).mock.calls[0][1].embeds[0];
     expect(embed.title).toContain("TargetUser's Profile");
-    expect(embed.fields.some((f: { name: string }) => f.name === "📊 Level & XP")).toBe(
-      true,
-    );
-    expect(embed.fields.some((f: { name: string }) => f.name === "💰 Economy")).toBe(
-      true,
-    );
+    expect(
+      embed.fields.some((f: { name: string }) => f.name === "📊 Level & XP"),
+    ).toBe(true);
+    expect(
+      embed.fields.some((f: { name: string }) => f.name === "💰 Economy"),
+    ).toBe(true);
   });
 
   it("replies with user not found when requested member is absent", async () => {

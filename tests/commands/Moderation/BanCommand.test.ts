@@ -83,6 +83,8 @@ describe("BanCommand behavior", () => {
     expect(databases.moderationDb.AddTempAction).toHaveBeenCalledWith(
       expect.objectContaining({ action: "ban", user_id: "target-id" }),
     );
-    expect(context.responders.interactionResponder.WithAction).toHaveBeenCalled();
+    expect(
+      context.responders.interactionResponder.WithAction,
+    ).toHaveBeenCalled();
   });
 });

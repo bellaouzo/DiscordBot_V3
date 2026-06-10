@@ -1,4 +1,4 @@
-import { ServerDatabase } from "@database/ServerDatabase";
+import type { ServerDatabase } from "@database/ServerDatabase";
 
 export interface CooldownStateStore {
   Get(key: string): number | undefined;

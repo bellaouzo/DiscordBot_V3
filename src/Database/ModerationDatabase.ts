@@ -1,8 +1,8 @@
 import Database from "better-sqlite3";
 import { join } from "path";
 import { ResolveDataDir } from "@config/DataConfig";
-import { Logger } from "@shared/Logger";
-import {
+import type { Logger } from "@shared/Logger";
+import type {
   Appeal,
   AppealActionType,
   AppealStatus,

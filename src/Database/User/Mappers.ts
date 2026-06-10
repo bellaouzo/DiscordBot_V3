@@ -1,5 +1,5 @@
 import { isStringArray, SafeParseJson } from "@utilities/SafeJson";
-import { Balance, Note, UserXp, Warning } from "@database/User/Types";
+import type { Balance, Note, UserXp, Warning } from "@database/User/Types";
 
 export function MapNote(row: Record<string, unknown>): Note {
   return {

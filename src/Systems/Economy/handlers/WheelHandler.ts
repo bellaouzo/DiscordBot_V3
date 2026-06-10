@@ -1,9 +1,9 @@
-import {
+import type {
   ButtonInteraction,
   ChatInputCommandInteraction,
-  MessageFlags,
 } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { BuildWheelResultEmbed } from "@systems/Economy/utils/Embeds";
 import {
@@ -11,11 +11,9 @@ import {
   BuildWheelButtons,
 } from "@systems/Economy/utils/WheelComponents";
 import { MAX_BET, MIN_BET, WHEEL_TIMEOUT_MS } from "@systems/Economy/constants";
-import { EmbedFactory } from "@utilities";
-import {
-  AwardEconomyXp,
-  EconomyOutcome,
-} from "@systems/Economy/utils/EconomyXp";
+import { RequireGuild, EmbedFactory } from "@utilities";
+import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
+import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 
 type WheelSegment = {
   label: string;
@@ -69,7 +67,7 @@ export async function HandleWheel(
   }
 
   const manager = new EconomyManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
   let balance = manager.EnsureBalance(interaction.user.id);

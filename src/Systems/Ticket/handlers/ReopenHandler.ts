@@ -1,15 +1,17 @@
-import {
+import type {
   ChatInputCommandInteraction,
   StringSelectMenuInteraction,
   ModalSubmitInteraction,
   ActionRowComponentData,
+} from "discord.js";
+import {
   TextInputStyle,
   ModalBuilder,
   TextInputBuilder,
   ActionRowBuilder,
   MessageFlags,
 } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
+import type { CommandContext } from "@commands";
 import {
   CreateTicketServices,
   ValidateGuildOrReply,
@@ -17,6 +19,8 @@ import {
 } from "@systems/Ticket/validation/TicketValidation";
 import {
   EmbedFactory,
+  RequireGuild,
+  RequireGuildFromInteraction,
   TranscriptGenerator,
   ComponentFactory,
   ToActionRowData,
@@ -37,7 +41,7 @@ export async function HandleTicketReopen(
   }
 
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
   );
   const member = await ResolveInteractionMember(interaction);
 
@@ -64,7 +68,7 @@ export async function HandleTicketReopen(
   }
 
   const closedTickets = context.databases.ticketDb.GetGuildTickets(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
     "closed",
   );
 
@@ -153,7 +157,7 @@ async function HandleReopenModal(
 
   const reason = modalInteraction.fields.getTextInputValue("reason");
   const settings = context.databases.serverDb.GetGuildSettings(
-    modalInteraction.guild!.id,
+    RequireGuildFromInteraction(modalInteraction).id,
   );
 
   const {
@@ -164,7 +168,7 @@ async function HandleReopenModal(
     guildResourceLocator,
   } = CreateTicketServices(
     logger,
-    modalInteraction.guild!,
+    RequireGuildFromInteraction(modalInteraction),
     context.databases.ticketDb,
     context.databases.serverDb,
     { ticketCategoryId: settings?.ticket_category_id ?? null },
@@ -214,7 +218,7 @@ async function HandleReopenModal(
         ticket: prior,
         messages,
         user,
-        guild: modalInteraction.guild!,
+        guild: RequireGuildFromInteraction(modalInteraction),
         participantHistory,
       });
       transcriptBuffer = Buffer.from(transcript, "utf-8");

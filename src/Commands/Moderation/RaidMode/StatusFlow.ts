@@ -1,5 +1,6 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext } from "@commands";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EmbedFactory } from "@utilities";
 import { ClearRaidModeByGuild } from "@commands/Moderation/RaidMode/ClearRaidMode";
 

@@ -1,12 +1,11 @@
-import { APIEmbed } from "discord.js";
+import type { APIEmbed } from "discord.js";
 import { AllCommands } from "@commands/registry";
 import { EmbedFactory } from "@utilities";
-import {
-  CACHE_DURATION,
+import type {
   CategoryView,
   CommandInfo,
-  commandCache,
 } from "@commands/Utility/Help/HelpTypes";
+import { CACHE_DURATION, commandCache } from "@commands/Utility/Help/HelpTypes";
 
 export async function GetAllCommandsCached(): Promise<CommandInfo[]> {
   const cacheKey = "all-commands";
@@ -34,7 +33,7 @@ export function BuildCategoryViews(commands: CommandInfo[]): CategoryView[] {
     if (!groups.has(group)) {
       groups.set(group, []);
     }
-    groups.get(group)!.push(command);
+    groups.get(group)?.push(command);
   });
 
   const categories: CategoryView[] = [];

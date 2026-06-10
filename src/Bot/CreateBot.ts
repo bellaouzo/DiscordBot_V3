@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits } from "discord.js";
-import { Logger } from "@shared/Logger";
+import type { Logger } from "@shared/Logger";
 
 export interface BotDependencies {
   readonly intents?: number[];

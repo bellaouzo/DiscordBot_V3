@@ -1,14 +1,14 @@
+import type { ButtonInteraction } from "discord.js";
 import {
   ActionRowBuilder,
-  ButtonInteraction,
   ChannelType,
   MessageFlags,
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
 } from "discord.js";
-import { CommandContext } from "@commands";
-import { AppealStatus } from "@database";
+import type { CommandContext } from "@commands";
+import type { AppealStatus } from "@database";
 import { ResolveInteractionMember } from "@utilities";
 import {
   IsAppealReviewer,

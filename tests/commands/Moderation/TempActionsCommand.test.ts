@@ -37,7 +37,9 @@ describe("TempActionsCommand behavior", () => {
       member: createModeratorMember() as unknown as GuildMember,
     });
     const databases = createMockDatabaseSet();
-    vi.mocked(databases.moderationDb.ListPendingTempActions).mockReturnValue([]);
+    vi.mocked(databases.moderationDb.ListPendingTempActions).mockReturnValue(
+      [],
+    );
     const context = createMockContext({ databases });
     await TempActionsCommand.execute(interaction, context);
     const embed = (

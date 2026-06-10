@@ -1,5 +1,5 @@
 import { EmbedFactory } from "@utilities";
-import { InventoryEntry, MarketOffer } from "../../types";
+import type { InventoryEntry, MarketOffer } from "../../types";
 import { ITEM_MAP } from "../../items";
 
 export function BuildMarketEmbed(options: {

@@ -1,11 +1,11 @@
-import { ButtonInteraction, InteractionUpdateOptions } from "discord.js";
-import { Logger } from "../Shared/Logger";
-import {
+import type { ButtonInteraction, InteractionUpdateOptions } from "discord.js";
+import type { Logger } from "../Shared/Logger";
+import type {
   ResponseOptions,
   ResponseResult,
   ResponderEditOptions,
-  ConvertToInteractionFlags,
 } from "./ResponseTypes";
+import { ConvertToInteractionFlags } from "./ResponseTypes";
 
 export class ButtonResponder {
   constructor(private readonly logger: Logger) {}

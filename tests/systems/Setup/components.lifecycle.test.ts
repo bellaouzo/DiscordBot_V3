@@ -3,11 +3,12 @@ import type { ButtonInteraction } from "discord.js";
 import { CreateComponentRouter } from "@shared/ComponentRouter";
 import { CreateResponders } from "@responders";
 import { RegisterButtonHandlers } from "@systems/Setup/handlers/buttonHandlers";
-import type { NavigationIds, SetupDraft, StepState } from "@systems/Setup/state";
-import {
-  createMockLogger,
-  createMockDatabaseSet,
-} from "../../helpers";
+import type {
+  NavigationIds,
+  SetupDraft,
+  StepState,
+} from "@systems/Setup/state";
+import { createMockLogger, createMockDatabaseSet } from "../../helpers";
 
 function createSetupIds(interactionId: string): NavigationIds {
   return {

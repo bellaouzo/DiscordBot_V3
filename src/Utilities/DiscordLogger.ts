@@ -1,8 +1,12 @@
-import { Guild, EmbedBuilder, ChatInputCommandInteraction } from "discord.js";
-import { Logger } from "@shared/Logger";
-import { CommandDefinition } from "@commands";
+import type {
+  Guild,
+  EmbedBuilder,
+  ChatInputCommandInteraction,
+} from "discord.js";
+import type { Logger } from "@shared/Logger";
+import type { CommandDefinition } from "@commands";
 import { CreateChannelManager, EmbedFactory } from "./";
-import { LoggingConfig } from "@config";
+import type { LoggingConfig } from "@config";
 
 export interface DiscordLoggerOptions {
   readonly guild: Guild;

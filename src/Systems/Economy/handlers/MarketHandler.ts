@@ -1,10 +1,11 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { MarketManager } from "../MarketManager";
 import { EconomyManager } from "../EconomyManager";
 import { ITEM_MAP } from "../items";
 import { Paginator, type PaginationPage } from "@shared/Paginator";
-import { EmbedFactory } from "@utilities";
+import { RequireGuild, EmbedFactory } from "@utilities";
 import {
   BuildInventoryEmbed,
   BuildMarketActionSuccessEmbed,
@@ -56,7 +57,7 @@ export async function HandleMarketView(
   context: CommandContext,
 ): Promise<void> {
   const manager = new MarketManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
 
@@ -84,7 +85,7 @@ export async function HandleMarketRefresh(
   context: CommandContext,
 ): Promise<void> {
   const manager = new MarketManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
 
@@ -115,7 +116,7 @@ export async function HandleMarketBuy(
   const quantity = interaction.options.getInteger("quantity") ?? 1;
 
   const manager = new MarketManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
 
@@ -161,7 +162,7 @@ export async function HandleMarketSell(
   const quantity = interaction.options.getInteger("quantity") ?? 1;
 
   const manager = new MarketManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
 
@@ -204,7 +205,7 @@ export async function HandleInventory(
   context: CommandContext,
 ): Promise<void> {
   const manager = new EconomyManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
 

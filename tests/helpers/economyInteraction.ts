@@ -63,9 +63,9 @@ export async function invokeRegisteredButton(
   await registration.handler(buttonInteraction);
 }
 
-export function createEconomyGameSetup(databases: ReturnType<
-  typeof import("./mocks").createMockDatabaseSet
->) {
+export function createEconomyGameSetup(
+  databases: ReturnType<typeof import("./mocks").createMockDatabaseSet>,
+) {
   vi.mocked(databases.userDb.EnsureBalance).mockReturnValue({
     user_id: "u1",
     guild_id: "g1",

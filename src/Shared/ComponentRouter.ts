@@ -1,10 +1,7 @@
 import { randomUUID } from "crypto";
-import {
-  ButtonInteraction,
-  InteractionReplyOptions,
-  MessageFlags,
-} from "discord.js";
-import { Logger } from "./Logger";
+import type { ButtonInteraction, InteractionReplyOptions } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { Logger } from "./Logger";
 
 export type ButtonHandler = (
   interaction: ButtonInteraction,

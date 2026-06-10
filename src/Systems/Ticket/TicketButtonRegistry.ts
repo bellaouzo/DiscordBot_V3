@@ -1,7 +1,7 @@
-import { ResponderSet } from "@responders";
-import { DatabaseSet } from "@database";
-import { Logger } from "@shared/Logger";
-import { ComponentRouter } from "@shared/ComponentRouter";
+import type { ResponderSet } from "@responders";
+import type { DatabaseSet } from "@database";
+import type { Logger } from "@shared/Logger";
+import type { ComponentRouter } from "@shared/ComponentRouter";
 import { HandleClaimButton } from "@systems/Ticket/buttons/ClaimButton";
 import { HandleAddUserButton } from "@systems/Ticket/buttons/AddUserButton";
 import { HandleRemoveUserButton } from "@systems/Ticket/buttons/RemoveUserButton";

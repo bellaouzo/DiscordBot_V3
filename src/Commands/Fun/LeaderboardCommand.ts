@@ -1,10 +1,12 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
+import { RequireGuild, EmbedFactory } from "@utilities";
 import { LevelManager } from "@systems/Leveling";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
-import { PaginationPage } from "@shared/Paginator";
+import type { PaginationPage } from "@shared/Paginator";
 
 type LeaderboardType = "xp" | "coins";
 
@@ -43,7 +45,7 @@ async function ShowXpLeaderboard(
 ): Promise<void> {
   const { paginatedResponder } = context.responders;
   const levelManager = new LevelManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
 
@@ -63,7 +65,7 @@ async function ShowXpLeaderboard(
   }
 
   const pages: PaginationPage[] = [];
-  const guild = interaction.guild!;
+  const guild = RequireGuild(interaction);
 
   for (let i = 0; i < entries.length; i += ITEMS_PER_PAGE) {
     const pageEntries = entries.slice(i, i + ITEMS_PER_PAGE);
@@ -112,7 +114,7 @@ async function ShowCoinsLeaderboard(
 ): Promise<void> {
   const { paginatedResponder } = context.responders;
   const economyManager = new EconomyManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
 
@@ -132,7 +134,7 @@ async function ShowCoinsLeaderboard(
   }
 
   const pages: PaginationPage[] = [];
-  const guild = interaction.guild!;
+  const guild = RequireGuild(interaction);
 
   for (let i = 0; i < entries.length; i += ITEMS_PER_PAGE) {
     const pageEntries = entries.slice(i, i + ITEMS_PER_PAGE);

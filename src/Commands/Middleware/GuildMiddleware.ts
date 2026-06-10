@@ -1,5 +1,5 @@
 import { MessageFlags } from "discord.js";
-import { CommandMiddleware } from "./index";
+import type { CommandMiddleware } from "./index";
 import { EmbedFactory } from "@utilities";
 
 export const GuildMiddleware: CommandMiddleware = {

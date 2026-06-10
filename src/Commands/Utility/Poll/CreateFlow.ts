@@ -1,6 +1,11 @@
-import { ChatInputCommandInteraction, MessageFlags, TextChannel } from "discord.js";
-import { CommandContext } from "@commands";
-import { EmbedFactory, IsModerator, ResolveInteractionMember } from "@utilities";
+import type { ChatInputCommandInteraction, TextChannel } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import {
+  EmbedFactory,
+  IsModerator,
+  ResolveInteractionMember,
+} from "@utilities";
 import {
   IsGuildTextChannel,
   MAX_DURATION_MINUTES,

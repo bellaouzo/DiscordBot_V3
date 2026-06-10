@@ -1,7 +1,9 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
+import { RequireGuild, EmbedFactory } from "@utilities";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { ITEM_MAP } from "@systems/Economy/items";
 
@@ -73,7 +75,7 @@ async function ExecuteEconomyAdmin(
   const subcommand = interaction.options.getSubcommand();
 
   const manager = new EconomyManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
   if (subcommand === "setbalance") {

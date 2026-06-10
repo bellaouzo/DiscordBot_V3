@@ -1,11 +1,11 @@
-import {
+import type {
   ChatInputCommandInteraction,
   TextChannel,
   CategoryChannel,
-  MessageFlags,
 } from "discord.js";
-import { CommandContext } from "@commands";
-import { EmbedFactory } from "@utilities";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { RequireGuild, EmbedFactory } from "@utilities";
 import { SerializeOverwrites } from "@commands/Moderation/shared/OverwriteSerialization";
 
 export async function HandleLockChannel(
@@ -16,7 +16,7 @@ export async function HandleLockChannel(
   const db = context.databases.moderationDb;
   const existing = db.GetActiveLockdown(
     "channel",
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
     channel.id,
   );
 
@@ -70,7 +70,7 @@ export async function HandleLockCategory(
   const db = context.databases.moderationDb;
   const existing = db.GetActiveLockdown(
     "category",
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
     category.id,
   );
 

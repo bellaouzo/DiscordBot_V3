@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 
 export class CommandCooldownStore {
   constructor(private readonly db: Database.Database) {}
@@ -13,11 +13,7 @@ export class CommandCooldownStore {
     return row?.expires_at;
   }
 
-  SetExpiry(
-    userId: string,
-    commandName: string,
-    expiresAt: number,
-  ): void {
+  SetExpiry(userId: string, commandName: string, expiresAt: number): void {
     this.db
       .prepare(
         `

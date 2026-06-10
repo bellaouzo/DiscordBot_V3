@@ -1,16 +1,17 @@
-import {
-  ChatInputCommandInteraction,
-  TextChannel,
-  MessageFlags,
-} from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction, TextChannel } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import {
   CreateTicketServices,
   HasStaffPermissions,
   ValidateTicketChannelOrReply,
   GetTicketOrReply,
 } from "@systems/Ticket/validation/TicketValidation";
-import { EmbedFactory, ResolveInteractionMember } from "@utilities";
+import {
+  RequireGuild,
+  EmbedFactory,
+  ResolveInteractionMember,
+} from "@utilities";
 
 type TagAction = "add" | "remove" | "list";
 
@@ -31,7 +32,7 @@ export async function HandleTicketTag(
   }
 
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
   );
   const member = await ResolveInteractionMember(interaction);
 
@@ -55,7 +56,7 @@ export async function HandleTicketTag(
   const { logger } = context;
   const { ticketDb, ticketPresentation } = CreateTicketServices(
     logger,
-    interaction.guild!,
+    RequireGuild(interaction),
     context.databases.ticketDb,
     context.databases.serverDb,
   );

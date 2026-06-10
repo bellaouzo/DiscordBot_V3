@@ -62,7 +62,11 @@ describe("EventCommand behavior", () => {
     stubInteractionOptions(interaction, {
       getSubcommand: () => "create",
       getString: (name: string) =>
-        name === "time" ? String(futureTime) : name === "title" ? "Team Meeting" : null,
+        name === "time"
+          ? String(futureTime)
+          : name === "title"
+            ? "Team Meeting"
+            : null,
       getBoolean: () => false,
     });
     const databases = createMockDatabaseSet();
@@ -119,7 +123,11 @@ describe("EventCommand behavior", () => {
     stubInteractionOptions(interaction, {
       getSubcommand: () => "create",
       getString: (name: string) =>
-        name === "time" ? "not-a-valid-date" : name === "title" ? "Team Meeting" : null,
+        name === "time"
+          ? "not-a-valid-date"
+          : name === "title"
+            ? "Team Meeting"
+            : null,
       getBoolean: () => false,
     });
     const context = setupModeratorContext();

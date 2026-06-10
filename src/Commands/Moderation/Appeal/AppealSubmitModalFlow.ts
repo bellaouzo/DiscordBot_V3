@@ -1,15 +1,9 @@
+import type { Guild, ModalSubmitInteraction, TextChannel } from "discord.js";
+import { ButtonStyle, ChannelType, PermissionFlagsBits } from "discord.js";
+import type { CommandContext } from "@commands";
+import type { Appeal } from "@database";
+import type { AppealableActionOption } from "@utilities";
 import {
-  ButtonStyle,
-  ChannelType,
-  Guild,
-  ModalSubmitInteraction,
-  PermissionFlagsBits,
-  TextChannel,
-} from "discord.js";
-import { CommandContext } from "@commands";
-import { Appeal } from "@database";
-import {
-  AppealableActionOption,
   ComponentFactory,
   CreateAppealManager,
   CreateChannelManager,

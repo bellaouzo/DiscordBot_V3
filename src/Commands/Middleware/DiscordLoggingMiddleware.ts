@@ -1,6 +1,7 @@
-import { CommandMiddleware } from "./index";
-import { CreateDiscordLogger, DiscordLogger } from "@utilities/DiscordLogger";
-import { Guild } from "discord.js";
+import type { CommandMiddleware } from "./index";
+import type { DiscordLogger } from "@utilities/DiscordLogger";
+import { CreateDiscordLogger } from "@utilities/DiscordLogger";
+import type { Guild } from "discord.js";
 import { AppendCommandLog } from "@utilities/CommandLogStore";
 
 let discordLogger: DiscordLogger | null = null;

@@ -1,7 +1,7 @@
-import Database from "better-sqlite3";
-import { Logger } from "@shared/Logger";
+import type Database from "better-sqlite3";
+import type { Logger } from "@shared/Logger";
 import { MapGuildSettings, NormalizeIds } from "@database/Server/Mappers";
-import { GuildSettings, GuildSettingsRow } from "@database/Server/Types";
+import type { GuildSettings, GuildSettingsRow } from "@database/Server/Types";
 
 export class GuildSettingsStore {
   constructor(

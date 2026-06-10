@@ -1,5 +1,6 @@
-import { ChatInputCommandInteraction, MessageFlags, TextChannel } from "discord.js";
-import { CommandContext } from "@commands";
+import type { ChatInputCommandInteraction, TextChannel } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EmbedFactory } from "@utilities";
 import {
   BuildPollPages,

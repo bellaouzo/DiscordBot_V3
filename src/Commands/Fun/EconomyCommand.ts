@@ -1,4 +1,4 @@
-import { CreateCommand } from "@commands/CommandFactory";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { MIN_BET, MAX_BET } from "@systems/Economy/constants";
 import { HandleBalance } from "@systems/Economy/handlers/BalanceHandler";

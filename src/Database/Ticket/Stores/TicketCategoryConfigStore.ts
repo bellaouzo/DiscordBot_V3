@@ -1,9 +1,7 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { MapTicketCategoryConfig } from "@database/Ticket/Mappers";
-import {
-  TICKET_CATEGORIES,
-  TicketCategoryConfig,
-} from "@database/Ticket/Types";
+import type { TicketCategoryConfig } from "@database/Ticket/Types";
+import { TICKET_CATEGORIES } from "@database/Ticket/Types";
 
 export class TicketCategoryConfigStore {
   constructor(private readonly db: Database.Database) {}

@@ -20,6 +20,21 @@ CI runs `npm audit --audit-level=high`, `npm run lint`, `npm run test`, `npm run
 ## Coding standards
 
 - **Style:** Use the existing patterns in the repo: path aliases (`@commands`, `@middleware`, etc.), consistent spacing and returns, guard clauses where they keep logic clear.
+
+### Import conventions
+
+| Import | Use for |
+|--------|---------|
+| `@commands` | `CreateCommand`, `CommandContext`, command types |
+| `@middleware` | `Config`, middleware types |
+| `@utilities` | `EmbedFactory`, `RequireGuild`, guild helpers |
+| `@shared` | `Logger`, routers, paginator |
+| `@database` | Database facades and types |
+| `@responders` | Interaction responders |
+| `@events` | Event definitions |
+| `@config` | App and API config |
+
+Do not import from `@commands/CommandFactory` or use relative `../Commands/` paths outside `src/Commands/`. Use `RequireGuild(interaction)` instead of `interaction.guild!`.
 - **Comments:** Avoid inline comments that restate what the code does. Use comments for section headers or non-obvious behavior only.
 - **Utilities:** Prefer shared utilities (e.g. `EmbedFactory`, `CreateGuildResourceLocator`, responders, config builders) over one-off implementations.
 - **Validation and errors:** Use middleware for cross-cutting checks (e.g. guild-only via `config.guildOnly`, permissions via `Config.mod()` / `Config.utility()`). Let `ErrorMiddleware` handle generic failures; keep try/catch only for partial or domain-specific handling.

@@ -11,6 +11,7 @@ dist/
 
 # Tests
 coverage/
+vitest_output.txt
 
 # Environment variables
 .env

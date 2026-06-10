@@ -1,20 +1,16 @@
-import {
+import type {
   ChatInputCommandInteraction,
   StringSelectMenuInteraction,
   Guild,
   ActionRowComponentData,
-  MessageFlags,
 } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
-import {
-  EmbedFactory,
-  ComponentFactory,
-  CreateTicketManager,
-  ToActionRowData,
-} from "@utilities";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import type { CreateTicketManager } from "@utilities";
+import { EmbedFactory, ComponentFactory, ToActionRowData } from "@utilities";
 import { CreateTicketServices } from "@systems/Ticket/validation/TicketValidation";
-import { CreateTicketPresentation } from "@systems/Ticket/TicketPresentation";
-import { InteractionResponder } from "@responders";
+import type { CreateTicketPresentation } from "@systems/Ticket/TicketPresentation";
+import type { InteractionResponder } from "@responders";
 
 const TICKET_CREATE_SELECT_TIMEOUT_MS = 5 * 60 * 1000;
 

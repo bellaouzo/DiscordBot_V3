@@ -1,16 +1,8 @@
-import {
-  ChatInputCommandInteraction,
-  ChannelType,
-  TextChannel,
-  MessageFlags,
-} from "discord.js";
-import { CommandContext } from "@commands";
-import {
-  ConvertDurationToMs,
-  DurationUnit,
-  EmbedFactory,
-  FormatDuration,
-} from "@utilities";
+import type { ChatInputCommandInteraction, TextChannel } from "discord.js";
+import { ChannelType, MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import type { DurationUnit } from "@utilities";
+import { ConvertDurationToMs, EmbedFactory, FormatDuration } from "@utilities";
 import { SerializeOverwrites } from "@commands/Moderation/shared/OverwriteSerialization";
 import { ClearRaidModeByGuild } from "@commands/Moderation/RaidMode/ClearRaidMode";
 

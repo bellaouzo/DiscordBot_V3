@@ -1,9 +1,9 @@
-import {
+import type {
   ButtonInteraction,
   ChatInputCommandInteraction,
-  MessageFlags,
 } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { ITEM_MAP } from "@systems/Economy/items";
 import {
@@ -24,12 +24,10 @@ import {
   MAX_BET,
   MIN_BET,
 } from "@systems/Economy/constants";
-import { CardValue } from "@systems/Economy/types";
-import { EmbedFactory } from "@utilities";
-import {
-  AwardEconomyXp,
-  EconomyOutcome,
-} from "@systems/Economy/utils/EconomyXp";
+import type { CardValue } from "@systems/Economy/types";
+import { RequireGuild, EmbedFactory } from "@utilities";
+import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
+import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 import {
   createShuffledDeck,
   drawCard,
@@ -68,7 +66,7 @@ export async function HandleBlackjack(
   }
 
   const manager = new EconomyManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
   let balance = manager.EnsureBalance(interaction.user.id);

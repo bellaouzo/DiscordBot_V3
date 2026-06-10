@@ -6,7 +6,7 @@ import type {
   GuildMember,
   CommandInteractionOptionResolver,
 } from "discord.js";
-import type { CommandContext } from "@commands/CommandFactory";
+import type { CommandContext } from "@commands";
 import type { ResponderSet } from "@responders";
 import type { DatabaseSet } from "@database";
 import type { Logger } from "@shared/Logger";
@@ -81,7 +81,17 @@ export function createMockInteraction(
     options: options as CommandInteractionOptionResolver,
     guildId: "guildId" in overrides ? overrides.guildId : "test-guild-id",
     user: (overrides.user as User) ?? ({} as User),
-    guild: (overrides.guild as Guild) ?? null,
+    guild:
+      overrides.guild !== undefined
+        ? (overrides.guild as Guild | null)
+        : ("guildId" in overrides ? overrides.guildId : "test-guild-id")
+          ? ({
+              id:
+                ("guildId" in overrides
+                  ? overrides.guildId
+                  : "test-guild-id") ?? "test-guild-id",
+            } as Guild)
+          : null,
     member: (overrides.member as GuildMember) ?? null,
     client: overrides.client ?? undefined,
   } as unknown as ChatInputCommandInteraction;

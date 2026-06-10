@@ -112,7 +112,9 @@ describe("TicketCommand behavior", () => {
         components: expect.any(Array),
       }),
     );
-    expect(context.responders.selectMenuRouter.RegisterSelectMenu).toHaveBeenCalled();
+    expect(
+      context.responders.selectMenuRouter.RegisterSelectMenu,
+    ).toHaveBeenCalled();
   });
 
   it("blocks server queue list for non-staff members", async () => {

@@ -307,6 +307,19 @@ await interactionResponder.WithAction({
 });
 ```
 
+## Command File Naming
+
+The command loader in `src/Bot/CreateCommandLoader.ts` recursively loads files matching `*Command.ts`. Follow these rules:
+
+| Loadable | Not loadable |
+|----------|--------------|
+| `src/Commands/Fun/*Command.ts` | `*Flow.ts`, `*Shared.ts`, middleware files |
+| `src/Commands/Moderation/*Command.ts` | Re-export-only barrels (`export { X } from "..."`) |
+| `src/Commands/Utility/*Command.ts` | `CommandFactory.ts`, `registry.ts`, `index.ts` |
+| Nested implementations (e.g. `Utility/Help/HelpCommand.ts`) | Files without a local `CreateCommand(` call |
+
+Split complex commands into flow modules under subfolders (e.g. `Appeal/`, `Giveaway/`). Only the top-level or nested `*Command.ts` file that calls `CreateCommand` is registered.
+
 ## Utilities
 
 - **`EmbedFactory.CreateSuccess()`** - Create success embeds

@@ -1,14 +1,14 @@
-import {
+import type {
   ChatInputCommandInteraction,
-  ChannelType,
   TextChannel,
   CategoryChannel,
-  MessageFlags,
 } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands";
+import { ChannelType, MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
-import { LockdownScope } from "@database";
+import type { LockdownScope } from "@database";
 import {
   HandleLockCategory,
   HandleLockChannel,

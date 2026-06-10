@@ -1,11 +1,9 @@
 import { MessageFlags } from "discord.js";
-import { CommandContext } from "@commands";
+import type { CommandContext } from "@commands";
 import { EmbedFactory, ToEmbedData } from "@utilities";
-import { GiveawayManager } from "@systems/Giveaway/GiveawayManager";
-import {
-  GuildTextChannel,
-  UpdateEntryCount,
-} from "@commands/Utility/Giveaway/GiveawayShared";
+import type { GiveawayManager } from "@systems/Giveaway/GiveawayManager";
+import type { GuildTextChannel } from "@commands/Utility/Giveaway/GiveawayShared";
+import { UpdateEntryCount } from "@commands/Utility/Giveaway/GiveawayShared";
 
 export function RegisterGiveawayEntryHandler(options: {
   customId: string;

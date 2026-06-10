@@ -1,5 +1,5 @@
 import { EmbedFactory } from "@utilities";
-import { CardValue } from "../../types";
+import type { CardValue } from "../../types";
 
 function FormatHand(
   cards: CardValue[],

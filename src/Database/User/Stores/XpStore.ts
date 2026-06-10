@@ -1,6 +1,6 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { CalculateXpForLevel, MapUserXp } from "@database/User/Mappers";
-import { UserXp } from "@database/User/Types";
+import type { UserXp } from "@database/User/Types";
 
 export class XpStore {
   constructor(private readonly db: Database.Database) {}
@@ -31,7 +31,11 @@ export class XpStore {
       )
       .run(user_id, guild_id, now);
 
-    return this.GetUserXp(user_id, guild_id)!;
+    const created = this.GetUserXp(user_id, guild_id);
+    if (!created) {
+      throw new Error("Failed to initialize user XP");
+    }
+    return created;
   }
 
   AddXp(data: { user_id: string; guild_id: string; amount: number }): {
@@ -65,7 +69,10 @@ export class XpStore {
         )
         .run(xp, level, data.amount, now, data.user_id, data.guild_id);
 
-      const updated = this.GetUserXp(data.user_id, data.guild_id)!;
+      const updated = this.GetUserXp(data.user_id, data.guild_id);
+      if (!updated) {
+        throw new Error("Failed to load updated user XP");
+      }
       return { userXp: updated, leveledUp, previousLevel };
     });
 

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { ChatInputCommandInteraction } from "discord.js";
-import { CommandDefinition } from "@commands";
+import type { ChatInputCommandInteraction } from "discord.js";
+import type { CommandDefinition } from "@commands";
 import { SafeParseJson, isRecord } from "./SafeJson";
 
 const LOG_DIR = path.resolve(process.cwd(), "logs");

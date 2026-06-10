@@ -1,6 +1,6 @@
-import { Appeal } from "@database";
+import type { Appeal } from "@database";
 import { EmbedFactory } from "@utilities";
-import { PaginationPage } from "@shared/Paginator";
+import type { PaginationPage } from "@shared/Paginator";
 
 export const APPEAL_LIST_PAGE_SIZE = 10;
 

@@ -1,5 +1,7 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
+import { RequireGuild } from "@utilities";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EconomyManager } from "../EconomyManager";
 import { BuildBalanceEmbed } from "@systems/Economy/utils/Embeds";
 
@@ -9,7 +11,7 @@ export async function HandleBalance(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const manager = new EconomyManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
   const targetUser = interaction.options.getUser("user") ?? interaction.user;

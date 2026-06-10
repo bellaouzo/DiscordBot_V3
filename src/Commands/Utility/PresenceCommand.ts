@@ -1,12 +1,11 @@
-import {
+import type {
   ChatInputCommandInteraction,
-  ActivityType,
   PresenceData,
   PresenceStatusData,
-  type ActivitiesOptions,
-  MessageFlags,
 } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import { ActivityType, type ActivitiesOptions, MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 

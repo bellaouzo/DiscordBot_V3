@@ -1,8 +1,14 @@
 import Database from "better-sqlite3";
 import { join } from "path";
 import { ResolveDataDir } from "@config/DataConfig";
-import { Logger } from "@shared/Logger";
-import { Balance, Giveaway, Note, UserXp, Warning } from "@database/User/Types";
+import type { Logger } from "@shared/Logger";
+import type {
+  Balance,
+  Giveaway,
+  Note,
+  UserXp,
+  Warning,
+} from "@database/User/Types";
 import { NoteStore } from "@database/User/Stores/NoteStore";
 import { WarningStore } from "@database/User/Stores/WarningStore";
 import { BalanceStore } from "@database/User/Stores/BalanceStore";

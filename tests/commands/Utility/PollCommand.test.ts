@@ -25,7 +25,9 @@ function createTextChannelInteraction() {
     id: "ch-1",
     name: "general",
     type: ChannelType.GuildText,
-    send: vi.fn().mockResolvedValue({ url: "https://discord.com/channels/1/2/3" }),
+    send: vi
+      .fn()
+      .mockResolvedValue({ url: "https://discord.com/channels/1/2/3" }),
     messages: {
       fetch: vi.fn(),
     },

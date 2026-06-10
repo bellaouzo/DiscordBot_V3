@@ -17,9 +17,8 @@ vi.mock("@systems/Giveaway/GiveawayEntryHandler", () => ({
   RegisterGiveawayEntryHandler: vi.fn(),
 }));
 
-const { RegisterGiveawayEntryHandler } = await import(
-  "@systems/Giveaway/GiveawayEntryHandler"
-);
+const { RegisterGiveawayEntryHandler } =
+  await import("@systems/Giveaway/GiveawayEntryHandler");
 
 function createMember(roleIds: string[] = []) {
   return {
@@ -38,7 +37,10 @@ function createModInteraction(overrides?: {
 }) {
   const channelSend =
     overrides?.channelSend ??
-    vi.fn().mockResolvedValue({ id: "giveaway-msg-1", url: "https://discord.com/msg/1" });
+    vi.fn().mockResolvedValue({
+      id: "giveaway-msg-1",
+      url: "https://discord.com/msg/1",
+    });
   const channel = {
     id: "ch-1",
     type: ChannelType.GuildText,
@@ -123,7 +125,9 @@ describe("Giveaway flows", () => {
       const context = createMockContext({ databases });
       await HandleCreate(interaction, context);
       const embed = (
-        context.responders.interactionResponder.Reply as ReturnType<typeof vi.fn>
+        context.responders.interactionResponder.Reply as ReturnType<
+          typeof vi.fn
+        >
       ).mock.calls[0][1].embeds[0];
       expect(embed.data?.title ?? embed.title).toBe("Permission Denied");
     });
@@ -138,7 +142,9 @@ describe("Giveaway flows", () => {
       const context = setupModeratorContext();
       await HandleCreate(interaction, context);
       const embed = (
-        context.responders.interactionResponder.Reply as ReturnType<typeof vi.fn>
+        context.responders.interactionResponder.Reply as ReturnType<
+          typeof vi.fn
+        >
       ).mock.calls[0][1].embeds[0];
       expect(embed.data?.title ?? embed.title).toBe("Invalid Duration");
     });
@@ -179,7 +185,9 @@ describe("Giveaway flows", () => {
       const context = createMockContext({ databases });
       await HandleEnd(interaction, context);
       const embed = (
-        context.responders.interactionResponder.Reply as ReturnType<typeof vi.fn>
+        context.responders.interactionResponder.Reply as ReturnType<
+          typeof vi.fn
+        >
       ).mock.calls[0][1].embeds[0];
       expect(embed.data?.title ?? embed.title).toBe("Giveaway Not Found");
     });
@@ -249,20 +257,19 @@ describe("Giveaway flows", () => {
       const context = createMockContext({ databases });
       await HandleReroll(interaction, context);
       const embed = (
-        context.responders.interactionResponder.Reply as ReturnType<typeof vi.fn>
+        context.responders.interactionResponder.Reply as ReturnType<
+          typeof vi.fn
+        >
       ).mock.calls[0][1].embeds[0];
       expect(embed.data?.title ?? embed.title).toBe("Not Ended");
     });
 
     it("rerolls ended giveaway and announces new winners", async () => {
       const channelSend = vi.fn().mockResolvedValue(undefined);
-      const textChannel = Object.assign(
-        Object.create(TextChannel.prototype),
-        {
-          type: ChannelType.GuildText,
-          send: channelSend,
-        },
-      );
+      const textChannel = Object.assign(Object.create(TextChannel.prototype), {
+        type: ChannelType.GuildText,
+        send: channelSend,
+      });
       const interaction = createMockInteraction({
         guild: {
           id: "guild-1",
@@ -287,12 +294,17 @@ describe("Giveaway flows", () => {
         ended: 1,
         created_at: Date.now(),
       });
-      vi.mocked(databases.userDb.GetGiveawayEntries).mockReturnValue(["u1", "u2"]);
+      vi.mocked(databases.userDb.GetGiveawayEntries).mockReturnValue([
+        "u1",
+        "u2",
+      ]);
       vi.mocked(databases.userDb.EndGiveaway).mockReturnValue(true);
       const context = createMockContext({ databases });
       await HandleReroll(interaction, context);
       expect(channelSend).toHaveBeenCalled();
-      expect(context.responders.interactionResponder.Reply).toHaveBeenCalledWith(
+      expect(
+        context.responders.interactionResponder.Reply,
+      ).toHaveBeenCalledWith(
         interaction,
         expect.objectContaining({
           embeds: expect.arrayContaining([
@@ -314,7 +326,9 @@ describe("Giveaway flows", () => {
       const context = createMockContext({ databases });
       await HandleList(interaction, context);
       const embed = (
-        context.responders.interactionResponder.Reply as ReturnType<typeof vi.fn>
+        context.responders.interactionResponder.Reply as ReturnType<
+          typeof vi.fn
+        >
       ).mock.calls[0][1].embeds[0];
       expect(embed.data?.title ?? embed.title).toBe("No Active Giveaways");
     });
@@ -342,7 +356,9 @@ describe("Giveaway flows", () => {
       vi.mocked(databases.userDb.GetGiveawayEntryCount).mockReturnValue(3);
       const context = createMockContext({ databases });
       await HandleList(interaction, context);
-      expect(context.responders.interactionResponder.Reply).toHaveBeenCalledWith(
+      expect(
+        context.responders.interactionResponder.Reply,
+      ).toHaveBeenCalledWith(
         interaction,
         expect.objectContaining({ flags: MessageFlags.Ephemeral }),
       );

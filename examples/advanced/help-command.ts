@@ -1,9 +1,11 @@
-import { ChatInputCommandInteraction } from "discord.js";
-import { CommandContext, CreateCommand } from "../../src/Commands";
-import { Config } from "../../src/Commands/Middleware/CommandConfig";
-import { PaginationPage } from "../../src/Shared/Paginator";
-import { AllCommands } from "../../src/Commands";
-import { EmbedFactory } from "../../src/Utilities";
+import type { ChatInputCommandInteraction} from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext} from "@commands";
+import { CreateCommand } from "@commands";
+import { Config } from "@middleware";
+import type { PaginationPage } from "@shared/Paginator";
+import { AllCommands } from "@commands";
+import { EmbedFactory } from "@utilities";
 
 /**
  * Interactive help command with pagination and buttons
@@ -55,7 +57,7 @@ async function ExecuteHelp(
     await paginatedResponder.Send({
       interaction,
       pages,
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
       ownerId: interaction.user.id,
       timeoutMs: 1000 * 60 * 5, // 5 minutes
     });
@@ -100,7 +102,7 @@ function GroupCommandsBySection(commands: CommandInfo[]): HelpSection[] {
     if (!groups.has(group)) {
       groups.set(group, []);
     }
-    groups.get(group)!.push(command);
+    groups.get(group)?.push(command);
   }
 
   return Array.from(groups.entries()).map(([name, commands]) => ({

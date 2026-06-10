@@ -1,8 +1,5 @@
-import {
-  APIEmbed,
-  ColorResolvable,
-  EmbedBuilder as DiscordEmbedBuilder,
-} from "discord.js";
+import type { APIEmbed, ColorResolvable } from "discord.js";
+import { EmbedBuilder as DiscordEmbedBuilder } from "discord.js";
 
 export type { DiscordEmbedBuilder };
 

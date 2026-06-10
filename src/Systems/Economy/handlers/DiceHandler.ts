@@ -1,14 +1,13 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { BuildDiceResultEmbed } from "@systems/Economy/utils/Embeds";
 import { DICE_PAYOUT_MULTIPLIER, MAX_BET, MIN_BET } from "../constants";
 import { ITEM_MAP } from "../items";
-import { EmbedFactory } from "@utilities";
-import {
-  AwardEconomyXp,
-  EconomyOutcome,
-} from "@systems/Economy/utils/EconomyXp";
+import { RequireGuild, EmbedFactory } from "@utilities";
+import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
+import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 
 export async function HandleDice(
   interaction: ChatInputCommandInteraction,
@@ -44,7 +43,7 @@ export async function HandleDice(
   }
 
   const manager = new EconomyManager(
-    interaction.guildId!,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
   let balance = manager.EnsureBalance(interaction.user.id);

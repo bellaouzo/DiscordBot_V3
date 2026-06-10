@@ -1,7 +1,9 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
+import { RequireGuild, EmbedFactory } from "@utilities";
 import { LevelManager } from "@systems/Leveling";
 
 function BuildProgressBar(percent: number, length = 10): string {
@@ -26,7 +28,7 @@ async function ExecuteRank(
   const { interactionResponder } = context.responders;
 
   const targetUser = interaction.options.getUser("user") ?? interaction.user;
-  const guildId = interaction.guild!.id;
+  const guildId = RequireGuild(interaction).id;
   const userXp = context.databases.userDb.GetUserXp(targetUser.id, guildId);
 
   if (!userXp) {

@@ -1,4 +1,4 @@
-import {
+import type {
   Appeal,
   AppealActionType,
   AppealStatus,
@@ -6,7 +6,7 @@ import {
   TempAction,
   UserDatabase,
 } from "@database";
-import { Logger } from "@shared/Logger";
+import type { Logger } from "@shared/Logger";
 
 export interface AppealManagerOptions {
   readonly guildId: string;

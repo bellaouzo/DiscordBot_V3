@@ -1,4 +1,4 @@
-import { CardValue } from "@systems/Economy/types";
+import type { CardValue } from "@systems/Economy/types";
 
 export const BJ_DECK: CardValue[] = [
   "A",
@@ -29,7 +29,11 @@ export function createShuffledDeck(): CardValue[] {
 }
 
 export function drawCard(deck: CardValue[]): CardValue {
-  return deck.pop()!;
+  const card = deck.pop();
+  if (!card) {
+    throw new Error("Deck is empty");
+  }
+  return card;
 }
 
 export function handValue(cards: CardValue[]): number {

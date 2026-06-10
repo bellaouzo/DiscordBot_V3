@@ -1,6 +1,6 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { MapTempAction } from "@database/Moderation/Mappers";
-import { TempAction, TempActionType } from "@database/Moderation/Types";
+import type { TempAction, TempActionType } from "@database/Moderation/Types";
 
 export class TempActionStore {
   constructor(private readonly db: Database.Database) {}

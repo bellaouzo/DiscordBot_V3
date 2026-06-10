@@ -1,6 +1,6 @@
 import { SafeParseJson, isStringArray } from "@utilities/SafeJson";
-import { Logger } from "@shared/Logger";
-import {
+import type { Logger } from "@shared/Logger";
+import type {
   EventRow,
   GuildSettings,
   GuildSettingsRow,

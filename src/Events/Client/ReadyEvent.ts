@@ -1,5 +1,6 @@
 import { Events } from "discord.js";
-import { CreateEvent, EventContext } from "../EventFactory";
+import type { EventContext } from "../EventFactory";
+import { CreateEvent } from "../EventFactory";
 import {
   CreateChannelManager,
   EmbedFactory,

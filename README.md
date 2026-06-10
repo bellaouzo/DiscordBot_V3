@@ -7,7 +7,7 @@ A modular Discord bot framework built with TypeScript and Discord.js v14 — sla
 [![TypeScript](https://img.shields.io/badge/typescript-5+-blue.svg)](https://www.typescriptlang.org/)
 [![Discord.js](https://img.shields.io/badge/discord.js-v14-7289DA?logo=discord&logoColor=white)](https://discord.js.org/)
 
-> Early development — features and APIs may change between releases.
+> APIs are stabilizing; see [CHANGELOG.md](CHANGELOG.md) for recent breaking or structural changes.
 
 ## Choose your path
 
@@ -26,7 +26,7 @@ A modular Discord bot framework built with TypeScript and Discord.js v14 — sla
    npm install
    ```
 2. **Create `.env`** — copy [.env.example](.env.example) and set `DISCORD_TOKEN`, `CLIENT_ID`, and `GUILD_ID`.
-3. **Run locally** — `npm run dev` (deploys slash commands to `GUILD_ID` on startup).
+3. **Run locally** — `npm run dev:watch` for active development (rebuilds on save), or `npm run dev` for a one-shot start. Both deploy slash commands to `GUILD_ID` on startup.
 4. **Invite the bot** — use the OAuth2 URL generator in the [Discord Developer Portal](https://discord.com/developers/applications) with `applications.commands` and required intents.
 5. **Configure the server** — run `/setup` in your guild to set staff roles and log channels.
 

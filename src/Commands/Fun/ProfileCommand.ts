@@ -1,7 +1,14 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { EmbedFactory, CreateWarnManager, CreateNoteManager } from "@utilities";
+import {
+  RequireGuild,
+  EmbedFactory,
+  CreateWarnManager,
+  CreateNoteManager,
+} from "@utilities";
 import { LevelManager } from "@systems/Leveling";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 
@@ -51,8 +58,8 @@ async function ExecuteProfile(
 
   const requestedUser = interaction.options.getUser("user");
   const targetUser = requestedUser ?? interaction.user;
-  const targetMember = await interaction
-    .guild!.members.fetch({ user: targetUser.id, withPresences: true })
+  const targetMember = await RequireGuild(interaction)
+    .members.fetch({ user: targetUser.id, withPresences: true })
     .catch(() => null);
 
   if (requestedUser && !targetMember) {
@@ -68,20 +75,20 @@ async function ExecuteProfile(
   }
 
   const levelManager = new LevelManager(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
   const economyManager = new EconomyManager(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
   const warnManager = CreateWarnManager({
-    guildId: interaction.guild!.id,
+    guildId: RequireGuild(interaction).id,
     userDb: context.databases.userDb,
     logger: context.logger,
   });
   const noteManager = CreateNoteManager({
-    guildId: interaction.guild!.id,
+    guildId: RequireGuild(interaction).id,
     userDb: context.databases.userDb,
     logger: context.logger,
   });

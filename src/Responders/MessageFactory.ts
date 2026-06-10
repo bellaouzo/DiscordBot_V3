@@ -1,4 +1,4 @@
-import { ResponseOptions } from "./ResponseTypes";
+import type { ResponseOptions } from "./ResponseTypes";
 import { EmbedFactory } from "../Utilities/EmbedFactory";
 
 interface ErrorMessageOptions {

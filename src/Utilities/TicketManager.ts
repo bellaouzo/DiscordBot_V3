@@ -1,19 +1,15 @@
-import {
+import type {
   Guild,
   TextChannel,
-  PermissionFlagsBits,
   GuildMember,
   OverwriteResolvable,
-  ChannelType,
   CategoryChannel,
 } from "discord.js";
-import { TicketDatabase, Ticket } from "@database";
-import { Logger } from "@shared/Logger";
-import {
-  EmbedFactory,
-  CreateChannelManager,
-  GuildResourceLocator,
-} from "@utilities";
+import { PermissionFlagsBits, ChannelType } from "discord.js";
+import type { TicketDatabase, Ticket } from "@database";
+import type { Logger } from "@shared/Logger";
+import type { GuildResourceLocator } from "@utilities";
+import { EmbedFactory, CreateChannelManager } from "@utilities";
 
 export interface TicketManagerOptions {
   readonly guild: Guild;
@@ -248,13 +244,14 @@ export class TicketManager {
     }
 
     if (updated && channel) {
+      const ticketChannel = channel;
       setTimeout(async () => {
         try {
-          await channel!.delete("Ticket closed (auto-delete)");
+          await ticketChannel.delete("Ticket closed (auto-delete)");
         } catch (error) {
           this.options.logger.Error("Failed to delete ticket channel", {
             error,
-            extra: { ticketId, channelId: channel!.id },
+            extra: { ticketId, channelId: ticketChannel.id },
           });
         }
       }, 10000);

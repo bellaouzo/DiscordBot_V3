@@ -1,7 +1,7 @@
 import { MessageFlags } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
-import type { CommandContext } from "@commands/CommandFactory";
-import { EmbedFactory } from "@utilities";
+import type { CommandContext } from "@commands";
+import { RequireGuild, EmbedFactory } from "@utilities";
 import type { RobloxBridgeSettings } from "@systems/Roblox/types";
 import {
   EnsureAdminAccess,
@@ -24,7 +24,7 @@ export async function ExecuteGroupInfoSubcommand(
     return;
   }
 
-  const guildId = interaction.guild!.id;
+  const guildId = RequireGuild(interaction).id;
 
   const status = await RequestApiKeyStatus(settings, guildId);
   if (!status?.configured) {

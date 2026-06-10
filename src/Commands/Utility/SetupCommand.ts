@@ -1,13 +1,17 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { CreateChannelManager } from "@utilities";
-import {
-  CreateEmptySettings,
+import { RequireGuild, CreateChannelManager } from "@utilities";
+import type {
   NavigationIds,
-  SanitizeGuildSettings,
   SetupDraft,
   StepState,
+} from "@systems/Setup/state";
+import {
+  CreateEmptySettings,
+  SanitizeGuildSettings,
 } from "@systems/Setup/state";
 import { CollectResources } from "@systems/Setup/resources";
 import { BuildSetupEmbed } from "@systems/Setup/builders/embed";
@@ -27,7 +31,7 @@ async function ExecuteSetup(
   } = context.responders;
   const { logger, databases } = context;
 
-  const guild = interaction.guild!;
+  const guild = RequireGuild(interaction);
   const channelManager = CreateChannelManager({ guild, logger });
   const loggingDefaults = context.appConfig.logging;
   const currentSettings =

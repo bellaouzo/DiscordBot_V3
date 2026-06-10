@@ -1,6 +1,6 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { MapNote } from "@database/User/Mappers";
-import { Note } from "@database/User/Types";
+import type { Note } from "@database/User/Types";
 
 export class NoteStore {
   constructor(private readonly db: Database.Database) {}

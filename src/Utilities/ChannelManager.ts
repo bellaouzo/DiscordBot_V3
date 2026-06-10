@@ -1,12 +1,11 @@
-import {
+import type {
   Guild,
   CategoryChannel,
   TextChannel,
-  ChannelType,
-  PermissionFlagsBits,
   OverwriteResolvable,
 } from "discord.js";
-import { Logger } from "@shared/Logger";
+import { ChannelType, PermissionFlagsBits } from "discord.js";
+import type { Logger } from "@shared/Logger";
 
 export interface ChannelManagerOptions {
   readonly guild: Guild;

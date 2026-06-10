@@ -1,6 +1,6 @@
-import { Client } from "discord.js";
-import { ModerationDatabase, TempAction } from "@database";
-import { Logger } from "@shared/Logger";
+import type { Client } from "discord.js";
+import type { ModerationDatabase, TempAction } from "@database";
+import type { Logger } from "@shared/Logger";
 
 const SWEEP_INTERVAL_MS = 30_000;
 

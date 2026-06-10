@@ -1,13 +1,8 @@
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  NewsChannel,
-  TextChannel,
-  ThreadChannel,
-} from "discord.js";
-import { UserDatabase, Giveaway } from "@database";
-import { DiscordEmbedBuilder, EmbedFactory } from "@utilities";
+import type { NewsChannel, TextChannel, ThreadChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+import type { UserDatabase, Giveaway } from "@database";
+import type { DiscordEmbedBuilder } from "@utilities";
+import { EmbedFactory } from "@utilities";
 
 type GuildTextChannel = TextChannel | NewsChannel | ThreadChannel;
 

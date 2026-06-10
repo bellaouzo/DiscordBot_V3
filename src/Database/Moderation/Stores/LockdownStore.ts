@@ -1,6 +1,6 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { MapLockdown } from "@database/Moderation/Mappers";
-import { Lockdown, LockdownScope } from "@database/Moderation/Types";
+import type { Lockdown, LockdownScope } from "@database/Moderation/Types";
 
 export class LockdownStore {
   constructor(private readonly db: Database.Database) {}

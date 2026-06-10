@@ -4,10 +4,10 @@ export * from "./UserDatabase";
 export * from "./ModerationDatabase";
 export * from "./ServerDatabase";
 
-import { TicketDatabase } from "./TicketDatabase";
-import { UserDatabase } from "./UserDatabase";
-import { ModerationDatabase } from "./ModerationDatabase";
-import { ServerDatabase } from "./ServerDatabase";
+import type { TicketDatabase } from "./TicketDatabase";
+import type { UserDatabase } from "./UserDatabase";
+import type { ModerationDatabase } from "./ModerationDatabase";
+import type { ServerDatabase } from "./ServerDatabase";
 
 export interface DatabaseSet {
   readonly userDb: UserDatabase;

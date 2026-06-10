@@ -1,6 +1,6 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { MapWarning } from "@database/User/Mappers";
-import { Warning } from "@database/User/Types";
+import type { Warning } from "@database/User/Types";
 
 export class WarningStore {
   constructor(private readonly db: Database.Database) {}

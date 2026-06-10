@@ -1,6 +1,6 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { ParseWinners } from "@database/User/Mappers";
-import { Giveaway } from "@database/User/Types";
+import type { Giveaway } from "@database/User/Types";
 
 type GiveawayRow = {
   id: number;
@@ -53,7 +53,11 @@ export class GiveawayStore {
       now,
     );
 
-    return this.GetGiveawayByMessageId(data.message_id)!;
+    const created = this.GetGiveawayByMessageId(data.message_id);
+    if (!created) {
+      throw new Error("Failed to load created giveaway");
+    }
+    return created;
   }
 
   GetGiveawayByMessageId(message_id: string): Giveaway | null {

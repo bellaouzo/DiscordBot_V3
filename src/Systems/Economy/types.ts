@@ -1,4 +1,4 @@
-import { ButtonStyle } from "discord.js";
+import type { ButtonStyle } from "discord.js";
 
 export type AllowedButtonStyle =
   | ButtonStyle.Primary
@@ -28,7 +28,7 @@ export type CardValue =
 
 export type EconomyHandler = (
   interaction: import("discord.js").ChatInputCommandInteraction,
-  context: import("@commands/CommandFactory").CommandContext,
+  context: import("@commands").CommandContext,
 ) => Promise<void>;
 
 export type ItemRarity = "common" | "rare" | "epic";

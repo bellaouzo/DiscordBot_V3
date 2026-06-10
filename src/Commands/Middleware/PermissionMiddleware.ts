@@ -1,12 +1,11 @@
+import type { GuildMember, ChatInputCommandInteraction } from "discord.js";
 import {
   PermissionFlagsBits,
   PermissionsBitField,
-  GuildMember,
-  ChatInputCommandInteraction,
   MessageFlags,
 } from "discord.js";
-import { CommandMiddleware, MiddlewareContext } from "./index";
-import { ResponderSet } from "@responders";
+import type { CommandMiddleware, MiddlewareContext } from "./index";
+import type { ResponderSet } from "@responders";
 import { CreateErrorMessage } from "@responders/MessageFactory";
 import { CreateGuildResourceLocator } from "@utilities/GuildResourceLocator";
 import {
@@ -14,9 +13,9 @@ import {
   HasConfiguredModRole,
 } from "@utilities/StaffPermissions";
 import { ResolveInteractionMember } from "@utilities/GuildMemberResolver";
-import { CommandConfig } from "@commands/Middleware/CommandConfig";
-import { Logger } from "@shared/Logger";
-import { DatabaseSet } from "@database";
+import type { CommandConfig } from "@commands/Middleware/CommandConfig";
+import type { Logger } from "@shared/Logger";
+import type { DatabaseSet } from "@database";
 
 async function SendPermissionError(
   responders: ResponderSet,

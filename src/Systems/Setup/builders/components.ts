@@ -1,15 +1,17 @@
-import {
+import type {
   ActionRowComponentData,
   ActionRowData,
-  ButtonStyle,
   Role,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
   TextChannel,
   CategoryChannel,
 } from "discord.js";
+import {
+  ButtonStyle,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
+} from "discord.js";
 import { ComponentFactory, ToActionRowData } from "@utilities";
-import { LoadAppConfig } from "@config/AppConfig";
+import type { LoadAppConfig } from "@config/AppConfig";
 import {
   DEFAULT_ANNOUNCEMENT_CHANNEL,
   DEFAULT_DELETE_LOG_CHANNEL,
@@ -17,7 +19,7 @@ import {
   DEFAULT_APPEAL_CATEGORY,
   DEFAULT_TICKET_CATEGORY,
 } from "../constants";
-import { NavigationIds, SetupDraft, SetupResources } from "../state";
+import type { NavigationIds, SetupDraft, SetupResources } from "../state";
 
 export function BuildStepComponents(options: {
   step: number;

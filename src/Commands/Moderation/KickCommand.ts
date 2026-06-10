@@ -1,7 +1,12 @@
-import { ChatInputCommandInteraction } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { CreateGuildResourceLocator, EmbedFactory } from "@utilities";
+import {
+  RequireGuild,
+  CreateGuildResourceLocator,
+  EmbedFactory,
+} from "@utilities";
 
 async function ExecuteKick(
   interaction: ChatInputCommandInteraction,
@@ -16,7 +21,7 @@ async function ExecuteKick(
   const notify = interaction.options.getBoolean("notify") ?? false;
 
   const locator = CreateGuildResourceLocator({
-    guild: interaction.guild!,
+    guild: RequireGuild(interaction),
     logger,
   });
   const modDb = context.databases.moderationDb;
@@ -54,7 +59,7 @@ async function ExecuteKick(
       await targetMember.kick(reason);
 
       modDb.AddModerationEvent({
-        guild_id: interaction.guild!.id,
+        guild_id: RequireGuild(interaction).id,
         user_id: targetUser.id,
         moderator_id: interaction.user.id,
         action: "kick",

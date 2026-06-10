@@ -1,8 +1,15 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { CreateWarnManager, EmbedFactory, ToEmbedData } from "@utilities";
-import { PaginationPage } from "@shared/Paginator";
+import {
+  RequireGuild,
+  CreateWarnManager,
+  EmbedFactory,
+  ToEmbedData,
+} from "@utilities";
+import type { PaginationPage } from "@shared/Paginator";
 
 const WARN_LIST_PAGE_SIZE = 6;
 
@@ -11,7 +18,7 @@ async function ExecuteWarnings(
   context: CommandContext,
 ): Promise<void> {
   const { interactionResponder, paginatedResponder } = context.responders;
-  const guild = interaction.guild!;
+  const guild = RequireGuild(interaction);
 
   const warnManager = CreateWarnManager({
     guildId: guild.id,

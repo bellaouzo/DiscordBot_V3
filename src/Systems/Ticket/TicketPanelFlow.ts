@@ -1,10 +1,6 @@
-import {
-  ButtonStyle,
-  ChatInputCommandInteraction,
-  MessageFlags,
-  TextChannel,
-} from "discord.js";
-import { CommandContext } from "@commands";
+import type { ChatInputCommandInteraction, TextChannel } from "discord.js";
+import { ButtonStyle, MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import {
   ComponentFactory,
   EmbedFactory,

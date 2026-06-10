@@ -1,6 +1,7 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext } from "@commands";
-import { EmbedFactory, ToEmbedData } from "@utilities";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { RequireGuild, EmbedFactory, ToEmbedData } from "@utilities";
 import { GiveawayManager } from "@systems/Giveaway/GiveawayManager";
 
 export async function HandleList(
@@ -10,7 +11,7 @@ export async function HandleList(
   const { interactionResponder } = context.responders;
 
   const manager = new GiveawayManager(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
   const activeGiveaways = manager.GetActiveGiveaways();

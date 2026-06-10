@@ -1,5 +1,6 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EmbedFactory } from "@utilities";
 import { CreateTicketServices } from "@systems/Ticket/validation/TicketValidation";
 import {

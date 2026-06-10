@@ -1,4 +1,4 @@
-import { UserDatabase } from "@database";
+import type { UserDatabase } from "@database";
 import { CalculateXpForLevel } from "./constants";
 import type { UserLevel, LeaderboardEntry, XpAwardResult } from "./types";
 

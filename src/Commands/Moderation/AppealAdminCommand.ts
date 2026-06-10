@@ -1,12 +1,12 @@
-import { ChatInputCommandInteraction } from "discord.js";
-import {
+import type { ChatInputCommandInteraction } from "discord.js";
+import type {
   CommandContext,
-  CreateCommand,
   SlashCommandBuilder,
   SlashCommandSubcommandBuilder,
   SlashCommandStringOption,
   SlashCommandIntegerOption,
 } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import {
   HandleList,

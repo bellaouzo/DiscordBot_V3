@@ -1,11 +1,11 @@
-import {
+import type {
   Client,
   OverwriteResolvable,
   OverwriteType,
   TextChannel,
 } from "discord.js";
-import { ModerationDatabase, RaidMode } from "@database";
-import { Logger } from "@shared/Logger";
+import type { ModerationDatabase, RaidMode } from "@database";
+import type { Logger } from "@shared/Logger";
 import { SafeParseJson } from "@utilities/SafeJson";
 
 const RAID_SWEEP_INTERVAL_MS = 10_000;

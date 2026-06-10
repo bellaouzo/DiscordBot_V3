@@ -1,4 +1,4 @@
-import { UserDatabase } from "@database";
+import type { UserDatabase } from "@database";
 import { DAILY_COOLDOWN_MS, DAILY_REWARD, STARTING_BALANCE } from "./constants";
 import { ITEM_MAP } from "./items";
 import type { DailyClaimResult, InventoryEntry, MarketRotation } from "./types";

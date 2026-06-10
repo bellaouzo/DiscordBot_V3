@@ -10,7 +10,7 @@ import {
   ApplyScratchBonusLossRefund,
   SCRATCH_SYMBOLS,
 } from "@systems/Economy/utils/scratchLogic";
-import { ScratchSymbol } from "@systems/Economy/types";
+import type { ScratchSymbol } from "@systems/Economy/types";
 
 describe("scratchLogic", () => {
   it("counts scratch symbols", () => {
@@ -79,9 +79,9 @@ describe("scratchLogic", () => {
   });
 
   it("detects when a win is still possible", () => {
-    expect(WinStillPossible(["💰", "💰", null, null, null, null, null, null, null])).toBe(
-      true,
-    );
+    expect(
+      WinStillPossible(["💰", "💰", null, null, null, null, null, null, null]),
+    ).toBe(true);
     expect(WinStillPossible(["💰", "⭐", "🍀", "🍒"])).toBe(false);
   });
 

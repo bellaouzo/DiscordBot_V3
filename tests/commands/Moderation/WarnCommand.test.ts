@@ -154,7 +154,10 @@ describe("WarnCommand behavior", () => {
     vi.mocked(databases.userDb.RemoveWarningById).mockReturnValue(true);
     const context = createMockContext({ databases });
     await WarnCommand.execute(interaction, context);
-    expect(databases.userDb.RemoveWarningById).toHaveBeenCalledWith(42, "guild-1");
+    expect(databases.userDb.RemoveWarningById).toHaveBeenCalledWith(
+      42,
+      "guild-1",
+    );
     expect(context.responders.interactionResponder.Reply).toHaveBeenCalled();
   });
 });

@@ -1,12 +1,12 @@
-import {
+import type {
   ChatInputCommandInteraction,
   Guild,
   TextChannel,
-  MessageFlags,
 } from "discord.js";
-import { CommandContext } from "@commands";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EmbedFactory } from "@utilities";
-import { RaidModeChannelState } from "@database";
+import type { RaidModeChannelState } from "@database";
 import { ParseOverwrites } from "@commands/Moderation/shared/OverwriteSerialization";
 
 export async function RestoreChannelStates(

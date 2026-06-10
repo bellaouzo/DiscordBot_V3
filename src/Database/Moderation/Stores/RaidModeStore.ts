@@ -1,6 +1,9 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { MapRaidMode, MapRaidModeChannel } from "@database/Moderation/Mappers";
-import { RaidMode, RaidModeChannelState } from "@database/Moderation/Types";
+import type {
+  RaidMode,
+  RaidModeChannelState,
+} from "@database/Moderation/Types";
 
 export class RaidModeStore {
   constructor(private readonly db: Database.Database) {}

@@ -1,7 +1,8 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { LoadAppConfig } from "@config/AppConfig";
-import { CreateChannelManager } from "@utilities";
-import { SelectMenuRouter } from "@shared/SelectMenuRouter";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { LoadAppConfig } from "@config/AppConfig";
+import type { CreateChannelManager } from "@utilities";
+import type { SelectMenuRouter } from "@shared/SelectMenuRouter";
 import {
   DEFAULT_ANNOUNCEMENT_CHANNEL,
   DEFAULT_DELETE_LOG_CHANNEL,
@@ -10,7 +11,11 @@ import {
   DEFAULT_TICKET_CATEGORY,
   SETUP_TIMEOUT_MS,
 } from "../../Setup/constants";
-import { NavigationIds, SetupDraft, SetupResources } from "../../Setup/state";
+import type {
+  NavigationIds,
+  SetupDraft,
+  SetupResources,
+} from "../../Setup/state";
 
 interface RegisterSelectHandlersOptions {
   interaction: ChatInputCommandInteraction;

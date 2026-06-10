@@ -1,7 +1,9 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
+import { EmbedFactory, RequireGuild } from "@utilities";
 
 async function ExecuteUnban(
   interaction: ChatInputCommandInteraction,
@@ -13,8 +15,8 @@ async function ExecuteUnban(
   const reason =
     interaction.options.getString("reason") ?? "No reason provided";
 
-  const bannedUser = await interaction
-    .guild!.bans.fetch(userId)
+  const bannedUser = await RequireGuild(interaction)
+    .bans.fetch(userId)
     .catch(() => null);
 
   if (!bannedUser) {

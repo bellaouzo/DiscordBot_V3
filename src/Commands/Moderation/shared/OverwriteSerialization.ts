@@ -1,4 +1,5 @@
-import { OverwriteResolvable, OverwriteType } from "discord.js";
+import type { OverwriteResolvable } from "discord.js";
+import { OverwriteType } from "discord.js";
 import { SafeParseJson } from "@utilities";
 
 export type StoredOverwrite = {

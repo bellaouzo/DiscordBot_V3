@@ -1,5 +1,5 @@
-import { ChatInputCommandInteraction } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { BuildGiftSuccessEmbed } from "@systems/Economy/utils/Embeds";
 import { EmbedFactory } from "@utilities";

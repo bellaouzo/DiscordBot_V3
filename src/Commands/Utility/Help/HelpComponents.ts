@@ -1,6 +1,7 @@
-import { ActionRowComponentData, ActionRowData, ButtonStyle } from "discord.js";
+import type { ActionRowComponentData, ActionRowData } from "discord.js";
+import { ButtonStyle } from "discord.js";
 import { ComponentFactory, EmbedFactory } from "@utilities";
-import {
+import type {
   CategoryView,
   OverviewPayload,
 } from "@commands/Utility/Help/HelpTypes";

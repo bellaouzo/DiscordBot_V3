@@ -1,10 +1,8 @@
+import type { ChatInputCommandInteraction, TextChannel } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import {
-  ChatInputCommandInteraction,
-  TextChannel,
-  MessageFlags,
-} from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
-import {
+  RequireGuild,
   EmbedFactory,
   TranscriptGenerator,
   ResolveInteractionMember,
@@ -27,7 +25,7 @@ export async function HandleTicketTranscript(
     return;
 
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
   );
 
   const member = await ResolveInteractionMember(interaction);
@@ -52,7 +50,7 @@ export async function HandleTicketTranscript(
   const { ticketDb, ticketLogService, guildResourceLocator } =
     CreateTicketServices(
       logger,
-      interaction.guild!,
+      RequireGuild(interaction),
       context.databases.ticketDb,
       context.databases.serverDb,
     );
@@ -75,7 +73,7 @@ export async function HandleTicketTranscript(
     ticket,
     messages,
     user,
-    guild: interaction.guild!,
+    guild: RequireGuild(interaction),
     participantHistory,
   });
 

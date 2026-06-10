@@ -74,6 +74,8 @@ describe("MuteCommand behavior", () => {
         moderator_id: "mod-1",
       }),
     );
-    expect(context.responders.interactionResponder.WithAction).toHaveBeenCalled();
+    expect(
+      context.responders.interactionResponder.WithAction,
+    ).toHaveBeenCalled();
   });
 });

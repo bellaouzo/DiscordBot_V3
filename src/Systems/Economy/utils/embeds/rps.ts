@@ -1,5 +1,5 @@
 import { EmbedFactory } from "@utilities";
-import { RpsChoice } from "../../types";
+import type { RpsChoice } from "../../types";
 
 export function BuildRpsPromptEmbed(options: {
   bet: number;

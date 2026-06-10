@@ -1,5 +1,5 @@
 import { Events, ActivityType } from "discord.js";
-import { CreateEvent } from "../../src/Events";
+import { CreateEvent } from "@events";
 
 /**
  * Bot ready event

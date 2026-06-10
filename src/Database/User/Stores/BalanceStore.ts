@@ -1,6 +1,6 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { MapBalance } from "@database/User/Mappers";
-import { Balance } from "@database/User/Types";
+import type { Balance } from "@database/User/Types";
 
 export class BalanceStore {
   constructor(private readonly db: Database.Database) {}

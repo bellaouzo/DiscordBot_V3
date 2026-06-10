@@ -1,6 +1,5 @@
-import {
+import type {
   CategoryChannel,
-  ChannelType,
   Guild,
   GuildBasedChannel,
   GuildMember,
@@ -9,7 +8,8 @@ import {
   TextChannel,
   VoiceChannel,
 } from "discord.js";
-import { Logger } from "@shared/Logger";
+import { ChannelType } from "discord.js";
+import type { Logger } from "@shared/Logger";
 
 interface CacheEntry<T> {
   readonly value: T;

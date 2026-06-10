@@ -1,10 +1,7 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags,
-  TextChannel,
-} from "discord.js";
-import { CommandContext } from "@commands";
-import { EmbedFactory, ToEmbedData } from "@utilities";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags, TextChannel } from "discord.js";
+import type { CommandContext } from "@commands";
+import { RequireGuild, EmbedFactory, ToEmbedData } from "@utilities";
 import { GiveawayManager } from "@systems/Giveaway/GiveawayManager";
 import { CanManageGiveaway } from "@commands/Utility/Giveaway/GiveawayShared";
 
@@ -16,7 +13,7 @@ export async function HandleReroll(
 
   const messageId = interaction.options.getString("message_id", true);
   const manager = new GiveawayManager(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
     context.databases.userDb,
   );
   const giveaway = manager.GetGiveaway(messageId);

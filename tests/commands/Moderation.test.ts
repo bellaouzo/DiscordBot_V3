@@ -69,12 +69,13 @@ describe("Moderation commands", () => {
 
       if (!commandsWithBehaviorTests.has(cmd)) {
         it("execute does not throw", async () => {
-          const { createMockInteraction, createMockContext } = await import(
-            "../helpers"
-          );
+          const { createMockInteraction, createMockContext } =
+            await import("../helpers");
           const interaction = createMockInteraction();
           const context = createMockContext();
-          await expect(cmd.execute(interaction, context)).resolves.not.toThrow();
+          await expect(
+            cmd.execute(interaction, context),
+          ).resolves.not.toThrow();
         });
       }
     });

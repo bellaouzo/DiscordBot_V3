@@ -1,11 +1,6 @@
-import {
-  Guild,
-  TextChannel,
-  PermissionFlagsBits,
-  OverwriteResolvable,
-  ChannelType,
-} from "discord.js";
-import { Logger } from "@shared/Logger";
+import type { Guild, TextChannel, OverwriteResolvable } from "discord.js";
+import { PermissionFlagsBits, ChannelType } from "discord.js";
+import type { Logger } from "@shared/Logger";
 
 export interface TicketLogServiceOptions {
   readonly guild: Guild;

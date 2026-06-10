@@ -1,8 +1,16 @@
-import { ChatInputCommandInteraction, User, MessageFlags } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands";
+import type { ChatInputCommandInteraction, User } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { CreateGuildResourceLocator, EmbedFactory } from "@utilities";
-import { ConvertDurationToMs, DurationUnit, FormatDuration } from "@utilities";
+import type { DurationUnit } from "@utilities";
+import {
+  RequireGuild,
+  CreateGuildResourceLocator,
+  EmbedFactory,
+  ConvertDurationToMs,
+  FormatDuration,
+} from "@utilities";
 
 async function ExecuteBan(
   interaction: ChatInputCommandInteraction,
@@ -62,7 +70,7 @@ async function ExecuteBan(
   }
 
   const locator = CreateGuildResourceLocator({
-    guild: interaction.guild!,
+    guild: RequireGuild(interaction),
     logger,
   });
   const modDb = context.databases.moderationDb;
@@ -127,7 +135,7 @@ async function ExecuteBan(
       await interaction.guild?.bans.create(targetUserId, { reason });
 
       modDb.AddModerationEvent({
-        guild_id: interaction.guild!.id,
+        guild_id: RequireGuild(interaction).id,
         user_id: targetUserId,
         moderator_id: interaction.user.id,
         action: "ban",

@@ -1,12 +1,12 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import {
-  ChannelType,
+import type {
   Guild,
   GuildMember,
   Role,
   TextChannel,
   CategoryChannel,
 } from "discord.js";
+import { ChannelType } from "discord.js";
 import { CreateGuildResourceLocator } from "@utilities/GuildResourceLocator";
 
 function createTextChannel(id: string, name = "general"): TextChannel {

@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": ["ES2020"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "baseUrl": "../src",
+    "paths": {
+      "@commands": ["Commands/index"],
+      "@commands/*": ["Commands/*"],
+      "@systems": ["Systems"],
+      "@systems/*": ["Systems/*"],
+      "@middleware": ["Commands/Middleware/index"],
+      "@middleware/*": ["Commands/Middleware/*"],
+      "@bot": ["Bot/index"],
+      "@bot/*": ["Bot/*"],
+      "@database": ["Database/index"],
+      "@database/*": ["Database/*"],
+      "@utilities": ["Utilities/index"],
+      "@utilities/*": ["Utilities/*"],
+      "@shared": ["Shared/index"],
+      "@shared/*": ["Shared/*"],
+      "@responders": ["Responders/index"],
+      "@responders/*": ["Responders/*"],
+      "@events": ["Events/index"],
+      "@events/*": ["Events/*"],
+      "@config": ["Config/AppConfig"],
+      "@config/*": ["Config/*"]
+    }
+  },
+  "include": ["./**/*.ts"]
+}

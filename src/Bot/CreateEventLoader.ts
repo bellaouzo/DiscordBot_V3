@@ -1,8 +1,8 @@
 import { readdirSync } from "fs";
 import { join } from "path";
-import { EventDefinition } from "@events";
-import { Logger } from "@shared/Logger";
-import { LoadError } from "./CreateCommandLoader";
+import type { EventDefinition } from "@events";
+import type { Logger } from "@shared/Logger";
+import type { LoadError } from "./CreateCommandLoader";
 
 export type EventLoader = () => Promise<EventDefinition[]>;
 

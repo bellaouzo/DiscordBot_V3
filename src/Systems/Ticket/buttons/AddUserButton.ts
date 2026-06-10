@@ -1,14 +1,14 @@
-import {
+import type {
   ButtonInteraction,
   Guild,
   ActionRowComponentData,
-  MessageFlags,
 } from "discord.js";
-import { ButtonResponder } from "@responders";
-import { DatabaseSet } from "@database";
-import { Logger } from "@shared/Logger";
+import { MessageFlags } from "discord.js";
+import type { ButtonResponder } from "@responders";
+import type { DatabaseSet } from "@database";
+import type { Logger } from "@shared/Logger";
 import { ComponentFactory, EmbedFactory, ToActionRowData } from "@utilities";
-import { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
+import type { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
 import {
   CreateTicketServices,
   ParseTicketButtonCustomId,

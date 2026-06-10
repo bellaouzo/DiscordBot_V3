@@ -1,22 +1,25 @@
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+import type {
   ChatInputCommandInteraction,
-  MessageFlags,
   NewsChannel,
   TextChannel,
   ThreadChannel,
 } from "discord.js";
-import { CommandContext } from "@commands";
 import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  MessageFlags,
+} from "discord.js";
+import type { CommandContext } from "@commands";
+import {
+  RequireGuild,
   EmbedFactory,
   IsModerator,
   ResolveInteractionMember,
   ToActionRowData,
   ToEmbedData,
 } from "@utilities";
-import { GiveawayManager } from "@systems/Giveaway/GiveawayManager";
+import type { GiveawayManager } from "@systems/Giveaway/GiveawayManager";
 
 export const MIN_DURATION_MINUTES = 1;
 export const MAX_DURATION_MINUTES = 10080;
@@ -27,7 +30,7 @@ export async function RequireModerator(
   context: CommandContext,
 ): Promise<boolean> {
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
   );
   const member = await ResolveInteractionMember(interaction);
   if (IsModerator(member, settings)) {
@@ -55,7 +58,7 @@ export async function CanManageGiveaway(
   }
 
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
   );
   const member = await ResolveInteractionMember(interaction);
   return IsModerator(member, settings);

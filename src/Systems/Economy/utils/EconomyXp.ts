@@ -1,5 +1,5 @@
-import { ChatInputCommandInteraction } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import type { CommandContext } from "@commands";
 import { LevelManager } from "@systems/Leveling/LevelManager";
 
 export type EconomyOutcome = "win" | "loss" | "neutral";
@@ -61,7 +61,10 @@ export function AwardEconomyXp(options: {
     xpLedger.set(ledgerKey, { day: dayKey, earned: 0 });
   }
 
-  const entry = xpLedger.get(ledgerKey)!;
+  const entry = xpLedger.get(ledgerKey);
+  if (!entry) {
+    return 0;
+  }
   if (entry.earned >= ECONOMY_DAILY_CAP) {
     return 0;
   }

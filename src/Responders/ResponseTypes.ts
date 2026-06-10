@@ -1,12 +1,13 @@
-import {
+import type {
   ActionRowData,
   ChatInputCommandInteraction,
   MessageCreateOptions,
   MessageEditOptions,
   ActionRowComponentData,
-  MessageFlags,
 } from "discord.js";
-import { CreateConsoleLogger, Logger } from "../Shared/Logger";
+import { MessageFlags } from "discord.js";
+import type { Logger } from "../Shared/Logger";
+import { CreateConsoleLogger } from "../Shared/Logger";
 
 export type ResponderMessageOptions = Pick<
   MessageCreateOptions,

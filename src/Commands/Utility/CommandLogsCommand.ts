@@ -1,11 +1,10 @@
-import { AttachmentBuilder, ChatInputCommandInteraction } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { AttachmentBuilder } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { EmbedFactory } from "@utilities";
-import {
-  FormatLogs,
-  GetLogsForUser,
-  LogExportFormat,
-} from "@utilities/CommandLogStore";
+import type { LogExportFormat } from "@utilities/CommandLogStore";
+import { FormatLogs, GetLogsForUser } from "@utilities/CommandLogStore";
 import fs from "fs";
 import path from "path";
 

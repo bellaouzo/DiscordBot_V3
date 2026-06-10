@@ -1,5 +1,5 @@
-import Database from "better-sqlite3";
-import {
+import type Database from "better-sqlite3";
+import type {
   Appeal,
   AppealActionType,
   AppealStatus,

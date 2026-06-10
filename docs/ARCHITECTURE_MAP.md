@@ -158,6 +158,16 @@ sequenceDiagram
 
 Appeal submit, Setup wizard, Giveaway entry, Economy bet sessions, and Ticket open all follow variants of this pattern.
 
+## Database and Scaling Notes
+
+Persistence uses **better-sqlite3** (synchronous SQLite) via facades such as [`ServerDatabase.ts`](../src/Database/ServerDatabase.ts) and per-domain stores under `src/Database/*/Stores/`.
+
+- Suitable for a **single bot process** with moderate read/write volume.
+- SQLite calls run on the Node.js main thread; heavy queries can block the event loop.
+- Reconsider the storage layer if you need multiple bot instances writing concurrently, very high write throughput, or cross-process replication.
+
+For a single-guild or small multi-guild deployment, the current facade + store pattern is intentional and keeps command code simple.
+
 ## Configuration Flow
 
 1. `LoadAppConfig()` validates hard-required startup vars.

@@ -1,5 +1,6 @@
-import { ChatInputCommandInteraction } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands";
+import type { ChatInputCommandInteraction } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware/CommandConfig";
 import { HandleActivateRaidMode } from "@commands/Moderation/RaidMode/ActivateFlow";
 import { HandleDeactivateRaidMode } from "@commands/Moderation/RaidMode/DeactivateFlow";

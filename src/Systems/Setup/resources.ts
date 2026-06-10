@@ -1,10 +1,10 @@
-import {
+import type {
   CategoryChannel,
-  ChannelType,
   ChatInputCommandInteraction,
   TextChannel,
 } from "discord.js";
-import { SetupResources } from "./state";
+import { ChannelType } from "discord.js";
+import type { SetupResources } from "./state";
 
 export function CollectResources(
   guild: ChatInputCommandInteraction["guild"],

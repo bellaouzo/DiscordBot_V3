@@ -1,9 +1,6 @@
-import {
-  ChatInputCommandInteraction,
-  PermissionFlagsBits,
-  MessageFlags,
-} from "discord.js";
-import type { CommandContext } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { PermissionFlagsBits, MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
 import { EmbedFactory } from "@utilities";
 
 export {
@@ -22,7 +19,10 @@ export {
 
 export { FindPlayerPresence } from "@systems/Roblox/bridgePresence";
 
-export { BuildStatusEmbed, ExtractErrorMessage } from "@systems/Roblox/bridgeEmbeds";
+export {
+  BuildStatusEmbed,
+  ExtractErrorMessage,
+} from "@systems/Roblox/bridgeEmbeds";
 
 export async function EnsureAdminAccess(
   interaction: ChatInputCommandInteraction,

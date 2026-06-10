@@ -1,4 +1,4 @@
-import { EconomyItem } from "./types";
+import type { EconomyItem } from "./types";
 
 export const ITEM_CATALOG: EconomyItem[] = [
   {

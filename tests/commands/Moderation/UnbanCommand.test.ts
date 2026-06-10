@@ -71,7 +71,9 @@ describe("UnbanCommand behavior", () => {
     });
     const context = createMockContext();
     await UnbanCommand.execute(interaction, context);
-    expect(context.responders.interactionResponder.WithAction).toHaveBeenCalled();
+    expect(
+      context.responders.interactionResponder.WithAction,
+    ).toHaveBeenCalled();
     expect(unban).toHaveBeenCalledWith("banned-id", "appeal accepted");
   });
 });

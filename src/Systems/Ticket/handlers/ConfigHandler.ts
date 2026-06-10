@@ -1,6 +1,11 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { CommandContext } from "@commands/CommandFactory";
-import { EmbedFactory, ResolveInteractionMember } from "@utilities";
+import type { ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import {
+  RequireGuild,
+  EmbedFactory,
+  ResolveInteractionMember,
+} from "@utilities";
 import {
   CreateTicketServices,
   HasStaffPermissions,
@@ -19,7 +24,7 @@ export async function HandleTicketConfig(
   }
 
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild!.id,
+    RequireGuild(interaction).id,
   );
   const member = await ResolveInteractionMember(interaction);
 
@@ -43,11 +48,11 @@ export async function HandleTicketConfig(
   const action = interaction.options.getSubcommand(true);
   const { ticketDb } = CreateTicketServices(
     logger,
-    interaction.guild!,
+    RequireGuild(interaction),
     context.databases.ticketDb,
     context.databases.serverDb,
   );
-  const guildId = interaction.guild!.id;
+  const guildId = RequireGuild(interaction).id;
 
   if (action === "list") {
     const categories = ticketDb.EnsureCategoryConfigs(guildId);

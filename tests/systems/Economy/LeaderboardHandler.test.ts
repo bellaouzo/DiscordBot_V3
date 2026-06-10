@@ -39,6 +39,7 @@ describe("LeaderboardHandler", () => {
       guildId: "g1",
       user: { id: "u1" } as unknown as import("discord.js").User,
       guild: {
+        id: "g1",
         members: {
           fetch: vi.fn().mockResolvedValue({
             displayName: "Alice",

@@ -1,11 +1,11 @@
-import {
+import type {
   ChatInputCommandInteraction,
   Role,
   TextChannel,
   CategoryChannel,
 } from "discord.js";
 import { EmbedFactory } from "@utilities";
-import { LoadAppConfig } from "@config/AppConfig";
+import type { LoadAppConfig } from "@config/AppConfig";
 import {
   DEFAULT_ANNOUNCEMENT_CHANNEL,
   DEFAULT_DELETE_LOG_CHANNEL,
@@ -13,7 +13,7 @@ import {
   DEFAULT_APPEAL_CATEGORY,
   DEFAULT_TICKET_CATEGORY,
 } from "../constants";
-import { SetupDraft } from "../state";
+import type { SetupDraft } from "../state";
 
 function FormatRoleList(
   roleIds: string[],

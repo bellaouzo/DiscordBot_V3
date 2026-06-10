@@ -1,5 +1,5 @@
 import { EmbedFactory } from "@utilities";
-import { FlipChoice } from "../../types";
+import type { FlipChoice } from "../../types";
 
 export function BuildFlipPromptEmbed(options: {
   bet: number;

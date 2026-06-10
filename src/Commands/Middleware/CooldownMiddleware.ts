@@ -1,6 +1,6 @@
 import { MessageFlags } from "discord.js";
-import { CommandConfig } from "./CommandConfig";
-import { CommandMiddleware, MiddlewareContext } from "./index";
+import type { CommandConfig } from "./CommandConfig";
+import type { CommandMiddleware, MiddlewareContext } from "./index";
 import { CreateErrorMessage } from "@responders/MessageFactory";
 import { GetCooldownStateStore } from "./CooldownState";
 

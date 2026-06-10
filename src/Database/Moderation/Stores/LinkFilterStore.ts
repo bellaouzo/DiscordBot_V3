@@ -1,6 +1,6 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { MapLinkFilter } from "@database/Moderation/Mappers";
-import { LinkFilter, LinkFilterType } from "@database/Moderation/Types";
+import type { LinkFilter, LinkFilterType } from "@database/Moderation/Types";
 
 export class LinkFilterStore {
   constructor(private readonly db: Database.Database) {}

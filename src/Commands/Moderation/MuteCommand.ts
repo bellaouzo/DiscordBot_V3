@@ -1,16 +1,15 @@
-import {
-  ChatInputCommandInteraction,
-  GuildMember,
-  MessageFlags,
-} from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import type { ChatInputCommandInteraction, GuildMember } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { CommandContext } from "@commands";
+import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
+import type { DurationUnit } from "@utilities";
 import {
+  RequireGuild,
   EmbedFactory,
   CreateGuildResourceLocator,
   ConvertDurationToMs,
   FormatDuration,
-  DurationUnit,
 } from "@utilities";
 
 function ValidateTargetMember(
@@ -39,7 +38,7 @@ async function ExecuteMute(
   const { interactionResponder } = context.responders;
   const { logger } = context;
 
-  const guild = interaction.guild!;
+  const guild = RequireGuild(interaction);
 
   const targetUser = interaction.options.getUser("user", true);
   const reason =
