@@ -49,6 +49,56 @@ function ResolveMinLogLevel(): LogLevel {
 
 const MIN_LOG_LEVEL = ResolveMinLogLevel();
 
+function ReadErrorCause(error: Error): unknown {
+  if (!("cause" in error)) {
+    return undefined;
+  }
+
+  return (error as Error & { cause?: unknown }).cause;
+}
+
+function SerializeLogValue(value: unknown): unknown {
+  if (value instanceof Error) {
+    const cause = ReadErrorCause(value);
+
+    return {
+      name: value.name,
+      message: value.message,
+      ...(value.stack ? { stack: value.stack } : {}),
+      ...(cause !== undefined ? { cause: SerializeLogValue(cause) } : {}),
+    };
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(SerializeLogValue);
+  }
+
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [
+        key,
+        SerializeLogValue(entry),
+      ]),
+    );
+  }
+
+  return value;
+}
+
+function FormatContextForOutput(context: Record<string, unknown>): string {
+  const serialized = Object.fromEntries(
+    Object.entries(context).map(([key, value]) => [
+      key,
+      SerializeLogValue(value),
+    ]),
+  );
+
+  return JSON.stringify(serialized)
+    .replace(/"/g, "")
+    .replace(/:/g, ": ")
+    .replace(/,/g, ", ");
+}
+
 class ConsoleLogger implements Logger {
   constructor(private readonly baseContext: LogContext = {}) {}
 
@@ -84,7 +134,7 @@ class ConsoleLogger implements Logger {
     const timestamp = context?.timestamp ?? new Date().toISOString();
     const mergedContext = { ...this.baseContext, ...context };
 
-    const { extra, ...regularFields } = mergedContext;
+    const { extra, error, ...regularFields } = mergedContext;
     const regularEntries = Object.entries(regularFields).filter(
       ([, value]) => value !== undefined,
     );
@@ -95,16 +145,56 @@ class ConsoleLogger implements Logger {
 
     let output = `[${timestamp}] ${levelColor}${levelText}\x1b[0m ${message}`;
 
-    if (regularEntries.length > 0) {
-      const regularContext = Object.fromEntries(regularEntries);
-      output += ` \x1b[36m${JSON.stringify(regularContext).replace(/"/g, "").replace(/:/g, ": ").replace(/,/g, ", ")}\x1b[0m`;
+    const contextForOutput: Record<string, unknown> = {
+      ...Object.fromEntries(regularEntries),
+      ...(error !== undefined ? { error: SerializeLogValue(error) } : {}),
+    };
+
+    if (Object.keys(contextForOutput).length > 0) {
+      output += ` \x1b[36m${FormatContextForOutput(contextForOutput)}\x1b[0m`;
     }
 
     if (hasExtra) {
-      output += ` \x1b[32m${JSON.stringify({ extra }).replace(/"/g, "").replace(/:/g, ": ").replace(/,/g, ", ")}\x1b[0m`;
+      output += ` \x1b[32m${FormatContextForOutput({ extra })}\x1b[0m`;
     }
 
     console[level](output);
+
+    if (level === "error" && error !== undefined) {
+      this.PrintErrorDetails(error);
+    }
+  }
+
+  private PrintErrorDetails(error: unknown): void {
+    const serialized = SerializeLogValue(error);
+
+    if (
+      serialized &&
+      typeof serialized === "object" &&
+      "message" in serialized &&
+      typeof serialized.message === "string" &&
+      serialized.message.length > 0
+    ) {
+      console.error(`\x1b[31m  Caused by: ${serialized.message}\x1b[0m`);
+
+      if (
+        "stack" in serialized &&
+        typeof serialized.stack === "string" &&
+        serialized.stack.length > 0
+      ) {
+        console.error(
+          `\x1b[90m${serialized.stack
+            .split("\n")
+            .slice(1)
+            .map((line) => `  ${line}`)
+            .join("\n")}\x1b[0m`,
+        );
+      }
+
+      return;
+    }
+
+    console.error(`\x1b[31m  Caused by: ${String(error)}\x1b[0m`);
   }
 
   private GetLevelColor(level: LogLevel): string {

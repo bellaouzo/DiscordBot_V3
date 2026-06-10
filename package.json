@@ -4,9 +4,9 @@
   "description": "A clean Discord bot built with TypeScript",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "tsc && node dist/index.js",
-    "dev": "tsc && node dist/index.js",
+    "build": "npm run clean && tsc",
+    "start": "npm run build && node dist/index.js",
+    "dev": "npm run build && node dist/index.js",
     "build:watch": "tsc --watch",
     "dev:watch": "concurrently -k \"npm run build:watch\" \"node --watch dist/index.js\"",
     "clean": "rimraf dist",

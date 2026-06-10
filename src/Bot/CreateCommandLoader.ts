@@ -44,18 +44,23 @@ function isCommandFile(file: string, commandsPath: string): boolean {
   return true;
 }
 
-function AssertNoDuplicateCommandNames(definitions: CommandDefinition[]): void {
+interface LoadedCommandEntry {
+  readonly command: CommandDefinition;
+  readonly file: string;
+}
+
+function AssertNoDuplicateCommandNames(entries: LoadedCommandEntry[]): void {
   const seen = new Map<string, string>();
 
-  for (const command of definitions) {
-    const name = command.data.name;
+  for (const entry of entries) {
+    const name = entry.command.data.name;
     const previous = seen.get(name);
     if (previous) {
       throw new Error(
-        `Duplicate command name "${name}" loaded from multiple files`,
+        `Duplicate command name "${name}" loaded from ${previous} and ${entry.file}`,
       );
     }
-    seen.set(name, name);
+    seen.set(name, entry.file);
   }
 }
 
@@ -75,8 +80,7 @@ function ThrowIfLoadFailed(errors: LoadError[]): void {
 
 export function CreateCommandLoader(logger: Logger): CommandLoader {
   return async () => {
-    const definitions: CommandDefinition[] = [];
-    const slashData: SlashCommandBuilder[] = [];
+    const entries: LoadedCommandEntry[] = [];
     const errors: LoadError[] = [];
     const commandsPath = join(__dirname, "..", "Commands");
 
@@ -86,6 +90,7 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
 
     for (const file of files) {
       const filePath = join(commandsPath, file as string);
+      const fileLabel = String(file);
       try {
         const module = await import(filePath);
 
@@ -99,26 +104,30 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
         );
 
         for (const command of commandExports) {
-          const cmd = command as CommandDefinition;
-          definitions.push(cmd);
-          slashData.push(cmd.data);
+          entries.push({
+            command: command as CommandDefinition,
+            file: fileLabel,
+          });
         }
       } catch (error) {
         logger.Error("Failed to load command file", {
-          file: String(file),
+          file: fileLabel,
           error,
         });
-        errors.push({ file: String(file), error });
+        errors.push({ file: fileLabel, error });
       }
     }
 
     ThrowIfLoadFailed(errors);
 
-    if (definitions.length === 0) {
+    if (entries.length === 0) {
       throw new Error("No commands were loaded from the Commands directory");
     }
 
-    AssertNoDuplicateCommandNames(definitions);
+    AssertNoDuplicateCommandNames(entries);
+
+    const definitions = entries.map((entry) => entry.command);
+    const slashData = definitions.map((command) => command.data);
 
     logger.Debug("Loaded all commands", {
       timestamp: new Date().toISOString(),

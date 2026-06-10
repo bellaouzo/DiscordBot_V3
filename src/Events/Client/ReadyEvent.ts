@@ -139,6 +139,17 @@ export const ReadyEvent = CreateEvent({
   name: Events.ClientReady,
   once: true,
   execute: async (context: EventContext) => {
+    const guildCount = context.client.guilds.cache.size;
+    const userTag = context.client.user?.tag ?? "unknown";
+
+    context.logger.Info("Bot is online and ready", {
+      extra: {
+        tag: userTag,
+        guilds: guildCount,
+        apiLatencyMs: Math.max(0, Math.round(context.client.ws.ping)),
+      },
+    });
+
     await AnnounceDeploy(context);
 
     try {
