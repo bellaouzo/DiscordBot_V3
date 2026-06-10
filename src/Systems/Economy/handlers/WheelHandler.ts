@@ -1,4 +1,7 @@
-import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
+import {
+  ButtonInteraction, ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { BuildWheelResultEmbed } from "@systems/Economy/utils/Embeds";
@@ -59,7 +62,7 @@ export async function HandleWheel(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -77,7 +80,7 @@ export async function HandleWheel(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -141,7 +144,7 @@ export async function HandleWheel(
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This wheel spin already finished.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -228,9 +231,7 @@ export async function HandleWheel(
 
   const replyResult = await interactionResponder.Reply(interaction, {
     embeds: [promptEmbed.toJSON()],
-    components: [BuildWheelButtons(customIds)],
-    ephemeral: false,
-  });
+    components: [BuildWheelButtons(customIds)],  });
 
   if (!replyResult.success) {
     if (bet > 0) {

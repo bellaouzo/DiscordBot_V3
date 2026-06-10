@@ -64,6 +64,31 @@ export class AppealStore {
     return row ? MapAppeal(row) : null;
   }
 
+  HasOpenAppealForAction(data: {
+    guild_id: string;
+    user_id: string;
+    action_type: AppealActionType;
+    action_ref: string;
+  }): boolean {
+    const stmt = this.db.prepare(`
+      SELECT 1
+      FROM appeals
+      WHERE guild_id = ?
+        AND user_id = ?
+        AND action_type = ?
+        AND action_ref = ?
+        AND status = 'open'
+      LIMIT 1
+    `);
+    const row = stmt.get(
+      data.guild_id,
+      data.user_id,
+      data.action_type,
+      data.action_ref
+    );
+    return row !== undefined;
+  }
+
   ListAppeals(options: {
     guild_id: string;
     user_id?: string;

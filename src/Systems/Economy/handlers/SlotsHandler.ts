@@ -1,4 +1,7 @@
-import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
+import {
+  ButtonInteraction, ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { BuildSlotsResultEmbed } from "@systems/Economy/utils/Embeds";
@@ -118,7 +121,7 @@ export async function HandleSlots(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -136,7 +139,7 @@ export async function HandleSlots(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -217,7 +220,7 @@ export async function HandleSlots(
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This spin is already finished.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -377,9 +380,7 @@ export async function HandleSlots(
 
   const replyResult = await interactionResponder.Reply(interaction, {
     embeds: [promptEmbed.toJSON()],
-    components: [BuildSlotsButtons(customIds)],
-    ephemeral: false,
-  });
+    components: [BuildSlotsButtons(customIds)],  });
 
   if (!replyResult.success) {
     if (bet > 0) {

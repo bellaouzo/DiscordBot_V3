@@ -1,5 +1,9 @@
 import { randomUUID } from "crypto";
-import { InteractionReplyOptions, ModalSubmitInteraction } from "discord.js";
+import {
+  InteractionReplyOptions,
+  ModalSubmitInteraction,
+  MessageFlags,
+} from "discord.js";
 import { Logger } from "./Logger";
 
 export type ModalHandler = (
@@ -72,7 +76,7 @@ export class ModalRouter {
       registration.onExpire?.();
       await this.ReplyIfNeeded(interaction, {
         content: "This interaction has expired.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return true;
     }
@@ -80,7 +84,7 @@ export class ModalRouter {
     if (registration.ownerId && registration.ownerId !== interaction.user.id) {
       await this.ReplyIfNeeded(interaction, {
         content: "You cannot use this interaction.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return true;
     }
@@ -97,7 +101,7 @@ export class ModalRouter {
 
       await this.ReplyIfNeeded(interaction, {
         content: "Something went wrong while handling that interaction.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
 

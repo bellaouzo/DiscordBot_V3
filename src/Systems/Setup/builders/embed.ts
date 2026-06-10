@@ -10,6 +10,7 @@ import {
   DEFAULT_ANNOUNCEMENT_CHANNEL,
   DEFAULT_DELETE_LOG_CHANNEL,
   DEFAULT_PRODUCTION_LOG_CHANNEL,
+  DEFAULT_APPEAL_CATEGORY,
   DEFAULT_TICKET_CATEGORY,
 } from "../constants";
 import { SetupDraft } from "../state";
@@ -124,6 +125,15 @@ export function BuildSetupEmbed(options: {
         inline: false,
       },
       {
+        name: "Appeal Category",
+        value: FormatCategory(
+          draft.appealReviewCategoryId,
+          guild,
+          DEFAULT_APPEAL_CATEGORY
+        ),
+        inline: false,
+      },
+      {
         name: "Delete Logs",
         value: FormatChannel(
           draft.deleteLogChannelId,
@@ -144,6 +154,11 @@ export function BuildSetupEmbed(options: {
     );
   } else if (step === 3) {
     fields.push(
+      {
+        name: "Ticket Logs",
+        value: FormatChannel(draft.ticketLogChannelId, guild, "ticket-logs"),
+        inline: true,
+      },
       {
         name: "Announcements",
         value: FormatChannel(

@@ -1,105 +1,143 @@
-import { ButtonInteraction, Guild } from "discord.js";
-import { ComponentRouter } from "@shared/ComponentRouter";
+import {
+  ButtonInteraction,
+  Guild,
+  ActionRowComponentData,
+  MessageFlags
+} from "discord.js";
 import { ButtonResponder } from "@responders";
-import { TicketDatabase, Ticket } from "@database";
+import { DatabaseSet } from "@database";
 import { Logger } from "@shared/Logger";
 import {
   ComponentFactory,
-  CreateTicketManager,
   EmbedFactory,
-  GuildResourceLocator,
+  ToActionRowData,
 } from "@utilities";
 import { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
-import { BUTTON_EXPIRATION_MS } from "@systems/Ticket/types/TicketTypes";
+import {
+  CreateTicketServices,
+  ParseTicketButtonCustomId,
+} from "@systems/Ticket/validation/TicketValidation";
 import { HandleUserRemoval } from "@systems/Ticket/components/UserSelectionMenu";
 
-export async function RegisterRemoveUserButton(
-  componentRouter: ComponentRouter,
-  buttonResponder: ButtonResponder,
-  ticket: Ticket,
-  interactionId: string,
-  logger: Logger,
-  ticketDb: TicketDatabase,
-  guild: Guild,
-  userSelectMenuRouter: UserSelectMenuRouter,
-  guildResourceLocator: GuildResourceLocator
+export async function HandleRemoveUserButton(
+  buttonInteraction: ButtonInteraction,
+  options: {
+    buttonResponder: ButtonResponder;
+    userSelectMenuRouter: UserSelectMenuRouter;
+    databases: DatabaseSet;
+    logger: Logger;
+    guild: Guild;
+  }
 ): Promise<void> {
-  componentRouter.RegisterButton({
-    customId: `ticket:${interactionId}:remove:${ticket.id}`,
-    handler: async (buttonInteraction: ButtonInteraction) => {
-      await buttonResponder.DeferUpdate(buttonInteraction);
+  const parsed = ParseTicketButtonCustomId(buttonInteraction.customId);
+  if (!parsed || parsed.action !== "remove") {
+    return;
+  }
 
-      const member = await guildResourceLocator.GetMember(
-        buttonInteraction.user.id
+  const ticket = options.databases.ticketDb.GetTicket(parsed.ticketId);
+  if (!ticket || ticket.status === "closed") {
+    await options.buttonResponder.Reply(buttonInteraction, {
+      embeds: [
+        EmbedFactory.CreateError({
+          title: "Ticket Unavailable",
+          description: "This ticket is no longer open.",
+        }).toJSON(),
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const { ticketManager, guildResourceLocator, settings } =
+    CreateTicketServices(
+      options.logger,
+      options.guild,
+      options.databases.ticketDb,
+      options.databases.serverDb
+    );
+
+  const member = await guildResourceLocator.GetMember(
+    buttonInteraction.user.id
+  );
+
+  if (
+    !ticketManager.CanUserRemoveParticipants(
+      ticket,
+      buttonInteraction.user.id,
+      member,
+      {
+        adminRoleIds: settings?.admin_role_ids,
+        modRoleIds: settings?.mod_role_ids,
+      }
+    )
+  ) {
+    await options.buttonResponder.Reply(buttonInteraction, {
+      embeds: [
+        EmbedFactory.CreateError({
+          title: "Permission Denied",
+          description: "You cannot remove users from this ticket.",
+        }).toJSON(),
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const activeParticipants = options.databases.ticketDb.GetActiveParticipants(
+    ticket.id
+  );
+  const participantIds = activeParticipants
+    .filter((p) => p.user_id !== ticket.user_id)
+    .map((p) => p.user_id);
+
+  if (participantIds.length === 0) {
+    await options.buttonResponder.Reply(buttonInteraction, {
+      embeds: [
+        EmbedFactory.CreateWarning({
+          title: "No Participants",
+          description: "There are no users to remove from this ticket.",
+        }).toJSON(),
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  await options.buttonResponder.DeferUpdate(buttonInteraction);
+
+  const userSelectMenu = ComponentFactory.CreateUserSelectMenu({
+    customId: `ticket-remove-button:${buttonInteraction.id}`,
+    placeholder: "Select users to remove from this ticket...",
+    minValues: 1,
+    maxValues: Math.min(participantIds.length, 10),
+  });
+
+  options.userSelectMenuRouter.RegisterUserSelectMenu({
+    customId: `ticket-remove-button:${buttonInteraction.id}`,
+    ownerId: buttonInteraction.user.id,
+    singleUse: true,
+    handler: async (userSelectInteraction) => {
+      const { ticketManager: manager } = CreateTicketServices(
+        options.logger,
+        options.guild,
+        options.databases.ticketDb,
+        options.databases.serverDb
       );
-      const ticketManager = CreateTicketManager({
-        guild,
-        logger,
-        ticketDb,
-        guildResourceLocator,
-      });
-
-      if (
-        !ticketManager.CanUserRemoveParticipants(
-          ticket,
-          buttonInteraction.user.id,
-          member
-        )
-      ) {
-        return;
-      }
-
-      // Get active participants (excluding ticket owner)
-      const activeParticipants = ticketDb.GetActiveParticipants(ticket.id);
-      const participantIds = activeParticipants
-        .filter((p) => p.user_id !== ticket.user_id)
-        .map((p) => p.user_id);
-
-      if (participantIds.length === 0) {
-        await buttonResponder.FollowUp(buttonInteraction, {
-          embeds: [
-            EmbedFactory.CreateWarning({
-              title: "No Participants",
-              description: "There are no users to remove from this ticket.",
-            }).toJSON(),
-          ],
-          ephemeral: true,
-        });
-        return;
-      }
-
-      const userSelectMenu = ComponentFactory.CreateUserSelectMenu({
-        customId: `ticket-remove-button:${buttonInteraction.id}`,
-        placeholder: "Select users to remove from this ticket...",
-        minValues: 1,
-        maxValues: Math.min(participantIds.length, 10),
-      });
-
-      userSelectMenuRouter.RegisterUserSelectMenu({
-        customId: `ticket-remove-button:${buttonInteraction.id}`,
-        ownerId: buttonInteraction.user.id,
-        singleUse: true,
-        handler: async (userSelectInteraction) => {
-          await HandleUserRemoval(userSelectInteraction, ticket, ticketManager);
-        },
-        expiresInMs: 60000,
-      });
-
-      const row = ComponentFactory.CreateUserSelectMenuRow(userSelectMenu);
-
-      await buttonInteraction.followUp({
-        embeds: [
-          EmbedFactory.Create({
-            title: "Remove Participants",
-            description: "Select users to remove from this ticket:",
-          }).toJSON(),
-        ],
-        components: [row.toJSON()],
-        ephemeral: true,
-      });
+      await HandleUserRemoval(userSelectInteraction, ticket, manager);
     },
-    expiresInMs: BUTTON_EXPIRATION_MS,
+    expiresInMs: 60000,
+  });
+
+  const row = ComponentFactory.CreateUserSelectMenuRow(userSelectMenu);
+
+  await options.buttonResponder.FollowUp(buttonInteraction, {
+    embeds: [
+      EmbedFactory.Create({
+        title: "Remove Participants",
+        description: "Select users to remove from this ticket:",
+      }).toJSON(),
+    ],
+    components: [ToActionRowData<ActionRowComponentData>(row)],
+    flags: MessageFlags.Ephemeral,
   });
 }
-
-

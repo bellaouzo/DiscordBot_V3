@@ -1,8 +1,14 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { LinkFilterType } from "@database";
+import { PaginationPage } from "@shared/Paginator";
+
+const FILTER_LIST_PAGE_SIZE = 15;
 
 function NormalizePattern(input: string): string {
   return input.trim().toLowerCase();
@@ -12,7 +18,54 @@ function DescribeFilters(patterns: string[]): string {
   if (patterns.length === 0) {
     return "None";
   }
-  return patterns.slice(0, 20).join(", ");
+  return patterns.join(", ");
+}
+
+function BuildFilterPages(
+  allow: string[],
+  block: string[]
+): PaginationPage[] {
+  const totalPatterns = allow.length + block.length;
+  if (totalPatterns <= FILTER_LIST_PAGE_SIZE) {
+    const embed = EmbedFactory.Create({
+      title: "🔗 Link Filters",
+      description: "Allow list takes priority over block list.",
+    });
+    embed.addFields(
+      { name: "Allow", value: DescribeFilters(allow), inline: false },
+      { name: "Block", value: DescribeFilters(block), inline: false }
+    );
+    return [{ embeds: [embed.toJSON()] }];
+  }
+
+  const combined = [
+    ...allow.map((pattern) => ({ type: "allow" as const, pattern })),
+    ...block.map((pattern) => ({ type: "block" as const, pattern })),
+  ];
+  const pages: PaginationPage[] = [];
+
+  for (let index = 0; index < combined.length; index += FILTER_LIST_PAGE_SIZE) {
+    const slice = combined.slice(index, index + FILTER_LIST_PAGE_SIZE);
+    const start = index + 1;
+    const end = index + slice.length;
+
+    const embed = EmbedFactory.Create({
+      title: "🔗 Link Filters",
+      description: `Showing patterns ${start} - ${end} of ${combined.length}`,
+    });
+
+    embed.addFields(
+      slice.map((entry, sliceIndex) => ({
+        name: `#${start + sliceIndex} — ${entry.type.toUpperCase()}`,
+        value: `\`${entry.pattern}\``,
+        inline: false,
+      }))
+    );
+
+    pages.push({ embeds: [embed.toJSON()] });
+  }
+
+  return pages;
 }
 
 async function AddFilter(
@@ -32,7 +85,7 @@ async function AddFilter(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -50,7 +103,7 @@ async function AddFilter(
       });
       await context.responders.interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -68,7 +121,7 @@ async function AddFilter(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
     context.logger.Error("Failed to add link filter", { error });
@@ -78,7 +131,7 @@ async function AddFilter(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }
@@ -108,7 +161,7 @@ async function RemoveFilter(
       });
       await context.responders.interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -119,7 +172,7 @@ async function RemoveFilter(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
     context.logger.Error("Failed to remove link filter", { error });
@@ -129,7 +182,7 @@ async function RemoveFilter(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }
@@ -139,6 +192,7 @@ async function ListFilters(
   context: CommandContext
 ): Promise<void> {
   const guild = interaction.guild!;
+  const { interactionResponder, paginatedResponder } = context.responders;
 
   const db = context.databases.moderationDb;
   try {
@@ -150,27 +204,24 @@ async function ListFilters(
       .filter((f) => f.type === "block")
       .map((f) => f.pattern);
 
-    const embed = EmbedFactory.Create({
-      title: "🔗 Link Filters",
-      description: "Allow list takes priority over block list.",
-    });
+    const pages = BuildFilterPages(allow, block);
+    const totalPatterns = allow.length + block.length;
 
-    embed.addFields(
-      {
-        name: "Allow",
-        value: DescribeFilters(allow),
-        inline: false,
-      },
-      {
-        name: "Block",
-        value: DescribeFilters(block),
-        inline: false,
-      }
-    );
+    if (totalPatterns <= FILTER_LIST_PAGE_SIZE) {
+      await interactionResponder.Reply(interaction, {
+        embeds: pages[0].embeds,
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
 
-    await context.responders.interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
+    await paginatedResponder.Send({
+      interaction,
+      pages,
+      flags: MessageFlags.Ephemeral,
+      ownerId: interaction.user.id,
+      timeoutMs: 1000 * 60 * 3,
+      idleTimeoutMs: 1000 * 60 * 2,
     });
   } catch (error) {
     context.logger.Error("Failed to list link filters", { error });
@@ -180,7 +231,7 @@ async function ListFilters(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }

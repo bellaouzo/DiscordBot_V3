@@ -65,6 +65,12 @@ export interface TicketCategory {
   emoji: string;
 }
 
+export interface TicketCategoryConfig extends TicketCategory {
+  id: number;
+  guild_id: string;
+  sort_order: number;
+}
+
 export const TICKET_CATEGORIES: TicketCategory[] = [
   {
     value: "general",
@@ -236,6 +242,19 @@ export class TicketDatabase {
 
       CREATE INDEX IF NOT EXISTS idx_ticket_reopen_prior ON ticket_reopen_audits(prior_ticket_id);
       CREATE INDEX IF NOT EXISTS idx_ticket_reopen_new ON ticket_reopen_audits(new_ticket_id);
+
+      CREATE TABLE IF NOT EXISTS ticket_category_configs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        guild_id TEXT NOT NULL,
+        value TEXT NOT NULL,
+        label TEXT NOT NULL,
+        description TEXT NOT NULL,
+        emoji TEXT NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(guild_id, value)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_ticket_category_configs_guild ON ticket_category_configs(guild_id);
     `);
 
     // Add migration for existing databases
@@ -324,6 +343,14 @@ export class TicketDatabase {
     return rows.map((row) => this.MapTicket(row));
   }
 
+  GetActiveUserTickets(user_id: string, guild_id: string): Ticket[] {
+    const stmt = this.db.prepare(
+      "SELECT * FROM tickets WHERE user_id = ? AND guild_id = ? AND status IN ('open', 'claimed') ORDER BY created_at DESC"
+    );
+    const rows = stmt.all(user_id, guild_id) as Record<string, unknown>[];
+    return rows.map((row) => this.MapTicket(row));
+  }
+
   GetGuildTickets(guild_id: string, status?: string): Ticket[] {
     let stmt = this.db.prepare("SELECT * FROM tickets WHERE guild_id = ?");
     if (status) {
@@ -333,6 +360,14 @@ export class TicketDatabase {
       const rows = stmt.all(guild_id, status) as Record<string, unknown>[];
       return rows.map((row) => this.MapTicket(row));
     }
+    const rows = stmt.all(guild_id) as Record<string, unknown>[];
+    return rows.map((row) => this.MapTicket(row));
+  }
+
+  GetActiveGuildTickets(guild_id: string): Ticket[] {
+    const stmt = this.db.prepare(
+      "SELECT * FROM tickets WHERE guild_id = ? AND status IN ('open', 'claimed') ORDER BY created_at ASC"
+    );
     const rows = stmt.all(guild_id) as Record<string, unknown>[];
     return rows.map((row) => this.MapTicket(row));
   }
@@ -564,6 +599,150 @@ export class TicketDatabase {
     );
     const rows = stmt.all(ticket_id) as Record<string, unknown>[];
     return rows.map((row) => this.MapTicketReopenAudit(row));
+  }
+
+  EnsureCategoryConfigs(guild_id: string): TicketCategoryConfig[] {
+    const existing = this.GetCategoryConfigs(guild_id);
+    if (existing.length > 0) {
+      return existing;
+    }
+
+    const insert = this.db.prepare(`
+      INSERT INTO ticket_category_configs (guild_id, value, label, description, emoji, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+
+    TICKET_CATEGORIES.forEach((category, index) => {
+      insert.run(
+        guild_id,
+        category.value,
+        category.label,
+        category.description,
+        category.emoji,
+        index
+      );
+    });
+
+    return this.GetCategoryConfigs(guild_id);
+  }
+
+  GetCategoryConfigs(guild_id: string): TicketCategoryConfig[] {
+    const stmt = this.db.prepare(
+      "SELECT * FROM ticket_category_configs WHERE guild_id = ? ORDER BY sort_order ASC, id ASC"
+    );
+    const rows = stmt.all(guild_id) as Record<string, unknown>[];
+    return rows.map((row) => ({
+      id: Number(row.id),
+      guild_id: String(row.guild_id),
+      value: String(row.value),
+      label: String(row.label),
+      description: String(row.description),
+      emoji: String(row.emoji),
+      sort_order: Number(row.sort_order),
+    }));
+  }
+
+  GetCategoryConfig(
+    guild_id: string,
+    value: string
+  ): TicketCategoryConfig | null {
+    const stmt = this.db.prepare(
+      "SELECT * FROM ticket_category_configs WHERE guild_id = ? AND value = ?"
+    );
+    const row = stmt.get(guild_id, value) as Record<string, unknown> | undefined;
+    if (!row) {
+      return null;
+    }
+
+    return {
+      id: Number(row.id),
+      guild_id: String(row.guild_id),
+      value: String(row.value),
+      label: String(row.label),
+      description: String(row.description),
+      emoji: String(row.emoji),
+      sort_order: Number(row.sort_order),
+    };
+  }
+
+  AddCategoryConfig(data: {
+    guild_id: string;
+    value: string;
+    label: string;
+    description: string;
+    emoji: string;
+    sort_order?: number;
+  }): TicketCategoryConfig {
+    const configs = this.GetCategoryConfigs(data.guild_id);
+    const sortOrder = data.sort_order ?? configs.length;
+    const stmt = this.db.prepare(`
+      INSERT INTO ticket_category_configs (guild_id, value, label, description, emoji, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+
+    const id = stmt.run(
+      data.guild_id,
+      data.value.trim().toLowerCase(),
+      data.label.trim(),
+      data.description.trim(),
+      data.emoji.trim(),
+      sortOrder
+    ).lastInsertRowid as number;
+
+    const config = this.db
+      .prepare("SELECT * FROM ticket_category_configs WHERE id = ?")
+      .get(id) as Record<string, unknown>;
+
+    return {
+      id: Number(config.id),
+      guild_id: String(config.guild_id),
+      value: String(config.value),
+      label: String(config.label),
+      description: String(config.description),
+      emoji: String(config.emoji),
+      sort_order: Number(config.sort_order),
+    };
+  }
+
+  UpdateCategoryConfig(
+    guild_id: string,
+    value: string,
+    updates: {
+      label?: string;
+      description?: string;
+      emoji?: string;
+      sort_order?: number;
+    }
+  ): TicketCategoryConfig | null {
+    const existing = this.GetCategoryConfig(guild_id, value);
+    if (!existing) {
+      return null;
+    }
+
+    const stmt = this.db.prepare(`
+      UPDATE ticket_category_configs
+      SET label = ?, description = ?, emoji = ?, sort_order = ?
+      WHERE guild_id = ? AND value = ?
+    `);
+
+    stmt.run(
+      updates.label ?? existing.label,
+      updates.description ?? existing.description,
+      updates.emoji ?? existing.emoji,
+      updates.sort_order ?? existing.sort_order,
+      guild_id,
+      value
+    );
+
+    return this.GetCategoryConfig(guild_id, value);
+  }
+
+  RemoveCategoryConfig(guild_id: string, value: string): boolean {
+    const stmt = this.db.prepare(
+      "DELETE FROM ticket_category_configs WHERE guild_id = ? AND value = ?"
+    );
+    const result = stmt.run(guild_id, value);
+    return result.changes > 0;
   }
 
   Close(): void {

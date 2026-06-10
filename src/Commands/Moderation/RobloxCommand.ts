@@ -1,3 +1,4 @@
+import { MessageFlags } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
@@ -30,7 +31,7 @@ async function ExecuteRoblox(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -83,7 +84,7 @@ async function ExecuteRoblox(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }

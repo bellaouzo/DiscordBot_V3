@@ -3,6 +3,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   type ChatInputCommandInteraction,
+  MessageFlags
 } from "discord.js";
 import type { CommandContext } from "@commands/CommandFactory";
 import { EmbedFactory } from "@utilities";
@@ -36,7 +37,7 @@ export async function ExecuteConnectSubcommand(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -71,6 +72,6 @@ export async function ExecuteConnectSubcommand(
   await interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
     components: [row.toJSON() as never],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }

@@ -1,4 +1,14 @@
-import { EmbedBuilder, ColorResolvable } from "discord.js";
+import {
+  APIEmbed,
+  ColorResolvable,
+  EmbedBuilder as DiscordEmbedBuilder,
+} from "discord.js";
+
+export type { DiscordEmbedBuilder };
+
+export function ToEmbedData(embed: DiscordEmbedBuilder): APIEmbed {
+  return embed.toJSON();
+}
 
 export interface EmbedOptions {
   readonly title?: string;
@@ -28,8 +38,8 @@ export class EmbedFactory {
   /**
    * Builds an embed from options. Timestamp is set unless timestamp is false.
    */
-  static Create(options: EmbedOptions = {}): EmbedBuilder {
-    const embed = new EmbedBuilder();
+  static Create(options: EmbedOptions = {}): DiscordEmbedBuilder {
+    const embed = new DiscordEmbedBuilder();
 
     if (options.title) embed.setTitle(options.title);
     if (options.description) embed.setDescription(options.description);
@@ -45,17 +55,17 @@ export class EmbedFactory {
   }
 
   /** Same as Create with success (green) color. */
-  static CreateSuccess(options: Omit<EmbedOptions, "color">): EmbedBuilder {
+  static CreateSuccess(options: Omit<EmbedOptions, "color">): DiscordEmbedBuilder {
     return this.Create({ ...options, color: this.SUCCESS_COLOR });
   }
 
   /** Same as Create with warning (yellow) color. */
-  static CreateWarning(options: Omit<EmbedOptions, "color">): EmbedBuilder {
+  static CreateWarning(options: Omit<EmbedOptions, "color">): DiscordEmbedBuilder {
     return this.Create({ ...options, color: this.WARNING_COLOR });
   }
 
   /** Same as Create with error (red) color. */
-  static CreateError(options: Omit<EmbedOptions, "color">): EmbedBuilder {
+  static CreateError(options: Omit<EmbedOptions, "color">): DiscordEmbedBuilder {
     return this.Create({ ...options, color: this.ERROR_COLOR });
   }
 
@@ -64,7 +74,7 @@ export class EmbedFactory {
     sectionName: string,
     description: string,
     commandCount: number
-  ): EmbedBuilder {
+  ): DiscordEmbedBuilder {
     return this.Create({
       title: `📁 ${sectionName} Commands`,
       description,
@@ -79,7 +89,7 @@ export class EmbedFactory {
   static CreateHelpOverview(
     totalCommands: number,
     categoryCount: number
-  ): EmbedBuilder {
+  ): DiscordEmbedBuilder {
     return this.Create({
       title: "🤖 Bot Command Overview",
       description:
@@ -95,14 +105,15 @@ export class EmbedFactory {
       category: string;
       status: string;
       created_at: number;
+      channel_id?: string | null;
       tags?: string[];
     }>
-  ): EmbedBuilder {
+  ): DiscordEmbedBuilder {
     const embed = this.Create({
       title: "🎫 Your Tickets",
       description:
         tickets.length === 0
-          ? "You have no tickets. Use `/ticket create` to open a new ticket."
+          ? "You have no tickets. Use `/ticket open` to open a new ticket."
           : `You have **${tickets.length}** ticket${
               tickets.length !== 1 ? "s" : ""
             }`,
@@ -124,7 +135,10 @@ export class EmbedFactory {
             ticket.tags && ticket.tags.length > 0
               ? ` — tags: ${ticket.tags.join(", ")}`
               : "";
-          return `${statusEmoji} **Ticket #${ticket.id}** - ${ticket.category} (${ticket.status}) - ${date}${tags}`;
+          const channelLink = ticket.channel_id
+            ? ` — <#${ticket.channel_id}>`
+            : "";
+          return `${statusEmoji} **Ticket #${ticket.id}** - ${ticket.category} (${ticket.status}) - ${date}${channelLink}${tags}`;
         })
         .join("\n");
 
@@ -138,7 +152,7 @@ export class EmbedFactory {
     return embed;
   }
 
-  static CreateTicketClosed(ticketId: number, closedBy: string): EmbedBuilder {
+  static CreateTicketClosed(ticketId: number, closedBy: string): DiscordEmbedBuilder {
     return this.CreateWarning({
       title: "🔒 Ticket Closed",
       description: `Ticket #${ticketId} has been closed by <@${closedBy}>.`,
@@ -149,7 +163,7 @@ export class EmbedFactory {
   static CreateTicketClaimed(
     ticketId: number,
     claimedBy: string
-  ): EmbedBuilder {
+  ): DiscordEmbedBuilder {
     return this.CreateSuccess({
       title: "📌 Ticket Claimed",
       description: `Ticket #${ticketId} has been claimed by <@${claimedBy}>.`,

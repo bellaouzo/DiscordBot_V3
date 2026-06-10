@@ -1,3 +1,4 @@
+import { MessageFlags } from "discord.js";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { HandleFlip } from "@systems/Economy/handlers/FlipHandler";
 import {
@@ -23,7 +24,7 @@ describe("FlipHandler", () => {
       interaction,
       expect.objectContaining({
         embeds: expect.any(Array),
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       })
     );
     const embed = (
@@ -44,7 +45,7 @@ describe("FlipHandler", () => {
       interaction,
       expect.objectContaining({
         embeds: expect.any(Array),
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       })
     );
   });

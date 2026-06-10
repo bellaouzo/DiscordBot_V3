@@ -1,4 +1,4 @@
-import { UserSelectMenuInteraction } from "discord.js";
+import { MessageFlags, UserSelectMenuInteraction } from "discord.js";
 import { Logger } from "./Logger";
 import { randomUUID } from "crypto";
 
@@ -70,7 +70,7 @@ export class UserSelectMenuRouter {
     if (registration.ownerId !== interaction.user.id) {
       await interaction.reply({
         content: "This interaction is not for you.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return true;
     }
@@ -80,7 +80,7 @@ export class UserSelectMenuRouter {
       registration.onExpire?.();
       await interaction.reply({
         content: "This interaction has expired.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return true;
     }
@@ -99,7 +99,7 @@ export class UserSelectMenuRouter {
       await interaction
         .reply({
           content: "An error occurred while processing your request.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         })
         .catch(() => {});
       return true;

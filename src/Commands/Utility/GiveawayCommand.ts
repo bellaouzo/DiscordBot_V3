@@ -4,13 +4,21 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  MessageActionRowComponent,
   NewsChannel,
   ThreadChannel,
+  GuildMember,
+  MessageFlags
 } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import {
+  CommandContext,
+  CreateCommand,
+  SlashCommandBuilder,
+  SlashCommandSubcommandBuilder,
+  SlashCommandStringOption,
+  SlashCommandIntegerOption,
+} from "@commands";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
+import { EmbedFactory, IsModerator, ToActionRowData, ToEmbedData } from "@utilities";
 import { GiveawayManager } from "@systems/Giveaway/GiveawayManager";
 import { ParseDuration } from "@utilities/Duration";
 import { Giveaway } from "@database";
@@ -18,6 +26,45 @@ import { Giveaway } from "@database";
 const MIN_DURATION_MINUTES = 1;
 const MAX_DURATION_MINUTES = 10080; // 7 days
 type GuildTextChannel = TextChannel | NewsChannel | ThreadChannel;
+
+async function RequireModerator(
+  interaction: ChatInputCommandInteraction,
+  context: CommandContext
+): Promise<boolean> {
+  const settings = context.databases.serverDb.GetGuildSettings(
+    interaction.guild!.id
+  );
+  const member = interaction.member as GuildMember | null;
+  if (IsModerator(member, settings)) {
+    return true;
+  }
+
+  const embed = EmbedFactory.CreateError({
+    title: "Permission Denied",
+    description: "You must be a moderator to use this subcommand.",
+  });
+  await context.responders.interactionResponder.Reply(interaction, {
+    embeds: [ToEmbedData(embed)],
+    flags: MessageFlags.Ephemeral,
+  });
+  return false;
+}
+
+function CanManageGiveaway(
+  interaction: ChatInputCommandInteraction,
+  hostId: string,
+  context: CommandContext
+): boolean {
+  if (interaction.user.id === hostId) {
+    return true;
+  }
+
+  const settings = context.databases.serverDb.GetGuildSettings(
+    interaction.guild!.id
+  );
+  const member = interaction.member as GuildMember | null;
+  return IsModerator(member, settings);
+}
 
 async function FinalizeGiveaway(
   manager: GiveawayManager,
@@ -53,6 +100,10 @@ async function HandleCreate(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
+  if (!(await RequireModerator(interaction, context))) {
+    return;
+  }
+
   const { interactionResponder, componentRouter } = context.responders;
 
   if (!interaction.guild || !interaction.channel?.isTextBased()) {
@@ -61,8 +112,8 @@ async function HandleCreate(
       description: "Giveaways can only be created in server text channels.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
+      embeds: [ToEmbedData(embed)],
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -84,8 +135,8 @@ async function HandleCreate(
       description: `Duration must be between 1 minute and 7 days. Examples: \`30m\`, \`2h\`, \`1d\``,
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
+      embeds: [ToEmbedData(embed)],
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -108,8 +159,8 @@ async function HandleCreate(
 
   const channel = interaction.channel as GuildTextChannel;
   const giveawayMessage = await channel.send({
-    embeds: [embed.toJSON()],
-    components: [row],
+    embeds: [ToEmbedData(embed)],
+    components: [ToActionRowData(row)],
   });
 
   manager.SaveGiveaway({
@@ -133,8 +184,8 @@ async function HandleCreate(
           description: "This giveaway has already ended.",
         });
         await context.responders.buttonResponder.Reply(buttonInteraction, {
-          embeds: [endedEmbed.toJSON()],
-          ephemeral: true,
+          embeds: [ToEmbedData(endedEmbed)],
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
@@ -159,8 +210,8 @@ async function HandleCreate(
         });
 
         await context.responders.buttonResponder.Reply(buttonInteraction, {
-          embeds: [endedEmbed.toJSON()],
-          ephemeral: true,
+          embeds: [ToEmbedData(endedEmbed)],
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
@@ -180,8 +231,8 @@ async function HandleCreate(
         });
 
         await context.responders.buttonResponder.Reply(buttonInteraction, {
-          embeds: [leftEmbed.toJSON()],
-          ephemeral: true,
+          embeds: [ToEmbedData(leftEmbed)],
+          flags: MessageFlags.Ephemeral,
         });
 
         await UpdateEntryCount(
@@ -202,8 +253,8 @@ async function HandleCreate(
         });
 
         await context.responders.buttonResponder.Reply(buttonInteraction, {
-          embeds: [enteredEmbed.toJSON()],
-          ephemeral: true,
+          embeds: [ToEmbedData(enteredEmbed)],
+          flags: MessageFlags.Ephemeral,
         });
 
         await UpdateEntryCount(
@@ -231,7 +282,7 @@ async function HandleCreate(
   });
 
   await interactionResponder.Edit(interaction, {
-    embeds: [confirmEmbed.toJSON()],
+    embeds: [ToEmbedData(confirmEmbed)],
   });
 }
 
@@ -259,9 +310,11 @@ async function UpdateEntryCount(
     });
 
     const firstRow = message.components[0];
+    const firstComponent =
+      firstRow && "components" in firstRow ? firstRow.components[0] : undefined;
     const existingCustomId =
-      firstRow && "components" in firstRow
-        ? (firstRow.components[0] as MessageActionRowComponent)?.customId
+      firstComponent && "customId" in firstComponent
+        ? firstComponent.customId
         : undefined;
 
     if (existingCustomId) {
@@ -274,8 +327,8 @@ async function UpdateEntryCount(
       );
 
       await message.edit({
-        embeds: [embed.toJSON()],
-        components: [newRow],
+        embeds: [ToEmbedData(embed)],
+        components: [ToActionRowData(newRow)],
       });
     }
   } catch {
@@ -302,8 +355,21 @@ async function HandleEnd(
       description: "No giveaway found with that message ID.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
+      embeds: [ToEmbedData(embed)],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (!CanManageGiveaway(interaction, giveaway.host_id, context)) {
+    const embed = EmbedFactory.CreateError({
+      title: "Permission Denied",
+      description:
+        "Only the giveaway host or a moderator can end this giveaway.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [ToEmbedData(embed)],
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -314,8 +380,8 @@ async function HandleEnd(
       description: "This giveaway has already ended.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
+      embeds: [ToEmbedData(embed)],
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -348,7 +414,7 @@ async function HandleEnd(
   });
 
   await interactionResponder.Edit(interaction, {
-    embeds: [embed.toJSON()],
+    embeds: [ToEmbedData(embed)],
   });
 }
 
@@ -371,8 +437,21 @@ async function HandleReroll(
       description: "No giveaway found with that message ID.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
+      embeds: [ToEmbedData(embed)],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (!CanManageGiveaway(interaction, giveaway.host_id, context)) {
+    const embed = EmbedFactory.CreateError({
+      title: "Permission Denied",
+      description:
+        "Only the giveaway host or a moderator can reroll this giveaway.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [ToEmbedData(embed)],
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -383,8 +462,8 @@ async function HandleReroll(
       description: "This giveaway hasn't ended yet. Use `/giveaway end` first.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
+      embeds: [ToEmbedData(embed)],
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -423,8 +502,8 @@ async function HandleReroll(
   });
 
   await interactionResponder.Reply(interaction, {
-    embeds: [embed.toJSON()],
-    ephemeral: true,
+    embeds: [ToEmbedData(embed)],
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -446,8 +525,8 @@ async function HandleList(
       description: "There are no active giveaways in this server.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
+      embeds: [ToEmbedData(embed)],
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -465,8 +544,8 @@ async function HandleList(
   });
 
   await interactionResponder.Reply(interaction, {
-    embeds: [embed.toJSON()],
-    ephemeral: true,
+    embeds: [ToEmbedData(embed)],
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -474,25 +553,25 @@ export const GiveawayCommand = CreateCommand({
   name: "giveaway",
   description: "Create and manage giveaways",
   group: "utility",
-  configure: (builder) => {
+  configure: (builder: SlashCommandBuilder) => {
     builder
-      .addSubcommand((sub) =>
+      .addSubcommand((sub: SlashCommandSubcommandBuilder) =>
         sub
           .setName("create")
           .setDescription("Create a new giveaway")
-          .addStringOption((opt) =>
+          .addStringOption((opt: SlashCommandStringOption) =>
             opt
               .setName("prize")
               .setDescription("What you're giving away")
               .setRequired(true)
           )
-          .addStringOption((opt) =>
+          .addStringOption((opt: SlashCommandStringOption) =>
             opt
               .setName("duration")
               .setDescription("How long the giveaway lasts (e.g., 30m, 2h, 1d)")
               .setRequired(true)
           )
-          .addIntegerOption((opt) =>
+          .addIntegerOption((opt: SlashCommandIntegerOption) =>
             opt
               .setName("winners")
               .setDescription("Number of winners (default: 1)")
@@ -500,36 +579,32 @@ export const GiveawayCommand = CreateCommand({
               .setMaxValue(10)
           )
       )
-      .addSubcommand((sub) =>
+      .addSubcommand((sub: SlashCommandSubcommandBuilder) =>
         sub
           .setName("end")
           .setDescription("End a giveaway early")
-          .addStringOption((opt) =>
+          .addStringOption((opt: SlashCommandStringOption) =>
             opt
               .setName("message_id")
               .setDescription("Message ID of the giveaway")
               .setRequired(true)
           )
       )
-      .addSubcommand((sub) =>
+      .addSubcommand((sub: SlashCommandSubcommandBuilder) =>
         sub
           .setName("reroll")
           .setDescription("Reroll winners for an ended giveaway")
-          .addStringOption((opt) =>
+          .addStringOption((opt: SlashCommandStringOption) =>
             opt
               .setName("message_id")
               .setDescription("Message ID of the giveaway")
               .setRequired(true)
           )
       )
-      .addSubcommand((sub) =>
+      .addSubcommand((sub: SlashCommandSubcommandBuilder) =>
         sub.setName("list").setDescription("List all active giveaways")
       );
   },
-  config: Config.create()
-    .guildOnly()
-    .permissions("ManageMessages")
-    .cooldownSeconds(5)
-    .build(),
+  config: Config.utility(5),
   execute: ExecuteGiveaway,
 });

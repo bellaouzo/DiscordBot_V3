@@ -8,8 +8,8 @@ import {
 } from "../helpers";
 
 describe("MessageCreateEvent", () => {
-  it("deletes blocked link messages and posts a warning notice", async () => {
-    const sendNotice = vi.fn().mockResolvedValue(undefined);
+  it("deletes blocked link messages and DMs a warning notice", async () => {
+    const sendDm = vi.fn().mockResolvedValue(undefined);
     const deleteMessage = vi.fn().mockResolvedValue(undefined);
     const context = {
       client: {} as never,
@@ -31,11 +31,14 @@ describe("MessageCreateEvent", () => {
         created_at: Date.now(),
       },
     ]);
+    (
+      context.databases.serverDb.GetGuildSettings as ReturnType<typeof vi.fn>
+    ).mockReturnValue(null);
 
     const message = {
       guild: { id: "guild-1" },
-      channel: { isTextBased: () => true, send: sendNotice },
-      author: { id: "user-1", bot: false },
+      channel: { isTextBased: () => true },
+      author: { id: "user-1", bot: false, send: sendDm },
       content: "check this https://bad.site/link",
       delete: deleteMessage,
     } as never;
@@ -43,9 +46,9 @@ describe("MessageCreateEvent", () => {
     await MessageCreateEvent.execute(context as never, message);
 
     expect(deleteMessage).toHaveBeenCalledTimes(1);
-    expect(sendNotice).toHaveBeenCalledWith(
+    expect(sendDm).toHaveBeenCalledWith(
       expect.objectContaining({
-        content: "<@user-1>",
+        embeds: expect.any(Array),
       })
     );
     expect(context.databases.ticketDb.AddMessage).not.toHaveBeenCalled();

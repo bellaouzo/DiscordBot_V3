@@ -52,9 +52,7 @@ async function ExecuteRank(
   });
 
   await interactionResponder.Reply(interaction, {
-    embeds: [embed.toJSON()],
-    ephemeral: false,
-  });
+    embeds: [embed.toJSON()],  });
 }
 
 export const RankCommand = CreateCommand({

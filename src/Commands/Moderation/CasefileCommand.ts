@@ -3,7 +3,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  GuildMember,
+  MessageFlags
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
@@ -15,16 +15,6 @@ import {
 } from "@utilities";
 import { PaginationPage } from "@shared/Paginator";
 import { ModerationDatabase } from "@database";
-
-function IsModerator(member: GuildMember | null): boolean {
-  if (!member) return false;
-  const perms = member.permissions;
-  return (
-    perms.has("Administrator") ||
-    perms.has("KickMembers") ||
-    perms.has("BanMembers")
-  );
-}
 
 function buildWarningPages(
   warnings: ReturnType<ReturnType<typeof CreateWarnManager>["GetUserWarnings"]>,
@@ -189,20 +179,6 @@ async function ExecuteCasefile(
   const { buttonResponder, paginatedResponder, componentRouter } =
     context.responders;
 
-  const member = interaction.member as GuildMember | null;
-  const isMod = IsModerator(member);
-  if (!isMod) {
-    const embed = EmbedFactory.CreateError({
-      title: "Permission Denied",
-      description: "You must be a moderator to view case files.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
-
   const targetUser = interaction.options.getUser("user", true);
   const guild = interaction.guild!;
   const warnManager = CreateWarnManager({
@@ -363,14 +339,14 @@ async function ExecuteCasefile(
       if (warnings.length === 0) {
         await buttonResponder.Reply(btn, {
           content: "No warnings recorded.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
       await paginatedResponder.Send({
         interaction: btn,
         pages: warningPages,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
         ownerId: interaction.user.id,
         timeoutMs: 1000 * 60 * 3,
         idleTimeoutMs: 1000 * 60 * 2,
@@ -385,14 +361,14 @@ async function ExecuteCasefile(
       if (notes.length === 0) {
         await buttonResponder.Reply(btn, {
           content: "No notes recorded.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
       await paginatedResponder.Send({
         interaction: btn,
         pages: notePages,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
         ownerId: interaction.user.id,
         timeoutMs: 1000 * 60 * 3,
         idleTimeoutMs: 1000 * 60 * 2,
@@ -407,14 +383,14 @@ async function ExecuteCasefile(
       if (kickCount === 0) {
         await buttonResponder.Reply(btn, {
           content: "No kicks recorded.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
       await paginatedResponder.Send({
         interaction: btn,
         pages: kickPages,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
         ownerId: interaction.user.id,
         timeoutMs: 1000 * 60 * 3,
         idleTimeoutMs: 1000 * 60 * 2,
@@ -429,14 +405,14 @@ async function ExecuteCasefile(
       if (banCount === 0) {
         await buttonResponder.Reply(btn, {
           content: "No bans recorded.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
       await paginatedResponder.Send({
         interaction: btn,
         pages: banPages,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
         ownerId: interaction.user.id,
         timeoutMs: 1000 * 60 * 3,
         idleTimeoutMs: 1000 * 60 * 2,
@@ -451,14 +427,14 @@ async function ExecuteCasefile(
       if (muteHistory.length === 0) {
         await buttonResponder.Reply(btn, {
           content: "No mutes recorded.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
       await paginatedResponder.Send({
         interaction: btn,
         pages: mutePages,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
         ownerId: interaction.user.id,
         timeoutMs: 1000 * 60 * 3,
         idleTimeoutMs: 1000 * 60 * 2,
@@ -503,7 +479,7 @@ async function ExecuteCasefile(
   await interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
     components: [buttonsRow.toJSON() as never],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

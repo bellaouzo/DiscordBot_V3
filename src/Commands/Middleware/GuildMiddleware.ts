@@ -1,3 +1,4 @@
+import { MessageFlags } from "discord.js";
 import { CommandMiddleware } from "./index";
 import { EmbedFactory } from "@utilities";
 
@@ -15,7 +16,7 @@ export const GuildMiddleware: CommandMiddleware = {
     });
     await context.responders.interactionResponder.Reply(context.interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   },
 };

@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction, User } from "discord.js";
+import {
+  ChatInputCommandInteraction, User,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { CreateGuildResourceLocator, EmbedFactory } from "@utilities";
@@ -27,7 +30,7 @@ async function ExecuteBan(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -43,7 +46,7 @@ async function ExecuteBan(
       });
       await interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -56,7 +59,7 @@ async function ExecuteBan(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -79,7 +82,7 @@ async function ExecuteBan(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }

@@ -1,4 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  describe, it, expect, vi, beforeEach } from "vitest";
+import { PermissionFlagsBits,
+  MessageFlags
+} from "discord.js";
 import {
   HasStaffPermissions,
   ValidateTicketChannel,
@@ -28,18 +32,22 @@ describe("TicketValidation", () => {
   it("HasStaffPermissions returns true when member has ManageGuild", () => {
     const member = {
       permissions: {
-        has: vi.fn().mockReturnValue(true),
+        has: vi.fn().mockImplementation((flag) => flag === PermissionFlagsBits.ManageGuild),
       },
+      roles: { cache: { some: () => false } },
     };
     expect(HasStaffPermissions(member as never)).toBe(true);
-    expect(member.permissions.has).toHaveBeenCalledWith("ManageGuild");
+    expect(member.permissions.has).toHaveBeenCalledWith(
+      PermissionFlagsBits.ManageGuild
+    );
   });
 
   it("HasStaffPermissions returns true when member has Administrator", () => {
     const member = {
       permissions: {
-        has: vi.fn().mockImplementation((p: string) => p === "Administrator"),
+        has: vi.fn().mockImplementation((flag) => flag === PermissionFlagsBits.Administrator),
       },
+      roles: { cache: { some: () => false } },
     };
     expect(HasStaffPermissions(member as never)).toBe(true);
   });
@@ -49,6 +57,7 @@ describe("TicketValidation", () => {
       permissions: {
         has: vi.fn().mockReturnValue(false),
       },
+      roles: { cache: { some: () => false } },
     };
     expect(HasStaffPermissions(member as never)).toBe(false);
   });
@@ -81,7 +90,7 @@ describe("TicketValidation", () => {
       interaction,
       expect.objectContaining({
         embeds: expect.any(Array),
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       })
     );
   });
@@ -171,7 +180,7 @@ describe("TicketValidation", () => {
       interaction,
       expect.objectContaining({
         embeds: expect.any(Array),
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       })
     );
   });

@@ -1,4 +1,7 @@
-import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
+import {
+  ButtonInteraction, ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import {
@@ -62,7 +65,7 @@ export async function HandleScratch(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -99,7 +102,7 @@ export async function HandleScratch(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -280,7 +283,7 @@ export async function HandleScratch(
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This card has already finished.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -288,7 +291,7 @@ export async function HandleScratch(
     if (reveals[index] !== null) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "That spot is already scratched.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -332,7 +335,7 @@ export async function HandleScratch(
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This card has already finished.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -411,9 +414,7 @@ export async function HandleScratch(
       customIds,
       SCRATCH_HIDDEN_ICONS,
       SCRATCH_COLUMNS
-    ),
-    ephemeral: false,
-  });
+    ),  });
 
   if (!replyResult.success) {
     if (bet > 0) {

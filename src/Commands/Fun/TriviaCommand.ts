@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -103,7 +106,7 @@ async function ExecuteTrivia(
   if (!response.ok || !response.data || response.data.response_code !== 0) {
     await interactionResponder.Reply(interaction, {
       content: "Could not fetch a trivia question right now. Try again later.",
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -112,7 +115,7 @@ async function ExecuteTrivia(
   if (!question) {
     await interactionResponder.Reply(interaction, {
       content: "Trivia service returned no questions. Please try again.",
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }

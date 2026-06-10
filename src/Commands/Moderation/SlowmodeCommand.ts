@@ -2,6 +2,7 @@ import {
   ChatInputCommandInteraction,
   ChannelType,
   TextChannel,
+  MessageFlags
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware/CommandConfig";
@@ -40,7 +41,7 @@ async function ExecuteSlowmode(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -53,7 +54,7 @@ async function ExecuteSlowmode(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -73,7 +74,7 @@ async function ExecuteSlowmode(
 
   await interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

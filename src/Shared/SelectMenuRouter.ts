@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import {
   StringSelectMenuInteraction,
   InteractionReplyOptions,
+  MessageFlags,
 } from "discord.js";
 import { Logger } from "./Logger";
 
@@ -78,7 +79,7 @@ export class SelectMenuRouter {
       registration.onExpire?.();
       await this.ReplyIfNeeded(interaction, {
         content: "This interaction has expired.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return true;
     }
@@ -86,7 +87,7 @@ export class SelectMenuRouter {
     if (registration.ownerId && registration.ownerId !== interaction.user.id) {
       await this.ReplyIfNeeded(interaction, {
         content: "You cannot use this interaction.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return true;
     }
@@ -103,7 +104,7 @@ export class SelectMenuRouter {
 
       await this.ReplyIfNeeded(interaction, {
         content: "Something went wrong while handling that interaction.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
 

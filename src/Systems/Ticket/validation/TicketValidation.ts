@@ -1,19 +1,50 @@
-import { ChatInputCommandInteraction, TextChannel, Guild } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  TextChannel,
+  Guild,
+  GuildMember,
+  MessageFlags
+} from "discord.js";
 import { GuildMemberOrAPI } from "@systems/Ticket/types/TicketTypes";
 import { TicketDatabase, Ticket } from "@database";
-import { CreateTicketManager, CreateGuildResourceLocator } from "@utilities";
+import { ServerDatabase } from "@database/ServerDatabase";
+import {
+  CreateTicketManager,
+  CreateGuildResourceLocator,
+  IsTicketStaff,
+} from "@utilities";
 import { Logger } from "@shared/Logger";
 import { InteractionResponder } from "@responders";
 import { EmbedFactory } from "@utilities";
 
-export function HasStaffPermissions(member: GuildMemberOrAPI): boolean {
+export function HasStaffPermissions(
+  member: GuildMemberOrAPI,
+  settings?: {
+    adminRoleIds?: string[];
+    modRoleIds?: string[];
+  } | null
+): boolean {
   if (!member || typeof member.permissions === "string") {
     return false;
   }
-  return (
-    member.permissions.has("ManageGuild") ||
-    member.permissions.has("Administrator")
-  );
+
+  return IsTicketStaff(member as GuildMember, settings);
+}
+
+export function CanUserCloseTicket(
+  ticket: Ticket,
+  userId: string,
+  member: GuildMember | null,
+  settings?: {
+    adminRoleIds?: string[];
+    modRoleIds?: string[];
+  } | null
+): boolean {
+  if (ticket.user_id === userId) {
+    return true;
+  }
+
+  return HasStaffPermissions(member, settings);
 }
 
 export function ValidateTicketChannel(
@@ -26,8 +57,14 @@ export function CreateTicketServices(
   logger: Logger,
   guild: Guild,
   ticketDb: TicketDatabase,
+  serverDb: ServerDatabase,
   options?: { ticketCategoryId?: string | null }
 ) {
+  const settings = serverDb.GetGuildSettings(guild.id);
+  const staffRoleIds = [
+    ...(settings?.admin_role_ids ?? []),
+    ...(settings?.mod_role_ids ?? []),
+  ];
   const guildResourceLocator = CreateGuildResourceLocator({
     guild,
     logger,
@@ -37,9 +74,17 @@ export function CreateTicketServices(
     logger,
     ticketDb,
     guildResourceLocator,
-    ticketCategoryId: options?.ticketCategoryId ?? null,
+    ticketCategoryId: options?.ticketCategoryId ?? settings?.ticket_category_id ?? null,
+    staffRoleIds,
+    ticketLogChannelId: settings?.ticket_log_channel_id ?? null,
   });
-  return { ticketDb, ticketManager, guildResourceLocator };
+  return {
+    ticketDb,
+    ticketManager,
+    guildResourceLocator,
+    settings,
+    staffRoleIds,
+  };
 }
 
 export async function ValidateGuildOrReply(
@@ -53,7 +98,7 @@ export async function ValidateGuildOrReply(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return false;
   }
@@ -71,7 +116,7 @@ export async function ValidateTicketChannelOrReply(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return false;
   }
@@ -92,8 +137,23 @@ export async function GetTicketOrReply(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
   return ticket;
+}
+
+export function ParseTicketButtonCustomId(customId: string): {
+  action: "claim" | "close" | "add" | "remove";
+  ticketId: number;
+} | null {
+  const match = customId.match(/^ticket:(claim|close|add|remove):(\d+)$/);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    action: match[1] as "claim" | "close" | "add" | "remove",
+    ticketId: Number.parseInt(match[2], 10),
+  };
 }

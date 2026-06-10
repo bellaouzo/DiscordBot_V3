@@ -1,4 +1,8 @@
-import { ChatInputCommandInteraction, ButtonInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  ButtonInteraction,
+  MessageFlags,
+} from "discord.js";
 import { Logger } from "../Shared/Logger";
 import { InteractionResponder } from "./InteractionResponder";
 import { ButtonResponder } from "./ButtonResponder";
@@ -8,7 +12,7 @@ import { CreatePaginator, PaginationPage } from "../Shared/Paginator";
 export interface PaginatedMessageOptions {
   readonly interaction: ChatInputCommandInteraction | ButtonInteraction;
   readonly pages: PaginationPage[];
-  readonly ephemeral?: boolean;
+  readonly flags?: MessageFlags | MessageFlags[];
   readonly ownerId?: string;
   readonly timeoutMs?: number;
   readonly idleTimeoutMs?: number;
@@ -41,7 +45,7 @@ export class PaginatedResponder {
       buttonResponder: this.buttonResponder,
       componentRouter: this.componentRouter,
       logger: this.logger,
-      ephemeral: options.ephemeral,
+      flags: options.flags,
       ownerId: options.ownerId,
       timeoutMs: options.timeoutMs,
       idleTimeoutMs: options.idleTimeoutMs,

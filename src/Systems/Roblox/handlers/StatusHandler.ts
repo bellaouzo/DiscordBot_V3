@@ -1,3 +1,4 @@
+import { MessageFlags } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 import type { CommandContext } from "@commands/CommandFactory";
 import type { RobloxBridgeSettings } from "@systems/Roblox/types";
@@ -45,6 +46,6 @@ export async function ExecuteStatusSubcommand(
 
   await interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }

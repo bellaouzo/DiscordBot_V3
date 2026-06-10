@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "../EconomyManager";
 import { BuildBalanceEmbed } from "@systems/Economy/utils/Embeds";
@@ -19,7 +22,7 @@ export async function HandleBalance(
   });
   await interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

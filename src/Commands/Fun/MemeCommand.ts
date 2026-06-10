@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
+import {
+  ChatInputCommandInteraction, EmbedBuilder,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -56,7 +59,7 @@ async function ExecuteMeme(
   if (!response.ok || !response.data) {
     await interactionResponder.Reply(interaction, {
       content: "Could not fetch a meme right now. Try again in a moment.",
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -64,7 +67,7 @@ async function ExecuteMeme(
   if (response.data.nsfw) {
     await interactionResponder.Reply(interaction, {
       content: "Skipped an NSFW meme. Try a different subreddit.",
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -73,7 +76,7 @@ async function ExecuteMeme(
   if (!embed) {
     await interactionResponder.Reply(interaction, {
       content: "Meme response was empty. Try again.",
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }

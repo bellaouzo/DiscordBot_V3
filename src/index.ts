@@ -28,6 +28,9 @@ import {
 import { TempActionScheduler } from "./Moderation/TempActionScheduler";
 import { RaidModeScheduler } from "./Moderation/RaidModeScheduler";
 import { GiveawayScheduler } from "@systems/Giveaway/GiveawayScheduler";
+import { RegisterAppealPanelButton } from "@commands/Moderation/Appeal/AppealPanelFlow";
+import { RegisterTicketButtons } from "@systems/Ticket/TicketButtonRegistry";
+import { RegisterTicketPanelButton } from "@systems/Ticket/TicketPanelFlow";
 import { Client } from "discord.js";
 
 interface AppResources {
@@ -74,6 +77,24 @@ async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
   };
 
   const responders = CreateResponders({ logger });
+
+  RegisterAppealPanelButton({
+    responders,
+    logger: logger.Child({ phase: "appeal-panel" }),
+    databases,
+    appConfig: config,
+  });
+
+  const ticketContext = {
+    responders,
+    logger: logger.Child({ phase: "ticket-system" }),
+    databases,
+    appConfig: config,
+  };
+
+  RegisterTicketButtons(ticketContext);
+  RegisterTicketPanelButton(ticketContext);
+
   const bot = CreateBot({ logger });
   const loadCommands = CreateCommandLoader(logger);
   const loadEvents = CreateEventLoader(logger);

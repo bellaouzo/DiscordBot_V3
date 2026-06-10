@@ -82,7 +82,9 @@ export function RegisterButtonHandlers(
         admin_role_ids: draft.adminRoleIds,
         mod_role_ids: draft.modRoleIds,
         ticket_category_id: draft.ticketCategoryId,
+        appeal_review_category_id: draft.appealReviewCategoryId,
         command_log_channel_id: draft.commandLogChannelId,
+        ticket_log_channel_id: draft.ticketLogChannelId,
         announcement_channel_id: draft.announcementChannelId,
         delete_log_channel_id: draft.deleteLogChannelId,
         production_log_channel_id: draft.productionLogChannelId,
@@ -104,7 +106,9 @@ export function RegisterButtonHandlers(
       draft.adminRoleIds = [...saved.admin_role_ids];
       draft.modRoleIds = [...saved.mod_role_ids];
       draft.ticketCategoryId = saved.ticket_category_id;
+      draft.appealReviewCategoryId = saved.appeal_review_category_id;
       draft.commandLogChannelId = saved.command_log_channel_id;
+      draft.ticketLogChannelId = saved.ticket_log_channel_id;
       draft.announcementChannelId = saved.announcement_channel_id;
       draft.deleteLogChannelId = saved.delete_log_channel_id;
       draft.productionLogChannelId = saved.production_log_channel_id;
@@ -122,7 +126,9 @@ export function RegisterButtonHandlers(
         admin_role_ids: draft.adminRoleIds,
         mod_role_ids: draft.modRoleIds,
         ticket_category_id: draft.ticketCategoryId,
+        appeal_review_category_id: draft.appealReviewCategoryId,
         command_log_channel_id: draft.commandLogChannelId,
+        ticket_log_channel_id: draft.ticketLogChannelId,
         announcement_channel_id: draft.announcementChannelId,
         delete_log_channel_id: draft.deleteLogChannelId,
         production_log_channel_id: draft.productionLogChannelId,
@@ -144,7 +150,9 @@ export function RegisterButtonHandlers(
       draft.adminRoleIds = [...saved.admin_role_ids];
       draft.modRoleIds = [...saved.mod_role_ids];
       draft.ticketCategoryId = saved.ticket_category_id;
+      draft.appealReviewCategoryId = saved.appeal_review_category_id;
       draft.commandLogChannelId = saved.command_log_channel_id;
+      draft.ticketLogChannelId = saved.ticket_log_channel_id;
       draft.announcementChannelId = saved.announcement_channel_id;
       draft.deleteLogChannelId = saved.delete_log_channel_id;
       draft.productionLogChannelId = saved.production_log_channel_id;

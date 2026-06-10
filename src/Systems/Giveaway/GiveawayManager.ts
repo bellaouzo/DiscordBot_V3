@@ -2,13 +2,12 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  EmbedBuilder,
   NewsChannel,
   TextChannel,
   ThreadChannel,
 } from "discord.js";
 import { UserDatabase, Giveaway } from "@database";
-import { EmbedFactory } from "@utilities";
+import { DiscordEmbedBuilder, EmbedFactory } from "@utilities";
 
 type GuildTextChannel = TextChannel | NewsChannel | ThreadChannel;
 
@@ -25,7 +24,7 @@ export class GiveawayManager {
     hostId: string;
     entryCount?: number;
   }): {
-    embed: EmbedBuilder;
+    embed: DiscordEmbedBuilder;
     row: ActionRowBuilder<ButtonBuilder>;
     customId: string;
   } {
@@ -62,7 +61,7 @@ export class GiveawayManager {
     winners: string[];
     hostId: string;
     entryCount: number;
-  }): EmbedBuilder {
+  }): DiscordEmbedBuilder {
     const winnerMentions =
       data.winners.length > 0
         ? data.winners.map((id) => `<@${id}>`).join(", ")

@@ -6,6 +6,7 @@ import {
   DEFAULT_ANNOUNCEMENT_CHANNEL,
   DEFAULT_DELETE_LOG_CHANNEL,
   DEFAULT_PRODUCTION_LOG_CHANNEL,
+  DEFAULT_APPEAL_CATEGORY,
   DEFAULT_TICKET_CATEGORY,
   SETUP_TIMEOUT_MS,
 } from "../../Setup/constants";
@@ -103,6 +104,42 @@ export function RegisterSelectHandlers(
   });
 
   selectMenuRouter.RegisterSelectMenu({
+    customId: ids.appealSelect,
+    ownerId: interaction.user.id,
+    expiresInMs: SETUP_TIMEOUT_MS,
+    handler: async (selectInteraction) => {
+      const selection = selectInteraction.values[0];
+
+      if (selection === "auto") {
+        draft.appealReviewCategoryId = null;
+      } else if (selection === "create") {
+        const created = await channelManager.GetOrCreateCategory(
+          DEFAULT_APPEAL_CATEGORY
+        );
+        if (created) {
+          draft.appealReviewCategoryId = created.id;
+          if (
+            !resources.categories.find((category) => category.id === created.id)
+          ) {
+            resources.categories.unshift(created);
+          }
+        } else {
+          await selectInteraction.followUp({
+            content:
+              "Could not create the appeal category. Check bot permissions.",
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+      } else {
+        draft.appealReviewCategoryId = selection;
+      }
+
+      await selectInteraction.deferUpdate();
+      await updateMessage();
+    },
+  });
+
+  selectMenuRouter.RegisterSelectMenu({
     customId: ids.commandLogSelect,
     ownerId: interaction.user.id,
     expiresInMs: SETUP_TIMEOUT_MS,
@@ -132,6 +169,42 @@ export function RegisterSelectHandlers(
         }
       } else {
         draft.commandLogChannelId = selection;
+      }
+
+      await selectInteraction.deferUpdate();
+      await updateMessage();
+    },
+  });
+
+  selectMenuRouter.RegisterSelectMenu({
+    customId: ids.ticketLogSelect,
+    ownerId: interaction.user.id,
+    expiresInMs: SETUP_TIMEOUT_MS,
+    handler: async (selectInteraction) => {
+      const selection = selectInteraction.values[0];
+
+      if (selection === "auto") {
+        draft.ticketLogChannelId = null;
+      } else if (selection === "create") {
+        const created = await channelManager.GetOrCreateTextChannel(
+          "ticket-logs"
+        );
+        if (created) {
+          draft.ticketLogChannelId = created.id;
+          if (
+            !resources.textChannels.find((channel) => channel.id === created.id)
+          ) {
+            resources.textChannels.unshift(created);
+          }
+        } else {
+          await selectInteraction.followUp({
+            content:
+              "Could not create the ticket logs channel. Check bot permissions.",
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+      } else {
+        draft.ticketLogChannelId = selection;
       }
 
       await selectInteraction.deferUpdate();

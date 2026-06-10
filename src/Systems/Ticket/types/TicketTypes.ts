@@ -27,6 +27,7 @@ export interface TicketInfo {
   readonly category: string;
   readonly status: string;
   readonly created_at: number;
+  readonly channel_id?: string | null;
   readonly tags?: string[];
 }
 

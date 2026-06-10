@@ -1,4 +1,7 @@
-import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
+import {
+  ButtonInteraction, ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { ITEM_MAP } from "@systems/Economy/items";
@@ -51,7 +54,7 @@ export async function HandleHorseRace(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -92,7 +95,7 @@ export async function HandleHorseRace(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -148,7 +151,7 @@ export async function HandleHorseRace(
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This race has already finished.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -183,7 +186,7 @@ export async function HandleHorseRace(
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This race has already finished.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -336,7 +339,7 @@ export async function HandleHorseRace(
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This race has already finished.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -383,9 +386,7 @@ export async function HandleHorseRace(
 
   const replyResult = await interactionResponder.Reply(interaction, {
     embeds: [promptEmbed.toJSON()],
-    components: BuildHorseButtons(customIds, horseLabels),
-    ephemeral: false,
-  });
+    components: BuildHorseButtons(customIds, horseLabels),  });
 
   if (!replyResult.success) {
     if (bet > 0) {

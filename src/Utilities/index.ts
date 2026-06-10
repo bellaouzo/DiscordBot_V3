@@ -16,7 +16,7 @@
  * - ApiClient: HTTP request utilities
  */
 
-export * from "./EmbedBuilder";
+export * from "./EmbedFactory";
 export * from "./ComponentBuilder";
 export * from "./GuildResourceLocator";
 export * from "./TicketManager";
@@ -30,3 +30,4 @@ export * from "./Duration";
 export * from "./ApiClient";
 export * from "./SafeJson";
 export * from "./ConfigGuard";
+export * from "./StaffPermissions";

@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction, GuildBan } from "discord.js";
+import {
+  ChatInputCommandInteraction, GuildBan,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -36,7 +39,7 @@ async function ExecuteBanListPages(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -46,7 +49,7 @@ async function ExecuteBanListPages(
   await paginatedResponder.Send({
     interaction,
     pages,
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
     ownerId: interaction.user.id,
     timeoutMs: 1000 * 60 * 3,
     idleTimeoutMs: 1000 * 60 * 2,
@@ -71,7 +74,7 @@ async function ExecuteBanCheck(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -92,7 +95,7 @@ async function ExecuteBanCheck(
 
   await interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

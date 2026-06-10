@@ -1,43 +1,82 @@
-import { ButtonInteraction } from "discord.js";
-import { ComponentRouter } from "@shared/ComponentRouter";
+import {
+  ButtonInteraction, GuildMember,
+  MessageFlags
+} from "discord.js";
 import { ButtonResponder } from "@responders";
-import { TicketDatabase, Ticket } from "@database";
+import { TicketDatabase } from "@database";
 import { EmbedFactory } from "@utilities";
-import { HasStaffPermissions } from "@systems/Ticket/validation/TicketValidation";
-import { BUTTON_EXPIRATION_MS } from "@systems/Ticket/types/TicketTypes";
+import {
+  HasStaffPermissions,
+  ParseTicketButtonCustomId,
+} from "@systems/Ticket/validation/TicketValidation";
+import { DatabaseSet } from "@database";
+import { Logger } from "@shared/Logger";
 
-export async function RegisterClaimButton(
-  componentRouter: ComponentRouter,
-  buttonResponder: ButtonResponder,
-  ticket: Ticket,
-  interactionId: string,
-  ticketDb: TicketDatabase
+export async function HandleClaimButton(
+  buttonInteraction: ButtonInteraction,
+  options: {
+    buttonResponder: ButtonResponder;
+    ticketDb: TicketDatabase;
+    logger: Logger;
+    databases: DatabaseSet;
+  }
 ): Promise<void> {
-  componentRouter.RegisterButton({
-    customId: `ticket:${interactionId}:claim:${ticket.id}`,
-    handler: async (buttonInteraction: ButtonInteraction) => {
-      await buttonResponder.DeferUpdate(buttonInteraction);
-      if (!HasStaffPermissions(buttonInteraction.member)) {
-        return;
-      }
+  const parsed = ParseTicketButtonCustomId(buttonInteraction.customId);
+  if (!parsed || parsed.action !== "claim") {
+    return;
+  }
 
-      ticketDb.UpdateTicketStatus(
-        ticket.id,
-        "claimed",
-        buttonInteraction.user.id
-      );
+  const settings = options.databases.serverDb.GetGuildSettings(
+    buttonInteraction.guild!.id
+  );
+  const member = buttonInteraction.member as GuildMember | null;
 
-      const claimEmbed = EmbedFactory.CreateTicketClaimed(
-        ticket.id,
-        buttonInteraction.user.id
-      );
-      await buttonResponder.EditMessage(buttonInteraction, {
-        embeds: [claimEmbed.toJSON()],
-        components: [],
-      });
-    },
-    expiresInMs: BUTTON_EXPIRATION_MS,
+  if (
+    !HasStaffPermissions(member, {
+      adminRoleIds: settings?.admin_role_ids,
+      modRoleIds: settings?.mod_role_ids,
+    })
+  ) {
+    await options.buttonResponder.Reply(buttonInteraction, {
+      embeds: [
+        EmbedFactory.CreateError({
+          title: "Permission Denied",
+          description: "You need staff permissions to claim tickets.",
+        }).toJSON(),
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const ticket = options.ticketDb.GetTicket(parsed.ticketId);
+  if (!ticket || ticket.status === "closed") {
+    await options.buttonResponder.Reply(buttonInteraction, {
+      embeds: [
+        EmbedFactory.CreateError({
+          title: "Ticket Unavailable",
+          description: "This ticket is no longer available to claim.",
+        }).toJSON(),
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  await options.buttonResponder.DeferUpdate(buttonInteraction);
+
+  options.ticketDb.UpdateTicketStatus(
+    parsed.ticketId,
+    "claimed",
+    buttonInteraction.user.id
+  );
+
+  const claimEmbed = EmbedFactory.CreateTicketClaimed(
+    parsed.ticketId,
+    buttonInteraction.user.id
+  );
+  await options.buttonResponder.EditMessage(buttonInteraction, {
+    embeds: [claimEmbed.toJSON()],
+    components: [],
   });
 }
-
-

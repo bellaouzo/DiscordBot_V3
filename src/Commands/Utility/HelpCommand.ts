@@ -5,6 +5,7 @@ import {
   ButtonInteraction,
   ButtonStyle,
   ChatInputCommandInteraction,
+  MessageFlags
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
@@ -64,7 +65,7 @@ async function ExecuteHelp(
     content: overview.content,
     embeds: overview.embeds,
     components: overview.components,
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 
   if (!response.success) {

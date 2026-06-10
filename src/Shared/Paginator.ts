@@ -25,8 +25,7 @@ export interface PaginationOptions {
   readonly buttonResponder: ButtonResponder;
   readonly componentRouter: ComponentRouter;
   readonly logger: Logger;
-  readonly ephemeral?: boolean;
-  readonly flags?: MessageFlags[];
+  readonly flags?: MessageFlags | MessageFlags[];
   readonly ownerId?: string;
   readonly timeoutMs?: number;
   readonly idleTimeoutMs?: number;
@@ -50,7 +49,6 @@ export class Paginator {
     if (this.options.pages.length === 0) {
       await this.options.interactionResponder.Reply(this.options.interaction, {
         content: "No content available",
-        ephemeral: this.options.ephemeral,
         flags: this.options.flags,
       });
       return;
@@ -100,7 +98,6 @@ export class Paginator {
       content: page.content,
       embeds: page.embeds,
       components,
-      ephemeral: this.options.ephemeral,
       flags: this.options.flags,
     };
 

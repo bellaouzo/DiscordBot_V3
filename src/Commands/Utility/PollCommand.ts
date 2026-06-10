@@ -1,13 +1,14 @@
 import {
   ChannelType,
   ChatInputCommandInteraction,
+  GuildMember,
   MessageFlags,
   Message,
   TextChannel,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
+import { EmbedFactory, IsModerator } from "@utilities";
 import { PaginationPage } from "@shared/Paginator";
 
 const MIN_DURATION_MINUTES = 5;
@@ -106,7 +107,21 @@ async function ExecuteCreatePoll(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const settings = context.databases.serverDb.GetGuildSettings(interaction.guild.id);
+  const member = interaction.member as GuildMember | null;
+  if (!IsModerator(member, settings)) {
+    const embed = EmbedFactory.CreateError({
+      title: "Permission Denied",
+      description: "Only moderators can create polls.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -135,7 +150,7 @@ async function ExecuteCreatePoll(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -180,7 +195,7 @@ async function ExecuteListPolls(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -197,7 +212,7 @@ async function ExecuteListPolls(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -207,7 +222,7 @@ async function ExecuteListPolls(
   await paginatedResponder.Send({
     interaction,
     pages,
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
     ownerId: interaction.user.id,
     timeoutMs: 1000 * 60 * 3,
     idleTimeoutMs: 1000 * 60 * 2,
@@ -235,7 +250,7 @@ async function ExecuteEndPoll(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -262,6 +277,20 @@ async function ExecuteEndPoll(
     const embed = EmbedFactory.CreateError({
       title: "Not A Poll",
       description: "The specified message does not contain a poll.",
+    });
+    await interaction.editReply({ embeds: [embed.toJSON()] });
+    return;
+  }
+
+  const settings = context.databases.serverDb.GetGuildSettings(interaction.guild.id);
+  const member = interaction.member as GuildMember | null;
+  const isPollAuthor = pollMessage.author.id === interaction.user.id;
+  const isStaff = IsModerator(member, settings);
+  if (!isPollAuthor && !isStaff) {
+    const embed = EmbedFactory.CreateError({
+      title: "Permission Denied",
+      description:
+        "Only the poll creator or a moderator can end this poll.",
     });
     await interaction.editReply({ embeds: [embed.toJSON()] });
     return;

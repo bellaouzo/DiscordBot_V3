@@ -1,3 +1,4 @@
+import { MessageFlags } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 import type { CommandContext } from "@commands/CommandFactory";
 import { EmbedFactory } from "@utilities";
@@ -31,7 +32,7 @@ export async function ExecuteDisconnectSubcommand(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -48,7 +49,7 @@ export async function ExecuteDisconnectSubcommand(
 
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -66,6 +67,6 @@ export async function ExecuteDisconnectSubcommand(
 
   await interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }

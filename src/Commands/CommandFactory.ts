@@ -1,4 +1,17 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  SlashCommandBuilder,
+  SlashCommandSubcommandBuilder,
+  SlashCommandStringOption,
+  SlashCommandIntegerOption,
+} from "discord.js";
+
+export {
+  SlashCommandBuilder,
+  SlashCommandSubcommandBuilder,
+  SlashCommandStringOption,
+  SlashCommandIntegerOption,
+};
 import { Logger } from "../Shared/Logger";
 import { ResponderSet } from "../Responders";
 import { MiddlewareConfiguration, AutoMiddleware } from "./Middleware";

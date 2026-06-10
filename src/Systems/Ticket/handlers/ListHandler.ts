@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EmbedFactory } from "@utilities";
 import { CreateTicketServices } from "@systems/Ticket/validation/TicketValidation";
@@ -6,11 +9,19 @@ import {
   RegisterTicketListButtons,
   CreateTicketListPage,
 } from "@systems/Ticket/components/TicketListPagination";
+import { HandleTicketQueue } from "@systems/Ticket/handlers/QueueHandler";
 
 export async function HandleTicketList(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
+  const scope = interaction.options.getString("scope") ?? "mine";
+
+  if (scope === "server") {
+    await HandleTicketQueue(interaction, context);
+    return;
+  }
+
   const { interactionResponder, componentRouter, buttonResponder } =
     context.responders;
   const { logger } = context;
@@ -22,12 +33,17 @@ export async function HandleTicketList(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
 
-  const { ticketDb } = CreateTicketServices(logger, interaction.guild, context.databases.ticketDb);
+  const { ticketDb } = CreateTicketServices(
+    logger,
+    interaction.guild,
+    context.databases.ticketDb,
+    context.databases.serverDb
+  );
   const tickets = ticketDb.GetUserTickets(
     interaction.user.id,
     interaction.guild.id
@@ -35,6 +51,7 @@ export async function HandleTicketList(
   const tagMap = ticketDb.GetTagsForTickets(tickets.map((t) => t.id));
   const ticketsWithTags = tickets.map((ticket) => ({
     ...ticket,
+    channel_id: ticket.channel_id,
     tags: tagMap[ticket.id] ?? [],
   }));
 
@@ -45,7 +62,7 @@ export async function HandleTicketList(
     const embed = EmbedFactory.CreateTicketList(ticketsWithTags);
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -54,7 +71,7 @@ export async function HandleTicketList(
     const embed = EmbedFactory.CreateTicketList(ticketsWithTags);
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -76,7 +93,7 @@ export async function HandleTicketList(
   await interactionResponder.Reply(interaction, {
     embeds: firstPage.embeds,
     components: firstPage.components,
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

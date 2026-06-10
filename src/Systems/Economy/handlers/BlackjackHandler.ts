@@ -1,4 +1,7 @@
-import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
+import {
+  ButtonInteraction, ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { ITEM_MAP } from "@systems/Economy/items";
@@ -111,7 +114,7 @@ export async function HandleBlackjack(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -149,7 +152,7 @@ export async function HandleBlackjack(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -342,7 +345,7 @@ export async function HandleBlackjack(
 
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   };
 
@@ -450,7 +453,7 @@ export async function HandleBlackjack(
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This game has already finished.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -539,9 +542,7 @@ export async function HandleBlackjack(
         canDouble: canDouble(),
         disabled: false,
       }),
-    ],
-    ephemeral: false,
-  });
+    ],  });
 
   if (!replyResult.success) {
     if (bet > 0) {

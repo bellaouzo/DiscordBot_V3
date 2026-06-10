@@ -1,3 +1,4 @@
+import { MessageFlags } from "discord.js";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { HandleBalance } from "@systems/Economy/handlers/BalanceHandler";
 import {
@@ -29,7 +30,7 @@ describe("BalanceHandler", () => {
       interaction,
       expect.objectContaining({
         embeds: expect.any(Array),
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       })
     );
     expect(databases.userDb.GetBalance).toHaveBeenCalledWith("u1", "g1");

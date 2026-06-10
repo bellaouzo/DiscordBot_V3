@@ -529,6 +529,15 @@ export class ModerationDatabase {
     return this.appeals.ListAppeals(options);
   }
 
+  HasOpenAppealForAction(data: {
+    guild_id: string;
+    user_id: string;
+    action_type: AppealActionType;
+    action_ref: string;
+  }): boolean {
+    return this.appeals.HasOpenAppealForAction(data);
+  }
+
   UpdateAppealReviewMessage(data: {
     id: number;
     review_channel_id: string;

@@ -3,6 +3,7 @@ import {
   PermissionsBitField,
   GuildMember,
   ChatInputCommandInteraction,
+  MessageFlags
 } from "discord.js";
 import { CommandMiddleware, MiddlewareContext } from "./index";
 import { ResponderSet } from "@responders";
@@ -24,7 +25,7 @@ async function SendPermissionError(
   });
   await responders.interactionResponder.Reply(interaction, {
     ...message,
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -115,6 +116,79 @@ async function CheckRolePermission(context: {
       context.interaction,
       "Missing Required Role",
       `You need the **${roleName}** role to use this command.`
+    );
+    return false;
+  }
+
+  return true;
+}
+
+async function CheckAdminRolePermission(context: {
+  interaction: ChatInputCommandInteraction;
+  config: CommandConfig;
+  responders: ResponderSet;
+  member: GuildMember;
+  logger?: Logger;
+  databases: DatabaseSet;
+}): Promise<boolean> {
+  if (!context.config.adminRole) return true;
+
+  if (!context.interaction.guild) {
+    await SendPermissionError(
+      context.responders,
+      context.interaction,
+      "Permission Check Failed",
+      "This command can only be used in a server."
+    );
+    return false;
+  }
+
+  const guildSettings = context.databases.serverDb.GetGuildSettings(
+    context.interaction.guild.id
+  );
+
+  if (!guildSettings || !guildSettings.admin_role_ids.length) {
+    await SendPermissionError(
+      context.responders,
+      context.interaction,
+      "Admin Role Not Configured",
+      "No admin roles have been configured for this server. Please use the setup command to configure admin roles."
+    );
+    return false;
+  }
+
+  const memberRoles = context.member?.roles?.cache
+    ? Array.from(context.member.roles.cache.keys())
+    : [];
+
+  const hasAdminRole = guildSettings.admin_role_ids.some((roleId) =>
+    memberRoles.includes(roleId)
+  );
+
+  if (!hasAdminRole) {
+    const locator = CreateGuildResourceLocator({
+      guild: context.interaction.guild,
+      logger: context.logger,
+    });
+
+    const adminRoleNames: string[] = [];
+    for (const roleId of guildSettings.admin_role_ids) {
+      const role = await locator.GetRole(roleId);
+      if (role) {
+        adminRoleNames.push(role.name);
+      }
+    }
+
+    const roleList =
+      adminRoleNames.length > 0
+        ? adminRoleNames.join(", ")
+        : "a configured admin role";
+
+    await SendPermissionError(
+      context.responders,
+      context.interaction,
+      "Missing Admin Role",
+      `You need one of the following admin roles to use this command: **${roleList}**`
     );
     return false;
   }
@@ -273,6 +347,13 @@ export const PermissionMiddleware: CommandMiddleware = {
     const checks = [
       () => CheckOwnerPermission(context),
       () => CheckRolePermission({ ...context, member, logger: context.logger }),
+      () =>
+        CheckAdminRolePermission({
+          ...context,
+          member,
+          logger: context.logger,
+          databases: context.databases,
+        }),
       () =>
         CheckModRolePermission({
           ...context,

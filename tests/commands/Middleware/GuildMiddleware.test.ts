@@ -1,3 +1,4 @@
+import { MessageFlags } from "discord.js";
 import { describe, it, expect, vi } from "vitest";
 import { GuildMiddleware } from "@middleware/GuildMiddleware";
 import {
@@ -47,7 +48,7 @@ describe("GuildMiddleware", () => {
     expect(context.responders.interactionResponder.Reply).toHaveBeenCalledWith(
       context.interaction,
       expect.objectContaining({
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
         embeds: expect.arrayContaining([
           expect.objectContaining({
             title: expect.stringContaining("Guild Only"),

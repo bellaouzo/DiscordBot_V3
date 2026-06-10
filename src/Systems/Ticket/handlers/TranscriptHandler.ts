@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction, TextChannel } from "discord.js";
+import {
+  ChatInputCommandInteraction, TextChannel,
+  MessageFlags
+} from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EmbedFactory, TranscriptGenerator } from "@utilities";
 import {
@@ -18,20 +21,34 @@ export async function HandleTicketTranscript(
   if (!(await ValidateTicketChannelOrReply(interaction, interactionResponder)))
     return;
 
-  if (!HasStaffPermissions(interaction.member)) {
+  const settings = context.databases.serverDb.GetGuildSettings(
+    interaction.guild!.id
+  );
+
+  if (
+    !HasStaffPermissions(interaction.member, {
+      adminRoleIds: settings?.admin_role_ids,
+      modRoleIds: settings?.mod_role_ids,
+    })
+  ) {
     const embed = EmbedFactory.CreateError({
       title: "Permission Required",
       description: "You need staff permissions to generate transcripts.",
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
 
   const { ticketDb, ticketManager, guildResourceLocator } =
-    CreateTicketServices(logger, interaction.guild!, context.databases.ticketDb);
+    CreateTicketServices(
+      logger,
+      interaction.guild!,
+      context.databases.ticketDb,
+      context.databases.serverDb
+    );
   const ticket = await GetTicketOrReply(
     ticketDb,
     interaction.channel as TextChannel,
@@ -75,7 +92,7 @@ export async function HandleTicketTranscript(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [replyEmbed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } else {
     const replyEmbed = EmbedFactory.CreateWarning({
@@ -85,7 +102,7 @@ export async function HandleTicketTranscript(
     await interactionResponder.Reply(interaction, {
       embeds: [replyEmbed.toJSON()],
       files: [{ name: filename, attachment: Buffer.from(transcript, "utf-8") }],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }

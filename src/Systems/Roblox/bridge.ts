@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction, PermissionFlagsBits } from "discord.js";
+import {
+  ChatInputCommandInteraction, PermissionFlagsBits,
+  MessageFlags
+} from "discord.js";
 import { createHmac } from "crypto";
 import { LoadApiConfig } from "@config/ApiConfig";
 import type { CommandContext } from "@commands/CommandFactory";
@@ -175,7 +178,7 @@ export async function EnsureAdminAccess(
 
   await context.responders.interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
   return false;
 }

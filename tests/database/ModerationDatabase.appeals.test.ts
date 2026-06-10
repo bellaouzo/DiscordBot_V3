@@ -100,6 +100,34 @@ describe("ModerationDatabase appeal operations", () => {
     expect(secondResolve).toBeNull();
   });
 
+  it("detects open appeals for a specific action", () => {
+    db.AddAppeal({
+      guild_id: "guild-1",
+      user_id: "user-1",
+      action_type: "warning",
+      action_ref: "5",
+      reason: "pending",
+    });
+
+    expect(
+      db.HasOpenAppealForAction({
+        guild_id: "guild-1",
+        user_id: "user-1",
+        action_type: "warning",
+        action_ref: "5",
+      })
+    ).toBe(true);
+
+    expect(
+      db.HasOpenAppealForAction({
+        guild_id: "guild-1",
+        user_id: "user-1",
+        action_type: "warning",
+        action_ref: "99",
+      })
+    ).toBe(false);
+  });
+
   it("removes temp actions and moderation events used by appeal cleanup", () => {
     const tempAction = db.AddTempAction({
       action: "mute",

@@ -83,12 +83,22 @@ describe("Moderation commands", () => {
             getUser: () => ({ id: "target-id", username: "KickTarget" }),
           });
         }
+        if (cmd === CasefileCommand) {
+          stubInteractionOptions(interaction, {
+            getUser: () => ({ id: "target-id", username: "CaseTarget", tag: "CaseTarget#1234" }),
+          });
+        }
         if (cmd === UnbanCommand) {
           stubInteractionOptions(interaction, {
             getString: () => "user-id-123",
           });
         }
         const context = createMockContext();
+        if (cmd === CasefileCommand) {
+          (
+            context.responders.componentRouter.RegisterButton as ReturnType<typeof vi.fn>
+          ).mockReturnValue({ customId: "casefile-btn" });
+        }
         await expect(cmd.execute(interaction, context)).resolves.not.toThrow();
       });
     });

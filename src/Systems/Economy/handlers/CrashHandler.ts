@@ -1,4 +1,7 @@
-import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
+import {
+  ButtonInteraction, ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { ITEM_MAP } from "@systems/Economy/items";
@@ -47,7 +50,7 @@ export async function HandleCrash(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -83,7 +86,7 @@ export async function HandleCrash(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -184,7 +187,7 @@ export async function HandleCrash(
       if (sourceInteraction) {
         await buttonResponder.Reply(sourceInteraction, {
           content: "This game has already finished.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       }
       return;
@@ -273,7 +276,7 @@ export async function HandleCrash(
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This game has already finished.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -331,9 +334,7 @@ export async function HandleCrash(
 
   const replyResult = await interactionResponder.Reply(interaction, {
     embeds: [promptEmbed.toJSON()],
-    components: [BuildCrashButtons(customIds)],
-    ephemeral: false,
-  });
+    components: [BuildCrashButtons(customIds)],  });
 
   if (!replyResult.success) {
     if (bet > 0) {

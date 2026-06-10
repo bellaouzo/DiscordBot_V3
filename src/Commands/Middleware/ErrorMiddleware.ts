@@ -1,3 +1,4 @@
+import { MessageFlags } from "discord.js";
 import { CommandMiddleware } from "./index";
 import { CreateErrorMessage } from "@responders/MessageFactory";
 
@@ -43,7 +44,7 @@ export const ErrorMiddleware: CommandMiddleware = {
           context.interaction,
           {
             ...message,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           }
         );
       } catch (responderError) {

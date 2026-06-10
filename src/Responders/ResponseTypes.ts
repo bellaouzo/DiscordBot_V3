@@ -12,8 +12,7 @@ export type ResponderMessageOptions = Pick<
   MessageCreateOptions,
   "content" | "embeds" | "files"
 > & {
-  readonly ephemeral?: boolean;
-  readonly flags?: MessageFlags[];
+  readonly flags?: MessageFlags | MessageFlags[];
   readonly components?: ActionRowData<ActionRowComponentData>[];
 };
 
@@ -53,9 +52,12 @@ export function ResolveResponderLogger(
 export function ConvertToInteractionFlags(
   options: ResponderMessageOptions,
 ): MessageFlags.Ephemeral | undefined {
-  if (options.flags?.includes(MessageFlags.Ephemeral)) {
-    return MessageFlags.Ephemeral;
+  if (!options.flags) {
+    return undefined;
   }
 
-  return options.ephemeral ? MessageFlags.Ephemeral : undefined;
+  const flags = Array.isArray(options.flags) ? options.flags : [options.flags];
+  return flags.includes(MessageFlags.Ephemeral)
+    ? MessageFlags.Ephemeral
+    : undefined;
 }

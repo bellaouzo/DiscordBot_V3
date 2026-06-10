@@ -18,9 +18,7 @@ export async function HandleGift(
       description: "Gifts can only be sent inside a server.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: false,
-    });
+      embeds: [embed.toJSON()],    });
     return;
   }
 
@@ -30,9 +28,7 @@ export async function HandleGift(
       description: "Gift amount must be greater than zero.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: false,
-    });
+      embeds: [embed.toJSON()],    });
     return;
   }
 
@@ -42,9 +38,7 @@ export async function HandleGift(
       description: "Choose a different user to send coins to.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: false,
-    });
+      embeds: [embed.toJSON()],    });
     return;
   }
 
@@ -54,9 +48,7 @@ export async function HandleGift(
       description: "Select a human user to send coins to.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: false,
-    });
+      embeds: [embed.toJSON()],    });
     return;
   }
 
@@ -79,9 +71,7 @@ export async function HandleGift(
         description: "You don't have enough coins to send that amount.",
       });
       await interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        ephemeral: false,
-      });
+        embeds: [embed.toJSON()],      });
       return;
     }
 
@@ -94,9 +84,7 @@ export async function HandleGift(
     });
 
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: false,
-    });
+      embeds: [embed.toJSON()],    });
   } finally {
     void 0;
   }

@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { BuildDiceResultEmbed } from "@systems/Economy/utils/Embeds";
@@ -26,7 +29,7 @@ export async function HandleDice(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -38,7 +41,7 @@ export async function HandleDice(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -72,7 +75,7 @@ export async function HandleDice(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -143,9 +146,7 @@ export async function HandleDice(
   });
 
   await interactionResponder.Reply(interaction, {
-    embeds: [embed.toJSON()],
-    ephemeral: false,
-  });
+    embeds: [embed.toJSON()],  });
 }
 
 

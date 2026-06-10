@@ -1,5 +1,6 @@
 import {
   ActionRowBuilder,
+  ButtonInteraction,
   ButtonStyle,
   ChannelType,
   ChatInputCommandInteraction,
@@ -13,7 +14,7 @@ import {
   TextInputStyle,
 } from "discord.js";
 import { CommandContext } from "@commands";
-import { Appeal } from "@database";
+import { Appeal, AppealActionType } from "@database";
 import {
   AppealableActionOption,
   ComponentFactory,
@@ -28,6 +29,11 @@ import {
 } from "@commands/Moderation/Appeal/AppealShared";
 import { BuildAppealReviewEmbed } from "@commands/Moderation/Appeal/AppealFormatters";
 import { HandleAppealDecisionButton } from "@commands/Moderation/Appeal/AppealReviewFlow";
+
+const APPEAL_SELECT_TIMEOUT_MS = 1000 * 60 * 5;
+const APPEAL_MODAL_TIMEOUT_MS = 1000 * 60 * 10;
+
+type AppealStartInteraction = ChatInputCommandInteraction | ButtonInteraction;
 
 async function CreateAppealReviewChannel(data: {
   guild: Guild;
@@ -44,10 +50,7 @@ async function CreateAppealReviewChannel(data: {
   const fallbackCategory = await channelManager.GetOrCreateCategory("Appeals");
 
   let parentCategoryId =
-    settings?.appeal_review_category_id ??
-    settings?.ticket_category_id ??
-    fallbackCategory?.id ??
-    null;
+    settings?.appeal_review_category_id ?? fallbackCategory?.id ?? null;
   if (parentCategoryId) {
     const parent = guild.channels.cache.get(parentCategoryId);
     if (!parent || parent.type !== ChannelType.GuildCategory) {
@@ -240,30 +243,169 @@ async function ProcessAppealSubmission(data: {
   });
 }
 
-export async function HandleSubmit(
-  interaction: ChatInputCommandInteraction,
-  context: CommandContext
-): Promise<void> {
-  const { interactionResponder, selectMenuRouter, modalRouter } = context.responders;
-  if (!interaction.guild) {
-    const embed = EmbedFactory.CreateError({
-      title: "Guild Only",
-      description: "Appeals can only be submitted inside a server.",
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      ephemeral: true,
-    });
-    return;
-  }
+function RegisterAppealSelectFlow(data: {
+  interaction: AppealStartInteraction;
+  context: CommandContext;
+  guild: Guild;
+  flowInteractionId: string;
+  options: AppealableActionOption[];
+}): void {
+  const { interaction, context, guild, flowInteractionId, options } = data;
+  const { selectMenuRouter, modalRouter } = context.responders;
 
-  const requestedAction = interaction.options.getString("action") as
-    | "warning"
-    | "mute"
-    | "ban"
-    | "kick"
-    | null;
-  const guild = interaction.guild;
+  const customId = `appeal-select:${flowInteractionId}`;
+
+  selectMenuRouter.RegisterSelectMenu({
+    customId,
+    ownerId: interaction.user.id,
+    singleUse: true,
+    expiresInMs: APPEAL_SELECT_TIMEOUT_MS,
+    handler: async (selectInteraction) => {
+        try {
+          const parsed = ParseActionOptionValue(selectInteraction.values[0]);
+          if (!parsed) {
+            await selectInteraction.reply({
+              embeds: [
+                EmbedFactory.CreateError({
+                  title: "Invalid Selection",
+                  description: "Could not parse the selected action.",
+                }).toJSON(),
+              ],
+              flags: MessageFlags.Ephemeral,
+            });
+            return;
+          }
+
+          const chosen = options.find(
+            (entry) =>
+              entry.actionType === parsed.actionType &&
+              entry.actionRef === parsed.actionRef
+          );
+          if (!chosen) {
+            await selectInteraction.reply({
+              embeds: [
+                EmbedFactory.CreateWarning({
+                  title: "Selection Expired",
+                  description: "That moderation action is no longer available.",
+                }).toJSON(),
+              ],
+              flags: MessageFlags.Ephemeral,
+            });
+            return;
+          }
+
+          const modalCustomId = `appeal-reason:${flowInteractionId}:${chosen.actionType}:${chosen.actionRef}`;
+          const modal = new ModalBuilder()
+            .setCustomId(modalCustomId)
+            .setTitle("Submit Appeal");
+          const reasonInput = new TextInputBuilder()
+            .setCustomId("reason")
+            .setLabel("Why should this action be appealed?")
+            .setStyle(TextInputStyle.Paragraph)
+            .setRequired(true)
+            .setMaxLength(1000);
+          const evidenceInput = new TextInputBuilder()
+            .setCustomId("evidence")
+            .setLabel("Evidence (optional)")
+            .setStyle(TextInputStyle.Paragraph)
+            .setRequired(false)
+            .setMaxLength(1000);
+          modal.addComponents(
+            new ActionRowBuilder<TextInputBuilder>().addComponents(reasonInput),
+            new ActionRowBuilder<TextInputBuilder>().addComponents(evidenceInput)
+          );
+
+          modalRouter.RegisterModal({
+            customId: modalCustomId,
+            ownerId: interaction.user.id,
+            singleUse: true,
+            expiresInMs: APPEAL_MODAL_TIMEOUT_MS,
+            handler: async (modalInteraction) => {
+              const reason = modalInteraction.fields.getTextInputValue("reason").trim();
+              const evidenceRaw = modalInteraction.fields
+                .getTextInputValue("evidence")
+                .trim();
+              const evidence = evidenceRaw.length > 0 ? evidenceRaw : null;
+
+              await modalInteraction.deferReply({ flags: MessageFlags.Ephemeral });
+
+              try {
+                await ProcessAppealSubmission({
+                  modalInteraction,
+                  context,
+                  guild,
+                  reason,
+                  evidence,
+                  target: chosen,
+                });
+              } catch (error) {
+                context.logger.Error("Appeal submission failed", {
+                  error,
+                  extra: {
+                    guildId: guild.id,
+                    userId: modalInteraction.user.id,
+                    actionType: chosen.actionType,
+                    actionRef: chosen.actionRef,
+                  },
+                });
+                await modalInteraction.editReply({
+                  embeds: [
+                    EmbedFactory.CreateError({
+                      title: "Appeal Failed",
+                      description:
+                        "We could not complete your appeal submission. Please try again shortly.",
+                    }).toJSON(),
+                  ],
+                });
+              }
+            },
+          });
+
+          await selectInteraction.showModal(modal);
+        } catch (error) {
+          context.logger.Error("Failed to continue appeal submit flow", {
+            error,
+            extra: {
+              guildId: guild.id,
+              userId: interaction.user.id,
+            },
+          });
+          if (selectInteraction.replied || selectInteraction.deferred) {
+            await selectInteraction.followUp({
+              embeds: [
+                EmbedFactory.CreateError({
+                  title: "Appeal Flow Error",
+                  description:
+                    "The appeal form could not be opened. Please run the command again.",
+                }).toJSON(),
+              ],
+              flags: MessageFlags.Ephemeral,
+            });
+            return;
+          }
+          await selectInteraction.reply({
+            embeds: [
+              EmbedFactory.CreateError({
+                title: "Appeal Flow Error",
+                description:
+                  "The appeal form could not be opened. Please run the command again.",
+              }).toJSON(),
+            ],
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+      },
+  });
+}
+
+export async function BeginAppealSubmission(data: {
+  interaction: AppealStartInteraction;
+  context: CommandContext;
+  guild: Guild;
+  requestedAction?: AppealActionType | null;
+}): Promise<void> {
+  const { interaction, context, guild, requestedAction } = data;
+  const { interactionResponder } = context.responders;
 
   const appealManager = CreateAppealManager({
     guildId: guild.id,
@@ -276,182 +418,81 @@ export async function HandleSubmit(
   const options = appealManager.ListAppealableActions(requestedAction ?? undefined);
   if (options.length === 0) {
     const detail = requestedAction
-      ? `You do not have any ${requestedAction} records to appeal.`
-      : "You do not have any warnings, mutes, bans, or kicks to appeal.";
+      ? `You do not have any ${requestedAction} records to appeal, or an open appeal already exists for them.`
+      : "You do not have any warnings, mutes, bans, or kicks to appeal, or all eligible actions already have open appeals.";
     const embed = EmbedFactory.CreateWarning({
       title: "Nothing To Appeal",
       description: detail,
     });
-    await interactionResponder.Reply(interaction, {
+    await interactionResponder.Edit(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      components: [],
     });
     return;
   }
 
-  const selectOptions = await BuildActionSelectOptions(
+  const flowInteractionId = String(interaction.id);
+  const builtOptions = await BuildActionSelectOptions(
     options,
     guild,
     interaction.client
   );
-  const customId = `appeal-select:${interaction.id}`;
+
+  RegisterAppealSelectFlow({
+    interaction,
+    context,
+    guild,
+    flowInteractionId,
+    options,
+  });
   const menu = ComponentFactory.CreateSelectMenu({
-    customId,
+    customId: `appeal-select:${flowInteractionId}`,
     placeholder: "Select the action you want to appeal...",
     minValues: 1,
     maxValues: 1,
-    options: selectOptions,
-  });
-
-  selectMenuRouter.RegisterSelectMenu({
-    customId,
-    ownerId: interaction.user.id,
-    singleUse: true,
-    expiresInMs: 1000 * 60 * 2,
-    handler: async (selectInteraction) => {
-      try {
-        const parsed = ParseActionOptionValue(selectInteraction.values[0]);
-        if (!parsed) {
-          await selectInteraction.reply({
-            embeds: [
-              EmbedFactory.CreateError({
-                title: "Invalid Selection",
-                description: "Could not parse the selected action.",
-              }).toJSON(),
-            ],
-            flags: MessageFlags.Ephemeral,
-          });
-          return;
-        }
-
-        const chosen = options.find(
-          (entry) =>
-            entry.actionType === parsed.actionType &&
-            entry.actionRef === parsed.actionRef
-        );
-        if (!chosen) {
-          await selectInteraction.reply({
-            embeds: [
-              EmbedFactory.CreateWarning({
-                title: "Selection Expired",
-                description: "That moderation action is no longer available.",
-              }).toJSON(),
-            ],
-            flags: MessageFlags.Ephemeral,
-          });
-          return;
-        }
-
-        const modalCustomId = `appeal-reason:${interaction.id}:${chosen.actionType}:${chosen.actionRef}`;
-        const modal = new ModalBuilder()
-          .setCustomId(modalCustomId)
-          .setTitle("Submit Appeal");
-        const reasonInput = new TextInputBuilder()
-          .setCustomId("reason")
-          .setLabel("Why should this action be appealed?")
-          .setStyle(TextInputStyle.Paragraph)
-          .setRequired(true)
-          .setMaxLength(1000);
-        const evidenceInput = new TextInputBuilder()
-          .setCustomId("evidence")
-          .setLabel("Evidence (optional)")
-          .setStyle(TextInputStyle.Paragraph)
-          .setRequired(false)
-          .setMaxLength(1000);
-        modal.addComponents(
-          new ActionRowBuilder<TextInputBuilder>().addComponents(reasonInput),
-          new ActionRowBuilder<TextInputBuilder>().addComponents(evidenceInput)
-        );
-
-        modalRouter.RegisterModal({
-          customId: modalCustomId,
-          ownerId: interaction.user.id,
-          singleUse: true,
-          expiresInMs: 1000 * 60 * 5,
-          handler: async (modalInteraction) => {
-            const reason = modalInteraction.fields.getTextInputValue("reason").trim();
-            const evidenceRaw = modalInteraction.fields
-              .getTextInputValue("evidence")
-              .trim();
-            const evidence = evidenceRaw.length > 0 ? evidenceRaw : null;
-
-            await modalInteraction.deferReply({ flags: MessageFlags.Ephemeral });
-
-            try {
-              await ProcessAppealSubmission({
-                modalInteraction,
-                context,
-                guild,
-                reason,
-                evidence,
-                target: chosen,
-              });
-            } catch (error) {
-              context.logger.Error("Appeal submission failed", {
-                error,
-                extra: {
-                  guildId: guild.id,
-                  userId: modalInteraction.user.id,
-                  actionType: chosen.actionType,
-                  actionRef: chosen.actionRef,
-                },
-              });
-              await modalInteraction.editReply({
-                embeds: [
-                  EmbedFactory.CreateError({
-                    title: "Appeal Failed",
-                    description:
-                      "We could not complete your appeal submission. Please try again shortly.",
-                  }).toJSON(),
-                ],
-              });
-            }
-          },
-        });
-
-        await selectInteraction.showModal(modal);
-      } catch (error) {
-        context.logger.Error("Failed to continue appeal submit flow", {
-          error,
-          extra: {
-            guildId: interaction.guildId,
-            userId: interaction.user.id,
-          },
-        });
-        if (selectInteraction.replied || selectInteraction.deferred) {
-          await selectInteraction.followUp({
-            embeds: [
-              EmbedFactory.CreateError({
-                title: "Appeal Flow Error",
-                description:
-                  "The appeal form could not be opened. Please run the command again.",
-              }).toJSON(),
-            ],
-            flags: MessageFlags.Ephemeral,
-          });
-          return;
-        }
-        await selectInteraction.reply({
-          embeds: [
-            EmbedFactory.CreateError({
-              title: "Appeal Flow Error",
-              description:
-                "The appeal form could not be opened. Please run the command again.",
-            }).toJSON(),
-          ],
-          flags: MessageFlags.Ephemeral,
-        });
-      }
-    },
+    options: builtOptions,
   });
 
   const embed = EmbedFactory.Create({
     title: "Select Action To Appeal",
     description: `Found **${options.length}** moderation action(s). Choose one below, then fill out your reason and evidence in the next step.`,
   });
-  await interactionResponder.Reply(interaction, {
+  await interactionResponder.Edit(interaction, {
     embeds: [embed.toJSON()],
     components: [ToActionRowData(ComponentFactory.CreateSelectMenuRow(menu))],
-    ephemeral: true,
+  });
+}
+
+export async function HandleSubmit(
+  interaction: ChatInputCommandInteraction,
+  context: CommandContext
+): Promise<void> {
+  const { interactionResponder } = context.responders;
+  if (!interaction.guild) {
+    const embed = EmbedFactory.CreateError({
+      title: "Guild Only",
+      description: "Appeals can only be submitted inside a server.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const requestedAction = interaction.options.getString("action") as
+    | AppealActionType
+    | null;
+
+  const deferred = await interactionResponder.Defer(interaction, true);
+  if (!deferred.success) {
+    return;
+  }
+
+  await BeginAppealSubmission({
+    interaction,
+    context,
+    guild: interaction.guild,
+    requestedAction,
   });
 }

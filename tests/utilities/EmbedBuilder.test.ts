@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EmbedFactory } from "@utilities/EmbedBuilder";
+import { EmbedFactory } from "@utilities/EmbedFactory";
 
 describe("EmbedFactory", () => {
   describe("Create", () => {

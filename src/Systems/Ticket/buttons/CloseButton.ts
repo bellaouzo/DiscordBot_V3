@@ -1,80 +1,117 @@
-import { ButtonInteraction, Guild } from "discord.js";
-import { ComponentRouter } from "@shared/ComponentRouter";
+import {
+  ButtonInteraction, Guild, GuildMember,
+  MessageFlags
+} from "discord.js";
 import { ButtonResponder } from "@responders";
-import { TicketDatabase, Ticket } from "@database";
+import { DatabaseSet } from "@database";
 import { Logger } from "@shared/Logger";
 import {
   EmbedFactory,
   CreateTicketManager,
   TranscriptGenerator,
-  GuildResourceLocator,
 } from "@utilities";
-import { BUTTON_EXPIRATION_MS } from "../types/TicketTypes";
+import {
+  CanUserCloseTicket,
+  CreateTicketServices,
+  ParseTicketButtonCustomId,
+} from "@systems/Ticket/validation/TicketValidation";
 
-export async function RegisterCloseButton(
-  componentRouter: ComponentRouter,
-  buttonResponder: ButtonResponder,
-  ticket: Ticket,
-  interactionId: string,
-  logger: Logger,
-  ticketDb: TicketDatabase,
-  guild: Guild,
-  guildResourceLocator: GuildResourceLocator
+export async function HandleCloseButton(
+  buttonInteraction: ButtonInteraction,
+  options: {
+    buttonResponder: ButtonResponder;
+    databases: DatabaseSet;
+    logger: Logger;
+    guild: Guild;
+  }
 ): Promise<void> {
-  componentRouter.RegisterButton({
-    customId: `ticket:${interactionId}:close:${ticket.id}`,
-    handler: async (buttonInteraction: ButtonInteraction) => {
-      await buttonResponder.DeferUpdate(buttonInteraction);
+  const parsed = ParseTicketButtonCustomId(buttonInteraction.customId);
+  if (!parsed || parsed.action !== "close") {
+    return;
+  }
 
-      const closeEmbed = EmbedFactory.CreateTicketClosed(
-        ticket.id,
-        buttonInteraction.user.id
-      );
-      await buttonResponder.EditMessage(buttonInteraction, {
-        embeds: [closeEmbed.toJSON()],
-        components: [],
-      });
+  const ticket = options.databases.ticketDb.GetTicket(parsed.ticketId);
+  if (!ticket || ticket.status === "closed") {
+    await options.buttonResponder.Reply(buttonInteraction, {
+      embeds: [
+        EmbedFactory.CreateError({
+          title: "Ticket Unavailable",
+          description: "This ticket is already closed.",
+        }).toJSON(),
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
 
-      const ticketManager = CreateTicketManager({
-        guild,
-        logger,
-        ticketDb,
-        guildResourceLocator,
-      });
+  const settings = options.databases.serverDb.GetGuildSettings(
+    options.guild.id
+  );
+  const member = buttonInteraction.member as GuildMember | null;
 
-      const messages = ticketDb.GetTicketMessages(ticket.id);
-      const member = await guildResourceLocator.GetMember(ticket.user_id);
-      const user =
-        member?.user ||
-        (await buttonInteraction.client.users.fetch(ticket.user_id));
-      const participantHistory = ticketDb.GetParticipantHistory(ticket.id);
+  if (
+    !CanUserCloseTicket(ticket, buttonInteraction.user.id, member, {
+      adminRoleIds: settings?.admin_role_ids,
+      modRoleIds: settings?.mod_role_ids,
+    })
+  ) {
+    await options.buttonResponder.Reply(buttonInteraction, {
+      embeds: [
+        EmbedFactory.CreateError({
+          title: "Permission Denied",
+          description: "Only the ticket owner or staff can close this ticket.",
+        }).toJSON(),
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
 
-      const transcript = TranscriptGenerator.Generate({
-        ticket,
-        messages,
-        user,
-        guild,
-        participantHistory,
-      });
+  await options.buttonResponder.DeferUpdate(buttonInteraction);
 
-      const filename = TranscriptGenerator.GenerateFileName(ticket);
-
-      await SendTicketLogs(
-        ticketManager,
-        transcript,
-        filename,
-        `Ticket #${ticket.id} closed by <@${buttonInteraction.user.id}>`,
-        logger
-      );
-
-      await ticketManager.CloseTicket(
-        ticket.id,
-        buttonInteraction.user.id,
-        false
-      );
-    },
-    expiresInMs: BUTTON_EXPIRATION_MS,
+  const closeEmbed = EmbedFactory.CreateTicketClosed(
+    ticket.id,
+    buttonInteraction.user.id
+  );
+  await options.buttonResponder.EditMessage(buttonInteraction, {
+    embeds: [closeEmbed.toJSON()],
+    components: [],
   });
+
+  const { ticketManager, guildResourceLocator } = CreateTicketServices(
+    options.logger,
+    options.guild,
+    options.databases.ticketDb,
+    options.databases.serverDb
+  );
+
+  const messages = options.databases.ticketDb.GetTicketMessages(ticket.id);
+  const ticketMember = await guildResourceLocator.GetMember(ticket.user_id);
+  const user =
+    ticketMember?.user ||
+    (await buttonInteraction.client.users.fetch(ticket.user_id));
+  const participantHistory =
+    options.databases.ticketDb.GetParticipantHistory(ticket.id);
+
+  const transcript = TranscriptGenerator.Generate({
+    ticket,
+    messages,
+    user,
+    guild: options.guild,
+    participantHistory,
+  });
+
+  const filename = TranscriptGenerator.GenerateFileName(ticket);
+
+  await SendTicketLogs(
+    ticketManager,
+    transcript,
+    filename,
+    `Ticket #${ticket.id} closed by <@${buttonInteraction.user.id}>`,
+    options.logger
+  );
+
+  await ticketManager.CloseTicket(ticket.id, buttonInteraction.user.id, false);
 }
 
 async function SendTicketLogs(
@@ -87,20 +124,18 @@ async function SendTicketLogs(
   try {
     const logsChannel = await ticketManager.GetOrCreateTicketLogsChannel();
     if (logsChannel) {
+      const embed = EmbedFactory.CreateSuccess({
+        title: "Ticket Closed",
+        description: message,
+      });
       await logsChannel.send({
-        content: message,
+        embeds: [embed.toJSON()],
         files: [
           { name: filename, attachment: Buffer.from(transcript, "utf-8") },
         ],
-      });
-    } else {
-      logger.Error("Failed to get or create logs channel", {
-        extra: { guildId: ticketManager },
       });
     }
   } catch (error) {
     logger.Error("Failed to send ticket logs", { error });
   }
 }
-
-

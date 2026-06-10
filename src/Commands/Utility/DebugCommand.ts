@@ -101,7 +101,7 @@ export const DebugCommand = CreateCommand({
   name: "debug",
   description: "Display bot diagnostic and debug information",
   group: "utility",
-  config: Config.utility(5),
+  config: Config.admin(5),
   execute: ExecuteDebug,
 });
 

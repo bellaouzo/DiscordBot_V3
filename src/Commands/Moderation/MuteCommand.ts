@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction, GuildMember } from "discord.js";
+import {
+  ChatInputCommandInteraction, GuildMember,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import {
@@ -62,7 +65,7 @@ async function ExecuteMute(
       });
       await interactionResponder.Reply(interaction, {
         embeds: [errorEmbed],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }

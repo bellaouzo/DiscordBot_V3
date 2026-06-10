@@ -44,7 +44,10 @@ export function CreateTicketListPage(
           ticket.tags && ticket.tags.length > 0
             ? ` — tags: ${ticket.tags.join(", ")}`
             : "";
-        return `${statusEmoji} **Ticket #${ticket.id}** - ${ticket.category} (${ticket.status}) - ${date}${tags}`;
+        const channelLink = ticket.channel_id
+          ? ` — <#${ticket.channel_id}>`
+          : "";
+        return `${statusEmoji} **Ticket #${ticket.id}** - ${ticket.category} (${ticket.status}) - ${date}${channelLink}${tags}`;
       })
       .join("\n");
 

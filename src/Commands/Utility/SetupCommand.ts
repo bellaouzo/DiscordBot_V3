@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { CreateChannelManager } from "@utilities";
@@ -38,8 +41,12 @@ async function ExecuteSetup(
   const settingsChanged =
     sanitizedSettings.ticket_category_id !==
       currentSettings.ticket_category_id ||
+    sanitizedSettings.appeal_review_category_id !==
+      currentSettings.appeal_review_category_id ||
     sanitizedSettings.command_log_channel_id !==
       currentSettings.command_log_channel_id ||
+    sanitizedSettings.ticket_log_channel_id !==
+      currentSettings.ticket_log_channel_id ||
     sanitizedSettings.announcement_channel_id !==
       currentSettings.announcement_channel_id ||
     sanitizedSettings.delete_log_channel_id !==
@@ -54,7 +61,9 @@ async function ExecuteSetup(
       admin_role_ids: sanitizedSettings.admin_role_ids,
       mod_role_ids: sanitizedSettings.mod_role_ids,
       ticket_category_id: sanitizedSettings.ticket_category_id,
+      appeal_review_category_id: sanitizedSettings.appeal_review_category_id,
       command_log_channel_id: sanitizedSettings.command_log_channel_id,
+      ticket_log_channel_id: sanitizedSettings.ticket_log_channel_id,
       announcement_channel_id: sanitizedSettings.announcement_channel_id,
       delete_log_channel_id: sanitizedSettings.delete_log_channel_id,
       production_log_channel_id: sanitizedSettings.production_log_channel_id,
@@ -66,7 +75,9 @@ async function ExecuteSetup(
     adminRoleIds: [...sanitizedSettings.admin_role_ids],
     modRoleIds: [...sanitizedSettings.mod_role_ids],
     ticketCategoryId: sanitizedSettings.ticket_category_id,
+    appealReviewCategoryId: sanitizedSettings.appeal_review_category_id,
     commandLogChannelId: sanitizedSettings.command_log_channel_id,
+    ticketLogChannelId: sanitizedSettings.ticket_log_channel_id,
     announcementChannelId: sanitizedSettings.announcement_channel_id,
     deleteLogChannelId: sanitizedSettings.delete_log_channel_id,
     productionLogChannelId: sanitizedSettings.production_log_channel_id,
@@ -80,7 +91,9 @@ async function ExecuteSetup(
     adminSelect: `setup:${interactionId}:admin`,
     modSelect: `setup:${interactionId}:mod`,
     ticketSelect: `setup:${interactionId}:ticket`,
+    appealSelect: `setup:${interactionId}:appeal`,
     commandLogSelect: `setup:${interactionId}:cmdlog`,
+    ticketLogSelect: `setup:${interactionId}:ticketlog`,
     deleteLogSelect: `setup:${interactionId}:deletelog`,
     productionLogSelect: `setup:${interactionId}:prodlog`,
     announcementSelect: `setup:${interactionId}:announce`,
@@ -153,7 +166,7 @@ async function ExecuteSetup(
       ids,
       loggingDefaults,
     }),
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

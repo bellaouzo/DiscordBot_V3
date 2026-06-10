@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -85,7 +88,7 @@ async function ExecuteEconomyAdmin(
       });
       await interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -103,7 +106,7 @@ async function ExecuteEconomyAdmin(
 
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -118,7 +121,7 @@ async function ExecuteEconomyAdmin(
       });
       await interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -135,7 +138,7 @@ async function ExecuteEconomyAdmin(
 
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -150,7 +153,7 @@ async function ExecuteEconomyAdmin(
       });
       await interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -173,7 +176,7 @@ async function ExecuteEconomyAdmin(
 
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -189,7 +192,7 @@ async function ExecuteEconomyAdmin(
       });
       await interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -202,7 +205,7 @@ async function ExecuteEconomyAdmin(
       });
       await interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -224,7 +227,7 @@ async function ExecuteEconomyAdmin(
 
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -235,7 +238,7 @@ async function ExecuteEconomyAdmin(
   });
   await interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

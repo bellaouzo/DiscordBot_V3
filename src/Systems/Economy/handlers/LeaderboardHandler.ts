@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { BuildLeaderboardEmbed } from "@systems/Economy/utils/Embeds";
@@ -21,7 +24,7 @@ export async function HandleLeaderboard(
       const emptyEmbed = BuildLeaderboardEmbed({ entries: [] });
       await interactionResponder.Reply(interaction, {
         embeds: [emptyEmbed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -50,7 +53,7 @@ export async function HandleLeaderboard(
 
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
     const embed = EmbedFactory.CreateError({
@@ -60,7 +63,7 @@ export async function HandleLeaderboard(
 
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     context.logger.Error("Failed to build leaderboard", { error });
   } finally {

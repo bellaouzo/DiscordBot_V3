@@ -4,7 +4,6 @@ import {
   Guild,
   GuildMember,
   MessageFlags,
-  PermissionFlagsBits,
   TextChannel,
 } from "discord.js";
 import { CommandContext } from "@commands";
@@ -13,36 +12,11 @@ import {
   AppealableActionOption,
   ComponentFactory,
   EmbedFactory,
+  IsAppealReviewer,
   ToActionRowData,
 } from "@utilities";
 
-export function IsAppealReviewer(
-  member: GuildMember | null,
-  options?: {
-    adminRoleIds?: string[];
-    modRoleIds?: string[];
-  }
-): boolean {
-  if (!member) {
-    return false;
-  }
-
-  if (
-    member.permissions.has(PermissionFlagsBits.Administrator) ||
-    member.permissions.has(PermissionFlagsBits.ManageGuild) ||
-    member.permissions.has(PermissionFlagsBits.BanMembers) ||
-    member.permissions.has(PermissionFlagsBits.KickMembers)
-  ) {
-    return true;
-  }
-
-  const configuredRoleIds = new Set([
-    ...(options?.adminRoleIds ?? []),
-    ...(options?.modRoleIds ?? []),
-  ]);
-
-  return member.roles.cache.some((role) => configuredRoleIds.has(role.id));
-}
+export { IsAppealReviewer };
 
 export function BuildActionOptionValue(option: AppealableActionOption): string {
   return `${option.actionType}:${option.actionRef}`;
@@ -77,7 +51,6 @@ export async function BuildActionSelectOptions(
 ): Promise<Array<{ label: string; description: string; value: string }>> {
   const limited = options.slice(0, 25);
   const labelCache = new Map<string, string>();
-  const perTypeCount = new Map<AppealActionType, number>();
 
   const resolveModeratorLabel = async (moderatorId: string): Promise<string> => {
     const cached = labelCache.get(moderatorId);
@@ -96,23 +69,25 @@ export async function BuildActionSelectOptions(
       }
     }
 
-    const label = `${username} (${moderatorId})`;
-    labelCache.set(moderatorId, label);
-    return label;
+    labelCache.set(moderatorId, username);
+    return username;
   };
 
   const built: Array<{ label: string; description: string; value: string }> = [];
   for (const entry of limited) {
-    const current = perTypeCount.get(entry.actionType) ?? 0;
-    const displayNumber = current + 1;
-    perTypeCount.set(entry.actionType, displayNumber);
-
     const modLabel = await resolveModeratorLabel(entry.moderatorId);
     const reasonPart = entry.preview.split("|")[1]?.trim() ?? "No reason provided";
+    const dateLabel = new Date(entry.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    const typeLabel =
+      entry.actionType.charAt(0).toUpperCase() + entry.actionType.slice(1);
 
     built.push({
-      label: `${entry.actionType.toUpperCase()} #${displayNumber}`.slice(0, 100),
-      description: `Mod: ${modLabel} | ${reasonPart}`.slice(0, 100),
+      label: `${typeLabel} — ${dateLabel}`.slice(0, 100),
+      description: `${modLabel} · ${reasonPart}`.slice(0, 100),
       value: BuildActionOptionValue(entry),
     });
   }
@@ -136,7 +111,7 @@ export async function NotifyAppealUser(
         title: "Appeal Approved",
         description: `Your appeal #${appeal.id} has been approved.`,
       });
-      embed.addFields([
+      const fields = [
         {
           name: "Server",
           value: extras?.guildName ?? appeal.guild_id,
@@ -152,7 +127,15 @@ export async function NotifyAppealUser(
           value: extras?.removalDetail ?? "The moderation action was removed.",
           inline: false,
         },
-      ]);
+      ];
+      if (appeal.resolved_reason) {
+        fields.push({
+          name: "Staff Note",
+          value: appeal.resolved_reason,
+          inline: false,
+        });
+      }
+      embed.addFields(fields);
       await user.send({ embeds: [embed.toJSON()] });
       return;
     }
@@ -161,7 +144,7 @@ export async function NotifyAppealUser(
       title: "Appeal Denied",
       description: `Your appeal #${appeal.id} was denied by staff.`,
     });
-    embed.addFields([
+    const deniedFields = [
       {
         name: "Server",
         value: extras?.guildName ?? appeal.guild_id,
@@ -172,7 +155,15 @@ export async function NotifyAppealUser(
         value: appeal.action_type.toUpperCase(),
         inline: true,
       },
-    ]);
+    ];
+    if (appeal.resolved_reason) {
+      deniedFields.push({
+        name: "Staff Note",
+        value: appeal.resolved_reason,
+        inline: false,
+      });
+    }
+    embed.addFields(deniedFields);
     await user.send({ embeds: [embed.toJSON()] });
   } catch {
     // noop
@@ -263,13 +254,14 @@ export async function RemoveAppealedAction(
     : { removed: false, message: "Could not remove that kick record." };
 }
 
-export async function PostApprovedChannelMessage(
+export async function PostResolvedChannelMessage(
   context: CommandContext,
   channel: TextChannel,
   appeal: Appeal,
+  decision: Exclude<AppealStatus, "open">,
   removalDetail: string
 ): Promise<void> {
-  const deleteRegistration = context.responders.componentRouter.RegisterButton({
+  const closeRegistration = context.responders.componentRouter.RegisterButton({
     expiresInMs: 1000 * 60 * 60 * 24,
     handler: async (btn) => {
       const guild = btn.guild;
@@ -286,38 +278,56 @@ export async function PostApprovedChannelMessage(
         })
       ) {
         await context.responders.buttonResponder.Reply(btn, {
-          content: "You do not have permission to delete this appeal channel.",
-          ephemeral: true,
+          content: "You do not have permission to close this appeal channel.",
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
 
       await btn.reply({
-        content: "Deleting appeal channel...",
+        content: "Closing appeal channel...",
         flags: MessageFlags.Ephemeral,
       });
-      await btn.channel?.delete("Appeal approved and closed").catch(() => {});
+      await btn.channel?.delete("Appeal resolved and closed").catch(() => {});
     },
   });
 
-  const deleteRow = ComponentFactory.CreateActionRow({
-    buttons: [{ label: "Delete Channel", style: ButtonStyle.Danger, emoji: "🗑️" }],
-    customIds: [deleteRegistration.customId],
+  const closeRow = ComponentFactory.CreateActionRow({
+    buttons: [{ label: "Close Channel", style: ButtonStyle.Danger, emoji: "🗑️" }],
+    customIds: [closeRegistration.customId],
   });
 
-  const approvalEmbed = EmbedFactory.CreateSuccess({
-    title: "Appeal Approved",
-    description:
-      "This appeal has been approved. The action was removed, and this channel can now be deleted.",
-  });
-  approvalEmbed.addFields([
+  const resolvedEmbed =
+    decision === "approved"
+      ? EmbedFactory.CreateSuccess({
+          title: "Appeal Approved",
+          description:
+            "This appeal has been approved. The action was removed, and this channel can now be closed.",
+        })
+      : EmbedFactory.CreateWarning({
+          title: "Appeal Denied",
+          description:
+            "This appeal has been denied. This channel can now be closed when review is complete.",
+        });
+
+  const fields = [
     { name: "Appeal", value: `#${appeal.id}`, inline: true },
     { name: "User", value: `<@${appeal.user_id}>`, inline: true },
-    { name: "Removed Action", value: removalDetail, inline: false },
-  ]);
+  ];
+  if (decision === "approved") {
+    fields.push({ name: "Removed Action", value: removalDetail, inline: false });
+  }
+  if (appeal.resolved_reason) {
+    fields.push({
+      name: "Resolution Note",
+      value: appeal.resolved_reason,
+      inline: false,
+    });
+  }
+  resolvedEmbed.addFields(fields);
 
   await channel.send({
-    embeds: [approvalEmbed.toJSON()],
-    components: [ToActionRowData(deleteRow)],
+    embeds: [resolvedEmbed.toJSON()],
+    components: [ToActionRowData(closeRow)],
   });
 }

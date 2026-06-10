@@ -11,7 +11,9 @@ export interface SetupDraft {
   adminRoleIds: string[];
   modRoleIds: string[];
   ticketCategoryId: string | null;
+  appealReviewCategoryId: string | null;
   commandLogChannelId: string | null;
+  ticketLogChannelId: string | null;
   announcementChannelId: string | null;
   deleteLogChannelId: string | null;
   productionLogChannelId: string | null;
@@ -28,7 +30,9 @@ export interface NavigationIds {
   adminSelect: string;
   modSelect: string;
   ticketSelect: string;
+  appealSelect: string;
   commandLogSelect: string;
+  ticketLogSelect: string;
   deleteLogSelect: string;
   productionLogSelect: string;
   announcementSelect: string;
@@ -52,6 +56,7 @@ export function CreateEmptySettings(guild_id: string): GuildSettings {
     ticket_category_id: null,
     appeal_review_category_id: null,
     command_log_channel_id: null,
+    ticket_log_channel_id: null,
     announcement_channel_id: null,
     delete_log_channel_id: null,
     production_log_channel_id: null,
@@ -73,9 +78,21 @@ export async function SanitizeGuildSettings(
     ChannelType.GuildCategory
   );
 
+  const appealReviewCategoryId = await ResolveExistingChannelId(
+    guild,
+    settings.appeal_review_category_id,
+    ChannelType.GuildCategory
+  );
+
   const commandLogChannelId = await ResolveExistingChannelId(
     guild,
     settings.command_log_channel_id,
+    ChannelType.GuildText
+  );
+
+  const ticketLogChannelId = await ResolveExistingChannelId(
+    guild,
+    settings.ticket_log_channel_id,
     ChannelType.GuildText
   );
 
@@ -106,8 +123,9 @@ export async function SanitizeGuildSettings(
   return {
     ...settings,
     ticket_category_id: ticketCategoryId,
-    appeal_review_category_id: settings.appeal_review_category_id,
+    appeal_review_category_id: appealReviewCategoryId,
     command_log_channel_id: commandLogChannelId,
+    ticket_log_channel_id: ticketLogChannelId,
     announcement_channel_id: announcementChannelId,
     delete_log_channel_id: deleteLogChannelId,
     production_log_channel_id: productionLogChannelId,

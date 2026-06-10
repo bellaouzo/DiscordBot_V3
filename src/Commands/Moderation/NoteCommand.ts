@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { EmbedFactory, CreateNoteManager } from "@utilities";
@@ -59,7 +62,7 @@ async function HandleAdd(
 
   await interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -82,7 +85,7 @@ async function HandleRemove(
       });
       await interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -97,7 +100,7 @@ async function HandleRemove(
       });
       await interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -109,7 +112,7 @@ async function HandleRemove(
 
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -122,7 +125,7 @@ async function HandleRemove(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -134,7 +137,7 @@ async function HandleRemove(
 
   await interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -154,7 +157,7 @@ async function HandleList(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -164,7 +167,7 @@ async function HandleList(
   await paginatedResponder.Send({
     interaction,
     pages,
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
     ownerId: interaction.user.id,
     timeoutMs: 1000 * 60 * 3,
     idleTimeoutMs: 1000 * 60 * 2,

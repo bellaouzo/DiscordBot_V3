@@ -25,7 +25,7 @@ export class InteractionResponder {
    * Sends an initial reply. No-op if already replied or deferred.
    *
    * @param interaction - Slash or button interaction
-   * @param options - Content, embeds, components, ephemeral, etc.
+   * @param options - Content, embeds, components, flags, etc.
    * @returns Success flag and message
    */
   async Reply(
@@ -86,7 +86,7 @@ export class InteractionResponder {
    * Sends a follow-up message after an initial reply.
    *
    * @param interaction - Slash or button interaction
-   * @param options - Content, embeds, components, ephemeral, etc.
+   * @param options - Content, embeds, components, flags, etc.
    * @returns Success flag and message
    */
   async FollowUp(
@@ -110,10 +110,10 @@ export class InteractionResponder {
   }
 
   /**
-   * Defers the reply (shows "thinking"). Ephemeral when options is true or when options.ephemeral is true.
+   * Defers the reply (shows "thinking"). Ephemeral when options is true or when options include Ephemeral flag.
    *
    * @param interaction - Slash or button interaction
-   * @param options - Ephemeral flag or message options; false = public defer
+   * @param options - Ephemeral defer flag or message options; false = public defer
    * @returns Success flag and message
    */
   async Defer(
@@ -164,7 +164,7 @@ export class InteractionResponder {
       options.interaction,
       typeof options.message === "string"
         ? { content: options.message }
-        : { ...options.message, ephemeral: false }
+        : options.message
     );
 
     await options.action();
@@ -178,7 +178,7 @@ export class InteractionResponder {
         options.interaction,
         typeof followUp === "string"
           ? { content: followUp }
-          : { ...followUp, ephemeral: false }
+          : followUp
       );
     }
   }

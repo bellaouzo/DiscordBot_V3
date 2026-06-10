@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction, TextChannel, Message } from "discord.js";
+import {
+  ChatInputCommandInteraction, TextChannel, Message,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -79,7 +82,7 @@ async function ExecutePurge(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -102,7 +105,7 @@ async function ExecutePurge(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }

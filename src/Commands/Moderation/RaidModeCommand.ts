@@ -6,6 +6,7 @@ import {
   OverwriteResolvable,
   OverwriteType,
   TextChannel,
+  MessageFlags
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware/CommandConfig";
@@ -158,7 +159,7 @@ async function ApplyRaidMode(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -177,7 +178,7 @@ async function ApplyRaidMode(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -192,7 +193,7 @@ async function ApplyRaidMode(
       });
       await context.responders.interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -257,7 +258,7 @@ async function ApplyRaidMode(
 
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
 
     // Fallback auto-clear timer in case scheduler misses
@@ -279,7 +280,7 @@ async function ApplyRaidMode(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }
@@ -330,7 +331,7 @@ async function DisableRaidMode(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -345,7 +346,7 @@ async function DisableRaidMode(
       });
       await context.responders.interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -361,7 +362,7 @@ async function DisableRaidMode(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
     context.logger.Error("Failed to disable raid mode", { error });
@@ -371,7 +372,7 @@ async function DisableRaidMode(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }
@@ -388,7 +389,7 @@ async function ShowRaidModeStatus(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -403,7 +404,7 @@ async function ShowRaidModeStatus(
       });
       await context.responders.interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -417,7 +418,7 @@ async function ShowRaidModeStatus(
       });
       await context.responders.interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -439,7 +440,7 @@ async function ShowRaidModeStatus(
 
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
     context.logger.Error("Failed to show raid mode status", { error });
@@ -449,7 +450,7 @@ async function ShowRaidModeStatus(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }

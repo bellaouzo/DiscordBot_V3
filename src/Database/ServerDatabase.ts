@@ -22,6 +22,7 @@ export interface GuildSettings {
   ticket_category_id: string | null;
   appeal_review_category_id: string | null;
   command_log_channel_id: string | null;
+  ticket_log_channel_id: string | null;
   announcement_channel_id: string | null;
   delete_log_channel_id: string | null;
   production_log_channel_id: string | null;
@@ -102,6 +103,7 @@ export class ServerDatabase {
     "TEXT" | "INTEGER"
   >([
     ["appeal_review_category_id", "TEXT"],
+    ["ticket_log_channel_id", "TEXT"],
     ["delete_log_channel_id", "TEXT"],
     ["production_log_channel_id", "TEXT"],
     ["welcome_channel_id", "TEXT"],
@@ -347,7 +349,7 @@ export class ServerDatabase {
 
     const stmt = this.db.prepare(
       `
-      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, appeal_review_category_id, command_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, roblox_linked_discord_user_id, roblox_linked_at, created_at, updated_at
+      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, appeal_review_category_id, command_log_channel_id, ticket_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, roblox_linked_discord_user_id, roblox_linked_at, created_at, updated_at
       FROM guild_settings
       WHERE guild_id = ?
     `
@@ -361,6 +363,7 @@ export class ServerDatabase {
           ticket_category_id: string | null;
           appeal_review_category_id?: string | null;
           command_log_channel_id: string | null;
+          ticket_log_channel_id?: string | null;
           announcement_channel_id: string | null;
           delete_log_channel_id: string | null;
           production_log_channel_id: string | null;
@@ -388,6 +391,9 @@ export class ServerDatabase {
         : null,
       command_log_channel_id: row.command_log_channel_id
         ? String(row.command_log_channel_id)
+        : null,
+      ticket_log_channel_id: row.ticket_log_channel_id
+        ? String(row.ticket_log_channel_id)
         : null,
       announcement_channel_id: row.announcement_channel_id
         ? String(row.announcement_channel_id)
@@ -420,6 +426,7 @@ export class ServerDatabase {
     ticket_category_id?: string | null;
     appeal_review_category_id?: string | null;
     command_log_channel_id?: string | null;
+    ticket_log_channel_id?: string | null;
     announcement_channel_id?: string | null;
     delete_log_channel_id?: string | null;
     production_log_channel_id?: string | null;
@@ -444,6 +451,10 @@ export class ServerDatabase {
     const commandLogChannelId =
       settings.command_log_channel_id ??
       existing?.command_log_channel_id ??
+      null;
+    const ticketLogChannelId =
+      settings.ticket_log_channel_id ??
+      existing?.ticket_log_channel_id ??
       null;
     const announcementChannelId =
       settings.announcement_channel_id ??
@@ -474,6 +485,7 @@ export class ServerDatabase {
         ticket_category_id,
         appeal_review_category_id,
         command_log_channel_id,
+        ticket_log_channel_id,
         announcement_channel_id,
         delete_log_channel_id,
         production_log_channel_id,
@@ -483,13 +495,14 @@ export class ServerDatabase {
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(guild_id) DO UPDATE SET
         admin_role_ids = excluded.admin_role_ids,
         mod_role_ids = excluded.mod_role_ids,
         ticket_category_id = excluded.ticket_category_id,
         appeal_review_category_id = excluded.appeal_review_category_id,
         command_log_channel_id = excluded.command_log_channel_id,
+        ticket_log_channel_id = excluded.ticket_log_channel_id,
         announcement_channel_id = excluded.announcement_channel_id,
         delete_log_channel_id = excluded.delete_log_channel_id,
         production_log_channel_id = excluded.production_log_channel_id,
@@ -507,6 +520,7 @@ export class ServerDatabase {
       ticketCategoryId,
       appealReviewCategoryId,
       commandLogChannelId,
+      ticketLogChannelId,
       announcementChannelId,
       deleteLogChannelId,
       productionLogChannelId,

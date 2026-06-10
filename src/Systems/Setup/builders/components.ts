@@ -14,6 +14,7 @@ import {
   DEFAULT_ANNOUNCEMENT_CHANNEL,
   DEFAULT_DELETE_LOG_CHANNEL,
   DEFAULT_PRODUCTION_LOG_CHANNEL,
+  DEFAULT_APPEAL_CATEGORY,
   DEFAULT_TICKET_CATEGORY,
 } from "../constants";
 import { NavigationIds, SetupDraft, SetupResources } from "../state";
@@ -50,11 +51,20 @@ export function BuildStepComponents(options: {
     }
     case 2: {
       rows.push(
-        BuildTicketCategoryRow(
-          ids.ticketSelect,
-          resources.categories,
-          draft.ticketCategoryId
-        ),
+        BuildCategorySelectRow({
+          customId: ids.ticketSelect,
+          categories: resources.categories,
+          selectedId: draft.ticketCategoryId,
+          placeholder: "Ticket category for new ticket channels",
+          defaultCategoryName: DEFAULT_TICKET_CATEGORY,
+        }),
+        BuildCategorySelectRow({
+          customId: ids.appealSelect,
+          categories: resources.categories,
+          selectedId: draft.appealReviewCategoryId,
+          placeholder: "Appeal category for review channels",
+          defaultCategoryName: DEFAULT_APPEAL_CATEGORY,
+        }),
         BuildChannelSelectRow({
           customId: ids.commandLogSelect,
           channels: resources.textChannels,
@@ -77,6 +87,13 @@ export function BuildStepComponents(options: {
     }
     case 3: {
       rows.push(
+        BuildChannelSelectRow({
+          customId: ids.ticketLogSelect,
+          channels: resources.textChannels,
+          selectedId: draft.ticketLogChannelId,
+          placeholder: "Choose a ticket logs channel",
+          defaultName: "ticket-logs",
+        }),
         BuildChannelSelectRow({
           customId: ids.announcementSelect,
           channels: resources.textChannels,
@@ -167,14 +184,18 @@ export function BuildRoleSelectRow(
   return row;
 }
 
-export function BuildTicketCategoryRow(
-  customId: string,
-  categories: CategoryChannel[],
-  selectedId: string | null
-): ActionRowData<ActionRowComponentData> {
+export function BuildCategorySelectRow(options: {
+  customId: string;
+  categories: CategoryChannel[];
+  selectedId: string | null;
+  placeholder: string;
+  defaultCategoryName: string;
+}): ActionRowData<ActionRowComponentData> {
+  const { customId, categories, selectedId, placeholder, defaultCategoryName } =
+    options;
   const menu = new StringSelectMenuBuilder()
     .setCustomId(customId)
-    .setPlaceholder("Ticket category for new ticket channels")
+    .setPlaceholder(placeholder)
     .setMinValues(1)
     .setMaxValues(1);
 
@@ -182,7 +203,7 @@ export function BuildTicketCategoryRow(
 
   menu.addOptions(
     new StringSelectMenuOptionBuilder()
-      .setLabel(`Auto-manage "${DEFAULT_TICKET_CATEGORY}"`)
+      .setLabel(`Auto-manage "${defaultCategoryName}"`)
       .setValue("auto")
       .setDescription("Let the bot create or use the default category")
       .setDefault(!selectedId)
@@ -191,7 +212,7 @@ export function BuildTicketCategoryRow(
   if (allowCreate) {
     menu.addOptions(
       new StringSelectMenuOptionBuilder()
-        .setLabel(`Create "${DEFAULT_TICKET_CATEGORY}" now`)
+        .setLabel(`Create "${defaultCategoryName}" now`)
         .setValue("create")
         .setDescription("Create the default category immediately")
     );
@@ -213,6 +234,20 @@ export function BuildTicketCategoryRow(
   return ToActionRowData<ActionRowComponentData>(
     ComponentFactory.CreateSelectMenuRow(menu)
   );
+}
+
+export function BuildTicketCategoryRow(
+  customId: string,
+  categories: CategoryChannel[],
+  selectedId: string | null
+): ActionRowData<ActionRowComponentData> {
+  return BuildCategorySelectRow({
+    customId,
+    categories,
+    selectedId,
+    placeholder: "Ticket category for new ticket channels",
+    defaultCategoryName: DEFAULT_TICKET_CATEGORY,
+  });
 }
 
 export function BuildChannelSelectRow(options: {

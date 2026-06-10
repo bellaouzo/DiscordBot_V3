@@ -1,12 +1,51 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
+import { PaginationPage } from "@shared/Paginator";
+import { TempAction } from "@database";
+
+const TEMP_ACTIONS_PAGE_SIZE = 6;
+
+function BuildTempActionPages(entries: TempAction[]): PaginationPage[] {
+  const pages: PaginationPage[] = [];
+
+  for (let index = 0; index < entries.length; index += TEMP_ACTIONS_PAGE_SIZE) {
+    const slice = entries.slice(index, index + TEMP_ACTIONS_PAGE_SIZE);
+    const start = index + 1;
+    const end = index + slice.length;
+
+    const embed = EmbedFactory.Create({
+      title: "⏳ Pending Temporary Actions",
+      description: `Showing ${start} - ${end} of ${entries.length}`,
+    });
+
+    embed.addFields(
+      slice.map((entry, sliceIndex) => {
+        const expires = `<t:${Math.floor(entry.expires_at / 1000)}:R>`;
+        const reason = entry.reason ?? "No reason provided";
+        return {
+          name: `#${start + sliceIndex} — ${entry.action.toUpperCase()}`,
+          value: `<@${entry.user_id}> expires ${expires}\nMod: <@${entry.moderator_id}>\n${reason}`,
+          inline: false,
+        };
+      })
+    );
+
+    pages.push({ embeds: [embed.toJSON()] });
+  }
+
+  return pages;
+}
 
 async function ExecuteTempActions(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
+  const { interactionResponder, paginatedResponder } = context.responders;
   const db = context.databases.moderationDb;
   const pending = db.ListPendingTempActions(interaction.guild!.id);
 
@@ -15,34 +54,22 @@ async function ExecuteTempActions(
       title: "No Pending Temp Actions",
       description: "There are no active temporary bans or mutes.",
     });
-    await context.responders.interactionResponder.Reply(interaction, {
+    await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
 
-  const rows = pending
-    .slice(0, 15)
-    .map((entry) => {
-      const expires = `<t:${Math.floor(entry.expires_at / 1000)}:R>`;
-      const reason = entry.reason ?? "No reason provided";
-      return `• **${entry.action.toUpperCase()}** — <@${entry.user_id}> expires ${expires}\n  Mod: <@${entry.moderator_id}> — ${reason}`;
-    })
-    .join("\n\n");
+  const pages = BuildTempActionPages(pending);
 
-  const embed = EmbedFactory.Create({
-    title: "⏳ Pending Temporary Actions",
-    description: rows,
-    footer:
-      pending.length > 15
-        ? `Showing 15 of ${pending.length} entries`
-        : undefined,
-  });
-
-  await context.responders.interactionResponder.Reply(interaction, {
-    embeds: [embed.toJSON()],
-    ephemeral: true,
+  await paginatedResponder.Send({
+    interaction,
+    pages,
+    flags: MessageFlags.Ephemeral,
+    ownerId: interaction.user.id,
+    timeoutMs: 1000 * 60 * 3,
+    idleTimeoutMs: 1000 * 60 * 2,
   });
 }
 

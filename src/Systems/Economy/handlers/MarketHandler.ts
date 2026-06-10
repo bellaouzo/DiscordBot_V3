@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { MarketManager } from "../MarketManager";
 import { EconomyManager } from "../EconomyManager";
@@ -70,7 +73,7 @@ export async function HandleMarketView(
       buttonResponder: context.responders.buttonResponder,
       componentRouter: context.responders.componentRouter,
       logger: context.logger,
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
       ownerId: interaction.user.id,
     });
     await paginator.Start();
@@ -98,7 +101,7 @@ export async function HandleMarketRefresh(
       buttonResponder: context.responders.buttonResponder,
       componentRouter: context.responders.componentRouter,
       logger: context.logger,
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
       ownerId: interaction.user.id,
     });
     await paginator.Start();
@@ -138,7 +141,7 @@ export async function HandleMarketBuy(
 
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
     const message =
@@ -146,7 +149,7 @@ export async function HandleMarketBuy(
     const embed = BuildMarketErrorEmbed({ message });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } finally {
     void 0;
@@ -184,7 +187,7 @@ export async function HandleMarketSell(
 
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
     const message =
@@ -192,7 +195,7 @@ export async function HandleMarketSell(
     const embed = BuildMarketErrorEmbed({ message });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } finally {
     void 0;
@@ -214,7 +217,7 @@ export async function HandleInventory(
 
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } finally {
     void 0;

@@ -1,3 +1,4 @@
+import { MessageFlags } from "discord.js";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { HandleDaily } from "@systems/Economy/handlers/DailyHandler";
 import {
@@ -34,7 +35,7 @@ describe("DailyHandler", () => {
       interaction,
       expect.objectContaining({
         embeds: expect.any(Array),
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       })
     );
     expect(databases.userDb.ClaimDaily).toHaveBeenCalled();
@@ -57,7 +58,7 @@ describe("DailyHandler", () => {
       interaction,
       expect.objectContaining({
         embeds: expect.any(Array),
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       })
     );
   });

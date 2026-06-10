@@ -1,4 +1,7 @@
-import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
+import {
+  ButtonInteraction, ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import {
@@ -60,7 +63,7 @@ export async function HandleRps(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -100,7 +103,7 @@ export async function HandleRps(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -151,7 +154,7 @@ export async function HandleRps(
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This game has already finished.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -243,7 +246,7 @@ export async function HandleRps(
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This game has already finished.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -312,9 +315,7 @@ export async function HandleRps(
 
   const replyResult = await interactionResponder.Reply(interaction, {
     embeds: [promptEmbed.toJSON()],
-    components: [BuildRpsButtons(customIds)],
-    ephemeral: false,
-  });
+    components: [BuildRpsButtons(customIds)],  });
 
   if (!replyResult.success) {
     if (bet > 0) {

@@ -1,5 +1,9 @@
 import { beforeAll, afterEach, describe, expect, it, vi } from "vitest";
-import type { ChatInputCommandInteraction, User } from "discord.js";
+import {
+  MessageFlags,
+  type ChatInputCommandInteraction,
+  type User,
+} from "discord.js";
 import * as Utilities from "@utilities";
 import {
   createMockContext,
@@ -68,7 +72,7 @@ describe("Roblox API Key subcommands", () => {
     expect(context.responders.interactionResponder.Reply).toHaveBeenCalledWith(
       interaction,
       expect.objectContaining({
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
         embeds: expect.arrayContaining([
           expect.objectContaining({
             title: expect.stringMatching(/Already Configured/i),
@@ -114,7 +118,7 @@ describe("Roblox API Key subcommands", () => {
     expect(context.responders.interactionResponder.Reply).toHaveBeenCalledWith(
       interaction,
       expect.objectContaining({
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
         embeds: expect.any(Array),
         components: [
           expect.objectContaining({

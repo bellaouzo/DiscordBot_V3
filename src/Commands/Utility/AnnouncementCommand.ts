@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction, ChannelType, Role } from "discord.js";
+import {
+  ChatInputCommandInteraction, ChannelType, Role,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory, CreateChannelManager } from "@utilities";
@@ -71,7 +74,7 @@ async function ExecuteAnnouncement(
             "Select a role to mention, or choose another mention type.",
         }).toJSON(),
       ],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -101,7 +104,7 @@ async function ExecuteAnnouncement(
             "Could not find or create an announcements channel. Please rerun `/setup`.",
         }).toJSON(),
       ],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -176,9 +179,6 @@ export const AnnouncementCommand = CreateCommand({
           .setRequired(false)
       );
   },
-  config: Config.create()
-    .guildOnly()
-    .anyPermission("ManageGuild", "Administrator")
-    .build(),
+  config: Config.admin(),
   execute: ExecuteAnnouncement,
 });

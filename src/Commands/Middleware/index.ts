@@ -105,6 +105,7 @@ export function AutoMiddleware(
     const needsPermissionCheck =
       config.permissions?.required?.length ||
       config.modRole ||
+      config.adminRole ||
       config.owner ||
       config.role;
 

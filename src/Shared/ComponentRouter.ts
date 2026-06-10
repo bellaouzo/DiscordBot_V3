@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { ButtonInteraction, InteractionReplyOptions } from "discord.js";
+import { ButtonInteraction, InteractionReplyOptions, MessageFlags } from "discord.js";
 import { Logger } from "./Logger";
 
 export type ButtonHandler = (
@@ -8,6 +8,7 @@ export type ButtonHandler = (
 
 export interface RegisterButtonOptions {
   readonly customId?: string;
+  readonly prefix?: string;
   readonly handler: ButtonHandler;
   readonly ownerId?: string;
   readonly expiresInMs?: number;
@@ -30,10 +31,15 @@ export interface RegisteredButton {
 
 export class ComponentRouter {
   private readonly buttons = new Map<string, ButtonRegistration>();
+  private readonly prefixButtons = new Map<string, ButtonRegistration>();
 
   constructor(private readonly logger: Logger) {}
 
   RegisterButton(options: RegisterButtonOptions): RegisteredButton {
+    if (options.prefix) {
+      return this.RegisterButtonPrefix(options.prefix, options);
+    }
+
     const customId = options.customId ?? randomUUID();
     const expiresAt = options.expiresInMs
       ? Date.now() + options.expiresInMs
@@ -60,8 +66,41 @@ export class ComponentRouter {
     };
   }
 
+  RegisterButtonPrefix(
+    prefix: string,
+    options: Omit<RegisterButtonOptions, "customId" | "prefix">
+  ): RegisteredButton {
+    const expiresAt = options.expiresInMs
+      ? Date.now() + options.expiresInMs
+      : undefined;
+
+    this.prefixButtons.set(prefix, {
+      handler: options.handler,
+      ownerId: options.ownerId,
+      expiresAt,
+      singleUse: options.singleUse ?? false,
+      onExpire: options.onExpire,
+    });
+
+    return {
+      customId: prefix,
+      dispose: () => {
+        const registration = this.prefixButtons.get(prefix);
+        if (!registration) {
+          return;
+        }
+        this.prefixButtons.delete(prefix);
+        registration.onExpire?.();
+      },
+    };
+  }
+
   async HandleButton(interaction: ButtonInteraction): Promise<boolean> {
-    const registration = this.buttons.get(interaction.customId);
+    let registration = this.buttons.get(interaction.customId);
+
+    if (!registration) {
+      registration = this.FindPrefixRegistration(interaction.customId);
+    }
 
     if (!registration) {
       return false;
@@ -73,7 +112,7 @@ export class ComponentRouter {
       registration.onExpire?.();
       await this.ReplyIfNeeded(interaction, {
         content: "This interaction has expired.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return true;
     }
@@ -81,7 +120,7 @@ export class ComponentRouter {
     if (registration.ownerId && registration.ownerId !== interaction.user.id) {
       await this.ReplyIfNeeded(interaction, {
         content: "You cannot use this interaction.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return true;
     }
@@ -98,7 +137,7 @@ export class ComponentRouter {
 
       await this.ReplyIfNeeded(interaction, {
         content: "Something went wrong while handling that interaction.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -108,6 +147,22 @@ export class ComponentRouter {
     }
 
     return true;
+  }
+
+  private FindPrefixRegistration(
+    customId: string
+  ): ButtonRegistration | undefined {
+    let match: ButtonRegistration | undefined;
+    let longestPrefix = 0;
+
+    for (const [prefix, registration] of this.prefixButtons) {
+      if (customId.startsWith(prefix) && prefix.length > longestPrefix) {
+        match = registration;
+        longestPrefix = prefix.length;
+      }
+    }
+
+    return match;
   }
 
   private async ReplyIfNeeded(

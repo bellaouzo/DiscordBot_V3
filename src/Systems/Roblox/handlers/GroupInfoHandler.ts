@@ -1,3 +1,4 @@
+import { MessageFlags } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 import type { CommandContext } from "@commands/CommandFactory";
 import { EmbedFactory } from "@utilities";
@@ -33,7 +34,7 @@ export async function ExecuteGroupInfoSubcommand(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -45,7 +46,7 @@ export async function ExecuteGroupInfoSubcommand(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -133,7 +134,7 @@ export async function ExecuteGroupInfoSubcommand(
 
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
     const code = (error as Error & { code?: string }).code;
@@ -147,7 +148,7 @@ export async function ExecuteGroupInfoSubcommand(
     }
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }

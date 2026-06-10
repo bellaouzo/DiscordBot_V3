@@ -1,4 +1,7 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -17,7 +20,7 @@ async function ExecutePing(
   });
 
   await interactionResponder.Reply(interaction, {
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
     embeds: [initialEmbed],
   });
   const latency = Date.now() - interaction.createdTimestamp;

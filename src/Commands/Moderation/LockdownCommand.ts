@@ -5,6 +5,7 @@ import {
   TextChannel,
   CategoryChannel,
   OverwriteResolvable,
+  MessageFlags
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
@@ -98,7 +99,7 @@ async function LockChannel(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -129,7 +130,7 @@ async function LockChannel(
   });
   await context.responders.interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -152,7 +153,7 @@ async function LockCategory(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -183,7 +184,7 @@ async function LockCategory(
   });
   await context.responders.interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -203,7 +204,7 @@ async function UnlockTarget(
       });
       await context.responders.interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -219,7 +220,7 @@ async function UnlockTarget(
       });
       await context.responders.interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -236,7 +237,7 @@ async function UnlockTarget(
     });
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
     context.logger.Error("Failed to unlock target", { error });
@@ -257,7 +258,7 @@ async function ShowStatus(
       });
       await context.responders.interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -279,7 +280,7 @@ async function ShowStatus(
 
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
     context.logger.Error("Failed to show status", { error });
@@ -304,7 +305,7 @@ async function ExecuteLockdown(
       });
       await context.responders.interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -322,7 +323,7 @@ async function ExecuteLockdown(
       });
       await context.responders.interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }

@@ -1,7 +1,10 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction, GuildMember,
+  MessageFlags
+} from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
+import { EmbedFactory, IsModerator } from "@utilities";
 import { PaginationPage } from "@shared/Paginator";
 
 const EVENT_LIST_PAGE_SIZE = 8;
@@ -27,6 +30,20 @@ async function ExecuteEventCreate(
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
+  const settings = context.databases.serverDb.GetGuildSettings(interaction.guild!.id);
+  const member = interaction.member as GuildMember | null;
+  if (!IsModerator(member, settings)) {
+    const embed = EmbedFactory.CreateError({
+      title: "Permission Denied",
+      description: "Only moderators can create scheduled events.",
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
   const timeInput = interaction.options.getString("time", true);
   const title = interaction.options.getString("title", true);
   const shouldNotify = interaction.options.getBoolean("shouldnotify") ?? false;
@@ -40,7 +57,7 @@ async function ExecuteEventCreate(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -52,7 +69,7 @@ async function ExecuteEventCreate(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -83,7 +100,7 @@ async function ExecuteEventCreate(
 
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
     context.logger.Error("Failed to create event", { error });
@@ -93,7 +110,7 @@ async function ExecuteEventCreate(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }
@@ -120,7 +137,7 @@ async function ExecuteEventList(
       });
       await interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -130,7 +147,7 @@ async function ExecuteEventList(
     await paginatedResponder.Send({
       interaction,
       pages,
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
       ownerId: interaction.user.id,
       timeoutMs: 1000 * 60 * 3,
       idleTimeoutMs: 1000 * 60 * 2,
@@ -143,7 +160,7 @@ async function ExecuteEventList(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }
@@ -203,7 +220,26 @@ async function ExecuteEventCancel(
       });
       await interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    const settings = context.databases.serverDb.GetGuildSettings(
+      interaction.guild!.id
+    );
+    const member = interaction.member as GuildMember | null;
+    const isCreator = event.created_by === interaction.user.id;
+    const isStaff = IsModerator(member, settings);
+    if (!isCreator && !isStaff) {
+      const embed = EmbedFactory.CreateError({
+        title: "Permission Denied",
+        description:
+          "Only the event creator or a moderator can cancel this event.",
+      });
+      await interactionResponder.Reply(interaction, {
+        embeds: [embed.toJSON()],
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -216,7 +252,7 @@ async function ExecuteEventCancel(
       });
       await interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -227,7 +263,7 @@ async function ExecuteEventCancel(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
     context.logger.Error("Failed to cancel event", { error });
@@ -237,7 +273,7 @@ async function ExecuteEventCancel(
     });
     await interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }

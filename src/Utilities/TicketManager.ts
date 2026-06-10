@@ -11,13 +11,14 @@ import {
   ChannelType,
   CategoryChannel,
 } from "discord.js";
-import { TicketDatabase, Ticket, TICKET_CATEGORIES } from "@database";
+import { TicketDatabase, Ticket } from "@database";
 import { Logger } from "@shared/Logger";
 import {
   EmbedFactory,
   ComponentFactory,
   CreateChannelManager,
   GuildResourceLocator,
+  IsTicketStaff,
 } from "@utilities";
 
 export interface TicketManagerOptions {
@@ -26,6 +27,8 @@ export interface TicketManagerOptions {
   readonly ticketDb: TicketDatabase;
   readonly guildResourceLocator: GuildResourceLocator;
   readonly ticketCategoryId?: string | null;
+  readonly staffRoleIds?: string[];
+  readonly ticketLogChannelId?: string | null;
 }
 
 export interface CreateTicketOptions {
@@ -77,7 +80,7 @@ export class TicketManager {
       name: channelName,
       type: ChannelType.GuildText,
       parent: ticketCategory,
-      permissionOverwrites: this.CreatePermissionOverwrites(member),
+      permissionOverwrites: await this.CreatePermissionOverwrites(member),
     });
 
     ticketDb.UpdateTicketChannelId(ticket.id, channel.id);
@@ -127,7 +130,7 @@ export class TicketManager {
       name: channelName,
       type: ChannelType.GuildText,
       parent: ticketCategory,
-      permissionOverwrites: this.CreatePermissionOverwrites(member),
+      permissionOverwrites: await this.CreatePermissionOverwrites(member),
     });
 
     this.options.ticketDb.UpdateTicketChannelId(ticket.id, channel.id);
@@ -146,9 +149,9 @@ export class TicketManager {
     return { ticket, channel };
   }
 
-  private CreatePermissionOverwrites(
+  private async CreatePermissionOverwrites(
     member: GuildMember
-  ): OverwriteResolvable[] {
+  ): Promise<OverwriteResolvable[]> {
     const overwrites: OverwriteResolvable[] = [
       {
         id: this.options.guild.id,
@@ -164,15 +167,10 @@ export class TicketManager {
       },
     ];
 
-    const staffMembers = this.options.guild.members.cache.filter(
-      (m) =>
-        m.permissions.has(PermissionFlagsBits.ManageGuild) ||
-        m.permissions.has(PermissionFlagsBits.Administrator)
-    );
-
-    for (const [, staffMember] of staffMembers) {
+    const uniqueRoleIds = new Set(this.options.staffRoleIds ?? []);
+    for (const roleId of uniqueRoleIds) {
       overwrites.push({
-        id: staffMember.id,
+        id: roleId,
         allow: [
           PermissionFlagsBits.ViewChannel,
           PermissionFlagsBits.SendMessages,
@@ -182,30 +180,82 @@ export class TicketManager {
       });
     }
 
+    const botMember = await this.options.guild.members.fetchMe();
+    overwrites.push({
+      id: botMember.id,
+      allow: [
+        PermissionFlagsBits.ViewChannel,
+        PermissionFlagsBits.SendMessages,
+        PermissionFlagsBits.ReadMessageHistory,
+        PermissionFlagsBits.ManageMessages,
+        PermissionFlagsBits.ManageChannels,
+      ],
+    });
+
     return overwrites;
   }
 
   CreateTicketEmbed(ticket: Ticket): EmbedBuilder {
-    const categoryInfo = TICKET_CATEGORIES.find(
-      (c) => c.value === ticket.category
+    const categories = this.options.ticketDb.EnsureCategoryConfigs(
+      this.options.guild.id
     );
+    const categoryInfo = categories.find((c) => c.value === ticket.category);
     const categoryLabel = categoryInfo
       ? `${categoryInfo.emoji} ${categoryInfo.label}`
       : ticket.category;
+    const tags = this.options.ticketDb.ListTicketTags(ticket.id);
+    const tagLine =
+      tags.length > 0
+        ? `\n**Tags:** ${tags.map((tag) => `\`${tag}\``).join(", ")}`
+        : "";
 
     return EmbedFactory.Create({
       title: `🎫 Ticket #${ticket.id}`,
-      description: `**Category:** ${categoryLabel}\n**Created by:** <@${ticket.user_id}>\n\nPlease describe your issue below and a staff member will assist you.`,
+      description: `**Category:** ${categoryLabel}\n**Created by:** <@${ticket.user_id}>${tagLine}\n\nPlease describe your issue below and a staff member will assist you.`,
       color: 0x5865f2,
       footer: `Ticket ID: ${ticket.id}`,
       timestamp: true,
     });
   }
 
-  CreateTicketButtons(
-    ticketId: number,
-    interactionId: string
-  ): ActionRowBuilder<ButtonBuilder> {
+  async SyncTicketChannelEmbed(ticket: Ticket): Promise<void> {
+    if (!ticket.channel_id || ticket.status === "closed") {
+      return;
+    }
+
+    try {
+      const fetchedChannel = await this.options.guild.channels.fetch(
+        ticket.channel_id
+      );
+      if (!fetchedChannel || !fetchedChannel.isTextBased()) {
+        return;
+      }
+
+      const channel = fetchedChannel as TextChannel;
+      const messages = await channel.messages.fetch({ limit: 10 });
+      const ticketMessage = messages.find((message) =>
+        message.embeds.some((embed) =>
+          embed.title?.includes(`Ticket #${ticket.id}`)
+        )
+      );
+
+      if (!ticketMessage) {
+        return;
+      }
+
+      await ticketMessage.edit({
+        embeds: [this.CreateTicketEmbed(ticket).toJSON()],
+        components: ticketMessage.components,
+      });
+    } catch (error) {
+      this.options.logger.Warn("Failed to sync ticket channel embed", {
+        id: String(ticket.id),
+        error,
+      });
+    }
+  }
+
+  CreateTicketButtons(ticketId: number): ActionRowBuilder<ButtonBuilder> {
     return ComponentFactory.CreateActionRow({
       buttons: [
         { label: "Claim Ticket", style: ButtonStyle.Primary, emoji: "📌" },
@@ -214,10 +264,10 @@ export class TicketManager {
         { label: "Close Ticket", style: ButtonStyle.Danger, emoji: "🔒" },
       ],
       customIds: [
-        `ticket:${interactionId}:claim:${ticketId}`,
-        `ticket:${interactionId}:add:${ticketId}`,
-        `ticket:${interactionId}:remove:${ticketId}`,
-        `ticket:${interactionId}:close:${ticketId}`,
+        `ticket:claim:${ticketId}`,
+        `ticket:add:${ticketId}`,
+        `ticket:remove:${ticketId}`,
+        `ticket:close:${ticketId}`,
       ],
     });
   }
@@ -317,6 +367,15 @@ export class TicketManager {
 
   async GetOrCreateTicketLogsChannel(): Promise<TextChannel | null> {
     try {
+      if (this.options.ticketLogChannelId) {
+        const configured = await this.options.guild.channels.fetch(
+          this.options.ticketLogChannelId
+        );
+        if (configured?.isTextBased()) {
+          return configured as TextChannel;
+        }
+      }
+
       const cachedChannel = this.options.guild.channels.cache.find(
         (channel) =>
           channel.type === ChannelType.GuildText &&
@@ -340,23 +399,36 @@ export class TicketManager {
       }
 
       const botMember = await this.options.guild.members.fetchMe();
+      const staffOverwrites: OverwriteResolvable[] = [
+        {
+          id: this.options.guild.id,
+          deny: [PermissionFlagsBits.ViewChannel],
+        },
+        {
+          id: botMember.id,
+          allow: [
+            PermissionFlagsBits.ViewChannel,
+            PermissionFlagsBits.SendMessages,
+            PermissionFlagsBits.ReadMessageHistory,
+          ],
+        },
+      ];
+
+      const uniqueRoleIds = new Set(this.options.staffRoleIds ?? []);
+      for (const roleId of uniqueRoleIds) {
+        staffOverwrites.push({
+          id: roleId,
+          allow: [
+            PermissionFlagsBits.ViewChannel,
+            PermissionFlagsBits.ReadMessageHistory,
+          ],
+        });
+      }
+
       const logsChannel = await this.options.guild.channels.create({
         name: "ticket-logs",
         type: ChannelType.GuildText,
-        permissionOverwrites: [
-          {
-            id: this.options.guild.id,
-            deny: [PermissionFlagsBits.ViewChannel],
-          },
-          {
-            id: botMember.id,
-            allow: [
-              PermissionFlagsBits.ViewChannel,
-              PermissionFlagsBits.SendMessages,
-              PermissionFlagsBits.ReadMessageHistory,
-            ],
-          },
-        ],
+        permissionOverwrites: staffOverwrites,
       });
 
       return logsChannel;
@@ -386,7 +458,6 @@ export class TicketManager {
         return false;
       }
 
-      // Ensure we have a TextChannel for permission overwrites
       if (channel.type !== ChannelType.GuildText) {
         return false;
       }
@@ -425,7 +496,6 @@ export class TicketManager {
       return false;
     }
 
-    // Prevent removing the ticket owner
     if (ticket.user_id === userId) {
       return false;
     }
@@ -438,7 +508,6 @@ export class TicketManager {
         return false;
       }
 
-      // Ensure we have a TextChannel for permission overwrites
       if (channel.type !== ChannelType.GuildText) {
         return false;
       }
@@ -449,10 +518,8 @@ export class TicketManager {
         return false;
       }
 
-      // Remove channel permissions
       await textChannel.permissionOverwrites.delete(member);
 
-      // Mark participant as removed in database
       const success = this.options.ticketDb.RemoveParticipant(
         ticketId,
         userId,
@@ -472,7 +539,11 @@ export class TicketManager {
   CanUserAddParticipants(
     ticket: Ticket,
     userId: string,
-    member: GuildMember | null
+    member: GuildMember | null,
+    settings?: {
+      adminRoleIds?: string[];
+      modRoleIds?: string[];
+    } | null
   ): boolean {
     if (!member) {
       return false;
@@ -482,16 +553,17 @@ export class TicketManager {
       return true;
     }
 
-    return (
-      member.permissions.has(PermissionFlagsBits.ManageGuild) ||
-      member.permissions.has(PermissionFlagsBits.Administrator)
-    );
+    return IsTicketStaff(member, settings);
   }
 
   CanUserRemoveParticipants(
     ticket: Ticket,
     userId: string,
-    member: GuildMember | null
+    member: GuildMember | null,
+    settings?: {
+      adminRoleIds?: string[];
+      modRoleIds?: string[];
+    } | null
   ): boolean {
     if (!member) {
       return false;
@@ -501,10 +573,7 @@ export class TicketManager {
       return true;
     }
 
-    return (
-      member.permissions.has(PermissionFlagsBits.ManageGuild) ||
-      member.permissions.has(PermissionFlagsBits.Administrator)
-    );
+    return IsTicketStaff(member, settings);
   }
 
   private async ResolveTicketCategory(): Promise<CategoryChannel | null> {

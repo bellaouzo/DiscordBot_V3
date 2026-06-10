@@ -160,7 +160,25 @@ export class AppealManager {
         });
     });
 
-    return result.sort((a, b) => b.createdAt - a.createdAt);
+    return result
+      .filter(
+        (entry) =>
+          !this.options.moderationDb.HasOpenAppealForAction({
+            guild_id: this.options.guildId,
+            user_id: this.options.userId,
+            action_type: entry.actionType,
+            action_ref: entry.actionRef,
+          })
+      )
+      .sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  ListGuildOpenAppeals(limit = 25): Appeal[] {
+    return this.options.moderationDb.ListAppeals({
+      guild_id: this.options.guildId,
+      status: "open",
+      limit,
+    });
   }
 
   private BuildMuteOption(mute: TempAction): AppealableActionOption {

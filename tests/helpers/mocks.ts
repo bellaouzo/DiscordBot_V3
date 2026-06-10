@@ -258,6 +258,17 @@ export function createMockDatabaseSet(): DatabaseSet {
   };
   const ticketDbStubs: Record<string, ReturnType<typeof vi.fn>> = {
     GetUserTickets: vi.fn().mockReturnValue([]),
+    GetActiveUserTickets: vi.fn().mockReturnValue([]),
+    EnsureCategoryConfigs: vi.fn().mockReturnValue([
+      {
+        value: "general",
+        label: "General",
+        description: "General support",
+        emoji: "📝",
+      },
+    ]),
+    ListTicketTags: vi.fn().mockReturnValue([]),
+    GetTagsForTickets: vi.fn().mockReturnValue({}),
     CreateTicket: vi.fn().mockReturnValue(1),
     GetTicket: vi.fn().mockReturnValue(null),
     GetGuildTickets: vi.fn().mockReturnValue([]),

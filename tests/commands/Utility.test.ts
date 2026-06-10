@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { stubInteractionOptions } from "../helpers";
 import type { Guild, User } from "discord.js";
 import { createMockInteraction, createMockContext } from "../helpers";
 import { AnnouncementCommand } from "@commands/Utility/AnnouncementCommand";
@@ -77,6 +78,12 @@ describe("Utility commands", () => {
         if (cmd === PingCommand) {
           (interaction as { createdTimestamp: number }).createdTimestamp =
             Date.now() - 50;
+        }
+        if (cmd === TicketCommand) {
+          stubInteractionOptions(interaction, {
+            getSubcommand: () => "open",
+            getSubcommandGroup: () => null,
+          });
         }
         await expect(cmd.execute(interaction, context)).resolves.not.toThrow();
       });

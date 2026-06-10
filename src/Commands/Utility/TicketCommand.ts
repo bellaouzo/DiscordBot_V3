@@ -1,44 +1,55 @@
 import {
   ChatInputCommandInteraction,
   SlashCommandSubcommandBuilder,
+  SlashCommandSubcommandGroupBuilder,
 } from "discord.js";
-import { CommandContext, CreateCommand } from "@commands/CommandFactory";
+import {
+  CommandContext,
+  CreateCommand,
+  SlashCommandBuilder,
+  SlashCommandStringOption,
+} from "@commands";
 import { Config } from "@middleware/CommandConfig";
 
 import { HandleTicketCreate } from "@systems/Ticket/handlers/CreateHandler";
 import { HandleTicketList } from "@systems/Ticket/handlers/ListHandler";
-import { HandleTicketClose } from "@systems/Ticket/handlers/CloseHandler";
-import { HandleTicketClaim } from "@systems/Ticket/handlers/ClaimHandler";
 import { HandleTicketTranscript } from "@systems/Ticket/handlers/TranscriptHandler";
-import { HandleTicketAdd } from "@systems/Ticket/handlers/AddHandler";
-import { HandleTicketRemove } from "@systems/Ticket/handlers/RemoveHandler";
 import { HandleTicketReopen } from "@systems/Ticket/handlers/ReopenHandler";
 import { HandleTicketTag } from "@systems/Ticket/handlers/TagHandler";
+import { HandleTicketConfig } from "@systems/Ticket/handlers/ConfigHandler";
+import { HandleTicketPanel } from "@systems/Ticket/TicketPanelFlow";
 
 async function ExecuteTicket(
   interaction: ChatInputCommandInteraction,
   context: CommandContext
 ): Promise<void> {
-  const subcommand = interaction.options.getSubcommand(false);
+  const subcommandGroup = interaction.options.getSubcommandGroup(false);
+  const subcommand = interaction.options.getSubcommand(true);
 
-  if (subcommand === "create") {
-    await HandleTicketCreate(interaction, context);
-  } else if (subcommand === "list") {
-    await HandleTicketList(interaction, context);
-  } else if (subcommand === "close") {
-    await HandleTicketClose(interaction, context);
-  } else if (subcommand === "claim") {
-    await HandleTicketClaim(interaction, context);
-  } else if (subcommand === "transcript") {
-    await HandleTicketTranscript(interaction, context);
-  } else if (subcommand === "add") {
-    await HandleTicketAdd(interaction, context);
-  } else if (subcommand === "remove") {
-    await HandleTicketRemove(interaction, context);
-  } else if (subcommand === "reopen") {
-    await HandleTicketReopen(interaction, context);
-  } else if (subcommand === "tag") {
-    await HandleTicketTag(interaction, context);
+  if (subcommandGroup === "config") {
+    await HandleTicketConfig(interaction, context);
+    return;
+  }
+
+  switch (subcommand) {
+    case "open":
+      await HandleTicketCreate(interaction, context);
+      break;
+    case "panel":
+      await HandleTicketPanel(interaction, context);
+      break;
+    case "list":
+      await HandleTicketList(interaction, context);
+      break;
+    case "transcript":
+      await HandleTicketTranscript(interaction, context);
+      break;
+    case "reopen":
+      await HandleTicketReopen(interaction, context);
+      break;
+    case "tag":
+      await HandleTicketTag(interaction, context);
+      break;
   }
 }
 
@@ -47,23 +58,32 @@ export const TicketCommand = CreateCommand({
   description: "Create and manage support tickets",
   group: "utility",
   config: Config.utility(3),
-  configure: (builder) => {
+  configure: (builder: SlashCommandBuilder) => {
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-      subcommand.setName("create").setDescription("Create a new support ticket")
-    );
-
-    builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-      subcommand.setName("list").setDescription("View your tickets")
-    );
-
-    builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-      subcommand.setName("close").setDescription("Close the current ticket")
+      subcommand
+        .setName("open")
+        .setDescription("Open a new support ticket")
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
-        .setName("claim")
-        .setDescription("Claim a ticket for handling (Staff only)")
+        .setName("panel")
+        .setDescription("Post a ticket panel with an Open Ticket button (Staff)")
+    );
+
+    builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
+      subcommand
+        .setName("list")
+        .setDescription("View your tickets or the server queue (Staff)")
+        .addStringOption((option: SlashCommandStringOption) =>
+          option
+            .setName("scope")
+            .setDescription("Whose tickets to show")
+            .addChoices(
+              { name: "Mine", value: "mine" },
+              { name: "Server queue (Staff)", value: "server" }
+            )
+        )
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
@@ -76,39 +96,15 @@ export const TicketCommand = CreateCommand({
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
-        .setName("add")
-        .setDescription("Add users to the current ticket")
-    );
-
-    builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-      subcommand
-        .setName("remove")
-        .setDescription("Remove users from the current ticket")
-    );
-
-    builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-      subcommand
         .setName("reopen")
         .setDescription("Reopen a closed ticket into a new channel (Staff)")
-        .addIntegerOption((option) =>
-          option
-            .setName("ticket_id")
-            .setDescription("Closed ticket ID to reopen")
-            .setRequired(true)
-        )
-        .addStringOption((option) =>
-          option
-            .setName("reason")
-            .setDescription("Reason for reopening")
-            .setRequired(true)
-        )
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
         .setName("tag")
-        .setDescription("Add, remove, or list tags on this ticket")
-        .addStringOption((option) =>
+        .setDescription("Add, remove, or list staff tags on this ticket")
+        .addStringOption((option: SlashCommandStringOption) =>
           option
             .setName("action")
             .setDescription("Action to perform")
@@ -119,15 +115,93 @@ export const TicketCommand = CreateCommand({
               { name: "list", value: "list" }
             )
         )
-        .addStringOption((option) =>
+        .addStringOption((option: SlashCommandStringOption) =>
           option
             .setName("tag")
             .setDescription("Tag text (required for add/remove)")
             .setRequired(false)
         )
     );
+
+    builder.addSubcommandGroup((group: SlashCommandSubcommandGroupBuilder) =>
+      group
+        .setName("config")
+        .setDescription("Manage ticket categories (Staff only)")
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName("list")
+            .setDescription("List configured ticket categories")
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName("add")
+            .setDescription("Add a ticket category")
+            .addStringOption((option) =>
+              option
+                .setName("value")
+                .setDescription("Unique category key (e.g. billing)")
+                .setRequired(true)
+            )
+            .addStringOption((option) =>
+              option
+                .setName("label")
+                .setDescription("Display label")
+                .setRequired(true)
+            )
+            .addStringOption((option) =>
+              option
+                .setName("description")
+                .setDescription("Short description for the select menu")
+                .setRequired(false)
+            )
+            .addStringOption((option) =>
+              option
+                .setName("emoji")
+                .setDescription("Emoji shown in the category list")
+                .setRequired(false)
+            )
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName("edit")
+            .setDescription("Edit a ticket category")
+            .addStringOption((option) =>
+              option
+                .setName("value")
+                .setDescription("Category key to edit")
+                .setRequired(true)
+            )
+            .addStringOption((option) =>
+              option
+                .setName("label")
+                .setDescription("New display label")
+                .setRequired(false)
+            )
+            .addStringOption((option) =>
+              option
+                .setName("description")
+                .setDescription("New description")
+                .setRequired(false)
+            )
+            .addStringOption((option) =>
+              option
+                .setName("emoji")
+                .setDescription("New emoji")
+                .setRequired(false)
+            )
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName("remove")
+            .setDescription("Remove a ticket category")
+            .addStringOption((option) =>
+              option
+                .setName("value")
+                .setDescription("Category key to remove")
+                .setRequired(true)
+            )
+        )
+    );
   },
   execute: ExecuteTicket,
 });
-
-

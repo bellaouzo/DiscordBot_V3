@@ -1,5 +1,5 @@
 import { ResponseOptions } from "./ResponseTypes";
-import { EmbedFactory } from "../Utilities/EmbedBuilder";
+import { EmbedFactory } from "../Utilities/EmbedFactory";
 
 interface ErrorMessageOptions {
   readonly title: string;
