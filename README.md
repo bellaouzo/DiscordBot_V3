@@ -76,7 +76,7 @@ npm run format        # Prettier
 
 Before opening a PR: lint, test, and coverage must pass. CI also runs `npm audit --audit-level=high` (fails on high/critical advisories).
 
-- [Writing Commands](docs/WRITING_COMMANDS.md) — `CreateCommand`, middleware, responders
+- [Writing Commands](docs/WRITING_COMMANDS.md) — `CreateCommand`, `Config` (auto middleware), responders
 - [Contributing](docs/CONTRIBUTING.md) — standards, audit policy, PR process
 - [Testing Strategy](docs/TESTING_STRATEGY.md) — behavior vs smoke tests
 
@@ -90,7 +90,7 @@ export const PingCommand = CreateCommand({
   name: "ping",
   description: "Check bot latency",
   group: "utility",
-  config: Config.utility(),
+  config: Config.utility(1),
   execute: async (interaction, { responders }) => {
     await responders.interactionResponder.Reply(interaction, {
       content: `Pong! ${Date.now() - interaction.createdTimestamp}ms`,

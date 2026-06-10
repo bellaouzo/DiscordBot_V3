@@ -130,7 +130,7 @@ Economy minigames follow a consistent shape:
 
 1. Discord emits an interaction.
 2. `RegisterEvents` or interaction handlers route to command/event implementation.
-3. Middleware runs (logging, permissions, cooldowns, guild-only).
+3. Middleware chain runs (`AutoMiddleware` from command `config`: logging, guild-only, permissions, cooldowns, error handling).
 4. Command executes through responder utilities and database facade(s).
 5. Domain helpers in `Utilities` format embeds/components and enforce shared logic.
 6. Database facades delegate to domain stores and return typed records.

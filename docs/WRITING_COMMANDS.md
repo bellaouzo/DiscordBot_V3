@@ -31,30 +31,53 @@ export const MyCommand = CreateCommand({
 });
 ```
 
-For permissions and cooldowns, use `Config.mod(5).build()`, `Config.admin()`, or `Config.create().guildOnly().permissions("ManageMessages").cooldownSeconds(5).build()`.
+Use `Config` presets for common cases:
+
+| Preset | What it enables |
+|--------|-----------------|
+| `Config.utility(seconds)` | Guild-only, cooldown, logging, error handling |
+| `Config.mod(seconds).build()` | Guild-only, mod role, cooldown, logging, error handling |
+| `Config.admin(seconds)` | Guild-only, admin role, cooldown, logging, error handling |
+| `Config.create()...build()` | Custom guild-only, Discord permissions, roles, cooldown |
+
+Examples:
+
+```typescript
+config: Config.utility(5);
+config: Config.mod(5).build();
+config: Config.admin();
+config: Config.create()
+  .guildOnly()
+  .permissions("ManageMessages", "KickMembers")
+  .cooldownSeconds(10)
+  .build();
+```
+
+You do **not** list `LoggingMiddleware`, `CooldownMiddleware`, and similar imports on each command. `CreateCommand` calls `AutoMiddleware(config)` when `middleware` is omitted.
 
 ## Middleware System
 
-Middleware provides a powerful way to add cross-cutting concerns to your commands using an Express-style pattern.
+Middleware runs as a chain around your `execute` function. In normal commands you configure behavior through `config`; the framework builds the chain for you.
 
-### What Middleware Is
+### What `AutoMiddleware` adds
 
-Middleware functions execute before and/or after your command logic, allowing you to:
+From `src/Commands/Middleware/index.ts`, defaults are:
 
-- Log command usage and performance
-- Validate permissions and roles
-- Implement rate limiting
-- Handle errors gracefully
-- Add custom validation logic
+| Always | When `config` includes |
+|--------|-------------------------|
+| `LoggingMiddleware` (before) | `guildOnly` → `GuildMiddleware` |
+| `ErrorMiddleware` (after) | permissions / mod / admin / owner / role → `PermissionMiddleware` |
+| | `cooldown` → `CooldownMiddleware` |
 
-### Middleware Types
+`Config.utility()`, `Config.mod()`, and `Config.admin()` already set `guildOnly` and cooldown, so logging, guild check, permission (where applicable), cooldown, and error handling are wired without extra code.
 
-- **Before Middleware** - Runs before command execution (logging, permissions, cooldowns)
-- **After Middleware** - Runs after command execution (error handling, cleanup)
+### Overriding the chain (advanced)
 
-### Execution Flow
+Pass `middleware: { before: [...], after: [...] }` only when you need a non-standard chain. Most commands should omit `middleware` entirely.
 
-Middleware uses a chain of responsibility pattern with `next()` calls:
+### Custom middleware
+
+Middleware uses a chain of responsibility pattern with `next()`:
 
 ```typescript
 export const CustomMiddleware: CommandMiddleware = {
@@ -230,19 +253,25 @@ await paginatedResponder.Send({
 Handle button and select menu interactions by routing to registered handlers:
 
 ```typescript
-// Register button handler
-componentRouter.Register("my-button", async (interaction) => {
-  await buttonResponder.Update(interaction, {
-    content: "Button handled!",
-  });
+componentRouter.RegisterButton({
+  customId: "my-button",
+  ownerId: interaction.user.id,
+  handler: async (buttonInteraction) => {
+    await buttonResponder.Update(buttonInteraction, {
+      content: "Button handled!",
+    });
+  },
 });
 
-// Register select menu handler
-selectMenuRouter.Register("my-select", async (interaction) => {
-  const selected = interaction.values[0];
-  await interactionResponder.Reply(interaction, {
-    content: `You selected: ${selected}`,
-  });
+selectMenuRouter.RegisterSelectMenu({
+  customId: "my-select",
+  ownerId: interaction.user.id,
+  handler: async (selectInteraction) => {
+    const selected = selectInteraction.values[0];
+    await interactionResponder.Reply(selectInteraction, {
+      content: `You selected: ${selected}`,
+    });
+  },
 });
 ```
 

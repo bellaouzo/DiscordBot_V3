@@ -1,9 +1,5 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "../../src/Commands";
-import {
-  LoggingMiddleware,
-  ErrorMiddleware,
-} from "../../src/Commands/Middleware/index";
 import { Config } from "../../src/Commands/Middleware/CommandConfig";
 import { PaginationPage } from "../../src/Shared/Paginator";
 import { AllCommands } from "../../src/Commands";
@@ -139,10 +135,6 @@ export const HelpCommand = CreateCommand({
   name: "help",
   description: "📚 Browse all available bot commands with an interactive menu",
   group: "utility",
-  middleware: {
-    before: [LoggingMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.utility(0), // No cooldown
+  config: Config.utility(0),
   execute: ExecuteHelp,
 });

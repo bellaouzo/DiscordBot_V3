@@ -26,8 +26,8 @@ CI runs `npm audit --audit-level=high`, `npm run lint`, `npm run test`, `npm run
 
 ## Project structure
 
-- **Commands** – Slash commands in `src/Commands/` (Fun, Moderation, Utility). Use `CreateCommand` and `Config` from `@middleware` for middleware and permissions.
-- **Middleware** – `src/Commands/Middleware/` (logging, permissions, cooldowns, guild-only, error handling). Add new middleware there and wire it in `AutoMiddleware` or command config as needed.
+- **Commands** – Slash commands in `src/Commands/` (Fun, Moderation, Utility). Use `CreateCommand` with `config: Config.utility()` / `Config.mod().build()` / etc. Middleware is applied via `AutoMiddleware(config)` — avoid hand-wiring `before` / `after` arrays unless you need a custom chain.
+- **Middleware** – `src/Commands/Middleware/` (logging, permissions, cooldowns, guild-only, error handling). New built-in middleware should be registered in `AutoMiddleware`; command authors configure behavior through `CommandConfig`.
 - **Systems** – Economy, Giveaway, Leveling, Setup, Ticket in `src/Systems/`.
 - **Tests** – Vitest tests in `tests/`; mirror `src/` layout (e.g. `tests/commands/`, `tests/systems/`). Use helpers and mocks from `tests/helpers/`.
 

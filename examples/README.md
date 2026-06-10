@@ -35,7 +35,7 @@ This folder contains practical examples of how to use the Discord Bot V3 framewo
 
 | Example | Teaches | Key Features |
 |---------|---------|--------------|
-| **Starter Template** | Basic command structure | Complete working example, middleware, logging |
+| **Starter Template** | Basic command structure | `CreateCommand`, `Config.utility()`, logging |
 | **Ping Command** | Action responders | `WithAction`, loading states, follow-ups |
 | **Hello Command** | Simple replies | `Reply`, basic logging, user interaction |
 | **Kick Command** | Command options | User/string/boolean options, permissions, DM sending |
@@ -78,7 +78,7 @@ npm run dev
 
 **Command not working:**
 - Verify the command name is unique
-- Check that middleware is properly configured
+- Check that `config` matches your intent (`Config.mod()`, `Config.utility()`, etc.)
 - Look at console logs for error messages
 
 **TypeScript errors:**
@@ -99,24 +99,26 @@ npm run dev
 All examples follow the same patterns:
 
 ```typescript
-// 1. Import what you need
 import { CommandContext, CreateCommand } from "../../src/Commands";
+import { Config } from "../../src/Commands/Middleware/CommandConfig";
 
-// 2. Write your execute function
 async function ExecuteMyCommand(interaction, context) {
   const { interactionResponder } = context.responders;
   // Your logic here
 }
 
-// 3. Export the command
 export const MyCommand = CreateCommand({
   name: "my-command",
   description: "My awesome command",
   group: "utility",
-  middleware: { /* ... */ },
+  config: Config.utility(2),
   execute: ExecuteMyCommand,
 });
 ```
+
+Inside `src/Commands/`, prefer path aliases (`@commands`, `@middleware`) instead of relative `../../src/` imports.
+
+`config` drives middleware automatically (logging, guild-only, permissions, cooldowns, error handling). You only pass an explicit `middleware` object when you need a custom chain.
 
 ## 📚 Next Steps
 

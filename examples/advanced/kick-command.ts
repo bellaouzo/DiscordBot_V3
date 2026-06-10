@@ -1,11 +1,5 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "../../src/Commands";
-import {
-  LoggingMiddleware,
-  PermissionMiddleware,
-  CooldownMiddleware,
-  ErrorMiddleware,
-} from "../../src/Commands/Middleware/index";
 import { Config } from "../../src/Commands/Middleware/CommandConfig";
 import { CreateGuildResourceLocator, EmbedFactory } from "../../src/Utilities";
 
@@ -13,7 +7,7 @@ import { CreateGuildResourceLocator, EmbedFactory } from "../../src/Utilities";
  * Advanced kick command with options and permissions
  * Demonstrates:
  * - Command options (user, string, boolean)
- * - Permission middleware
+ * - Mod permissions via `Config.mod()`
  * - Action responder with error handling
  * - DM notifications
  */
@@ -98,10 +92,6 @@ export const KickCommand = CreateCommand({
         option.setName("notify").setDescription("Send DM notification to user")
       );
   },
-  middleware: {
-    before: [LoggingMiddleware, PermissionMiddleware, CooldownMiddleware],
-    after: [ErrorMiddleware],
-  },
-  config: Config.mod(5).build(), // 5 second cooldown, requires mod role
+  config: Config.mod(5).build(),
   execute: ExecuteKick,
 });
