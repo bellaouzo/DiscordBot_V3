@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run lint:examples
+      - run: npm run format:check
+      - run: npm run build
+      - run: npm run check:commands
+      - run: npm test
+      - run: npm run test:coverage
+      - name: Extract release notes
+        id: notes
+        run: |
+          awk '/^## Unreleased/{flag=1;next} /^## /{if(flag) exit} flag' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "No Unreleased notes found in CHANGELOG.md" > release-notes.md
+          fi
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**
+          body_path: release-notes.md
+          generate_release_notes: true

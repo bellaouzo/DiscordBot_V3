@@ -69,12 +69,6 @@ export default [
     },
   },
   {
-    files: ["src/Systems/Economy/handlers/**/*.ts"],
-    rules: {
-      "@typescript-eslint/no-non-null-assertion": "off",
-    },
-  },
-  {
     files: ["examples/**/*.ts"],
     languageOptions: {
       parserOptions: {

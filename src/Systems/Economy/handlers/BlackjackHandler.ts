@@ -123,11 +123,11 @@ export async function HandleBlackjack(
   const dealer: CardValue[] = [drawCard(deck), drawCard(deck)];
   let wager = bet;
   let firstAction = true;
-  if (hasPeek && !peekUsed) {
+  if (peekItem && hasPeek && !peekUsed) {
     peekUsed = true;
     manager.AdjustInventoryItem({
       userId: interaction.user.id,
-      itemId: peekItem!.id,
+      itemId: peekItem.id,
       delta: -1,
     });
   }
@@ -148,6 +148,7 @@ export async function HandleBlackjack(
 
     if (
       finalOutcome === "loss" &&
+      charm &&
       hasCharm &&
       !charmUsed &&
       playerTotal() <= 21 &&
@@ -157,7 +158,7 @@ export async function HandleBlackjack(
       charmUsed = true;
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: charm!.id,
+        itemId: charm.id,
         delta: -1,
       });
       finalOutcome = "push";
@@ -175,11 +176,11 @@ export async function HandleBlackjack(
       }
     }
 
-    if (payout > 0 && hasBoost && !boostUsed) {
+    if (payout > 0 && boostItem && hasBoost && !boostUsed) {
       boostUsed = true;
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: boostItem!.id,
+        itemId: boostItem.id,
         delta: -1,
       });
       const bonus = Math.floor(wager * 0.2);

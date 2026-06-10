@@ -90,10 +90,10 @@ export async function HandleDice(
   }
 
   let payout = 0;
-  if (!win && guess && hasLoadedDie) {
+  if (!win && guess && loadedDie && hasLoadedDie) {
     manager.AdjustInventoryItem({
       userId: interaction.user.id,
-      itemId: loadedDie!.id,
+      itemId: loadedDie.id,
       delta: -1,
     });
     rolled = rollDie();
@@ -101,10 +101,16 @@ export async function HandleDice(
     notes.push("Loaded Die — rerolled once.");
   }
 
-  if (!win && guess && hasDiceNudge && Math.abs((guess ?? 0) - rolled) === 1) {
+  if (
+    !win &&
+    guess &&
+    diceNudgeItem &&
+    hasDiceNudge &&
+    Math.abs((guess ?? 0) - rolled) === 1
+  ) {
     manager.AdjustInventoryItem({
       userId: interaction.user.id,
-      itemId: diceNudgeItem!.id,
+      itemId: diceNudgeItem.id,
       delta: -1,
     });
     win = true;
@@ -113,10 +119,10 @@ export async function HandleDice(
 
   if (bet > 0 && win) {
     payout = bet * DICE_PAYOUT_MULTIPLIER;
-    if (hasJackpot) {
+    if (diceJackpot && hasJackpot) {
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: diceJackpot!.id,
+        itemId: diceJackpot.id,
         delta: -1,
       });
       payout += bet * DICE_PAYOUT_MULTIPLIER;

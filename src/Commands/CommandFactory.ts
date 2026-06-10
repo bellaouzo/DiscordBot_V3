@@ -12,13 +12,13 @@ export {
   SlashCommandStringOption,
   SlashCommandIntegerOption,
 };
-import type { Logger } from "../Shared/Logger";
-import type { ResponderSet } from "../Responders";
-import type { MiddlewareConfiguration } from "./Middleware";
-import { AutoMiddleware } from "./Middleware";
-import type { CommandConfig } from "./Middleware/CommandConfig";
-import type { DatabaseSet } from "../Database";
-import type { AppConfig } from "../Config/AppConfig";
+import type { AppConfig } from "@config/AppConfig";
+import type { DatabaseSet } from "@database";
+import type { MiddlewareConfiguration } from "@middleware";
+import { AutoMiddleware } from "@middleware";
+import type { CommandConfig } from "@middleware/CommandConfig";
+import type { ResponderSet } from "@responders";
+import type { Logger } from "@shared/Logger";
 
 /**
  * Context passed to command execute functions: responders, logger, databases, app config.

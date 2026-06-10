@@ -27,6 +27,17 @@ describe("bridgeEmbeds", () => {
       expect(embed.data.title).toBe("Roblox Not Connected");
     });
 
+    it("uses universe labels for experience keys", () => {
+      const embed = BuildStatusEmbed({
+        configured: true,
+        keyType: "experience",
+        targetId: "555",
+      });
+
+      const fieldNames = embed.data.fields?.map((field) => field.name) ?? [];
+      expect(fieldNames).toContain("Universe ID");
+    });
+
     it("builds connected embed with metadata fields", () => {
       const embed = BuildStatusEmbed({
         configured: true,

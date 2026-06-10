@@ -156,11 +156,11 @@ export async function HandleCrash(
     disposeAll();
 
     let note: string | undefined;
-    if (bet > 0 && hasParachute && !parachuteUsed) {
+    if (bet > 0 && parachute && hasParachute && !parachuteUsed) {
       parachuteUsed = true;
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: parachute!.id,
+        itemId: parachute.id,
         delta: -1,
       });
       balance = manager.AdjustBalance(interaction.user.id, bet);
@@ -218,10 +218,10 @@ export async function HandleCrash(
       notes.push(extraNote);
     }
     if (payout > 0) {
-      if (hasBooster) {
+      if (crashBooster && hasBooster) {
         manager.AdjustInventoryItem({
           userId: interaction.user.id,
-          itemId: crashBooster!.id,
+          itemId: crashBooster.id,
           delta: -1,
         });
         const boosted = ApplyCrashBoosterBonus(payout);
@@ -365,12 +365,13 @@ export async function HandleCrash(
 
     if (
       !resolved &&
+      autoCashItem &&
       ShouldAutoCashOut(displayMultiplier, bet, hasAutoCash, autoCashUsed)
     ) {
       autoCashUsed = true;
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: autoCashItem!.id,
+        itemId: autoCashItem.id,
         delta: -1,
       });
       void finalizeCashout(undefined, "Auto Cashout Chip — cashed at 2.0x.");

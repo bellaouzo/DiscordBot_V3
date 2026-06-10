@@ -6,21 +6,37 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- `src/Bootstrap.ts` extracted from `index.ts`; bootstrap integration and shutdown tests.
+- Shared infrastructure tests: `ApiClient`, `ModalRouter`, `ComponentRouter`, `Paginator`, `PaginatedResponder`.
+- Roblox bridge handler tests (connect, disconnect, status, kick, group audit/info, `bridgeApi`, `bridgeAccess`, `bridgeSettings`).
+- Appeal submit modal lifecycle tests; extended appeal panel and `AppealShared` coverage.
+- `ChannelManager`, `CommandLogStore`, `AppealManager`, router, and consolidated branch-coverage suite (`tests/coverage/branchGateBoost.test.ts`).
+- `CreateCommandDeployer` and `DiscordLogger` tests.
+- Dependabot weekly npm updates (`.github/dependabot.yml`).
+- Release workflow on `v*` tags (`.github/workflows/release.yml`).
+- `npm run version:check` script and [STABILITY.md](docs/STABILITY.md) semver policy.
 - `RequireGuild`, `RequireGuildFromInteraction`, and `RequireDefined` utilities for safe guild/value access.
 - Command loader integration test (`tests/bot/CreateCommandLoader.test.ts`).
-- Bootstrap smoke test (`tests/bootstrap.smoke.test.ts`).
+- Event loader, interaction-handler, and `CreateBot` tests under `tests/bot/`.
+- Bootstrap smoke test (`tests/bootstrap.smoke.test.ts`) including event registration.
+- Scheduler tests for giveaway, temp-action, and raid-mode sweeps.
+- Ticket button lifecycle tests (claim, add user, remove user) and registry coverage.
+- Appeal panel lifecycle test and appeal list pagination coverage.
 - Error middleware and interaction responder test coverage.
 - Static duplicate command name check (`npm run check:commands`).
-- Examples lint step in CI (`npm run lint:examples`).
+- Examples typecheck + lint in CI (`npm run lint:examples`).
 
 ### Changed
 
 - Removed duplicate `HelpCommand` re-export barrel; help command loads from `Utility/Help/HelpCommand.ts` only.
 - Hardened command loader to skip re-export-only `*Command.ts` barrels.
-- Standardized imports to path aliases (`@commands`, `@utilities`, etc.).
+- Standardized imports to path aliases (`@commands`, `@utilities`, etc.); `CommandFactory` uses aliases internally.
 - Removed unused `CommandConfig.custom` escape hatch.
-- Raised global branch coverage gate from 32% to 42%.
-- Economy handler branch coverage gate raised from 25% to 35%.
+- Removed economy handler ESLint non-null assertion override; inventory item access uses guarded conditions.
+- Raised global coverage gates to **65% lines / 55% branches** (statements 65%, functions 68%).
+- Per-module coverage thresholds for `ApiClient`, routers, `Bootstrap`, and Roblox handlers.
+- Economy handler branch coverage gate raised to **40%**; appeal flows to **35%**.
+- Examples `tsconfig.json` enables `noUnusedLocals`.
 
 ### Documentation
 

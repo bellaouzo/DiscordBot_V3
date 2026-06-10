@@ -171,11 +171,11 @@ export async function HandleRps(
     let outcome = DetermineOutcome(playerChoice, botChoice);
     const notes: string[] = [];
 
-    if (outcome === "loss" && rerollAvailable) {
+    if (outcome === "loss" && rerollItem && rerollAvailable) {
       rerollAvailable = false;
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: rerollItem!.id,
+        itemId: rerollItem.id,
         delta: -1,
       });
       botChoice = rollBotChoice();
@@ -183,22 +183,22 @@ export async function HandleRps(
       notes.push("Reroll Token — rerolled opponent once.");
     }
 
-    if (outcome === "loss" && shieldAvailable) {
+    if (outcome === "loss" && rpsShield && shieldAvailable) {
       shieldAvailable = false;
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: rpsShield!.id,
+        itemId: rpsShield.id,
         delta: -1,
       });
       outcome = "draw";
       notes.push("RPS Shield — converted loss to draw.");
     }
 
-    if (outcome === "draw" && edgeAvailable) {
+    if (outcome === "draw" && rpsEdge && edgeAvailable) {
       edgeAvailable = false;
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: rpsEdge!.id,
+        itemId: rpsEdge.id,
         delta: -1,
       });
       outcome = "win";

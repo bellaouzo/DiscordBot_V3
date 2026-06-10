@@ -71,6 +71,53 @@ describe("InteractionResponder", () => {
     );
   });
 
+  it("defers ephemerally when requested", async () => {
+    const responder = new InteractionResponder(createMockLogger());
+    const deferReply = vi.fn().mockResolvedValue(undefined);
+    const interaction = {
+      replied: false,
+      deferred: false,
+      deferReply,
+    };
+
+    const result = await responder.Defer(interaction as never, true);
+
+    expect(result.success).toBe(true);
+    expect(deferReply).toHaveBeenCalledWith({ flags: 64 });
+  });
+
+  it("treats already-acknowledged defer errors as success", async () => {
+    const logger = createMockLogger();
+    const responder = new InteractionResponder(logger);
+    const deferReply = vi
+      .fn()
+      .mockRejectedValue({ code: 40060, message: "Already acknowledged" });
+    const interaction = {
+      replied: false,
+      deferred: false,
+      deferReply,
+    };
+
+    const result = await responder.Defer(interaction as never, false);
+
+    expect(result).toEqual({
+      success: true,
+      message: "Already deferred",
+    });
+  });
+
+  it("edits replies after deferring", async () => {
+    const responder = new InteractionResponder(createMockLogger());
+    const interaction = createInteraction({ deferred: true });
+
+    const result = await responder.Edit(interaction as never, {
+      content: "updated",
+    });
+
+    expect(result.success).toBe(true);
+    expect(interaction.editReply).toHaveBeenCalledWith({ content: "updated" });
+  });
+
   it("runs WithAction and edits follow-up content", async () => {
     const responder = new InteractionResponder(createMockLogger());
     const interaction = createInteraction();

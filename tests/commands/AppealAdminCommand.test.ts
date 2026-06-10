@@ -197,6 +197,55 @@ describe("AppealAdminCommand behavior", () => {
     );
   });
 
+  it("paginates open appeals when list exceeds page size", async () => {
+    const interaction = createMockInteraction({
+      guild: { id: "guild-1", name: "Test Guild" } as unknown as Guild,
+      member: {
+        permissions: { has: vi.fn().mockReturnValue(true) },
+        roles: { cache: { some: vi.fn().mockReturnValue(false) } },
+      } as never,
+      user: { id: "mod-1", username: "ModOne" } as unknown as User,
+    });
+    stubInteractionOptions(interaction, {
+      getSubcommand: () => "list",
+    });
+
+    const context = createMockContext();
+    const appeals = Array.from({ length: 11 }, (_, index) => ({
+      id: index + 1,
+      guild_id: "guild-1",
+      user_id: `user-${index + 1}`,
+      action_type: "warning",
+      action_ref: String(index + 1),
+      reason: "appeal reason",
+      evidence: null,
+      status: "open",
+      review_channel_id: null,
+      review_message_id: null,
+      resolved_by: null,
+      resolved_reason: null,
+      created_at: Date.now(),
+      updated_at: Date.now(),
+      resolved_at: null,
+    }));
+    (
+      context.databases.moderationDb.ListAppeals as ReturnType<typeof vi.fn>
+    ).mockReturnValue(appeals);
+
+    await AppealAdminCommand.execute(interaction, context);
+
+    expect(context.responders.paginatedResponder.Send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        interaction,
+        ownerId: "mod-1",
+        pages: expect.any(Array),
+      }),
+    );
+    expect(
+      context.responders.interactionResponder.Reply,
+    ).not.toHaveBeenCalled();
+  });
+
   it("shows empty state when no open appeals", async () => {
     const interaction = createMockInteraction({
       guild: { id: "guild-1", name: "Test Guild" } as unknown as Guild,

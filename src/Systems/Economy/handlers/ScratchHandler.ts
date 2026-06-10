@@ -165,29 +165,29 @@ export async function HandleScratch(
     let payout = ComputeScratchPayout(reveals, bet);
     const notes: string[] = [];
 
-    if (payout === 0 && bet > 0 && hasClover) {
+    if (payout === 0 && bet > 0 && cloverItem && hasClover) {
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: cloverItem!.id,
+        itemId: cloverItem.id,
         delta: -1,
       });
       payout = ApplyScratchCloverPayout(bet);
       notes.push("Scratch Clover — guaranteed minimum pair payout.");
     }
 
-    if (payout > 0 && hasBonus) {
+    if (payout > 0 && bonusItem && hasBonus) {
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: bonusItem!.id,
+        itemId: bonusItem.id,
         delta: -1,
       });
       const boosted = ApplyScratchBonusPayout(payout);
       payout = boosted.payout;
       notes.push("Lucky Sticker — +50% payout.");
-    } else if (payout === 0 && bet > 0 && hasBonus) {
+    } else if (payout === 0 && bet > 0 && bonusItem && hasBonus) {
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: bonusItem!.id,
+        itemId: bonusItem.id,
         delta: -1,
       });
       payout = ApplyScratchBonusLossRefund(bet);

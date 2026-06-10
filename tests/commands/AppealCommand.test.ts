@@ -288,6 +288,82 @@ describe("AppealCommand behavior", () => {
     );
   });
 
+  it("rejects invalid appeal selection values", async () => {
+    const guild = {
+      id: "guild-1",
+      name: "Test Guild",
+      channels: {
+        cache: { get: vi.fn().mockReturnValue(null) },
+        create: vi.fn().mockResolvedValue(null),
+      },
+      members: {
+        fetch: vi.fn().mockResolvedValue({
+          id: "user-1",
+          user: { username: "UserOne" },
+        }),
+        fetchMe: vi.fn().mockResolvedValue({ id: "bot-1" }),
+      },
+    } as unknown as Guild;
+
+    const interaction = createMockInteraction({
+      guild,
+      user: { id: "user-1", username: "UserOne", tag: "UserOne#0001" } as never,
+      client: {
+        users: {
+          fetch: vi.fn().mockResolvedValue({ username: "ModOne" }),
+        },
+      } as never,
+    });
+    stubInteractionOptions(interaction, {
+      getSubcommand: () => "submit",
+      getString: () => null,
+    });
+
+    const context = createMockContext();
+    (
+      context.databases.userDb.GetWarnings as ReturnType<typeof vi.fn>
+    ).mockReturnValue([
+      {
+        id: 21,
+        user_id: "user-1",
+        guild_id: "guild-1",
+        moderator_id: "mod-1",
+        reason: "warn reason",
+        created_at: Date.now(),
+      },
+    ]);
+
+    await AppealCommand.execute(interaction, context);
+
+    const selectRegistration = (
+      context.responders.selectMenuRouter.RegisterSelectMenu as ReturnType<
+        typeof vi.fn
+      >
+    ).mock.calls[0][0];
+
+    const selectInteraction = {
+      values: ["invalid-value"],
+      showModal: vi.fn(),
+      reply: vi.fn().mockResolvedValue(undefined),
+      followUp: vi.fn().mockResolvedValue(undefined),
+      replied: false,
+      deferred: false,
+    };
+
+    await selectRegistration.handler(selectInteraction);
+
+    expect(selectInteraction.showModal).not.toHaveBeenCalled();
+    expect(selectInteraction.reply).toHaveBeenCalledWith(
+      expect.objectContaining({
+        embeds: expect.arrayContaining([
+          expect.objectContaining({
+            title: expect.stringContaining("Invalid Selection"),
+          }),
+        ]),
+      }),
+    );
+  });
+
   it("replies with nothing-to-appeal when submit has no records", async () => {
     const interaction = createMockInteraction({
       guild: { id: "guild-1", name: "Test Guild" } as unknown as Guild,

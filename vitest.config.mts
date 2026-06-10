@@ -16,10 +16,46 @@ export default defineConfig({
       include: ["src/**/*.ts"],
       exclude: ["src/index.ts", "**/*.d.ts"],
       thresholds: {
-        lines: 55,
-        functions: 58,
-        branches: 42,
-        statements: 55,
+        lines: 65,
+        functions: 68,
+        branches: 55,
+        statements: 65,
+        "src/Utilities/ApiClient.ts": {
+          lines: 85,
+          functions: 85,
+          branches: 75,
+          statements: 85,
+        },
+        "src/Shared/ModalRouter.ts": {
+          lines: 80,
+          functions: 80,
+          branches: 70,
+          statements: 80,
+        },
+        "src/Shared/Paginator.ts": {
+          lines: 75,
+          functions: 75,
+          branches: 65,
+          statements: 75,
+        },
+        "src/Shared/ComponentRouter.ts": {
+          lines: 75,
+          functions: 75,
+          branches: 65,
+          statements: 75,
+        },
+        "src/Bootstrap.ts": {
+          lines: 75,
+          functions: 75,
+          branches: 60,
+          statements: 75,
+        },
+        "src/Systems/Roblox/handlers/**": {
+          lines: 65,
+          functions: 65,
+          branches: 55,
+          statements: 65,
+        },
         "src/Database/User/Stores/**": {
           lines: 75,
           functions: 80,
@@ -47,7 +83,7 @@ export default defineConfig({
         "src/Commands/Middleware/CooldownMiddleware.ts": {
           lines: 65,
           functions: 100,
-          branches: 55,
+          branches: 65,
           statements: 65,
         },
         "src/Systems/Ticket/validation/**": {
@@ -83,7 +119,7 @@ export default defineConfig({
         "src/Systems/Economy/handlers/**": {
           lines: 48,
           functions: 30,
-          branches: 35,
+          branches: 40,
           statements: 47,
         },
         "src/Utilities/GuildMemberResolver.ts": {
@@ -111,10 +147,10 @@ export default defineConfig({
           statements: 35,
         },
         "src/Commands/Moderation/Appeal/**": {
-          lines: 45,
-          functions: 40,
-          branches: 25,
-          statements: 45,
+          lines: 55,
+          functions: 50,
+          branches: 45,
+          statements: 55,
         },
       },
     },

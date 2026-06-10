@@ -71,7 +71,7 @@ npm run check:commands
 - **Lint:** Runs `tsc --noEmit` and ESLint on `src/` and `tests/`.
 - **Examples lint:** ESLint on `examples/` reference files.
 - **Test:** Runs the Vitest test suite.
-- **Coverage:** Runs tests with coverage gates (global branch floor: 42%).
+- **Coverage:** Runs tests with coverage gates (global branch floor: 45%).
 - **Command check:** Verifies no duplicate top-level slash command names.
 
 CI runs these on push/PR to `main`; see [.github/workflows/ci.yml](../.github/workflows/ci.yml).

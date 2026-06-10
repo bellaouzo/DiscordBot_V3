@@ -171,6 +171,30 @@ describe("Setup button handlers lifecycle", () => {
     );
   });
 
+  it("save and quit persists settings and shows completion embed", async () => {
+    const stepState: StepState = { current: 3 };
+    const draft = createEmptyDraft();
+    const { componentRouter, buttonResponder, ids } = registerSetupButtons(
+      stepState,
+      draft,
+    );
+    const editSpy = vi.spyOn(buttonResponder, "EditReply");
+
+    const handled = await componentRouter.HandleButton(
+      createButtonInteraction(ids.saveAndQuit),
+    );
+
+    expect(handled).toBe(true);
+    expect(editSpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        embeds: expect.arrayContaining([
+          expect.objectContaining({ title: "Setup Saved" }),
+        ]),
+      }),
+    );
+  });
+
   it("save persists guild settings via serverDb", async () => {
     const stepState: StepState = { current: 3 };
     const draft = createEmptyDraft();

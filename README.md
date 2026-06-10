@@ -7,7 +7,7 @@ A modular Discord bot framework built with TypeScript and Discord.js v14 — sla
 [![TypeScript](https://img.shields.io/badge/typescript-5+-blue.svg)](https://www.typescriptlang.org/)
 [![Discord.js](https://img.shields.io/badge/discord.js-v14-7289DA?logo=discord&logoColor=white)](https://discord.js.org/)
 
-> APIs are stabilizing; see [CHANGELOG.md](CHANGELOG.md) for recent breaking or structural changes.
+> APIs are stabilizing; see [CHANGELOG.md](CHANGELOG.md) for recent changes and [STABILITY.md](docs/STABILITY.md) for semver policy.
 
 ## Choose your path
 
@@ -30,7 +30,7 @@ A modular Discord bot framework built with TypeScript and Discord.js v14 — sla
 4. **Invite the bot** — use the OAuth2 URL generator in the [Discord Developer Portal](https://discord.com/developers/applications) with `applications.commands` and required intents.
 5. **Configure the server** — run `/setup` in your guild to set staff roles and log channels.
 
-**Docs:** [Developer Setup](docs/DEVELOPER_SETUP.md) · [Configuration](docs/CONFIGURATION.md) · [Contributing](docs/CONTRIBUTING.md)
+**Docs:** [Developer Setup](docs/DEVELOPER_SETUP.md) · [Configuration](docs/CONFIGURATION.md) · [Contributing](docs/CONTRIBUTING.md) · [Stability](docs/STABILITY.md)
 
 ## What you get
 

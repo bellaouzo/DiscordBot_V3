@@ -314,4 +314,127 @@ describe("Setup select handlers lifecycle", () => {
     expect(handled).toBe(true);
     expect(draft.welcomeChannelId).toBeNull();
   });
+
+  it("ticket select create failure follows up with permission warning", async () => {
+    const { handled, selectInteraction } = await runSelectHandler({
+      customId: "ticketSelect",
+      values: ["create"],
+      channelManager: {
+        GetOrCreateCategory: vi.fn().mockResolvedValue(null),
+        GetOrCreateTextChannel: vi.fn(),
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(selectInteraction.followUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.stringContaining("ticket category"),
+      }),
+    );
+  });
+
+  it("delete log select none clears channel id", async () => {
+    const { handled, draft } = await runSelectHandler({
+      customId: "deleteLogSelect",
+      values: ["none"],
+    });
+
+    expect(handled).toBe(true);
+    expect(draft.deleteLogChannelId).toBeNull();
+  });
+
+  it("production log select stores explicit channel id", async () => {
+    const { handled, draft } = await runSelectHandler({
+      customId: "productionLogSelect",
+      values: ["prod-log-1"],
+    });
+
+    expect(handled).toBe(true);
+    expect(draft.productionLogChannelId).toBe("prod-log-1");
+  });
+
+  it("announcement select create stores created channel id", async () => {
+    const created = { id: "announce-1", name: "announcements" };
+    const { handled, draft } = await runSelectHandler({
+      customId: "announcementSelect",
+      values: ["create"],
+      channelManager: {
+        GetOrCreateCategory: vi.fn(),
+        GetOrCreateTextChannel: vi.fn().mockResolvedValue(created),
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(draft.announcementChannelId).toBe("announce-1");
+  });
+
+  it("ticket log select create failure follows up with permission warning", async () => {
+    const { handled, selectInteraction } = await runSelectHandler({
+      customId: "ticketLogSelect",
+      values: ["create"],
+      channelManager: {
+        GetOrCreateCategory: vi.fn(),
+        GetOrCreateTextChannel: vi.fn().mockResolvedValue(null),
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(selectInteraction.followUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.stringContaining("ticket logs channel"),
+      }),
+    );
+  });
+
+  it("appeal select create adds new category to resources", async () => {
+    const created = { id: "appeal-cat-new", name: "Appeals" };
+    const logger = createMockLogger();
+    const selectMenuRouter = CreateSelectMenuRouter(logger);
+    const updateMessage = vi.fn().mockResolvedValue(undefined);
+    const interactionId = "appeal-create-test";
+    const interaction = createMockInteraction({
+      id: interactionId,
+      user: { id: "setup-owner", username: "Owner" } as never,
+    });
+    const draft = createEmptyDraft();
+    const ids = createSetupIds(interactionId);
+    const resources = { roles: [], categories: [], textChannels: [] };
+    const channelManager = {
+      GetOrCreateCategory: vi.fn().mockResolvedValue(created),
+      GetOrCreateTextChannel: vi.fn(),
+    };
+
+    RegisterSelectHandlers({
+      interaction,
+      draft,
+      resources,
+      ids,
+      loggingDefaults: createMockAppConfig().logging,
+      channelManager: channelManager as never,
+      selectMenuRouter,
+      updateMessage,
+    });
+
+    let selectDeferred = false;
+    const selectInteraction = {
+      customId: ids.appealSelect,
+      values: ["create"],
+      user: { id: "setup-owner" },
+      get deferred() {
+        return selectDeferred;
+      },
+      replied: false,
+      reply: vi.fn(),
+      followUp: vi.fn(),
+      deferUpdate: vi.fn(async () => {
+        selectDeferred = true;
+      }),
+    } as unknown as StringSelectMenuInteraction;
+
+    const handled = await selectMenuRouter.HandleSelectMenu(selectInteraction);
+
+    expect(handled).toBe(true);
+    expect(draft.appealReviewCategoryId).toBe("appeal-cat-new");
+    expect(resources.categories[0]).toEqual(created);
+  });
 });

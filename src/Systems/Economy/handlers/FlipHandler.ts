@@ -154,10 +154,10 @@ export async function HandleFlip(
     let win = flipResult === playerChoice;
     const notes: string[] = [];
 
-    if (!win && hasLuckyCoin) {
+    if (!win && luckyCoin && hasLuckyCoin) {
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: luckyCoin!.id,
+        itemId: luckyCoin.id,
         delta: -1,
       });
       flipResult = roll();
@@ -168,20 +168,20 @@ export async function HandleFlip(
     let payout = 0;
     if (bet > 0 && win) {
       payout = bet * 2;
-    } else if (bet > 0 && !win && hasCoinGuardian) {
+    } else if (bet > 0 && !win && coinGuardian && hasCoinGuardian) {
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: coinGuardian!.id,
+        itemId: coinGuardian.id,
         delta: -1,
       });
       payout = bet; // refund
       notes.push("Coin Guardian — loss refunded.");
     }
 
-    if (win && bet > 0 && hasFlipCharm) {
+    if (win && bet > 0 && flipCharm && hasFlipCharm) {
       manager.AdjustInventoryItem({
         userId: interaction.user.id,
-        itemId: flipCharm!.id,
+        itemId: flipCharm.id,
         delta: -1,
       });
       const bonus = Math.floor(bet * 0.5);

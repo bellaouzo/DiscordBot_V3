@@ -1,7 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CreateCommandLoader } from "@bot/CreateCommandLoader";
+import { CreateEventLoader } from "@bot/CreateEventLoader";
+import { RegisterEvents } from "@bot/RegisterEvents";
 import { LoadAppConfig } from "@config/AppConfig";
-import { createMockLogger } from "./helpers";
+import {
+  createMockAppConfig,
+  createMockDatabaseSet,
+  createMockLogger,
+  createMockResponderSet,
+} from "./helpers";
 
 describe("Bootstrap smoke", () => {
   const previousEnv = {
@@ -42,5 +49,30 @@ describe("Bootstrap smoke", () => {
 
     const names = result.definitions.map((command) => command.data.name);
     expect(new Set(names).size).toBe(names.length);
+  }, 60_000);
+
+  it("loads events and registers handlers without connecting to Discord", async () => {
+    const logger = createMockLogger();
+    const events = await CreateEventLoader(logger)();
+
+    expect(events.length).toBeGreaterThanOrEqual(4);
+
+    const eventNames = events.map((event) => event.name);
+    expect(new Set(eventNames).size).toBe(eventNames.length);
+
+    const on = vi.fn();
+    const once = vi.fn();
+    const client = { on, once } as never;
+
+    RegisterEvents({
+      client,
+      events,
+      logger,
+      responders: createMockResponderSet(),
+      databases: createMockDatabaseSet(),
+      appConfig: createMockAppConfig(),
+    });
+
+    expect(on.mock.calls.length + once.mock.calls.length).toBeGreaterThan(0);
   }, 60_000);
 });

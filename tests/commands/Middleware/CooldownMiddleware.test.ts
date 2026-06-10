@@ -4,6 +4,7 @@ import {
   CooldownMiddleware,
   RecordCooldown,
   ResetCooldownsForTesting,
+  ResolveCooldownMs,
 } from "@middleware/CooldownMiddleware";
 import {
   ConfigureCooldownPersistence,
@@ -50,6 +51,20 @@ function createMiddlewareContext(overrides?: {
   } as unknown as MiddlewareContext;
 }
 
+describe("ResolveCooldownMs", () => {
+  it("prefers milliseconds over seconds and minutes", () => {
+    expect(
+      ResolveCooldownMs({ milliseconds: 250, seconds: 10, minutes: 1 }),
+    ).toBe(250);
+  });
+
+  it("converts seconds and minutes to milliseconds", () => {
+    expect(ResolveCooldownMs({ seconds: 2 })).toBe(2000);
+    expect(ResolveCooldownMs({ minutes: 1 })).toBe(60_000);
+    expect(ResolveCooldownMs({})).toBe(0);
+  });
+});
+
 describe("CooldownMiddleware", () => {
   beforeEach(() => {
     ResetCooldownStoreForTesting();
@@ -58,6 +73,26 @@ describe("CooldownMiddleware", () => {
 
   it("has name cooldown", () => {
     expect(CooldownMiddleware.name).toBe("cooldown");
+  });
+
+  it("calls next when cooldown config is missing", async () => {
+    const context = createMiddlewareContext();
+    context.config = {};
+    const next = vi.fn().mockResolvedValue(undefined);
+
+    await CooldownMiddleware.execute(context, next);
+
+    expect(next).toHaveBeenCalledOnce();
+  });
+
+  it("calls next when resolved cooldown duration is zero", async () => {
+    const context = createMiddlewareContext();
+    context.config = { cooldown: {} };
+    const next = vi.fn().mockResolvedValue(undefined);
+
+    await CooldownMiddleware.execute(context, next);
+
+    expect(next).toHaveBeenCalledOnce();
   });
 
   it("calls next when no active cooldown", async () => {
@@ -70,6 +105,25 @@ describe("CooldownMiddleware", () => {
     expect(
       context.responders.interactionResponder.Reply,
     ).not.toHaveBeenCalled();
+  });
+
+  it("uses plural seconds in active cooldown message", async () => {
+    const context = createMiddlewareContext({ cooldownSeconds: 30 });
+    RecordCooldown(context);
+    const next = vi.fn().mockResolvedValue(undefined);
+
+    await CooldownMiddleware.execute(context, next);
+
+    expect(context.responders.interactionResponder.Reply).toHaveBeenCalledWith(
+      context.interaction,
+      expect.objectContaining({
+        embeds: expect.arrayContaining([
+          expect.objectContaining({
+            description: expect.stringMatching(/seconds before using/),
+          }),
+        ]),
+      }),
+    );
   });
 
   it("blocks next and replies when cooldown is active", async () => {

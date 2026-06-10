@@ -5,10 +5,17 @@ Guidelines for contributing to Discord Bot V3: coding standards, scripts, and wh
 ## Before you submit
 
 1. **Lint:** `npm run lint` must pass (TypeScript check + ESLint).
-2. **Test:** `npm run test` must pass.
-3. **Format:** Code should follow project style. Run `npm run format` to apply Prettier to `src/`, or `npm run format:check` to verify without changing files.
+2. **Examples:** `npm run lint:examples` must pass (`tsc --noEmit -p examples/tsconfig.json` + ESLint).
+3. **Test:** `npm run test` must pass.
+4. **Coverage:** `npm run test:coverage` must pass (global floors: 65% lines / 55% branches).
+5. **Format:** Code should follow project style. Run `npm run format` to apply Prettier to `src/`, or `npm run format:check` to verify without changing files.
 
-CI runs `npm audit --audit-level=high`, `npm run lint`, `npm run test`, `npm run test:coverage`, and a [Gitleaks](https://github.com/gitleaks/gitleaks) scan on push and pull requests to `main`/`master`. Workflow: [.github/workflows/ci.yml](../.github/workflows/ci.yml).
+CI runs `npm audit --audit-level=high`, `npm run lint`, `npm run lint:examples`, `npm run check:commands`, `npm run test`, `npm run test:coverage`, and a [Gitleaks](https://github.com/gitleaks/gitleaks) scan on push and pull requests to `main`/`master`. Workflow: [.github/workflows/ci.yml](../.github/workflows/ci.yml). Tagged `v*` releases run [.github/workflows/release.yml](../.github/workflows/release.yml).
+
+### Dependency updates
+
+- [Dependabot](../.github/dependabot.yml) opens weekly npm update PRs (devDependencies grouped).
+- Review and merge Dependabot PRs like any other change: lint, tests, and coverage must stay green.
 
 ### Dependency audit policy
 
@@ -51,6 +58,7 @@ Do not import from `@commands/CommandFactory` or use relative `../Commands/` pat
 - Architecture boundaries: [ARCHITECTURE_MAP.md](./ARCHITECTURE_MAP.md)
 - Ownership and feature responsibility: [MODULE_OWNERSHIP.md](./MODULE_OWNERSHIP.md)
 - Test strategy and coverage expectations: [TESTING_STRATEGY.md](./TESTING_STRATEGY.md)
+- API stability and semver policy: [STABILITY.md](./STABILITY.md)
 - Configuration and secret handling: [CONFIGURATION.md](./CONFIGURATION.md)
 
 ## Commits and PRs

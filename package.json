@@ -16,13 +16,14 @@
     "vps:stop": "pm2 delete discord_bot",
     "lint": "tsc --noEmit && npm run lint:eslint",
     "lint:eslint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
-    "lint:examples": "eslint \"examples/**/*.ts\"",
+    "lint:examples": "tsc --noEmit -p examples/tsconfig.json && eslint \"examples/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "check:commands": "npx ts-node scripts/check-duplicate-commands.ts"
+    "check:commands": "npx ts-node scripts/check-duplicate-commands.ts",
+    "version:check": "npx ts-node scripts/version-check.ts"
   },
   "keywords": [
     "discord",
