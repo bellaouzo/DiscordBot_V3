@@ -26,6 +26,7 @@ export interface OverviewPayload {
 }
 
 export const CACHE_DURATION = 1000 * 60 * 5;
+export const HELP_SESSION_TIMEOUT_MS = 1000 * 60 * 15;
 export const commandCache = new Map<
   string,
   { data: CommandInfo[]; timestamp: number }
@@ -79,4 +80,24 @@ export function ParseCategoryPageNavCustomId(customId: string): {
     action: match[3] as "first" | "prev" | "next" | "last",
     pageIndex: Number.parseInt(match[4], 10),
   };
+}
+
+export function ResolveHelpPageIndex(
+  action: "first" | "prev" | "next" | "last",
+  encodedPage: number,
+  totalPages: number,
+): number {
+  if (totalPages <= 0) {
+    return 0;
+  }
+
+  if (action === "first") {
+    return 0;
+  }
+
+  if (action === "last") {
+    return totalPages - 1;
+  }
+
+  return Math.max(0, Math.min(encodedPage, totalPages - 1));
 }

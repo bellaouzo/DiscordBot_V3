@@ -66,6 +66,28 @@ export class EventStore {
     return MapScheduledEvent(row);
   }
 
+  ListEventsDueForNotification(now: number): ScheduledEvent[] {
+    const stmt = this.db.prepare(`
+      SELECT * FROM events
+      WHERE should_notify = 1
+        AND scheduled_at <= ?
+        AND notified_at IS NULL
+      ORDER BY scheduled_at ASC
+    `);
+    const rows = stmt.all(now) as EventRow[];
+
+    return rows.map((row) => MapScheduledEvent(row));
+  }
+
+  MarkEventNotified(id: number, notifiedAt: number): boolean {
+    const stmt = this.db.prepare(
+      "UPDATE events SET notified_at = ? WHERE id = ? AND notified_at IS NULL",
+    );
+    const result = stmt.run(notifiedAt, id);
+
+    return result.changes > 0;
+  }
+
   DeleteEvent(guild_event_id: number, guild_id: string): boolean {
     const stmtByGuildEvent = this.db.prepare(
       "DELETE FROM events WHERE guild_event_id = ? AND guild_id = ?",

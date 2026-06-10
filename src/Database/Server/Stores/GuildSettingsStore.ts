@@ -12,7 +12,7 @@ export class GuildSettingsStore {
   GetGuildSettings(guild_id: string): GuildSettings | null {
     const stmt = this.db.prepare(
       `
-      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, appeal_review_category_id, command_log_channel_id, ticket_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, roblox_linked_discord_user_id, roblox_linked_at, created_at, updated_at
+      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, appeal_review_category_id, command_log_channel_id, ticket_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, autorole_id, starboard_channel_id, starboard_emoji, starboard_threshold, roblox_linked_discord_user_id, roblox_linked_at, created_at, updated_at
       FROM guild_settings
       WHERE guild_id = ?
     `,
@@ -39,6 +39,10 @@ export class GuildSettingsStore {
     delete_log_channel_id?: string | null;
     production_log_channel_id?: string | null;
     welcome_channel_id?: string | null;
+    autorole_id?: string | null;
+    starboard_channel_id?: string | null;
+    starboard_emoji?: string | null;
+    starboard_threshold?: number | null;
     roblox_linked_discord_user_id?: string | null;
     roblox_linked_at?: number | null;
   }): GuildSettings {
@@ -74,6 +78,18 @@ export class GuildSettingsStore {
       null;
     const welcomeChannelId =
       settings.welcome_channel_id ?? existing?.welcome_channel_id ?? null;
+    const autoroleId =
+      settings.autorole_id !== undefined
+        ? settings.autorole_id
+        : (existing?.autorole_id ?? null);
+    const starboardChannelId =
+      settings.starboard_channel_id !== undefined
+        ? settings.starboard_channel_id
+        : (existing?.starboard_channel_id ?? null);
+    const starboardEmoji =
+      settings.starboard_emoji ?? existing?.starboard_emoji ?? "⭐";
+    const starboardThreshold =
+      settings.starboard_threshold ?? existing?.starboard_threshold ?? 3;
     const robloxLinkedDiscordUserId =
       settings.roblox_linked_discord_user_id ??
       existing?.roblox_linked_discord_user_id ??
@@ -96,12 +112,16 @@ export class GuildSettingsStore {
         delete_log_channel_id,
         production_log_channel_id,
         welcome_channel_id,
+        autorole_id,
+        starboard_channel_id,
+        starboard_emoji,
+        starboard_threshold,
         roblox_linked_discord_user_id,
         roblox_linked_at,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(guild_id) DO UPDATE SET
         admin_role_ids = excluded.admin_role_ids,
         mod_role_ids = excluded.mod_role_ids,
@@ -113,6 +133,10 @@ export class GuildSettingsStore {
         delete_log_channel_id = excluded.delete_log_channel_id,
         production_log_channel_id = excluded.production_log_channel_id,
         welcome_channel_id = excluded.welcome_channel_id,
+        autorole_id = excluded.autorole_id,
+        starboard_channel_id = excluded.starboard_channel_id,
+        starboard_emoji = excluded.starboard_emoji,
+        starboard_threshold = excluded.starboard_threshold,
         roblox_linked_discord_user_id = excluded.roblox_linked_discord_user_id,
         roblox_linked_at = excluded.roblox_linked_at,
         updated_at = excluded.updated_at
@@ -131,6 +155,10 @@ export class GuildSettingsStore {
       deleteLogChannelId,
       productionLogChannelId,
       welcomeChannelId,
+      autoroleId,
+      starboardChannelId,
+      starboardEmoji,
+      starboardThreshold,
       robloxLinkedDiscordUserId,
       robloxLinkedAt,
       createdAt,

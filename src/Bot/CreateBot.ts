@@ -19,6 +19,7 @@ export function CreateBot(dependencies: BotDependencies): BotLifecycle {
       GatewayIntentBits.MessageContent,
       GatewayIntentBits.GuildMembers,
       GatewayIntentBits.GuildPresences,
+      GatewayIntentBits.GuildMessageReactions,
     ],
   });
 

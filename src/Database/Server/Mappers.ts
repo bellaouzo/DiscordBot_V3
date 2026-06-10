@@ -18,6 +18,10 @@ export function MapScheduledEvent(
     title: row.title,
     scheduled_at: row.scheduled_at,
     should_notify: Boolean(row.should_notify),
+    notified_at:
+      row.notified_at !== null && row.notified_at !== undefined
+        ? Number(row.notified_at)
+        : null,
     created_by: row.created_by,
     created_at: row.created_at,
   };
@@ -89,6 +93,16 @@ export function MapGuildSettings(
     welcome_channel_id: row.welcome_channel_id
       ? String(row.welcome_channel_id)
       : null,
+    autorole_id: row.autorole_id ? String(row.autorole_id) : null,
+    starboard_channel_id: row.starboard_channel_id
+      ? String(row.starboard_channel_id)
+      : null,
+    starboard_emoji: row.starboard_emoji ? String(row.starboard_emoji) : "⭐",
+    starboard_threshold:
+      row.starboard_threshold !== null &&
+      row.starboard_threshold !== undefined
+        ? Number(row.starboard_threshold)
+        : 3,
     roblox_linked_discord_user_id: row.roblox_linked_discord_user_id
       ? String(row.roblox_linked_discord_user_id)
       : null,

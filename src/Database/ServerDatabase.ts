@@ -4,14 +4,36 @@ import { ResolveDataDir } from "@config/DataConfig";
 import type { Logger } from "@shared/Logger";
 import { EventStore } from "@database/Server/Stores/EventStore";
 import { GuildSettingsStore } from "@database/Server/Stores/GuildSettingsStore";
+import { GuildXpSettingsStore } from "@database/Server/Stores/GuildXpSettingsStore";
+import { ReactionRoleStore } from "@database/Server/Stores/ReactionRoleStore";
+import { StarboardStore } from "@database/Server/Stores/StarboardStore";
 import { CommandCooldownStore } from "@database/Server/Stores/CommandCooldownStore";
 
-export type { GuildSettings, ScheduledEvent } from "@database/Server/Types";
+import type {
+  GuildSettings,
+  GuildXpSettings,
+  ReactionRoleMapping,
+  ReactionRolePanel,
+  ScheduledEvent,
+  StarboardEntry,
+} from "@database/Server/Types";
+
+export type {
+  GuildSettings,
+  GuildXpSettings,
+  ReactionRoleMapping,
+  ReactionRolePanel,
+  ScheduledEvent,
+  StarboardEntry,
+};
 
 export class ServerDatabase {
   private readonly db: Database.Database;
   private readonly events: EventStore;
   private readonly guildSettings: GuildSettingsStore;
+  private readonly guildXpSettings: GuildXpSettingsStore;
+  private readonly reactionRoles: ReactionRoleStore;
+  private readonly starboard: StarboardStore;
   private readonly commandCooldowns: CommandCooldownStore;
 
   constructor(private readonly logger: Logger) {
@@ -19,6 +41,9 @@ export class ServerDatabase {
     this.CreateTables();
     this.events = new EventStore(this.db);
     this.guildSettings = new GuildSettingsStore(this.db, this.logger);
+    this.guildXpSettings = new GuildXpSettingsStore(this.db);
+    this.reactionRoles = new ReactionRoleStore(this.db);
+    this.starboard = new StarboardStore(this.db);
     this.commandCooldowns = new CommandCooldownStore(this.db);
   }
 
@@ -45,6 +70,10 @@ export class ServerDatabase {
     ["welcome_channel_id", "TEXT"],
     ["roblox_linked_discord_user_id", "TEXT"],
     ["roblox_linked_at", "INTEGER"],
+    ["autorole_id", "TEXT"],
+    ["starboard_channel_id", "TEXT"],
+    ["starboard_emoji", "TEXT"],
+    ["starboard_threshold", "INTEGER"],
   ]);
 
   private CreateTables(): void {
@@ -87,10 +116,52 @@ export class ServerDatabase {
         );
 
         CREATE INDEX IF NOT EXISTS idx_command_cooldowns_expires ON command_cooldowns(expires_at);
+
+        CREATE TABLE IF NOT EXISTS guild_xp_settings (
+          guild_id TEXT PRIMARY KEY,
+          enabled INTEGER NOT NULL DEFAULT 0,
+          xp_per_message INTEGER NOT NULL DEFAULT 15,
+          cooldown_seconds INTEGER NOT NULL DEFAULT 60,
+          min_message_length INTEGER NOT NULL DEFAULT 5,
+          daily_cap INTEGER NOT NULL DEFAULT 500,
+          excluded_channel_ids TEXT NOT NULL DEFAULT '[]',
+          level_up_channel_id TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS reaction_role_panels (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          guild_id TEXT NOT NULL,
+          channel_id TEXT NOT NULL,
+          message_id TEXT NOT NULL,
+          created_by TEXT NOT NULL,
+          created_at INTEGER NOT NULL,
+          UNIQUE(guild_id, message_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS reaction_role_mappings (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          panel_id INTEGER NOT NULL,
+          emoji TEXT NOT NULL,
+          role_id TEXT NOT NULL,
+          UNIQUE(panel_id, emoji),
+          FOREIGN KEY (panel_id) REFERENCES reaction_role_panels(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS starboard_entries (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          guild_id TEXT NOT NULL,
+          source_channel_id TEXT NOT NULL,
+          source_message_id TEXT NOT NULL,
+          starboard_message_id TEXT NOT NULL,
+          star_count INTEGER NOT NULL,
+          created_at INTEGER NOT NULL,
+          UNIQUE(guild_id, source_message_id)
+        );
       `);
 
       this.EnsureGuildSettingsColumns();
       this.EnsureGuildEventIdColumn();
+      this.EnsureEventColumns();
     } catch (error) {
       this.logger.Error("Failed to create server tables", { error });
       throw error;
@@ -142,6 +213,19 @@ export class ServerDatabase {
     this.BackfillGuildEventIds();
   }
 
+  private EnsureEventColumns(): void {
+    const columns = this.db
+      .prepare("PRAGMA table_info(events)")
+      .all() as Array<{ name: string }>;
+    const hasNotifiedAt = columns.some((column) => column.name === "notified_at");
+
+    if (!hasNotifiedAt) {
+      this.db
+        .prepare("ALTER TABLE events ADD COLUMN notified_at INTEGER")
+        .run();
+    }
+  }
+
   private BackfillGuildEventIds(): void {
     const guilds = this.db
       .prepare("SELECT DISTINCT guild_id FROM events")
@@ -190,6 +274,14 @@ export class ServerDatabase {
     return this.events.DeleteEvent(guild_event_id, guild_id);
   }
 
+  ListEventsDueForNotification(now: number) {
+    return this.events.ListEventsDueForNotification(now);
+  }
+
+  MarkEventNotified(id: number, notifiedAt: number) {
+    return this.events.MarkEventNotified(id, notifiedAt);
+  }
+
   GetGuildSettings(guild_id: string) {
     return this.guildSettings.GetGuildSettings(guild_id);
   }
@@ -213,6 +305,18 @@ export class ServerDatabase {
     this.commandCooldowns.PruneExpired(now);
   }
 
+  GetGuildXpSettings(guild_id: string) {
+    return this.guildXpSettings.GetGuildXpSettings(guild_id);
+  }
+
+  UpsertGuildXpSettings(
+    settings: Partial<
+      Omit<import("@database/Server/Types").GuildXpSettings, "guild_id">
+    > & { guild_id: string },
+  ) {
+    return this.guildXpSettings.UpsertGuildXpSettings(settings);
+  }
+
   UpsertGuildSettings(settings: {
     guild_id: string;
     admin_role_ids?: string[];
@@ -225,10 +329,135 @@ export class ServerDatabase {
     delete_log_channel_id?: string | null;
     production_log_channel_id?: string | null;
     welcome_channel_id?: string | null;
+    autorole_id?: string | null;
+    starboard_channel_id?: string | null;
+    starboard_emoji?: string | null;
+    starboard_threshold?: number | null;
     roblox_linked_discord_user_id?: string | null;
     roblox_linked_at?: number | null;
   }) {
     return this.guildSettings.UpsertGuildSettings(settings);
+  }
+
+  CreateReactionRolePanel(data: {
+    guild_id: string;
+    channel_id: string;
+    message_id: string;
+    created_by: string;
+  }): ReactionRolePanel {
+    return this.reactionRoles.CreatePanel(data);
+  }
+
+  GetReactionRolePanelById(
+    guild_id: string,
+    panel_id: number,
+  ): ReactionRolePanel | null {
+    return this.reactionRoles.GetPanelById(guild_id, panel_id);
+  }
+
+  GetReactionRolePanelByMessage(
+    guild_id: string,
+    message_id: string,
+  ): ReactionRolePanel | null {
+    return this.reactionRoles.GetPanelByMessage(guild_id, message_id);
+  }
+
+  ListReactionRolePanels(guild_id: string): ReactionRolePanel[] {
+    return this.reactionRoles.ListPanels(guild_id);
+  }
+
+  ListReactionRolePanelsByChannel(
+    guild_id: string,
+    channel_id: string,
+  ): ReactionRolePanel[] {
+    return this.reactionRoles.ListPanelsByChannel(guild_id, channel_id);
+  }
+
+  DeleteReactionRolePanel(panel_id: number): boolean {
+    return this.reactionRoles.DeletePanel(panel_id);
+  }
+
+  AddReactionRoleMapping(data: {
+    panel_id: number;
+    emoji: string;
+    role_id: string;
+  }): ReactionRoleMapping {
+    return this.reactionRoles.AddMapping(data);
+  }
+
+  RemoveReactionRoleMapping(id: number): boolean {
+    return this.reactionRoles.RemoveMapping(id);
+  }
+
+  GetReactionRoleMappingByPanelAndEmoji(
+    panel_id: number,
+    emoji: string,
+  ): ReactionRoleMapping | null {
+    return this.reactionRoles.GetMappingByPanelAndEmoji(panel_id, emoji);
+  }
+
+  RemoveReactionRoleMappingByPanelAndEmoji(
+    panel_id: number,
+    emoji: string,
+  ): ReactionRoleMapping | null {
+    return this.reactionRoles.RemoveMappingByPanelAndEmoji(panel_id, emoji);
+  }
+
+  ListReactionRoleMappings(panel_id: number): ReactionRoleMapping[] {
+    return this.reactionRoles.ListMappings(panel_id);
+  }
+
+  GetReactionRoleMappingByEmoji(
+    guild_id: string,
+    message_id: string,
+    emoji: string,
+  ): (ReactionRoleMapping & { panel_id: number }) | null {
+    return this.reactionRoles.GetMappingByEmoji(guild_id, message_id, emoji);
+  }
+
+  ListAllReactionRoleMappings(guild_id: string): Array<
+    ReactionRoleMapping & {
+      message_id: string;
+      channel_id: string;
+    }
+  > {
+    return this.reactionRoles.ListAllMappings(guild_id);
+  }
+
+  GetStarboardEntry(
+    guild_id: string,
+    source_message_id: string,
+  ): StarboardEntry | null {
+    return this.starboard.GetEntry(guild_id, source_message_id);
+  }
+
+  CreateStarboardEntry(data: {
+    guild_id: string;
+    source_channel_id: string;
+    source_message_id: string;
+    starboard_message_id: string;
+    star_count: number;
+  }): StarboardEntry {
+    return this.starboard.CreateEntry(data);
+  }
+
+  UpdateStarboardEntryCount(
+    guild_id: string,
+    source_message_id: string,
+    star_count: number,
+  ): boolean {
+    return this.starboard.UpdateStarCount(
+      guild_id,
+      source_message_id,
+      star_count,
+    );
+  }
+
+  DeleteStarboardEntry(
+    guild_id: string,
+    source_message_id: string,
+  ): boolean {
+    return this.starboard.DeleteEntry(guild_id, source_message_id);
   }
 
   Close(): void {

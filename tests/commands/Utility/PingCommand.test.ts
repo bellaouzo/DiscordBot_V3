@@ -17,8 +17,8 @@ describe("PingCommand lifecycle", () => {
     ).toHaveBeenCalledOnce();
     expect(context.responders.interactionResponder.Edit).toHaveBeenCalledOnce();
 
-    const payload = vi.mocked(context.responders.interactionResponder.Edit)
-      .mock.calls[0][1];
+    const payload = vi.mocked(context.responders.interactionResponder.Edit).mock
+      .calls[0][1];
     const embed = payload.embeds?.[0] as {
       data?: { fields?: Array<{ name: string; value: string }> };
       fields?: Array<{ name: string; value: string }>;

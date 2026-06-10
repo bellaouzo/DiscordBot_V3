@@ -1,8 +1,13 @@
-import type { Message, TextChannel } from "discord.js";
+import type { Message, SendableChannels, TextChannel } from "discord.js";
 import { Events } from "discord.js";
 import type { EventContext } from "@events/EventFactory";
 import { CreateEvent } from "@events/EventFactory";
-import { EmbedFactory, IsModerator, ResolveMessageMember } from "@utilities";
+import {
+  EmbedFactory,
+  IsModerator,
+  ResolveMessageMember,
+} from "@utilities";
+import { AwardChatXp } from "@systems/Leveling/ChatXp";
 
 async function ExecuteMessageCreateEvent(
   context: EventContext,
@@ -78,6 +83,46 @@ async function ExecuteMessageCreateEvent(
 
         return;
       }
+    }
+
+    try {
+      const xpResult = AwardChatXp({
+        guildId: msg.guild.id,
+        userId: msg.author.id,
+        channelId: msg.channel.id,
+        messageContent: msg.content ?? "",
+        userDb: context.databases.userDb,
+        serverDb: context.databases.serverDb,
+      });
+
+      if (xpResult.leveledUp && xpResult.newLevel) {
+        const xpSettings = context.databases.serverDb.GetGuildXpSettings(
+          msg.guild.id,
+        );
+        const announceChannelId =
+          xpSettings.level_up_channel_id ?? msg.channel.id;
+
+        try {
+          const announceChannel =
+            await context.client.channels.fetch(announceChannelId);
+          if (announceChannel?.isTextBased()) {
+            const levelEmbed = EmbedFactory.Create({
+              title: "Level Up!",
+              description: `${msg.author} reached **Level ${xpResult.newLevel}**!`,
+              color: 0x57f287,
+            });
+            await (announceChannel as SendableChannels).send({
+              embeds: [levelEmbed.toJSON()],
+            });
+          }
+        } catch (levelError) {
+          context.logger.Warn("Failed to send level-up announcement", {
+            error: levelError,
+          });
+        }
+      }
+    } catch (xpError) {
+      context.logger.Error("Failed to award chat XP", { error: xpError });
     }
 
     const ticket = context.databases.ticketDb.GetTicketByChannel(

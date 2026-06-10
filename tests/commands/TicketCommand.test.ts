@@ -34,6 +34,7 @@ describe("TicketCommand structure", () => {
       "transcript",
       "reopen",
       "tag",
+      "about",
     ]);
     expect(GetConfigSubcommandNames()).toEqual([
       "list",

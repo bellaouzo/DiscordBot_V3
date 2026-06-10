@@ -22,6 +22,15 @@ import {
   HandleMarketView,
 } from "@systems/Economy/handlers/MarketHandler";
 import { ITEM_CATALOG } from "@systems/Economy/items";
+import {
+  HandleDuelCancel,
+  HandleDuelChallenge,
+} from "@systems/Economy/handlers/DuelHandler";
+import {
+  HandleLotteryCreate,
+  HandleLotteryList,
+} from "@systems/Economy/handlers/LotteryHandler";
+import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";
 
 export const EconomyCommand = CreateCommand({
   name: "economy",
@@ -255,6 +264,77 @@ export const EconomyCommand = CreateCommand({
       )
       .addSubcommand((sub) =>
         sub.setName("inventory").setDescription("View your inventory items"),
+      )
+      .addSubcommandGroup((group) =>
+        group
+          .setName("duel")
+          .setDescription("Challenge another player to a coin duel")
+          .addSubcommand((sub) =>
+            sub
+              .setName("challenge")
+              .setDescription("Challenge a user to a duel")
+              .addUserOption((option) =>
+                option
+                  .setName("user")
+                  .setDescription("Opponent")
+                  .setRequired(true),
+              )
+              .addIntegerOption((option) =>
+                option
+                  .setName("bet")
+                  .setDescription("Bet amount per player")
+                  .setRequired(true)
+                  .setMinValue(MIN_BET)
+                  .setMaxValue(MAX_BET),
+              )
+              .addStringOption((option) =>
+                option
+                  .setName("game")
+                  .setDescription("Duel game type")
+                  .setRequired(true)
+                  .addChoices(
+                    { name: "Coinflip", value: "flip" },
+                    { name: "Rock Paper Scissors", value: "rps" },
+                  ),
+              ),
+          )
+          .addSubcommand((sub) =>
+            sub
+              .setName("cancel")
+              .setDescription("Cancel your oldest pending duel challenge"),
+          ),
+      )
+      .addSubcommandGroup((group) =>
+        group
+          .setName("lottery")
+          .setDescription("Server coin lotteries")
+          .addSubcommand((sub) =>
+            sub
+              .setName("create")
+              .setDescription("Create a server lottery (moderator)")
+              .addIntegerOption((option) =>
+                option
+                  .setName("entry-cost")
+                  .setDescription("Cost in coins to enter")
+                  .setRequired(true)
+                  .setMinValue(1)
+                  .setMaxValue(1000),
+              )
+              .addStringOption((option) =>
+                option
+                  .setName("duration")
+                  .setDescription("How long entries stay open (e.g. 1h)")
+                  .setRequired(true),
+              ),
+          )
+          .addSubcommand((sub) =>
+            sub.setName("list").setDescription("List active lotteries"),
+          ),
+      )
+      .addSubcommand((sub) =>
+        sub
+          .setName("about")
+          .setDescription("Learn how the server economy works"),
       );
   },
   config: Config.utility(5),
@@ -348,6 +428,29 @@ export const EconomyCommand = CreateCommand({
 
     if (!subcommandGroup && subcommand === "inventory") {
       await HandleInventory(interaction, context);
+      return;
+    }
+
+    if (subcommandGroup === "duel") {
+      if (subcommand === "challenge") {
+        await HandleDuelChallenge(interaction, context);
+      } else if (subcommand === "cancel") {
+        await HandleDuelCancel(interaction, context);
+      }
+      return;
+    }
+
+    if (subcommandGroup === "lottery") {
+      if (subcommand === "create") {
+        await HandleLotteryCreate(interaction, context);
+      } else if (subcommand === "list") {
+        await HandleLotteryList(interaction, context);
+      }
+      return;
+    }
+
+    if (!subcommandGroup && subcommand === "about") {
+      await ReplyWithFeatureAbout(interaction, context, "economy");
     }
   },
 });

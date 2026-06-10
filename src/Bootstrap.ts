@@ -28,6 +28,8 @@ import { ConfigureCooldownPersistence } from "@middleware/CooldownState";
 import { TempActionScheduler } from "./Moderation/TempActionScheduler";
 import { RaidModeScheduler } from "./Moderation/RaidModeScheduler";
 import { GiveawayScheduler } from "@systems/Giveaway/GiveawayScheduler";
+import { EventScheduler } from "@systems/Event/EventScheduler";
+import { LotteryScheduler } from "@systems/Economy/LotteryScheduler";
 import { RegisterAppealPanelButton } from "@commands/Moderation/Appeal/AppealPanelFlow";
 import { RegisterTicketButtons } from "@systems/Ticket/TicketButtonRegistry";
 import { RegisterTicketPanelButton } from "@systems/Ticket/TicketPanelFlow";
@@ -39,6 +41,8 @@ export interface AppResources {
   tempScheduler: TempActionScheduler;
   raidScheduler: RaidModeScheduler;
   giveawayScheduler: GiveawayScheduler;
+  eventScheduler: EventScheduler;
+  lotteryScheduler: LotteryScheduler;
 }
 
 export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
@@ -126,6 +130,16 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     databases.userDb,
     logger.Child({ phase: "giveaways" }),
   );
+  const eventScheduler = new EventScheduler(
+    bot.client,
+    databases.serverDb,
+    logger.Child({ phase: "events" }),
+  );
+  const lotteryScheduler = new LotteryScheduler(
+    bot.client,
+    databases.userDb,
+    logger.Child({ phase: "lottery" }),
+  );
 
   const loadedCommands = await loadCommands();
   ReplaceCommands(loadedCommands.definitions);
@@ -161,6 +175,8 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
   tempScheduler.Start();
   raidScheduler.Start();
   giveawayScheduler.Start();
+  eventScheduler.Start();
+  lotteryScheduler.Start();
 
   return {
     client: bot.client,
@@ -168,6 +184,8 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     tempScheduler,
     raidScheduler,
     giveawayScheduler,
+    eventScheduler,
+    lotteryScheduler,
   };
 }
 
@@ -189,6 +207,8 @@ export function SetupGracefulShutdown(
       resources.tempScheduler.Stop();
       resources.raidScheduler.Stop();
       resources.giveawayScheduler.Stop();
+      resources.eventScheduler.Stop();
+      resources.lotteryScheduler.Stop();
       resources.databases.userDb.Close();
       resources.databases.moderationDb.Close();
       resources.databases.serverDb.Close();

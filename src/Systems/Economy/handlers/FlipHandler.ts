@@ -21,6 +21,7 @@ import { FLIP_TIMEOUT_MS, MAX_BET, MIN_BET } from "@systems/Economy/constants";
 import type { FlipChoice } from "@systems/Economy/types";
 import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
+import { FlipCoin } from "@systems/Economy/utils/flipLogic";
 
 interface FlipCustomIds {
   heads: string;
@@ -149,8 +150,7 @@ export async function HandleFlip(
     }
     disposeAll();
 
-    const roll = (): FlipChoice => (Math.random() < 0.5 ? "heads" : "tails");
-    let flipResult: FlipChoice = roll();
+    let flipResult: FlipChoice = FlipCoin();
     let win = flipResult === playerChoice;
     const notes: string[] = [];
 
@@ -160,7 +160,7 @@ export async function HandleFlip(
         itemId: luckyCoin.id,
         delta: -1,
       });
-      flipResult = roll();
+      flipResult = FlipCoin();
       win = flipResult === playerChoice;
       notes.push("Lucky Coin — rerolled the flip once.");
     }

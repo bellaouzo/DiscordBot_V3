@@ -10,6 +10,7 @@ import {
   MAX_DURATION_MINUTES,
   MIN_DURATION_MINUTES,
 } from "@commands/Utility/Poll/PollShared";
+import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";
 
 async function ExecutePoll(
   interaction: ChatInputCommandInteraction,
@@ -24,6 +25,11 @@ async function ExecutePoll(
 
   if (subcommand === "end") {
     await HandleEndPoll(interaction, context);
+    return;
+  }
+
+  if (subcommand === "about") {
+    await ReplyWithFeatureAbout(interaction, context, "poll");
     return;
   }
 
@@ -119,6 +125,12 @@ export const PollCommand = CreateCommand({
             .setDescription("Channel containing the poll")
             .addChannelTypes(ChannelType.GuildText),
         ),
+    );
+
+    builder.addSubcommand((sub) =>
+      sub
+        .setName("about")
+        .setDescription("Learn what polls are and how to run them"),
     );
   },
   config: Config.utility(3),

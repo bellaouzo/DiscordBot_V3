@@ -5,6 +5,7 @@ import { Config } from "@middleware/CommandConfig";
 import { HandleActivateRaidMode } from "@commands/Moderation/RaidMode/ActivateFlow";
 import { HandleDeactivateRaidMode } from "@commands/Moderation/RaidMode/DeactivateFlow";
 import { HandleRaidModeStatus } from "@commands/Moderation/RaidMode/StatusFlow";
+import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";
 
 async function ExecuteRaidMode(
   interaction: ChatInputCommandInteraction,
@@ -25,6 +26,10 @@ async function ExecuteRaidMode(
   if (sub === "status") {
     await HandleRaidModeStatus(interaction, context);
     return;
+  }
+
+  if (sub === "about") {
+    await ReplyWithFeatureAbout(interaction, context, "raidmode");
   }
 }
 
@@ -70,6 +75,11 @@ export const RaidModeCommand = CreateCommand({
       )
       .addSubcommand((sub) =>
         sub.setName("status").setDescription("Show raid mode status"),
+      )
+      .addSubcommand((sub) =>
+        sub
+          .setName("about")
+          .setDescription("Learn what raid mode is and when to use it"),
       );
   },
 });

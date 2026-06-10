@@ -1,7 +1,7 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import { EmbedFactory } from "@utilities";
+import { EmbedFactory, AppendFeatureGuideHint } from "@utilities";
 import { ClearRaidModeByGuild } from "@commands/Moderation/RaidMode/ClearRaidMode";
 
 export async function HandleRaidModeStatus(
@@ -29,6 +29,7 @@ export async function HandleRaidModeStatus(
         title: "Not Active",
         description: "Raid mode is not active.",
       });
+      AppendFeatureGuideHint(embed, "raidmode");
       await context.responders.interactionResponder.Reply(interaction, {
         embeds: [embed.toJSON()],
         flags: MessageFlags.Ephemeral,
@@ -64,6 +65,7 @@ export async function HandleRaidModeStatus(
       { name: "Expires", value: expiresText, inline: true },
       { name: "Applied By", value: `<@${active.applied_by}>`, inline: true },
     );
+    AppendFeatureGuideHint(embed, "raidmode");
 
     await context.responders.interactionResponder.Reply(interaction, {
       embeds: [embed.toJSON()],

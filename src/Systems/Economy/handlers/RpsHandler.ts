@@ -21,29 +21,13 @@ import { ITEM_MAP } from "@systems/Economy/items";
 import { RequireGuild, EmbedFactory } from "@utilities";
 import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
+import { DetermineRpsOutcome } from "@systems/Economy/utils/rpsLogic";
 
 interface RpsCustomIds {
   rock: string;
   paper: string;
   scissors: string;
   cancel: string;
-}
-
-function DetermineOutcome(
-  player: RpsChoice,
-  bot: RpsChoice,
-): "win" | "loss" | "draw" {
-  if (player === bot) {
-    return "draw";
-  }
-
-  const beats: Record<RpsChoice, RpsChoice> = {
-    rock: "scissors",
-    paper: "rock",
-    scissors: "paper",
-  };
-
-  return beats[player] === bot ? "win" : "loss";
 }
 
 export async function HandleRps(
@@ -168,7 +152,7 @@ export async function HandleRps(
       ["rock", "paper", "scissors"][Math.floor(Math.random() * 3)] as RpsChoice;
 
     let botChoice: RpsChoice = rollBotChoice();
-    let outcome = DetermineOutcome(playerChoice, botChoice);
+    let outcome = DetermineRpsOutcome(playerChoice, botChoice);
     const notes: string[] = [];
 
     if (outcome === "loss" && rerollItem && rerollAvailable) {
@@ -179,7 +163,7 @@ export async function HandleRps(
         delta: -1,
       });
       botChoice = rollBotChoice();
-      outcome = DetermineOutcome(playerChoice, botChoice);
+      outcome = DetermineRpsOutcome(playerChoice, botChoice);
       notes.push("Reroll Token — rerolled opponent once.");
     }
 

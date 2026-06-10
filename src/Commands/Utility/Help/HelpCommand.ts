@@ -7,6 +7,7 @@ import {
   BuildCategoryViews,
   GetAllCommandsCached,
 } from "@commands/Utility/Help/HelpCatalog";
+import { BuildFeatureCategoryView } from "@commands/Utility/Help/FeatureHelpCatalog";
 import { CreateOverviewPayload } from "@commands/Utility/Help/HelpComponents";
 import { RegisterHelpButtons } from "@commands/Utility/Help/HelpRouting";
 
@@ -19,7 +20,10 @@ async function ExecuteHelp(
   const { logger } = context;
 
   const allCommands = await GetAllCommandsCached();
-  const categories = BuildCategoryViews(allCommands);
+  const categories = [
+    BuildFeatureCategoryView(),
+    ...BuildCategoryViews(allCommands),
+  ];
 
   const overview = CreateOverviewPayload(categories, interaction.id);
 

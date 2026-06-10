@@ -3,7 +3,8 @@ import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { RequireGuild, EmbedFactory } from "@utilities";
+import { RequireGuild, EmbedFactory, AppendFeatureGuideHint } from "@utilities";
+import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";
 import type { LinkFilterType } from "@database";
 import type { PaginationPage } from "@shared/Paginator";
 
@@ -31,6 +32,7 @@ function BuildFilterPages(allow: string[], block: string[]): PaginationPage[] {
       { name: "Allow", value: DescribeFilters(allow), inline: false },
       { name: "Block", value: DescribeFilters(block), inline: false },
     );
+    AppendFeatureGuideHint(embed, "linkfilter");
     return [{ embeds: [embed.toJSON()] }];
   }
 
@@ -257,6 +259,10 @@ async function ExecuteLinkFilter(
     await ListFilters(interaction, context);
     return;
   }
+
+  if (sub === "about") {
+    await ReplyWithFeatureAbout(interaction, context, "linkfilter");
+  }
 }
 
 export const LinkFilterCommand = CreateCommand({
@@ -312,6 +318,11 @@ export const LinkFilterCommand = CreateCommand({
       )
       .addSubcommand((sub) =>
         sub.setName("list").setDescription("Show stored patterns"),
+      )
+      .addSubcommand((sub) =>
+        sub
+          .setName("about")
+          .setDescription("Learn what the link filter does and how to configure it"),
       );
   },
 });

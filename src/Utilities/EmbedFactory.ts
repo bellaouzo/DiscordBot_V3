@@ -92,11 +92,17 @@ export class EmbedFactory {
   static CreateHelpOverview(
     totalCommands: number,
     categoryCount: number,
+    categorySummary?: string,
   ): DiscordEmbedBuilder {
+    const intro =
+      "Welcome to the help menu! Browse **Server Features** for explanations of systems like starboard and reaction roles, or pick a command category below.";
+    const description = categorySummary
+      ? `${intro}\n\n${categorySummary}`
+      : intro;
+
     return this.Create({
       title: "🤖 Bot Command Overview",
-      description:
-        "Welcome to the help menu! Use the buttons below to navigate between different command categories.",
+      description,
       footer: `Total: ${totalCommands} commands across ${categoryCount} categories`,
       color: this.DEFAULT_COLOR,
     });

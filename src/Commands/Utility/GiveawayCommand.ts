@@ -12,6 +12,7 @@ import { HandleCreate } from "@commands/Utility/Giveaway/GiveawayCreateFlow";
 import { HandleEnd } from "@commands/Utility/Giveaway/GiveawayEndFlow";
 import { HandleReroll } from "@commands/Utility/Giveaway/GiveawayRerollFlow";
 import { HandleList } from "@commands/Utility/Giveaway/GiveawayListFlow";
+import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";
 
 async function ExecuteGiveaway(
   interaction: ChatInputCommandInteraction,
@@ -31,6 +32,9 @@ async function ExecuteGiveaway(
       break;
     case "list":
       await HandleList(interaction, context);
+      break;
+    case "about":
+      await ReplyWithFeatureAbout(interaction, context, "giveaway");
       break;
   }
 }
@@ -89,6 +93,11 @@ export const GiveawayCommand = CreateCommand({
       )
       .addSubcommand((sub: SlashCommandSubcommandBuilder) =>
         sub.setName("list").setDescription("List all active giveaways"),
+      )
+      .addSubcommand((sub: SlashCommandSubcommandBuilder) =>
+        sub
+          .setName("about")
+          .setDescription("Learn what giveaways are and how to run them"),
       );
   },
   config: Config.utility(5),

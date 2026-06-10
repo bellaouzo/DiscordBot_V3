@@ -33,3 +33,6 @@ export * from "./ConfigGuard";
 export * from "./StaffPermissions";
 export * from "./GuildMemberResolver";
 export * from "./RequireGuild";
+export * from "./RoleValidation";
+export * from "./ReactionEmoji";
+export * from "./FeatureGuides";

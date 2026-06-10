@@ -18,6 +18,7 @@ import { HandleTicketReopen } from "@systems/Ticket/handlers/ReopenHandler";
 import { HandleTicketTag } from "@systems/Ticket/handlers/TagHandler";
 import { HandleTicketConfig } from "@systems/Ticket/handlers/ConfigHandler";
 import { HandleTicketPanel } from "@systems/Ticket/TicketPanelFlow";
+import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";
 
 async function ExecuteTicket(
   interaction: ChatInputCommandInteraction,
@@ -49,6 +50,9 @@ async function ExecuteTicket(
       break;
     case "tag":
       await HandleTicketTag(interaction, context);
+      break;
+    case "about":
+      await ReplyWithFeatureAbout(interaction, context, "ticket");
       break;
   }
 }
@@ -201,6 +205,12 @@ export const TicketCommand = CreateCommand({
                 .setRequired(true),
             ),
         ),
+    );
+
+    builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
+      subcommand
+        .setName("about")
+        .setDescription("Learn what support tickets are and how to set them up"),
     );
   },
   execute: ExecuteTicket,

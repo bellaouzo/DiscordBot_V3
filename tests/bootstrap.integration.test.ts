@@ -11,6 +11,8 @@ const {
   tempSchedulerStartMock,
   raidSchedulerStartMock,
   giveawaySchedulerStartMock,
+  eventSchedulerStartMock,
+  lotterySchedulerStartMock,
   loadCommandsMock,
   loadEventsMock,
 } = vi.hoisted(() => {
@@ -31,6 +33,8 @@ const {
     tempSchedulerStartMock: vi.fn(),
     raidSchedulerStartMock: vi.fn(),
     giveawaySchedulerStartMock: vi.fn(),
+    eventSchedulerStartMock: vi.fn(),
+    lotterySchedulerStartMock: vi.fn(),
     loadCommandsMock: vi.fn().mockResolvedValue({
       definitions: [],
       slashData: [],
@@ -85,6 +89,20 @@ vi.mock("../src/Moderation/RaidModeScheduler", () => ({
 vi.mock("@systems/Giveaway/GiveawayScheduler", () => ({
   GiveawayScheduler: class {
     Start = giveawaySchedulerStartMock;
+    Stop = vi.fn();
+  },
+}));
+
+vi.mock("@systems/Event/EventScheduler", () => ({
+  EventScheduler: class {
+    Start = eventSchedulerStartMock;
+    Stop = vi.fn();
+  },
+}));
+
+vi.mock("@systems/Economy/LotteryScheduler", () => ({
+  LotteryScheduler: class {
+    Start = lotterySchedulerStartMock;
     Stop = vi.fn();
   },
 }));
@@ -153,6 +171,8 @@ describe("Bootstrap integration", () => {
     expect(tempSchedulerStartMock).toHaveBeenCalledOnce();
     expect(raidSchedulerStartMock).toHaveBeenCalledOnce();
     expect(giveawaySchedulerStartMock).toHaveBeenCalledOnce();
+    expect(eventSchedulerStartMock).toHaveBeenCalledOnce();
+    expect(lotterySchedulerStartMock).toHaveBeenCalledOnce();
     expect(resources.client).toBe(mockClient);
   });
 

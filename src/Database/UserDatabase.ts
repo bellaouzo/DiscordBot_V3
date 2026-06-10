@@ -16,6 +16,9 @@ import { InventoryStore } from "@database/User/Stores/InventoryStore";
 import { MarketRotationStore } from "@database/User/Stores/MarketRotationStore";
 import { XpStore } from "@database/User/Stores/XpStore";
 import { GiveawayStore } from "@database/User/Stores/GiveawayStore";
+import { ChatXpDailyStore } from "@database/User/Stores/ChatXpDailyStore";
+import { DuelStore } from "@database/User/Stores/DuelStore";
+import { LotteryStore } from "@database/User/Stores/LotteryStore";
 import type { InventoryEntry, MarketRotation } from "@systems/Economy/types";
 
 export type {
@@ -36,6 +39,9 @@ export class UserDatabase {
   private readonly marketRotations: MarketRotationStore;
   private readonly xp: XpStore;
   private readonly giveaways: GiveawayStore;
+  private readonly chatXpDaily: ChatXpDailyStore;
+  private readonly duels: DuelStore;
+  private readonly lotteries: LotteryStore;
 
   constructor(private readonly logger: Logger) {
     this.db = this.InitializeDatabase();
@@ -47,6 +53,9 @@ export class UserDatabase {
     this.marketRotations = new MarketRotationStore(this.db);
     this.xp = new XpStore(this.db);
     this.giveaways = new GiveawayStore(this.db);
+    this.chatXpDaily = new ChatXpDailyStore(this.db);
+    this.duels = new DuelStore(this.db);
+    this.lotteries = new LotteryStore(this.db);
   }
 
   private InitializeDatabase(): Database.Database {
@@ -160,6 +169,57 @@ export class UserDatabase {
         entered_at INTEGER NOT NULL,
         PRIMARY KEY (giveaway_id, user_id),
         FOREIGN KEY (giveaway_id) REFERENCES giveaways(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS chat_xp_daily (
+        user_id TEXT NOT NULL,
+        guild_id TEXT NOT NULL,
+        day_key INTEGER NOT NULL,
+        earned INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (user_id, guild_id, day_key)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_chat_xp_daily_guild ON chat_xp_daily(guild_id);
+
+      CREATE TABLE IF NOT EXISTS economy_duels (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        guild_id TEXT NOT NULL,
+        channel_id TEXT NOT NULL,
+        message_id TEXT NOT NULL UNIQUE,
+        challenger_id TEXT NOT NULL,
+        opponent_id TEXT NOT NULL,
+        bet INTEGER NOT NULL,
+        game TEXT NOT NULL,
+        status TEXT NOT NULL,
+        winner_id TEXT,
+        expires_at INTEGER NOT NULL,
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_economy_duels_guild_status ON economy_duels(guild_id, status);
+
+      CREATE TABLE IF NOT EXISTS economy_lotteries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        guild_id TEXT NOT NULL,
+        channel_id TEXT NOT NULL,
+        message_id TEXT NOT NULL UNIQUE,
+        host_id TEXT NOT NULL,
+        entry_cost INTEGER NOT NULL,
+        ends_at INTEGER NOT NULL,
+        ended INTEGER NOT NULL DEFAULT 0,
+        winner_id TEXT,
+        pot INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_economy_lotteries_ends ON economy_lotteries(ended, ends_at);
+
+      CREATE TABLE IF NOT EXISTS economy_lottery_entries (
+        lottery_id INTEGER NOT NULL,
+        user_id TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        PRIMARY KEY (lottery_id, user_id),
+        FOREIGN KEY (lottery_id) REFERENCES economy_lotteries(id) ON DELETE CASCADE
       );
     `);
   }
@@ -378,6 +438,91 @@ export class UserDatabase {
 
   EndGiveaway(message_id: string, winnerIds: string[]): boolean {
     return this.giveaways.EndGiveaway(message_id, winnerIds);
+  }
+
+  GetChatXpDailyEarned(
+    user_id: string,
+    guild_id: string,
+    day_key: number,
+  ): number {
+    return this.chatXpDaily.GetEarned(user_id, guild_id, day_key);
+  }
+
+  AddChatXpDailyEarned(
+    user_id: string,
+    guild_id: string,
+    day_key: number,
+    amount: number,
+  ): number {
+    return this.chatXpDaily.AddEarned(user_id, guild_id, day_key, amount);
+  }
+
+  CreateDuel(
+    data: Parameters<DuelStore["CreateDuel"]>[0],
+  ) {
+    return this.duels.CreateDuel(data);
+  }
+
+  GetDuelById(id: number) {
+    return this.duels.GetDuelById(id);
+  }
+
+  GetDuelByMessageId(message_id: string) {
+    return this.duels.GetDuelByMessageId(message_id);
+  }
+
+  ActivateDuel(id: number) {
+    return this.duels.ActivateDuel(id);
+  }
+
+  CompleteDuel(id: number, winner_id: string | null) {
+    return this.duels.CompleteDuel(id, winner_id);
+  }
+
+  CancelDuel(id: number) {
+    return this.duels.CancelDuel(id);
+  }
+
+  ListPendingDuelsByChallenger(guild_id: string, challenger_id: string) {
+    return this.duels.ListPendingByChallenger(guild_id, challenger_id);
+  }
+
+  CreateLottery(
+    data: Parameters<LotteryStore["CreateLottery"]>[0],
+  ) {
+    return this.lotteries.CreateLottery(data);
+  }
+
+  GetLotteryById(id: number) {
+    return this.lotteries.GetLotteryById(id);
+  }
+
+  GetLotteryByMessageId(message_id: string) {
+    return this.lotteries.GetLotteryByMessageId(message_id);
+  }
+
+  GetActiveLotteries(guild_id: string) {
+    return this.lotteries.GetActiveLotteries(guild_id);
+  }
+
+  GetEndedLotteriesToProcess() {
+    return this.lotteries.GetEndedLotteriesToProcess();
+  }
+
+  AddLotteryEntry(lottery_id: number, user_id: string, entry_cost: number) {
+    return this.lotteries.AddEntry(lottery_id, user_id, entry_cost);
+  }
+
+  HasLotteryEntry(lottery_id: number, user_id: string) {
+    return this.lotteries.HasEntry(lottery_id, user_id);
+  }
+
+  GetLotteryEntries(lottery_id: number) {
+    return this.lotteries.GetEntries(lottery_id);
+  }
+
+  EndLottery(id: number, winner_id: string | null) {
+    return this.lotteries.EndLottery(id, winner_id);
   }
 
   Close(): void {

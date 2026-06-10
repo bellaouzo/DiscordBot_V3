@@ -175,4 +175,39 @@ describe("ServerDatabase event operations", () => {
 
     expect(third.guild_event_id).toBe(1);
   });
+
+  it("lists events due for notification and marks them notified", () => {
+    const now = Date.now();
+    const due = db.CreateEvent({
+      guild_id: "guild-1",
+      title: "Due Event",
+      scheduled_at: now - 1000,
+      should_notify: true,
+      created_by: "user-1",
+    });
+    db.CreateEvent({
+      guild_id: "guild-1",
+      title: "Future Notify",
+      scheduled_at: now + 60_000,
+      should_notify: true,
+      created_by: "user-1",
+    });
+    db.CreateEvent({
+      guild_id: "guild-1",
+      title: "No Notify",
+      scheduled_at: now - 2000,
+      should_notify: false,
+      created_by: "user-1",
+    });
+
+    const pending = db.ListEventsDueForNotification(now);
+    expect(pending).toHaveLength(1);
+    expect(pending[0].title).toBe("Due Event");
+
+    expect(db.MarkEventNotified(due.id, now)).toBe(true);
+    expect(db.ListEventsDueForNotification(now)).toHaveLength(0);
+    expect(db.GetEventById(due.guild_event_id, "guild-1")?.notified_at).toBe(
+      now,
+    );
+  });
 });

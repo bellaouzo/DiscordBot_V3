@@ -21,18 +21,19 @@ export function CreateOverviewPayload(
     0,
   );
 
+  const categorySummary = categories
+    .map((category) => {
+      const count = category.commands.length;
+      const label = count === 1 ? "1 command" : `${count} commands`;
+      return `${category.icon} **${category.name}** — ${label}`;
+    })
+    .join("\n");
+
   const embed = EmbedFactory.CreateHelpOverview(
     totalCommands,
     categories.length,
+    categorySummary,
   );
-
-  categories.forEach((category) => {
-    embed.addFields({
-      name: `${category.icon} ${category.name}`,
-      value: `**${category.commands.length} commands**`,
-      inline: true,
-    });
-  });
 
   return {
     content: `📚 **Help Menu** — ${totalCommands} commands available. Choose a category below.`,
@@ -58,7 +59,7 @@ export function BuildCategoryRows(
     customId: CreateCategorySelectCustomId(interactionId, category.key),
   }));
 
-  return ChunkArray(buttons, 5).map(
+  return ChunkArray(buttons, 3).map(
     (rowButtons) =>
       ComponentFactory.CreateActionRow({
         buttons: rowButtons.map((button) => ({

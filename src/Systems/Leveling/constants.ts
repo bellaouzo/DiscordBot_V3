@@ -1,3 +1,8 @@
+export const CHAT_XP_DEFAULT_PER_MESSAGE = 15;
+export const CHAT_XP_DEFAULT_COOLDOWN_SECONDS = 60;
+export const CHAT_XP_DEFAULT_MIN_MESSAGE_LENGTH = 5;
+export const CHAT_XP_DEFAULT_DAILY_CAP = 500;
+
 export const XP_DAILY_CLAIM = 25;
 export const XP_GAME_PLAY = 5;
 export const XP_GAME_WIN_SMALL = 10;

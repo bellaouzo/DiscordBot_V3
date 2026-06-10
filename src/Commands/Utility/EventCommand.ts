@@ -10,6 +10,7 @@ import {
   ResolveInteractionMember,
 } from "@utilities";
 import type { PaginationPage } from "@shared/Paginator";
+import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";
 
 const EVENT_LIST_PAGE_SIZE = 8;
 
@@ -335,6 +336,11 @@ export const EventCommand = CreateCommand({
               .setDescription("Event ID to cancel")
               .setRequired(true),
           ),
+      )
+      .addSubcommand((sub) =>
+        sub
+          .setName("about")
+          .setDescription("Learn what scheduled events are and how to use them"),
       );
   },
   execute: async (interaction, context) => {
@@ -345,6 +351,8 @@ export const EventCommand = CreateCommand({
       await ExecuteEventList(interaction, context);
     } else if (sub === "cancel") {
       await ExecuteEventCancel(interaction, context);
+    } else if (sub === "about") {
+      await ReplyWithFeatureAbout(interaction, context, "event");
     }
   },
 });

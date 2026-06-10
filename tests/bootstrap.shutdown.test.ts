@@ -14,6 +14,8 @@ describe("Bootstrap shutdown helpers", () => {
     const tempStop = vi.fn();
     const raidStop = vi.fn();
     const giveawayStop = vi.fn();
+    const eventStop = vi.fn();
+    const lotteryStop = vi.fn();
     const close = vi.fn();
     const destroy = vi.fn();
     const exitSpy = vi
@@ -24,6 +26,8 @@ describe("Bootstrap shutdown helpers", () => {
       tempScheduler: { Stop: tempStop },
       raidScheduler: { Stop: raidStop },
       giveawayScheduler: { Stop: giveawayStop },
+      eventScheduler: { Stop: eventStop },
+      lotteryScheduler: { Stop: lotteryStop },
       databases: {
         userDb: { Close: close },
         moderationDb: { Close: close },
@@ -40,6 +44,8 @@ describe("Bootstrap shutdown helpers", () => {
       expect(tempStop).toHaveBeenCalledOnce();
       expect(raidStop).toHaveBeenCalledOnce();
       expect(giveawayStop).toHaveBeenCalledOnce();
+      expect(eventStop).toHaveBeenCalledOnce();
+      expect(lotteryStop).toHaveBeenCalledOnce();
       expect(close).toHaveBeenCalledTimes(4);
       expect(destroy).toHaveBeenCalledOnce();
       expect(exitSpy).toHaveBeenCalledWith(0);

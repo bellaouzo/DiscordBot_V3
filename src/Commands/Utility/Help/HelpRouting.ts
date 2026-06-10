@@ -8,10 +8,11 @@ import {
   CreateOverviewPayload,
 } from "@commands/Utility/Help/HelpComponents";
 import {
-  CreateCategoryPageNavCustomId,
   CreateCategorySelectCustomId,
   CreateOverviewCustomId,
+  HELP_SESSION_TIMEOUT_MS,
   ParseCategoryPageNavCustomId,
+  ResolveHelpPageIndex,
 } from "@commands/Utility/Help/HelpTypes";
 
 export function RegisterHelpButtons(options: {
@@ -37,7 +38,7 @@ export function RegisterHelpButtons(options: {
         components: overview.components,
       });
     },
-    expiresInMs: 1000 * 60 * 5,
+    expiresInMs: HELP_SESSION_TIMEOUT_MS,
   });
 
   categories.forEach((category) => {
@@ -54,104 +55,35 @@ export function RegisterHelpButtons(options: {
           pageIndex: 0,
         });
       },
-      expiresInMs: 1000 * 60 * 5,
+      expiresInMs: HELP_SESSION_TIMEOUT_MS,
     });
 
-    componentRouter.RegisterButton({
-      customId: CreateCategoryPageNavCustomId(
-        interactionId,
-        category.key,
-        "first",
-        0,
-      ),
-      ownerId,
-      handler: async (buttonInteraction) => {
-        await ShowCategoryPage({
-          buttonInteraction,
-          buttonResponder,
-          categories,
-          category,
-          interactionId,
-          pageIndex: 0,
-        });
+    componentRouter.RegisterButtonPrefix(
+      `help:${interactionId}:page:${category.key}:`,
+      {
+        ownerId,
+        handler: async (buttonInteraction) => {
+          const parsed = ParseCategoryPageNavCustomId(buttonInteraction.customId);
+          if (!parsed) {
+            return;
+          }
+
+          await ShowCategoryPage({
+            buttonInteraction,
+            buttonResponder,
+            categories,
+            category,
+            interactionId,
+            pageIndex: ResolveHelpPageIndex(
+              parsed.action,
+              parsed.pageIndex,
+              category.pages.length,
+            ),
+          });
+        },
+        expiresInMs: HELP_SESSION_TIMEOUT_MS,
       },
-      expiresInMs: 1000 * 60 * 5,
-    });
-
-    componentRouter.RegisterButton({
-      customId: CreateCategoryPageNavCustomId(
-        interactionId,
-        category.key,
-        "prev",
-        1,
-      ),
-      ownerId,
-      handler: async (buttonInteraction) => {
-        const parsed = ParseCategoryPageNavCustomId(buttonInteraction.customId);
-        if (!parsed) {
-          return;
-        }
-
-        await ShowCategoryPage({
-          buttonInteraction,
-          buttonResponder,
-          categories,
-          category,
-          interactionId,
-          pageIndex: Math.max(parsed.pageIndex - 1, 0),
-        });
-      },
-      expiresInMs: 1000 * 60 * 5,
-    });
-
-    componentRouter.RegisterButton({
-      customId: CreateCategoryPageNavCustomId(
-        interactionId,
-        category.key,
-        "next",
-        0,
-      ),
-      ownerId,
-      handler: async (buttonInteraction) => {
-        const parsed = ParseCategoryPageNavCustomId(buttonInteraction.customId);
-        if (!parsed) {
-          return;
-        }
-
-        const totalPages = category.pages.length;
-        await ShowCategoryPage({
-          buttonInteraction,
-          buttonResponder,
-          categories,
-          category,
-          interactionId,
-          pageIndex: Math.min(parsed.pageIndex + 1, totalPages - 1),
-        });
-      },
-      expiresInMs: 1000 * 60 * 5,
-    });
-
-    componentRouter.RegisterButton({
-      customId: CreateCategoryPageNavCustomId(
-        interactionId,
-        category.key,
-        "last",
-        category.pages.length - 1,
-      ),
-      ownerId,
-      handler: async (buttonInteraction) => {
-        const totalPages = category.pages.length;
-        await ShowCategoryPage({
-          buttonInteraction,
-          buttonResponder,
-          categories,
-          category,
-          interactionId,
-          pageIndex: totalPages - 1,
-        });
-      },
-      expiresInMs: 1000 * 60 * 5,
-    });
+    );
   });
 }
 

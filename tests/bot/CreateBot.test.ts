@@ -16,6 +16,7 @@ vi.mock("discord.js", () => ({
     MessageContent: 4,
     GuildMembers: 8,
     GuildPresences: 16,
+    GuildMessageReactions: 32,
   },
 }));
 
@@ -39,6 +40,7 @@ describe("CreateBot", () => {
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildPresences,
+        GatewayIntentBits.GuildMessageReactions,
       ],
     });
   });

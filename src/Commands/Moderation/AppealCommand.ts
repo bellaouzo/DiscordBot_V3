@@ -9,6 +9,7 @@ import { Config } from "@middleware";
 import { CreateAppealManager, EmbedFactory } from "@utilities";
 
 import { HandleSubmit } from "@commands/Moderation/Appeal/AppealSubmitFlow";
+import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";
 
 async function ExecuteAppeal(
   interaction: ChatInputCommandInteraction,
@@ -25,6 +26,11 @@ async function ExecuteAppeal(
 
   if (subcommand === "my") {
     await HandleMyAppeals(interaction, context);
+    return;
+  }
+
+  if (subcommand === "about") {
+    await ReplyWithFeatureAbout(interaction, context, "appeal");
   }
 }
 
@@ -173,6 +179,12 @@ export const AppealCommand = CreateCommand({
 
       .addSubcommand((sub) =>
         sub.setName("my").setDescription("View your submitted appeals"),
+      )
+
+      .addSubcommand((sub) =>
+        sub
+          .setName("about")
+          .setDescription("Learn what moderation appeals are and how they work"),
       );
   },
 });
