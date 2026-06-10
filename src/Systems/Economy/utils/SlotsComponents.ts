@@ -29,7 +29,7 @@ function BuildButton(options: {
 }
 
 export function BuildSlotsButtons(
-  customIds: SlotsButtonIds
+  customIds: SlotsButtonIds,
 ): ActionRowData<ActionRowComponentData> {
   return {
     type: ComponentType.ActionRow,
@@ -45,7 +45,7 @@ export function BuildSlotsButtons(
 }
 
 export function BuildDisabledSlotsButtons(
-  customIds: SlotsButtonIds
+  customIds: SlotsButtonIds,
 ): ActionRowData<ActionRowComponentData> {
   return {
     type: ComponentType.ActionRow,
@@ -60,4 +60,3 @@ export function BuildDisabledSlotsButtons(
     ],
   };
 }
-

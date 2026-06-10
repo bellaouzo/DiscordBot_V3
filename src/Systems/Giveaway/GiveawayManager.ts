@@ -14,7 +14,7 @@ type GuildTextChannel = TextChannel | NewsChannel | ThreadChannel;
 export class GiveawayManager {
   constructor(
     private readonly guildId: string,
-    private readonly userDb: UserDatabase
+    private readonly userDb: UserDatabase,
   ) {}
 
   CreateGiveawayMessage(data: {
@@ -152,7 +152,7 @@ export class GiveawayManager {
     messageId: string,
     giveaway: Giveaway,
     winners: string[],
-    entryCount: number
+    entryCount: number,
   ): Promise<void> {
     try {
       const message = await channel.messages.fetch(messageId);
@@ -170,7 +170,7 @@ export class GiveawayManager {
         .setDisabled(true);
 
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        disabledButton
+        disabledButton,
       );
 
       await message.edit({
@@ -185,7 +185,7 @@ export class GiveawayManager {
   async AnnounceWinners(
     channel: GuildTextChannel,
     giveaway: Giveaway,
-    winners: string[]
+    winners: string[],
   ): Promise<void> {
     if (winners.length === 0) {
       const embed = EmbedFactory.CreateWarning({
@@ -216,7 +216,7 @@ export class GiveawayManager {
 
   async FinalizeGiveaway(
     giveaway: Giveaway,
-    channel?: GuildTextChannel
+    channel?: GuildTextChannel,
   ): Promise<{ winners: string[]; entryCount: number }> {
     const winners = this.SelectWinners(giveaway.id, giveaway.winner_count);
     const entryCount = this.GetEntryCount(giveaway.id);
@@ -229,7 +229,7 @@ export class GiveawayManager {
         giveaway.message_id,
         giveaway,
         winners,
-        entryCount
+        entryCount,
       );
       await this.AnnounceWinners(channel, giveaway, winners);
     }

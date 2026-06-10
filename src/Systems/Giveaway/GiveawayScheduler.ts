@@ -12,7 +12,7 @@ export class GiveawayScheduler {
   constructor(
     private readonly client: Client,
     private readonly userDb: UserDatabase,
-    private readonly logger: Logger
+    private readonly logger: Logger,
   ) {}
 
   Start(): void {
@@ -55,7 +55,7 @@ export class GiveawayScheduler {
 
   private async ProcessGiveaway(
     messageId: string,
-    guildId: string
+    guildId: string,
   ): Promise<void> {
     try {
       const manager = new GiveawayManager(guildId, this.userDb);

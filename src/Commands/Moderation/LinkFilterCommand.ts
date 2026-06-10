@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -21,10 +18,7 @@ function DescribeFilters(patterns: string[]): string {
   return patterns.join(", ");
 }
 
-function BuildFilterPages(
-  allow: string[],
-  block: string[]
-): PaginationPage[] {
+function BuildFilterPages(allow: string[], block: string[]): PaginationPage[] {
   const totalPatterns = allow.length + block.length;
   if (totalPatterns <= FILTER_LIST_PAGE_SIZE) {
     const embed = EmbedFactory.Create({
@@ -33,7 +27,7 @@ function BuildFilterPages(
     });
     embed.addFields(
       { name: "Allow", value: DescribeFilters(allow), inline: false },
-      { name: "Block", value: DescribeFilters(block), inline: false }
+      { name: "Block", value: DescribeFilters(block), inline: false },
     );
     return [{ embeds: [embed.toJSON()] }];
   }
@@ -59,7 +53,7 @@ function BuildFilterPages(
         name: `#${start + sliceIndex} — ${entry.type.toUpperCase()}`,
         value: `\`${entry.pattern}\``,
         inline: false,
-      }))
+      })),
     );
 
     pages.push({ embeds: [embed.toJSON()] });
@@ -71,11 +65,11 @@ function BuildFilterPages(
 async function AddFilter(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  type: LinkFilterType
+  type: LinkFilterType,
 ): Promise<void> {
   const guild = interaction.guild!;
   const pattern = NormalizePattern(
-    interaction.options.getString("pattern", true)
+    interaction.options.getString("pattern", true),
   );
 
   if (pattern.length === 0) {
@@ -138,11 +132,11 @@ async function AddFilter(
 
 async function RemoveFilter(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const guild = interaction.guild!;
   const pattern = NormalizePattern(
-    interaction.options.getString("pattern", true)
+    interaction.options.getString("pattern", true),
   );
   const type = interaction.options.getString("type", true) as LinkFilterType;
 
@@ -189,7 +183,7 @@ async function RemoveFilter(
 
 async function ListFilters(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const guild = interaction.guild!;
   const { interactionResponder, paginatedResponder } = context.responders;
@@ -238,7 +232,7 @@ async function ListFilters(
 
 async function ExecuteLinkFilter(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const sub = interaction.options.getSubcommand(true);
 
@@ -279,8 +273,8 @@ export const LinkFilterCommand = CreateCommand({
             option
               .setName("pattern")
               .setDescription("Substring to allow (case-insensitive)")
-              .setRequired(true)
-          )
+              .setRequired(true),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -290,8 +284,8 @@ export const LinkFilterCommand = CreateCommand({
             option
               .setName("pattern")
               .setDescription("Substring to block (case-insensitive)")
-              .setRequired(true)
-          )
+              .setRequired(true),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -301,7 +295,7 @@ export const LinkFilterCommand = CreateCommand({
             option
               .setName("pattern")
               .setDescription("Substring to remove")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addStringOption((option) =>
             option
@@ -310,12 +304,12 @@ export const LinkFilterCommand = CreateCommand({
               .setRequired(true)
               .addChoices(
                 { name: "allow", value: "allow" },
-                { name: "block", value: "block" }
-              )
-          )
+                { name: "block", value: "block" },
+              ),
+          ),
       )
       .addSubcommand((sub) =>
-        sub.setName("list").setDescription("Show stored patterns")
+        sub.setName("list").setDescription("Show stored patterns"),
       );
   },
 });

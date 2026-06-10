@@ -9,6 +9,7 @@ import {
   RunMiddlewareChain,
   DiscordLoggingMiddleware,
 } from "@middleware";
+import { RecordCooldown } from "@middleware/CooldownMiddleware";
 
 /**
  * Dependencies for the command executor: databases and app config.
@@ -25,7 +26,7 @@ export type CommandExecutor = (
   command: CommandDefinition,
   interaction: ChatInputCommandInteraction,
   responders: ResponderSet,
-  commandLogger: Logger
+  commandLogger: Logger,
 ) => Promise<void>;
 
 /**
@@ -36,13 +37,13 @@ export type CommandExecutor = (
  * @returns CommandExecutor function
  */
 export function CreateCommandExecutor(
-  deps: CommandExecutorDependencies
+  deps: CommandExecutorDependencies,
 ): CommandExecutor {
   return async (
     command: CommandDefinition,
     interaction: ChatInputCommandInteraction,
     responders: ResponderSet,
-    commandLogger: Logger
+    commandLogger: Logger,
   ): Promise<void> => {
     const middleware = command.middleware?.before ?? [];
     const afterMiddleware = [
@@ -68,6 +69,7 @@ export function CreateCommandExecutor(
         appConfig: deps.appConfig,
       };
       await command.execute(interaction, commandContext);
+      RecordCooldown(context);
     };
 
     const middlewareChain = [...middleware, ...afterMiddleware];

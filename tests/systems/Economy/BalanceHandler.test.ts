@@ -31,7 +31,7 @@ describe("BalanceHandler", () => {
       expect.objectContaining({
         embeds: expect.any(Array),
         flags: MessageFlags.Ephemeral,
-      })
+      }),
     );
     expect(databases.userDb.GetBalance).toHaveBeenCalledWith("u1", "g1");
   });

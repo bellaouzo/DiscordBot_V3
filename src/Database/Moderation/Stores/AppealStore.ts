@@ -47,7 +47,7 @@ export class AppealStore {
       data.review_channel_id ?? null,
       data.review_message_id ?? null,
       now,
-      now
+      now,
     ).lastInsertRowid as number;
 
     const appeal = this.GetAppealById(id);
@@ -84,7 +84,7 @@ export class AppealStore {
       data.guild_id,
       data.user_id,
       data.action_type,
-      data.action_ref
+      data.action_ref,
     );
     return row !== undefined;
   }
@@ -142,13 +142,13 @@ export class AppealStore {
       UPDATE appeals
       SET review_channel_id = ?, review_message_id = ?, updated_at = ?
       WHERE id = ?
-    `
+    `,
     );
     const result = stmt.run(
       data.review_channel_id,
       data.review_message_id,
       updated_at,
-      data.id
+      data.id,
     );
     return result.changes > 0;
   }
@@ -165,7 +165,7 @@ export class AppealStore {
       UPDATE appeals
       SET status = ?, resolved_by = ?, resolved_reason = ?, resolved_at = ?, updated_at = ?
       WHERE id = ? AND status = 'open'
-    `
+    `,
     );
 
     const result = stmt.run(
@@ -174,7 +174,7 @@ export class AppealStore {
       data.resolved_reason ?? null,
       now,
       now,
-      data.id
+      data.id,
     );
 
     if (result.changes === 0) {

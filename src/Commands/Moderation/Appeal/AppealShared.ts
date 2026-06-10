@@ -2,7 +2,6 @@ import {
   ButtonStyle,
   Client,
   Guild,
-  GuildMember,
   MessageFlags,
   TextChannel,
 } from "discord.js";
@@ -14,6 +13,7 @@ import {
   EmbedFactory,
   IsAppealReviewer,
   ToActionRowData,
+  ResolveInteractionMember,
 } from "@utilities";
 
 export { IsAppealReviewer };
@@ -23,7 +23,7 @@ export function BuildActionOptionValue(option: AppealableActionOption): string {
 }
 
 export function ParseActionOptionValue(
-  value: string
+  value: string,
 ): { actionType: AppealActionType; actionRef: string } | null {
   const parts = value.split(":");
   if (parts.length !== 2) {
@@ -47,12 +47,14 @@ export function ParseActionOptionValue(
 export async function BuildActionSelectOptions(
   options: AppealableActionOption[],
   guild: Guild,
-  client: Client
+  client: Client,
 ): Promise<Array<{ label: string; description: string; value: string }>> {
   const limited = options.slice(0, 25);
   const labelCache = new Map<string, string>();
 
-  const resolveModeratorLabel = async (moderatorId: string): Promise<string> => {
+  const resolveModeratorLabel = async (
+    moderatorId: string,
+  ): Promise<string> => {
     const cached = labelCache.get(moderatorId);
     if (cached) {
       return cached;
@@ -73,10 +75,12 @@ export async function BuildActionSelectOptions(
     return username;
   };
 
-  const built: Array<{ label: string; description: string; value: string }> = [];
+  const built: Array<{ label: string; description: string; value: string }> =
+    [];
   for (const entry of limited) {
     const modLabel = await resolveModeratorLabel(entry.moderatorId);
-    const reasonPart = entry.preview.split("|")[1]?.trim() ?? "No reason provided";
+    const reasonPart =
+      entry.preview.split("|")[1]?.trim() ?? "No reason provided";
     const dateLabel = new Date(entry.createdAt).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -102,7 +106,7 @@ export async function NotifyAppealUser(
   extras?: {
     guildName?: string;
     removalDetail?: string;
-  }
+  },
 ): Promise<void> {
   try {
     const user = await client.users.fetch(appeal.user_id);
@@ -173,7 +177,7 @@ export async function NotifyAppealUser(
 export async function RemoveAppealedAction(
   guild: Guild,
   context: CommandContext,
-  appeal: Appeal
+  appeal: Appeal,
 ): Promise<{ removed: boolean; message: string }> {
   const actionRef = Number(appeal.action_ref);
   if (!Number.isInteger(actionRef) || actionRef <= 0) {
@@ -181,18 +185,24 @@ export async function RemoveAppealedAction(
   }
 
   if (appeal.action_type === "warning") {
-    const removed = context.databases.userDb.RemoveWarningById(actionRef, guild.id);
+    const removed = context.databases.userDb.RemoveWarningById(
+      actionRef,
+      guild.id,
+    );
     return removed
       ? { removed: true, message: `Warning #${actionRef} was removed.` }
       : { removed: false, message: "Could not remove that warning record." };
   }
 
   if (appeal.action_type === "mute") {
-    const removedMute = context.databases.moderationDb.RemoveTempActionById(actionRef);
+    const removedMute =
+      context.databases.moderationDb.RemoveTempActionById(actionRef);
     const member = await guild.members.fetch(appeal.user_id).catch(() => null);
     let timeoutCleared = false;
     if (member?.communicationDisabledUntilTimestamp) {
-      await member.timeout(null, "Appeal approved - mute removed").catch(() => {});
+      await member
+        .timeout(null, "Appeal approved - mute removed")
+        .catch(() => {});
       timeoutCleared = true;
     }
     if (removedMute && timeoutCleared) {
@@ -202,23 +212,28 @@ export async function RemoveAppealedAction(
       };
     }
     if (removedMute) {
-      return { removed: true, message: `Mute #${actionRef} record was removed.` };
+      return {
+        removed: true,
+        message: `Mute #${actionRef} record was removed.`,
+      };
     }
     if (timeoutCleared) {
       return {
         removed: true,
-        message: "Active timeout was cleared, but mute record could not be removed.",
+        message:
+          "Active timeout was cleared, but mute record could not be removed.",
       };
     }
     return { removed: false, message: "Could not remove that mute action." };
   }
 
   if (appeal.action_type === "ban") {
-    const eventRemoved = context.databases.moderationDb.RemoveModerationEventById({
-      id: actionRef,
-      guild_id: guild.id,
-      action: "ban",
-    });
+    const eventRemoved =
+      context.databases.moderationDb.RemoveModerationEventById({
+        id: actionRef,
+        guild_id: guild.id,
+        action: "ban",
+      });
     const unbanned = await guild.members
       .unban(appeal.user_id, "Appeal approved - ban removed")
       .then(() => true)
@@ -235,7 +250,8 @@ export async function RemoveAppealedAction(
     if (eventRemoved) {
       return {
         removed: true,
-        message: "Ban event record was removed, but unban could not be confirmed.",
+        message:
+          "Ban event record was removed, but unban could not be confirmed.",
       };
     }
     return { removed: false, message: "Could not remove or lift that ban." };
@@ -259,7 +275,7 @@ export async function PostResolvedChannelMessage(
   channel: TextChannel,
   appeal: Appeal,
   decision: Exclude<AppealStatus, "open">,
-  removalDetail: string
+  removalDetail: string,
 ): Promise<void> {
   const closeRegistration = context.responders.componentRouter.RegisterButton({
     expiresInMs: 1000 * 60 * 60 * 24,
@@ -270,7 +286,7 @@ export async function PostResolvedChannelMessage(
       }
 
       const settings = context.databases.serverDb.GetGuildSettings(guild.id);
-      const member = btn.member as GuildMember | null;
+      const member = await ResolveInteractionMember(btn);
       if (
         !IsAppealReviewer(member, {
           adminRoleIds: settings?.admin_role_ids,
@@ -293,7 +309,9 @@ export async function PostResolvedChannelMessage(
   });
 
   const closeRow = ComponentFactory.CreateActionRow({
-    buttons: [{ label: "Close Channel", style: ButtonStyle.Danger, emoji: "🗑️" }],
+    buttons: [
+      { label: "Close Channel", style: ButtonStyle.Danger, emoji: "🗑️" },
+    ],
     customIds: [closeRegistration.customId],
   });
 
@@ -315,7 +333,11 @@ export async function PostResolvedChannelMessage(
     { name: "User", value: `<@${appeal.user_id}>`, inline: true },
   ];
   if (decision === "approved") {
-    fields.push({ name: "Removed Action", value: removalDetail, inline: false });
+    fields.push({
+      name: "Removed Action",
+      value: removalDetail,
+      inline: false,
+    });
   }
   if (appeal.resolved_reason) {
     fields.push({

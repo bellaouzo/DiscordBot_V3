@@ -97,7 +97,7 @@ describe("ModerationDatabase temp action and event operations", () => {
         guild_id: "guild-1",
         user_id: "user-1",
         action: "ban",
-      })
+      }),
     ).toBe(2);
 
     const latestBan = db.ListModerationEvents({
@@ -111,21 +111,21 @@ describe("ModerationDatabase temp action and event operations", () => {
         id: latestBan.id,
         guild_id: "guild-1",
         action: "ban",
-      })
+      }),
     ).toBe(true);
     expect(
       db.CountModerationEvents({
         guild_id: "guild-1",
         user_id: "user-1",
         action: "ban",
-      })
+      }),
     ).toBe(1);
     expect(
       db.CountModerationEvents({
         guild_id: "guild-1",
         user_id: "user-1",
         action: "kick",
-      })
+      }),
     ).toBe(1);
   });
 });

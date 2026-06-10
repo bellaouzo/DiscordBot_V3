@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory, RequireFeatureApiKey } from "@utilities";
@@ -62,7 +59,7 @@ function FormatArticle(article: NewsApiArticle, index: number): string | null {
 
 function BuildNewsEmbed(
   heading: string,
-  articles: NewsApiArticle[]
+  articles: NewsApiArticle[],
 ): ReturnType<typeof EmbedFactory.Create> {
   const lines = articles
     .map(FormatArticle)
@@ -85,7 +82,7 @@ async function FetchTopHeadlines(
   apiKey: string,
   limit: number,
   country: string,
-  category?: string | null
+  category?: string | null,
 ): Promise<NewsApiArticle[]> {
   const headers = { "User-Agent": "DiscordBotV3/NewsCommand" };
   const response = await RequestJson<NewsApiResponse>(
@@ -99,7 +96,7 @@ async function FetchTopHeadlines(
       },
       headers,
       timeoutMs: apiConfig.news.timeoutMs,
-    }
+    },
   );
 
   if (response.data?.status === "error") {
@@ -117,7 +114,7 @@ async function FetchSearchResults(
   apiKey: string,
   query: string,
   limit: number,
-  sort: string
+  sort: string,
 ): Promise<NewsApiArticle[]> {
   const headers = { "User-Agent": "DiscordBotV3/NewsCommand" };
   const response = await RequestJson<NewsApiResponse>(
@@ -132,7 +129,7 @@ async function FetchSearchResults(
       },
       headers,
       timeoutMs: apiConfig.news.timeoutMs,
-    }
+    },
   );
 
   if (response.data?.status === "error") {
@@ -148,7 +145,7 @@ async function FetchSearchResults(
 
 async function ExecuteNews(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const apiKey = RequireFeatureApiKey({
@@ -218,8 +215,8 @@ export const NewsCommand = CreateCommand({
                 { name: "United Kingdom", value: "gb" },
                 { name: "Canada", value: "ca" },
                 { name: "Australia", value: "au" },
-                { name: "India", value: "in" }
-              )
+                { name: "India", value: "in" },
+              ),
           )
           .addStringOption((option) =>
             option
@@ -233,8 +230,8 @@ export const NewsCommand = CreateCommand({
                 { name: "Health", value: "health" },
                 { name: "Science", value: "science" },
                 { name: "Sports", value: "sports" },
-                { name: "Technology", value: "technology" }
-              )
+                { name: "Technology", value: "technology" },
+              ),
           )
           .addIntegerOption((option) =>
             option
@@ -242,8 +239,8 @@ export const NewsCommand = CreateCommand({
               .setDescription("Number of articles (1-10)")
               .setRequired(false)
               .setMinValue(1)
-              .setMaxValue(MAX_LIMIT)
-          )
+              .setMaxValue(MAX_LIMIT),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -253,7 +250,7 @@ export const NewsCommand = CreateCommand({
             option
               .setName("query")
               .setDescription("Keywords to search for")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addStringOption((option) =>
             option
@@ -263,8 +260,8 @@ export const NewsCommand = CreateCommand({
               .addChoices(
                 { name: "Published (newest)", value: "publishedAt" },
                 { name: "Relevance", value: "relevancy" },
-                { name: "Popularity", value: "popularity" }
-              )
+                { name: "Popularity", value: "popularity" },
+              ),
           )
           .addIntegerOption((option) =>
             option
@@ -272,10 +269,9 @@ export const NewsCommand = CreateCommand({
               .setDescription("Number of articles (1-10)")
               .setRequired(false)
               .setMinValue(1)
-              .setMaxValue(MAX_LIMIT)
-          )
+              .setMaxValue(MAX_LIMIT),
+          ),
       );
   },
   execute: ExecuteNews,
 });
-

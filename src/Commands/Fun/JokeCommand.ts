@@ -32,7 +32,7 @@ function BuildJokeUrl(baseUrl: string, category?: string | null): string {
     "safe-mode": "true",
   });
   return `${baseUrl.replace(/\/$/, "")}/${encodeURIComponent(
-    chosen
+    chosen,
   )}?${params.toString()}`;
 }
 
@@ -66,14 +66,14 @@ function FormatJokeFromDadJoke(payload: DadJokeResponse): Joke | null {
 
 async function FetchJoke(
   logger: CommandContext["logger"],
-  category?: string | null
+  category?: string | null,
 ): Promise<Joke> {
   // Primary: JokeAPI
   const primary = await RequestJson<JokeApiResponse>(
     BuildJokeUrl(apiConfig.joke.url, category),
     {
       timeoutMs: apiConfig.joke.timeoutMs,
-    }
+    },
   );
 
   if (primary.ok && primary.data) {
@@ -105,7 +105,7 @@ async function FetchJoke(
 
 async function ExecuteJoke(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const category = interaction.options.getString("category");
@@ -130,11 +130,10 @@ export const JokeCommand = CreateCommand({
       option
         .setName("category")
         .setDescription(
-          "Pick a category (Any, Programming, Misc, Pun, Spooky, Christmas)"
+          "Pick a category (Any, Programming, Misc, Pun, Spooky, Christmas)",
         )
-        .setRequired(false)
+        .setRequired(false),
     );
   },
   execute: ExecuteJoke,
 });
-

@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { MarketManager } from "../MarketManager";
 import { EconomyManager } from "../EconomyManager";
@@ -15,7 +12,7 @@ import {
 } from "../utils/Embeds";
 
 function buildMarketPages(
-  offers: ReturnType<MarketManager["GetOffers"]>
+  offers: ReturnType<MarketManager["GetOffers"]>,
 ): PaginationPage[] {
   if (offers.length === 0) {
     return [
@@ -45,7 +42,7 @@ function buildMarketPages(
       slice.map((offer) => ({
         name: `${offer.item.name} — ${offer.item.price}c (sell ${offer.item.sellPrice}) [${offer.item.rarity.toUpperCase()}]`,
         value: offer.item.description,
-      }))
+      })),
     );
 
     pages.push({ embeds: [embed.toJSON()] });
@@ -56,11 +53,11 @@ function buildMarketPages(
 
 export async function HandleMarketView(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const manager = new MarketManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
 
   try {
@@ -84,11 +81,11 @@ export async function HandleMarketView(
 
 export async function HandleMarketRefresh(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const manager = new MarketManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
 
   try {
@@ -112,14 +109,14 @@ export async function HandleMarketRefresh(
 
 export async function HandleMarketBuy(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const itemId = interaction.options.getString("item", true);
   const quantity = interaction.options.getInteger("quantity") ?? 1;
 
   const manager = new MarketManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
 
   try {
@@ -158,14 +155,14 @@ export async function HandleMarketBuy(
 
 export async function HandleMarketSell(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const itemId = interaction.options.getString("item", true);
   const quantity = interaction.options.getInteger("quantity") ?? 1;
 
   const manager = new MarketManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
 
   try {
@@ -204,11 +201,11 @@ export async function HandleMarketSell(
 
 export async function HandleInventory(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const manager = new EconomyManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
 
   try {

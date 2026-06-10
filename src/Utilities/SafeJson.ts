@@ -6,7 +6,7 @@ export interface ParseResult<T> {
 
 export function SafeParseJson<T>(
   raw: string,
-  validator?: (data: unknown) => data is T
+  validator?: (data: unknown) => data is T,
 ): ParseResult<T> {
   try {
     const parsed: unknown = JSON.parse(raw);

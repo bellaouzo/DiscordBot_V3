@@ -33,7 +33,7 @@ function BuildButton(options: {
 
 export function BuildBlackjackButtons(
   customIds: BlackjackButtonIds,
-  options?: { canDouble: boolean; disabled?: boolean }
+  options?: { canDouble: boolean; disabled?: boolean },
 ): ActionRowData<ActionRowComponentData> {
   const disabledAll = options?.disabled ?? false;
   const canDouble = options?.canDouble ?? false;
@@ -74,8 +74,7 @@ export function BuildBlackjackButtons(
 }
 
 export function BuildDisabledBlackjackButtons(
-  customIds: BlackjackButtonIds
+  customIds: BlackjackButtonIds,
 ): ActionRowData<ActionRowComponentData> {
   return BuildBlackjackButtons(customIds, { canDouble: false, disabled: true });
 }
-

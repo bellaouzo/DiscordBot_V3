@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction, User,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, User, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { CreateGuildResourceLocator, EmbedFactory } from "@utilities";
@@ -9,7 +6,7 @@ import { ConvertDurationToMs, DurationUnit, FormatDuration } from "@utilities";
 
 async function ExecuteBan(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const { logger } = context;
@@ -153,7 +150,7 @@ async function ExecuteBan(
             userToNotify,
             `You have been banned from ${
               interaction.guild?.name ?? "this server"
-            } for: ${reason}`
+            } for: ${reason}`,
           );
         }
       }
@@ -185,29 +182,29 @@ export const BanCommand = CreateCommand({
         option
           .setName("reason")
           .setDescription("Reason for banning")
-          .setRequired(true)
+          .setRequired(true),
       )
       .addUserOption((option) =>
         option
           .setName("user")
           .setDescription("The user to ban (if in server)")
-          .setRequired(false)
+          .setRequired(false),
       )
       .addStringOption((option) =>
         option
           .setName("user_id")
           .setDescription("Ban by user ID (not in server)")
-          .setRequired(false)
+          .setRequired(false),
       )
       .addBooleanOption((option) =>
-        option.setName("notify").setDescription("Send DM notification to user")
+        option.setName("notify").setDescription("Send DM notification to user"),
       )
       .addIntegerOption((option) =>
         option
           .setName("length")
           .setDescription("Duration length for temporary ban")
           .setRequired(false)
-          .setMinValue(1)
+          .setMinValue(1),
       )
       .addStringOption((option) =>
         option
@@ -218,8 +215,8 @@ export const BanCommand = CreateCommand({
             { name: "Seconds", value: "seconds" },
             { name: "Minutes", value: "minutes" },
             { name: "Hours", value: "hours" },
-            { name: "Days", value: "days" }
-          )
+            { name: "Days", value: "days" },
+          ),
       );
   },
 });

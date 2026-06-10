@@ -37,15 +37,15 @@ export function BuildStepComponents(options: {
           "Admin roles — full access",
           resources.roles,
           draft.adminRoleIds,
-          "Admin Roles"
+          "Admin Roles",
         ),
         BuildRoleSelectRow(
           ids.modSelect,
           "Mod roles — day-to-day moderation",
           resources.roles,
           draft.modRoleIds,
-          "Mod Roles"
-        )
+          "Mod Roles",
+        ),
       );
       break;
     }
@@ -81,7 +81,7 @@ export function BuildStepComponents(options: {
           defaultName:
             loggingDefaults.messageDeleteChannelName ||
             DEFAULT_DELETE_LOG_CHANNEL,
-        })
+        }),
       );
       break;
     }
@@ -117,7 +117,7 @@ export function BuildStepComponents(options: {
           selectedId: draft.welcomeChannelId,
           placeholder: "Choose a welcome channel (optional)",
           defaultName: "welcome",
-        })
+        }),
       );
       break;
     }
@@ -134,7 +134,7 @@ export function BuildRoleSelectRow(
   placeholder: string,
   roles: Role[],
   selectedIds: string[],
-  label?: string
+  label?: string,
 ): ActionRowData<ActionRowComponentData> {
   const hasRoles = roles.length > 0;
   const menu = new StringSelectMenuBuilder()
@@ -149,7 +149,7 @@ export function BuildRoleSelectRow(
         .setLabel("No roles available")
         .setValue("noop")
         .setDescription("Create roles in Discord, then rerun /setup")
-        .setDefault(true)
+        .setDefault(true),
     );
   } else {
     roles.slice(0, 25).forEach((role) => {
@@ -168,7 +168,7 @@ export function BuildRoleSelectRow(
   }
 
   const row = ToActionRowData<ActionRowComponentData>(
-    ComponentFactory.CreateSelectMenuRow(menu)
+    ComponentFactory.CreateSelectMenuRow(menu),
   );
 
   if (label) {
@@ -206,7 +206,7 @@ export function BuildCategorySelectRow(options: {
       .setLabel(`Auto-manage "${defaultCategoryName}"`)
       .setValue("auto")
       .setDescription("Let the bot create or use the default category")
-      .setDefault(!selectedId)
+      .setDefault(!selectedId),
   );
 
   if (allowCreate) {
@@ -214,7 +214,7 @@ export function BuildCategorySelectRow(options: {
       new StringSelectMenuOptionBuilder()
         .setLabel(`Create "${defaultCategoryName}" now`)
         .setValue("create")
-        .setDescription("Create the default category immediately")
+        .setDescription("Create the default category immediately"),
     );
   }
 
@@ -232,14 +232,14 @@ export function BuildCategorySelectRow(options: {
   });
 
   return ToActionRowData<ActionRowComponentData>(
-    ComponentFactory.CreateSelectMenuRow(menu)
+    ComponentFactory.CreateSelectMenuRow(menu),
   );
 }
 
 export function BuildTicketCategoryRow(
   customId: string,
   categories: CategoryChannel[],
-  selectedId: string | null
+  selectedId: string | null,
 ): ActionRowData<ActionRowComponentData> {
   return BuildCategorySelectRow({
     customId,
@@ -277,7 +277,7 @@ export function BuildChannelSelectRow(options: {
       .setLabel(`Auto-manage "${options.defaultName}"`)
       .setValue("auto")
       .setDescription("Use defaults or create when needed")
-      .setDefault(!options.selectedId && !isNoneSelected)
+      .setDefault(!options.selectedId && !isNoneSelected),
   );
 
   if (allowCreate) {
@@ -288,8 +288,8 @@ export function BuildChannelSelectRow(options: {
         .setDescription(
           options.includeCategoryName
             ? `Create under ${options.includeCategoryName}`
-            : "Create this channel now"
-        )
+            : "Create this channel now",
+        ),
     );
   }
 
@@ -299,7 +299,7 @@ export function BuildChannelSelectRow(options: {
         .setLabel("Production logs: disable (none)")
         .setValue("none")
         .setDescription("Do not use a channel for this")
-        .setDefault(isNoneSelected)
+        .setDefault(isNoneSelected),
     );
   }
 
@@ -326,18 +326,18 @@ export function BuildChannelSelectRow(options: {
         .setLabel(`#${selectedChannel.name}`.slice(0, 95))
         .setValue(String(selectedChannel.id))
         .setDescription("Use existing text channel")
-        .setDefault(true)
+        .setDefault(true),
     );
   }
 
   return ToActionRowData<ActionRowComponentData>(
-    ComponentFactory.CreateSelectMenuRow(menu)
+    ComponentFactory.CreateSelectMenuRow(menu),
   );
 }
 
 export function BuildNavigationRow(
   step: number,
-  ids: NavigationIds
+  ids: NavigationIds,
 ): ActionRowData<ActionRowComponentData> {
   const isFinalStep = step >= 3;
   const buttons = [

@@ -2,7 +2,7 @@ import {
   ChatInputCommandInteraction,
   ChannelType,
   TextChannel,
-  MessageFlags
+  MessageFlags,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware/CommandConfig";
@@ -11,7 +11,7 @@ import { EmbedFactory } from "@utilities";
 const MAX_SLOWMODE = 21600; // 6 hours
 
 function ResolveChannel(
-  interaction: ChatInputCommandInteraction
+  interaction: ChatInputCommandInteraction,
 ): TextChannel | null {
   const provided = interaction.options.getChannel("channel");
   const target =
@@ -29,7 +29,7 @@ function ResolveChannel(
 
 async function ExecuteSlowmode(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -92,20 +92,20 @@ export const SlowmodeCommand = CreateCommand({
           .setDescription("Slowmode duration in seconds (0 to disable)")
           .setRequired(true)
           .setMinValue(0)
-          .setMaxValue(MAX_SLOWMODE)
+          .setMaxValue(MAX_SLOWMODE),
       )
       .addChannelOption((option) =>
         option
           .setName("channel")
           .setDescription("Channel to update (defaults to current)")
           .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
-          .setRequired(false)
+          .setRequired(false),
       )
       .addStringOption((option) =>
         option
           .setName("reason")
           .setDescription("Reason for audit log")
-          .setRequired(false)
+          .setRequired(false),
       );
   },
 });

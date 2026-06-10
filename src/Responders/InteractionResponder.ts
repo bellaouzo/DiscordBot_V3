@@ -30,7 +30,7 @@ export class InteractionResponder {
    */
   async Reply(
     interaction: InteractionLike,
-    options: ResponseOptions
+    options: ResponseOptions,
   ): Promise<ResponseResult> {
     if (interaction.replied || interaction.deferred) {
       return { success: false, message: "Already replied to this interaction" };
@@ -61,7 +61,7 @@ export class InteractionResponder {
    */
   async Edit(
     interaction: InteractionLike,
-    options: ResponseOptions
+    options: ResponseOptions,
   ): Promise<ResponseResult> {
     if (!interaction.replied && !interaction.deferred) {
       return { success: false, message: "No reply to edit" };
@@ -91,7 +91,7 @@ export class InteractionResponder {
    */
   async FollowUp(
     interaction: InteractionLike,
-    options: ResponseOptions
+    options: ResponseOptions,
   ): Promise<ResponseResult> {
     try {
       await interaction.followUp({
@@ -118,7 +118,7 @@ export class InteractionResponder {
    */
   async Defer(
     interaction: InteractionLike,
-    options: ResponderMessageOptions | boolean = false
+    options: ResponderMessageOptions | boolean = false,
   ): Promise<ResponseResult> {
     if (interaction.deferred || interaction.replied) {
       return { success: true, message: "Already acknowledged" };
@@ -164,7 +164,7 @@ export class InteractionResponder {
       options.interaction,
       typeof options.message === "string"
         ? { content: options.message }
-        : options.message
+        : options.message,
     );
 
     await options.action();
@@ -176,9 +176,7 @@ export class InteractionResponder {
           : options.followUp;
       await this.Edit(
         options.interaction,
-        typeof followUp === "string"
-          ? { content: followUp }
-          : followUp
+        typeof followUp === "string" ? { content: followUp } : followUp,
       );
     }
   }

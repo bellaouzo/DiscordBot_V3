@@ -38,7 +38,7 @@ export function RegisterTicketButtons(context: TicketRegistryContext): void {
         logger: context.logger,
         databases: context.databases,
       });
-    }
+    },
   );
 
   RegisterTicketButtonPrefix(
@@ -56,7 +56,7 @@ export function RegisterTicketButtons(context: TicketRegistryContext): void {
         logger: context.logger,
         guild: interaction.guild,
       });
-    }
+    },
   );
 
   RegisterTicketButtonPrefix(
@@ -74,7 +74,7 @@ export function RegisterTicketButtons(context: TicketRegistryContext): void {
         logger: context.logger,
         guild: interaction.guild,
       });
-    }
+    },
   );
 
   RegisterTicketButtonPrefix(
@@ -91,14 +91,14 @@ export function RegisterTicketButtons(context: TicketRegistryContext): void {
         logger: context.logger,
         guild: interaction.guild,
       });
-    }
+    },
   );
 }
 
 function RegisterTicketButtonPrefix(
   componentRouter: ComponentRouter,
   prefix: string,
-  handler: Parameters<ComponentRouter["RegisterButtonPrefix"]>[1]["handler"]
+  handler: Parameters<ComponentRouter["RegisterButtonPrefix"]>[1]["handler"],
 ): void {
   componentRouter.RegisterButtonPrefix(prefix, { handler });
 }

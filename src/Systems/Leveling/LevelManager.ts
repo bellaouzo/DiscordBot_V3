@@ -5,7 +5,7 @@ import type { UserLevel, LeaderboardEntry, XpAwardResult } from "./types";
 export class LevelManager {
   constructor(
     private readonly guildId: string,
-    private readonly userDb: UserDatabase
+    private readonly userDb: UserDatabase,
   ) {}
 
   /**

@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -21,15 +21,27 @@ function GetLevelEmoji(level: number): string {
 
 async function ExecuteRank(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
   const targetUser = interaction.options.getUser("user") ?? interaction.user;
-  const levelManager = new LevelManager(
-    interaction.guild!.id,
-    context.databases.userDb
-  );
+  const guildId = interaction.guild!.id;
+  const userXp = context.databases.userDb.GetUserXp(targetUser.id, guildId);
+
+  if (!userXp) {
+    const embed = EmbedFactory.CreateWarning({
+      title: "No XP Record",
+      description: `${targetUser.displayName} has not earned any XP in this server yet.`,
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const levelManager = new LevelManager(guildId, context.databases.userDb);
 
   const userLevel = levelManager.GetUserLevel(targetUser.id);
   const rank = levelManager.GetUserRank(targetUser.id);
@@ -52,7 +64,8 @@ async function ExecuteRank(
   });
 
   await interactionResponder.Reply(interaction, {
-    embeds: [embed.toJSON()],  });
+    embeds: [embed.toJSON()],
+  });
 }
 
 export const RankCommand = CreateCommand({
@@ -64,7 +77,7 @@ export const RankCommand = CreateCommand({
       option
         .setName("user")
         .setDescription("User to check rank for (optional)")
-        .setRequired(false)
+        .setRequired(false),
     );
   },
   config: Config.utility(3),

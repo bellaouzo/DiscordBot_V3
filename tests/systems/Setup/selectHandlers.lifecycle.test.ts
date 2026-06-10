@@ -9,6 +9,96 @@ import {
   createMockAppConfig,
 } from "../../helpers";
 
+function createEmptyDraft(): SetupDraft {
+  return {
+    adminRoleIds: [],
+    modRoleIds: [],
+    ticketCategoryId: null,
+    appealReviewCategoryId: null,
+    commandLogChannelId: null,
+    ticketLogChannelId: null,
+    announcementChannelId: null,
+    deleteLogChannelId: null,
+    productionLogChannelId: null,
+    welcomeChannelId: null,
+  };
+}
+
+function createSetupIds(interactionId: string): NavigationIds {
+  return {
+    adminSelect: `setup:${interactionId}:admin`,
+    modSelect: `setup:${interactionId}:mod`,
+    ticketSelect: `setup:${interactionId}:ticket`,
+    appealSelect: `setup:${interactionId}:appeal`,
+    commandLogSelect: `setup:${interactionId}:cmdlog`,
+    ticketLogSelect: `setup:${interactionId}:ticketlog`,
+    deleteLogSelect: `setup:${interactionId}:deletelog`,
+    productionLogSelect: `setup:${interactionId}:prodlog`,
+    announcementSelect: `setup:${interactionId}:announce`,
+    welcomeSelect: `setup:${interactionId}:welcome`,
+    next: `setup:${interactionId}:next`,
+    back: `setup:${interactionId}:back`,
+    save: `setup:${interactionId}:save`,
+    saveAndQuit: `setup:${interactionId}:savequit`,
+    cancel: `setup:${interactionId}:cancel`,
+  };
+}
+
+async function runSelectHandler(options: {
+  customId: keyof NavigationIds;
+  values: string[];
+  channelManager?: {
+    GetOrCreateCategory: ReturnType<typeof vi.fn>;
+    GetOrCreateTextChannel: ReturnType<typeof vi.fn>;
+  };
+}) {
+  const logger = createMockLogger();
+  const selectMenuRouter = CreateSelectMenuRouter(logger);
+  const updateMessage = vi.fn().mockResolvedValue(undefined);
+  const interactionId = "setup-select-test-id";
+  const interaction = createMockInteraction({
+    id: interactionId,
+    user: { id: "setup-owner", username: "Owner" } as never,
+  });
+  const draft = createEmptyDraft();
+  const ids = createSetupIds(interactionId);
+  const channelManager = options.channelManager ?? {
+    GetOrCreateCategory: vi.fn().mockResolvedValue(null),
+    GetOrCreateTextChannel: vi.fn().mockResolvedValue(null),
+  };
+
+  RegisterSelectHandlers({
+    interaction,
+    draft,
+    resources: { roles: [], categories: [], textChannels: [] },
+    ids,
+    loggingDefaults: createMockAppConfig().logging,
+    channelManager: channelManager as never,
+    selectMenuRouter,
+    updateMessage,
+  });
+
+  let selectDeferred = false;
+  const selectInteraction = {
+    customId: ids[options.customId],
+    values: options.values,
+    user: { id: "setup-owner" },
+    get deferred() {
+      return selectDeferred;
+    },
+    replied: false,
+    reply: vi.fn(),
+    followUp: vi.fn().mockResolvedValue(undefined),
+    deferUpdate: vi.fn(async () => {
+      selectDeferred = true;
+    }),
+  } as unknown as StringSelectMenuInteraction;
+
+  const handled = await selectMenuRouter.HandleSelectMenu(selectInteraction);
+
+  return { handled, draft, updateMessage, selectInteraction, channelManager };
+}
+
 describe("Setup select handlers lifecycle", () => {
   it("admin role select updates draft and calls updateMessage", async () => {
     const logger = createMockLogger();
@@ -27,6 +117,7 @@ describe("Setup select handlers lifecycle", () => {
       ticketCategoryId: null,
       appealReviewCategoryId: null,
       commandLogChannelId: null,
+      ticketLogChannelId: null,
       announcementChannelId: null,
       deleteLogChannelId: null,
       productionLogChannelId: null,
@@ -39,6 +130,7 @@ describe("Setup select handlers lifecycle", () => {
       ticketSelect: `setup:${interactionId}:ticket`,
       appealSelect: `setup:${interactionId}:appeal`,
       commandLogSelect: `setup:${interactionId}:cmdlog`,
+      ticketLogSelect: `setup:${interactionId}:ticketlog`,
       deleteLogSelect: `setup:${interactionId}:deletelog`,
       productionLogSelect: `setup:${interactionId}:prodlog`,
       announcementSelect: `setup:${interactionId}:announce`,
@@ -81,5 +173,145 @@ describe("Setup select handlers lifecycle", () => {
     expect(handled).toBe(true);
     expect(draft.adminRoleIds).toEqual(["role-a", "role-b"]);
     expect(updateMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it("mod role select updates draft and calls updateMessage", async () => {
+    const logger = createMockLogger();
+    const selectMenuRouter = CreateSelectMenuRouter(logger);
+    const updateMessage = vi.fn().mockResolvedValue(undefined);
+    const interactionId = "222333444555666777";
+    const interaction = createMockInteraction({
+      id: interactionId,
+      user: { id: "setup-owner", username: "Owner" } as never,
+    });
+
+    const draft: SetupDraft = {
+      adminRoleIds: [],
+      modRoleIds: [],
+      ticketCategoryId: null,
+      appealReviewCategoryId: null,
+      commandLogChannelId: null,
+      ticketLogChannelId: null,
+      announcementChannelId: null,
+      deleteLogChannelId: null,
+      productionLogChannelId: null,
+      welcomeChannelId: null,
+    };
+
+    const ids: NavigationIds = {
+      adminSelect: `setup:${interactionId}:admin`,
+      modSelect: `setup:${interactionId}:mod`,
+      ticketSelect: `setup:${interactionId}:ticket`,
+      appealSelect: `setup:${interactionId}:appeal`,
+      commandLogSelect: `setup:${interactionId}:cmdlog`,
+      ticketLogSelect: `setup:${interactionId}:ticketlog`,
+      deleteLogSelect: `setup:${interactionId}:deletelog`,
+      productionLogSelect: `setup:${interactionId}:prodlog`,
+      announcementSelect: `setup:${interactionId}:announce`,
+      welcomeSelect: `setup:${interactionId}:welcome`,
+      next: `setup:${interactionId}:next`,
+      back: `setup:${interactionId}:back`,
+      save: `setup:${interactionId}:save`,
+      saveAndQuit: `setup:${interactionId}:savequit`,
+      cancel: `setup:${interactionId}:cancel`,
+    };
+
+    RegisterSelectHandlers({
+      interaction,
+      draft,
+      resources: { roles: [], categories: [], textChannels: [] },
+      ids,
+      loggingDefaults: createMockAppConfig().logging,
+      channelManager: {} as never,
+      selectMenuRouter,
+      updateMessage,
+    });
+
+    let selectDeferred = false;
+    const selectInteraction = {
+      customId: ids.modSelect,
+      values: ["mod-a"],
+      user: { id: "setup-owner" },
+      get deferred() {
+        return selectDeferred;
+      },
+      replied: false,
+      reply: vi.fn(),
+      deferUpdate: vi.fn(async () => {
+        selectDeferred = true;
+      }),
+    } as unknown as StringSelectMenuInteraction;
+
+    const handled = await selectMenuRouter.HandleSelectMenu(selectInteraction);
+
+    expect(handled).toBe(true);
+    expect(draft.modRoleIds).toEqual(["mod-a"]);
+    expect(updateMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it("ticket select auto clears ticket category", async () => {
+    const { handled, draft, updateMessage } = await runSelectHandler({
+      customId: "ticketSelect",
+      values: ["auto"],
+    });
+
+    expect(handled).toBe(true);
+    expect(draft.ticketCategoryId).toBeNull();
+    expect(updateMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it("ticket select create stores created category id", async () => {
+    const getOrCreateCategory = vi
+      .fn()
+      .mockResolvedValue({ id: "cat-new", name: "Tickets" });
+    const { handled, draft } = await runSelectHandler({
+      customId: "ticketSelect",
+      values: ["create"],
+      channelManager: {
+        GetOrCreateCategory: getOrCreateCategory,
+        GetOrCreateTextChannel: vi.fn(),
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(getOrCreateCategory).toHaveBeenCalled();
+    expect(draft.ticketCategoryId).toBe("cat-new");
+  });
+
+  it("appeal select stores explicit category id", async () => {
+    const { handled, draft } = await runSelectHandler({
+      customId: "appealSelect",
+      values: ["appeal-cat-1"],
+    });
+
+    expect(handled).toBe(true);
+    expect(draft.appealReviewCategoryId).toBe("appeal-cat-1");
+  });
+
+  it("command log select create stores created channel id", async () => {
+    const getOrCreateTextChannel = vi
+      .fn()
+      .mockResolvedValue({ id: "log-ch-1", name: "command-logs" });
+    const { handled, draft } = await runSelectHandler({
+      customId: "commandLogSelect",
+      values: ["create"],
+      channelManager: {
+        GetOrCreateCategory: vi.fn(),
+        GetOrCreateTextChannel: getOrCreateTextChannel,
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(draft.commandLogChannelId).toBe("log-ch-1");
+  });
+
+  it("welcome select auto clears welcome channel", async () => {
+    const { handled, draft } = await runSelectHandler({
+      customId: "welcomeSelect",
+      values: ["auto"],
+    });
+
+    expect(handled).toBe(true);
+    expect(draft.welcomeChannelId).toBeNull();
   });
 });

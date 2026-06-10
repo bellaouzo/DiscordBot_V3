@@ -1,6 +1,7 @@
 import {
-  ChatInputCommandInteraction, GuildMember,
-  MessageFlags
+  ChatInputCommandInteraction,
+  GuildMember,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
@@ -14,7 +15,7 @@ import {
 
 function ValidateTargetMember(
   targetMember: GuildMember | null | undefined,
-  interaction: ChatInputCommandInteraction
+  interaction: ChatInputCommandInteraction,
 ): string | null {
   if (!targetMember?.moderatable) {
     return "I cannot timeout this user. They may be the server owner or have higher permissions than me.";
@@ -33,7 +34,7 @@ function ValidateTargetMember(
 
 async function ExecuteMute(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const { logger } = context;
@@ -134,7 +135,7 @@ async function ExecuteMute(
                 interaction.guild?.name ?? "this server"
               } for ${FormatDuration(length, unit)}${
                 reason ? `: ${reason}` : ""
-              }`
+              }`,
             )
             .then(
               () => {},
@@ -144,7 +145,7 @@ async function ExecuteMute(
                   userId: targetUser.id,
                   reason: "User may have DMs disabled or the bot blocked",
                 });
-              }
+              },
             );
         }
       },
@@ -203,7 +204,7 @@ async function ExecuteMute(
               targetUser,
               `Your mute has been removed in ${
                 interaction.guild?.name ?? "this server"
-              }${reason ? `: ${reason}` : ""}`
+              }${reason ? `: ${reason}` : ""}`,
             )
             .then(
               () => {},
@@ -213,7 +214,7 @@ async function ExecuteMute(
                   userId: targetUser.id,
                   reason: "User may have DMs disabled or the bot blocked",
                 });
-              }
+              },
             );
         }
       },
@@ -237,20 +238,20 @@ export const MuteCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("The user to mute")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addStringOption((option) =>
             option
               .setName("reason")
               .setDescription("Reason for muting")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addIntegerOption((option) =>
             option
               .setName("length")
               .setDescription("Duration length")
               .setRequired(true)
-              .setMinValue(1)
+              .setMinValue(1),
           )
           .addStringOption((option) =>
             option
@@ -261,14 +262,14 @@ export const MuteCommand = CreateCommand({
                 { name: "Seconds", value: "seconds" },
                 { name: "Minutes", value: "minutes" },
                 { name: "Hours", value: "hours" },
-                { name: "Days", value: "days" }
-              )
+                { name: "Days", value: "days" },
+              ),
           )
           .addBooleanOption((option) =>
             option
               .setName("notify")
-              .setDescription("Send DM notification to user")
-          )
+              .setDescription("Send DM notification to user"),
+          ),
       )
       .addSubcommand((subcommand) =>
         subcommand
@@ -278,19 +279,19 @@ export const MuteCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("The user to unmute")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addStringOption((option) =>
             option
               .setName("reason")
               .setDescription("Reason for removing timeout")
-              .setRequired(false)
+              .setRequired(false),
           )
           .addBooleanOption((option) =>
             option
               .setName("notify")
-              .setDescription("Send DM notification to user")
-          )
+              .setDescription("Send DM notification to user"),
+          ),
       );
   },
 });

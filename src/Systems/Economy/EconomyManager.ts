@@ -6,7 +6,7 @@ import type { DailyClaimResult, InventoryEntry, MarketRotation } from "./types";
 export class EconomyManager {
   constructor(
     private readonly guildId: string,
-    private readonly userDb: UserDatabase
+    private readonly userDb: UserDatabase,
   ) {}
 
   EnsureBalance(userId: string): number {
@@ -32,7 +32,9 @@ export class EconomyManager {
     }).balance;
   }
 
-  GetTopBalances(limit = 10): { userId: string; balance: number; updatedAt: number }[] {
+  GetTopBalances(
+    limit = 10,
+  ): { userId: string; balance: number; updatedAt: number }[] {
     return this.userDb.GetTopBalances(this.guildId, limit);
   }
 
@@ -111,4 +113,3 @@ export class EconomyManager {
     this.userDb.SetMarketRotation(rotation);
   }
 }
-

@@ -1,14 +1,11 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 
 async function ExecuteUnban(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -74,13 +71,13 @@ export const UnbanCommand = CreateCommand({
         option
           .setName("user")
           .setDescription("The user ID to unban")
-          .setRequired(true)
+          .setRequired(true),
       )
       .addStringOption((option) =>
         option
           .setName("reason")
           .setDescription("Reason for unbanning")
-          .setRequired(false)
+          .setRequired(false),
       );
   },
 });

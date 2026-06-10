@@ -75,7 +75,7 @@ export interface UserSelectMenuOptions {
 export class ComponentFactory {
   /** Builds a button from options and customId. */
   static CreateButton(
-    options: ButtonOptions & { customId: string }
+    options: ButtonOptions & { customId: string },
   ): ButtonBuilder {
     const button = new ButtonBuilder()
       .setLabel(options.label)
@@ -92,7 +92,7 @@ export class ComponentFactory {
 
   /** Builds an action row of buttons; customIds must match buttons length. */
   static CreateActionRow(
-    options: ActionRowOptions
+    options: ActionRowOptions,
   ): ActionRowBuilder<ButtonBuilder> {
     const row = new ActionRowBuilder<ButtonBuilder>();
 
@@ -110,7 +110,7 @@ export class ComponentFactory {
   static CreateHelpSectionButtons(
     sections: Array<{ name: string; icon?: string }>,
     interactionId: string,
-    currentIndex = -1
+    currentIndex = -1,
   ): ActionRowBuilder<ButtonBuilder>[] {
     const rows: ActionRowBuilder<ButtonBuilder>[] = [];
 
@@ -130,7 +130,7 @@ export class ComponentFactory {
         style:
           currentIndex === index ? ButtonStyle.Primary : ButtonStyle.Secondary,
         customId: `help:${interactionId}:section:${index}`,
-      })
+      }),
     );
 
     // Combine overview and sections (max 5 per row)
@@ -148,7 +148,7 @@ export class ComponentFactory {
   static CreatePaginationButtons(
     currentIndex: number,
     totalPages: number,
-    interactionId: string
+    interactionId: string,
   ): ActionRowBuilder<ButtonBuilder> {
     const isFirst = currentIndex === 0;
     const isLast = currentIndex === totalPages - 1;
@@ -182,13 +182,13 @@ export class ComponentFactory {
         label: "⏹",
         style: ButtonStyle.Danger,
         customId: `page:${interactionId}:stop`,
-      })
+      }),
     );
   }
 
   /** Builds a string select menu option. */
   static CreateSelectMenuOption(
-    options: SelectMenuOption
+    options: SelectMenuOption,
   ): StringSelectMenuOptionBuilder {
     const option = new StringSelectMenuOptionBuilder()
       .setLabel(options.label)
@@ -224,7 +224,7 @@ export class ComponentFactory {
     }
 
     const selectOptions = options.options.map((opt) =>
-      this.CreateSelectMenuOption(opt)
+      this.CreateSelectMenuOption(opt),
     );
     menu.addOptions(selectOptions);
 
@@ -232,16 +232,16 @@ export class ComponentFactory {
   }
 
   static CreateSelectMenuRow(
-    selectMenu: StringSelectMenuBuilder
+    selectMenu: StringSelectMenuBuilder,
   ): ActionRowBuilder<StringSelectMenuBuilder> {
     return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-      selectMenu
+      selectMenu,
     );
   }
 
   /** Builds a user select menu from options. */
   static CreateUserSelectMenu(
-    options: UserSelectMenuOptions
+    options: UserSelectMenuOptions,
   ): UserSelectMenuBuilder {
     const menu = new UserSelectMenuBuilder()
       .setCustomId(options.customId)
@@ -263,10 +263,10 @@ export class ComponentFactory {
   }
 
   static CreateUserSelectMenuRow(
-    userSelectMenu: UserSelectMenuBuilder
+    userSelectMenu: UserSelectMenuBuilder,
   ): ActionRowBuilder<UserSelectMenuBuilder> {
     return new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(
-      userSelectMenu
+      userSelectMenu,
     );
   }
 }

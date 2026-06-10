@@ -1,14 +1,15 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { CreateAppealManager, CreateWarnManager, EmbedFactory } from "@utilities";
+import {
+  CreateAppealManager,
+  CreateWarnManager,
+  EmbedFactory,
+} from "@utilities";
 
 async function ExecuteModHistory(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const guild = interaction.guild!;
@@ -61,7 +62,7 @@ async function ExecuteModHistory(
       warnings.length === 0
         ? "None"
         : `**${warnings.length}** total\nLatest: ${new Date(
-            warnings[warnings.length - 1].created_at
+            warnings[warnings.length - 1].created_at,
           ).toLocaleDateString()}`,
     inline: true,
   });
@@ -72,7 +73,7 @@ async function ExecuteModHistory(
       mutes.length === 0
         ? "None"
         : `**${mutes.length}** recorded\nLatest: ${new Date(
-            mutes[0].created_at
+            mutes[0].created_at,
           ).toLocaleDateString()}`,
     inline: true,
   });
@@ -83,7 +84,7 @@ async function ExecuteModHistory(
       kicks.length === 0
         ? "None"
         : `**${kicks.length}** recorded\nLatest: ${new Date(
-            kicks[0].created_at
+            kicks[0].created_at,
           ).toLocaleDateString()}`,
     inline: true,
   });
@@ -94,7 +95,7 @@ async function ExecuteModHistory(
       bans.length === 0
         ? "None"
         : `**${bans.length}** recorded\nLatest: ${new Date(
-            bans[0].created_at
+            bans[0].created_at,
           ).toLocaleDateString()}`,
     inline: true,
   });

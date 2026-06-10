@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -46,7 +43,7 @@ async function FetchRandomQuote(): Promise<{ quote?: Quote; error?: string }> {
 
 async function ExecuteQuote(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -71,7 +68,8 @@ async function ExecuteQuote(
   });
 
   await interactionResponder.Reply(interaction, {
-    embeds: [embed],  });
+    embeds: [embed],
+  });
 }
 
 export const QuoteCommand = CreateCommand({

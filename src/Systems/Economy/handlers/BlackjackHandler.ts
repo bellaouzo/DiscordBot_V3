@@ -1,6 +1,7 @@
 import {
-  ButtonInteraction, ChatInputCommandInteraction,
-  MessageFlags
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
@@ -29,6 +30,12 @@ import {
   AwardEconomyXp,
   EconomyOutcome,
 } from "@systems/Economy/utils/EconomyXp";
+import {
+  createShuffledDeck,
+  drawCard,
+  handValue,
+  isBlackjack,
+} from "@systems/Economy/utils/blackjackLogic";
 
 interface BlackjackCustomIds {
   hit: string;
@@ -39,68 +46,9 @@ interface BlackjackCustomIds {
 
 type Outcome = "win" | "loss" | "push" | "blackjack";
 
-const DECK: CardValue[] = [
-  "A",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "J",
-  "Q",
-  "K",
-];
-
-function createShuffledDeck(): CardValue[] {
-  const cards: CardValue[] = [];
-  for (let i = 0; i < 4; i++) {
-    cards.push(...DECK);
-  }
-  for (let i = cards.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [cards[i], cards[j]] = [cards[j], cards[i]];
-  }
-  return cards;
-}
-
-function drawCard(deck: CardValue[]): CardValue {
-  return deck.pop()!;
-}
-
-function handValue(cards: CardValue[]): number {
-  let total = 0;
-  let aces = 0;
-
-  for (const card of cards) {
-    if (card === "A") {
-      aces += 1;
-      total += 11;
-    } else if (["K", "Q", "J"].includes(card)) {
-      total += 10;
-    } else {
-      total += parseInt(card, 10);
-    }
-  }
-
-  while (total > 21 && aces > 0) {
-    total -= 10;
-    aces -= 1;
-  }
-
-  return total;
-}
-
-function isBlackjack(cards: CardValue[]): boolean {
-  return cards.length === 2 && handValue(cards) === 21;
-}
-
 export async function HandleBlackjack(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
@@ -121,7 +69,7 @@ export async function HandleBlackjack(
 
   const manager = new EconomyManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
   let balance = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
@@ -134,14 +82,14 @@ export async function HandleBlackjack(
   const hasPeek =
     peekItem &&
     inventory.some(
-      (entry) => entry.itemId === peekItem.id && entry.quantity > 0
+      (entry) => entry.itemId === peekItem.id && entry.quantity > 0,
     );
   let peekUsed = false;
   const boostItem = ITEM_MAP["bj-boost"];
   const hasBoost =
     boostItem &&
     inventory.some(
-      (entry) => entry.itemId === boostItem.id && entry.quantity > 0
+      (entry) => entry.itemId === boostItem.id && entry.quantity > 0,
     );
   let boostUsed = false;
 
@@ -191,7 +139,7 @@ export async function HandleBlackjack(
 
   const settle = async (
     outcome: Outcome,
-    sourceInteraction?: ButtonInteraction
+    sourceInteraction?: ButtonInteraction,
   ): Promise<void> => {
     if (resolved) return;
     resolved = true;
@@ -365,7 +313,7 @@ export async function HandleBlackjack(
     firstAction && bet > 0 && balance >= wager && player.length === 2;
 
   const updateBoard = async (
-    buttonInteraction: ButtonInteraction | null = null
+    buttonInteraction: ButtonInteraction | null = null,
   ): Promise<void> => {
     const embed = BuildBlackjackProgressEmbed({
       bet: wager,
@@ -404,7 +352,7 @@ export async function HandleBlackjack(
   };
 
   const handleStand = async (
-    buttonInteraction?: ButtonInteraction
+    buttonInteraction?: ButtonInteraction,
   ): Promise<void> => {
     firstAction = false;
     while (dealerTotal() < BJ_DEALER_STAND) {
@@ -423,7 +371,7 @@ export async function HandleBlackjack(
   };
 
   const handleHit = async (
-    buttonInteraction: ButtonInteraction
+    buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
     firstAction = false;
     player.push(drawCard(deck));
@@ -433,7 +381,7 @@ export async function HandleBlackjack(
   };
 
   const handleDouble = async (
-    buttonInteraction: ButtonInteraction
+    buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
     if (!canDouble()) {
       return;
@@ -448,7 +396,7 @@ export async function HandleBlackjack(
   };
 
   const handleCancel = async (
-    buttonInteraction: ButtonInteraction
+    buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
@@ -504,7 +452,7 @@ export async function HandleBlackjack(
     hitRegistration,
     standRegistration,
     doubleRegistration,
-    cancelRegistration
+    cancelRegistration,
   );
 
   customIds.hit = hitRegistration.customId;
@@ -542,7 +490,8 @@ export async function HandleBlackjack(
         canDouble: canDouble(),
         disabled: false,
       }),
-    ],  });
+    ],
+  });
 
   if (!replyResult.success) {
     if (bet > 0) {

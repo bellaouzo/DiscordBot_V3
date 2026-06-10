@@ -1,132 +1,136 @@
-# 🤖 Discord Bot V3
+# Discord Bot V3
 
-A modern, scalable Discord bot framework built with TypeScript and Discord.js v14.
+A modular Discord bot framework built with TypeScript and Discord.js v14 — slash commands, middleware, SQLite persistence, tickets, appeals, economy minigames, and more.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen.svg)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/typescript-%3E%3D5.0.0-blue.svg)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/node-20+-brightgreen.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/typescript-5+-blue.svg)](https://www.typescriptlang.org/)
 [![Discord.js](https://img.shields.io/badge/discord.js-v14-7289DA?logo=discord&logoColor=white)](https://discord.js.org/)
 
-> ⚠️ **Early Development** – This framework is in active development. Features may change and breaking changes are possible.
+> Early development — features and APIs may change between releases.
 
-## Table of contents
+## Choose your path
 
-- [Quick Start](#quick-start)
-- [Setup](#setup)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Examples](#examples)
-- [Documentation](#documentation)
-- [Scripts](#scripts)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
+| I want to… | Start here |
+|------------|------------|
+| **Run the bot** | [Quick Start](#quick-start) |
+| **Configure features** | [Configuration at a glance](#configuration-at-a-glance) → [docs/CONFIGURATION.md](docs/CONFIGURATION.md) |
+| **Build or contribute** | [Development](#development) → [docs/WRITING_COMMANDS.md](docs/WRITING_COMMANDS.md) |
 
 ## Quick Start
 
+1. **Clone and install**
+   ```bash
+   git clone <repository_url>
+   cd discord-bot-v3
+   npm install
+   ```
+2. **Create `.env`** — copy [.env.example](.env.example) and set `DISCORD_TOKEN`, `CLIENT_ID`, and `GUILD_ID`.
+3. **Run locally** — `npm run dev` (deploys slash commands to `GUILD_ID` on startup).
+4. **Invite the bot** — use the OAuth2 URL generator in the [Discord Developer Portal](https://discord.com/developers/applications) with `applications.commands` and required intents.
+5. **Configure the server** — run `/setup` in your guild to set staff roles and log channels.
+
+**Docs:** [Developer Setup](docs/DEVELOPER_SETUP.md) · [Configuration](docs/CONFIGURATION.md) · [Contributing](docs/CONTRIBUTING.md)
+
+## What you get
+
+| Group | Examples | Highlights |
+|-------|----------|------------|
+| **Moderation** | `/kick`, `/ban`, `/warn`, `/mute`, `/purge`, `/lockdown`, `/raidmode` | Temp actions, casefile, link filter, slowmode |
+| **Appeals** | `/appeal submit`, `/appeal-admin list`, `/appeal-admin review` | Select → modal flow, staff review buttons |
+| **Utility** | `/setup`, `/ticket`, `/giveaway`, `/poll`, `/event`, `/announcement`, `/help` | Setup wizard, ticket system, giveaways |
+| **Fun** | `/profile`, `/rank`, `/leaderboard`, `/economy` | XP, coins, leaderboard pagination |
+| **Economy** | `/economy balance`, `/economy blackjack`, `/economy crash` | Button-driven minigames with pure logic modules |
+| **Roblox** | `/roblox kick`, `/roblox status` | Bridge API integration (optional) |
+
+## Configuration at a glance
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `DISCORD_TOKEN` | Yes | Bot token from Developer Portal |
+| `CLIENT_ID` | Yes | Application client ID |
+| `GUILD_ID` | Yes | Guild for dev command deployment |
+| `COOLDOWN_PERSIST` | No | Set `1` to persist command cooldowns across restarts |
+| `OPENWEATHER_API_KEY` | No | Enables `/weather` |
+| `ROBLOX_BRIDGE_API_URL` | No | Roblox bridge base URL |
+| `DATA_DIR` | No | Override SQLite data directory |
+
+Full list: [.env.example](.env.example) · [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
+
+## Architecture (short)
+
+**Discord.js Client** → **Bot** → **Command loader** → **Middleware** → **Command handler** → **Responders** → **Database / Systems**
+
+Multi-step flows (appeals, setup, economy bets, tickets) register handlers on `ComponentRouter`, `SelectMenuRouter`, and `ModalRouter` so each interaction step stays typed and testable.
+
+Deep dive: [docs/ARCHITECTURE_MAP.md](docs/ARCHITECTURE_MAP.md)
+
+## Development
+
 ```bash
-git clone <repository_url>
-cd discord-bot-v3
-npm install
+npm run lint          # TypeScript + ESLint
+npm test              # Vitest unit tests
+npm run test:coverage # Coverage report + threshold gates
+npm run format        # Prettier
 ```
 
-Create `.env` with `DISCORD_TOKEN`, `CLIENT_ID`, and `GUILD_ID` (copy from [.env.example](.env.example)). Then:
+Before opening a PR: lint, test, and coverage must pass. CI also runs `npm audit --audit-level=high` (fails on high/critical advisories).
 
-```bash
-npm run dev
-```
+- [Writing Commands](docs/WRITING_COMMANDS.md) — `CreateCommand`, middleware, responders
+- [Contributing](docs/CONTRIBUTING.md) — standards, audit policy, PR process
+- [Testing Strategy](docs/TESTING_STRATEGY.md) — behavior vs smoke tests
 
-Get bot credentials at the [Discord Developer Portal](https://discord.com/developers/applications).
-
-**Next:** [Developer Setup](docs/DEVELOPER_SETUP.md) · [Writing Commands](docs/WRITING_COMMANDS.md) · [Configuration](docs/CONFIGURATION.md) · [Contributing](docs/CONTRIBUTING.md)
-
-## Setup
-
-- **Prerequisites:** Node.js 16+, npm.
-- **Install & run:** `npm install` → copy `.env.example` to `.env` and set required vars → `npm run dev`. Slash commands deploy to the guild in `GUILD_ID` on startup.
-- **Before committing:** `npm run lint` and `npm run test`.
-
-Full details: [Developer Setup](docs/DEVELOPER_SETUP.md) · [Configuration](docs/CONFIGURATION.md)
-
-## Features
-
-- TypeScript + Discord.js v14, slash commands with auto-deploy
-- Middleware (logging, permissions, cooldowns)
-- Interactive UI (pagination, buttons, embeds) and reusable utilities
-- Structured logging and full type safety
-
-## Architecture
-
-Modular, layered flow: **Discord.js Client** → **Bot Layer** → **Command Loader & Registry** → **Middleware Chain** → **Command Handler** → **Responders**. Components include commands, events, utilities, and SQLite-backed persistence. [Writing Commands](docs/WRITING_COMMANDS.md) covers the command/middleware/responder pipeline in detail.
-
-### Data flow (slash command)
-
-1. User runs `/command` → interaction received
-2. Middleware runs (before) → command executes → middleware runs (after)
-3. Response sent to Discord
-
-## Examples
-
-Start with the **[Starter Template](examples/basic/starter-template.ts)** and copy it into `src/Commands/`.
-
-| Level        | Examples                                                                                                                                                                                |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Beginner     | [Starter Template](examples/basic/starter-template.ts), [Ping](examples/basic/ping-command.ts), [Hello](examples/basic/hello-command.ts), [Ready Event](examples/events/ready-event.ts) |
-| Intermediate | [Kick](examples/advanced/kick-command.ts), [Embeds](examples/utilities/embed-examples.ts), [Components](examples/utilities/component-examples.ts)                                       |
-| Advanced     | [Help](examples/advanced/help-command.ts), [Guild Resources](examples/utilities/guild-resource-examples.ts)                                                                             |
-
-[View all →](examples/)
-
-## Documentation
-
-- [Developer Setup](docs/DEVELOPER_SETUP.md) – Local setup, run modes, lint and test
-- [Configuration](docs/CONFIGURATION.md) – Environment variables
-- [Writing Commands](docs/WRITING_COMMANDS.md) – Command structure, middleware, responders
-- [Contributing](docs/CONTRIBUTING.md) – Standards and PR process
-
-### Writing your first command
+### Minimal command example
 
 ```typescript
 import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
 
-export const MyCommand = CreateCommand({
-  name: "my-command",
-  description: "My awesome command",
+export const PingCommand = CreateCommand({
+  name: "ping",
+  description: "Check bot latency",
   group: "utility",
-  config: Config.utility(5),
-  execute: async (interaction, context) => {
-    const { interactionResponder } = context.responders;
-    await interactionResponder.Reply(interaction, {
-      content: "Done!",
+  config: Config.utility(),
+  execute: async (interaction, { responders }) => {
+    await responders.interactionResponder.Reply(interaction, {
+      content: `Pong! ${Date.now() - interaction.createdTimestamp}ms`,
       ephemeral: true,
     });
   },
 });
 ```
 
-Full guide: [Writing Commands](docs/WRITING_COMMANDS.md)
+## Deploy
 
-## Scripts
+Production-style start (pull, build, PM2):
 
-`npm run dev` · `npm run build` · `npm run test` · `npm run lint` · `npm run format` · `npm run clean`
+```bash
+npm run vps:start
+```
 
-Full list: [Developer Setup → Run modes](docs/DEVELOPER_SETUP.md#run-modes)
+See [docs/DEVELOPER_SETUP.md](docs/DEVELOPER_SETUP.md) for run modes and environment notes.
 
 ## Troubleshooting
 
-| Issue                 | Fix                                  |
-| --------------------- | ------------------------------------ |
-| Command not appearing | Run `npm run dev` to deploy commands |
-| Bot not responding    | Check `DISCORD_TOKEN` in `.env`      |
-| TypeScript errors     | Run `npm run build` for details      |
+| Issue | Fix |
+|-------|-----|
+| Commands not appearing | Run `npm run dev` to redeploy; confirm `GUILD_ID` |
+| Bot not responding | Verify `DISCORD_TOKEN`; check intents in Developer Portal |
+| Permission errors | Run `/setup` and assign admin/mod roles |
+| SQLite errors | Ensure `DATA_DIR` is writable |
+| CI audit failure | Run `npm audit`; upgrade or patch vulnerable dependencies |
+| Coverage gate failure | Run `npm run test:coverage` locally; add behavior tests for uncovered flows |
 
-More help: [examples](examples/) or open an issue.
+## Examples
 
-## Contributing
+| Level | Examples |
+|-------|----------|
+| Beginner | [Starter Template](examples/basic/starter-template.ts), [Ping](examples/basic/ping-command.ts) |
+| Intermediate | [Kick](examples/advanced/kick-command.ts), [Embeds](examples/utilities/embed-examples.ts) |
+| Advanced | [Help](examples/advanced/help-command.ts), [Guild Resources](examples/utilities/guild-resource-examples.ts) |
 
-See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for standards, tests, and how to submit changes.
+[View all examples →](examples/)
 
 ## License
 
-MIT – see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).

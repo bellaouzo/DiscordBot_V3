@@ -27,7 +27,7 @@ export class TempActionStore {
       data.reason ?? null,
       data.expires_at,
       created_at,
-      created_at
+      created_at,
     ).lastInsertRowid as number;
 
     const record = this.GetTempActionById(id);
@@ -52,14 +52,17 @@ export class TempActionStore {
 
     if (options?.guild_id) {
       const stmt = this.db.prepare(
-        "SELECT * FROM temp_actions WHERE processed = 0 AND guild_id = ? AND expires_at <= ? ORDER BY expires_at ASC"
+        "SELECT * FROM temp_actions WHERE processed = 0 AND guild_id = ? AND expires_at <= ? ORDER BY expires_at ASC",
       );
-      const rows = stmt.all(options.guild_id, cutoff) as Record<string, unknown>[];
+      const rows = stmt.all(options.guild_id, cutoff) as Record<
+        string,
+        unknown
+      >[];
       return rows.map((row) => MapTempAction(row));
     }
 
     const stmt = this.db.prepare(
-      "SELECT * FROM temp_actions WHERE processed = 0 AND expires_at <= ? ORDER BY expires_at ASC"
+      "SELECT * FROM temp_actions WHERE processed = 0 AND expires_at <= ? ORDER BY expires_at ASC",
     );
     const rows = stmt.all(cutoff) as Record<string, unknown>[];
     return rows.map((row) => MapTempAction(row));
@@ -67,7 +70,7 @@ export class TempActionStore {
 
   ListPendingTempActions(guild_id: string): TempAction[] {
     const stmt = this.db.prepare(
-      "SELECT * FROM temp_actions WHERE processed = 0 AND guild_id = ? ORDER BY expires_at ASC"
+      "SELECT * FROM temp_actions WHERE processed = 0 AND guild_id = ? ORDER BY expires_at ASC",
     );
     const rows = stmt.all(guild_id) as Record<string, unknown>[];
     return rows.map((row) => MapTempAction(row));
@@ -76,7 +79,7 @@ export class TempActionStore {
   MarkTempActionProcessed(id: number): boolean {
     const updated_at = Date.now();
     const stmt = this.db.prepare(
-      "UPDATE temp_actions SET processed = 1, updated_at = ? WHERE id = ?"
+      "UPDATE temp_actions SET processed = 1, updated_at = ? WHERE id = ?",
     );
     const result = stmt.run(updated_at, id);
     return result.changes > 0;
@@ -103,7 +106,7 @@ export class TempActionStore {
         AND action = ?
       ORDER BY expires_at DESC
       LIMIT 1
-    `
+    `,
     );
 
     const row = stmt.get(options.guild_id, options.user_id, options.action) as
@@ -126,7 +129,7 @@ export class TempActionStore {
       WHERE guild_id = ? AND user_id = ? AND action = ?
       ORDER BY created_at DESC
       ${options.limit ? "LIMIT ?" : ""}
-    `
+    `,
     );
 
     const rows = options.limit
@@ -134,7 +137,7 @@ export class TempActionStore {
           options.guild_id,
           options.user_id,
           options.action,
-          options.limit
+          options.limit,
         ) as Record<string, unknown>[])
       : (stmt.all(options.guild_id, options.user_id, options.action) as Record<
           string,

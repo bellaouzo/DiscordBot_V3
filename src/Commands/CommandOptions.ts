@@ -15,4 +15,3 @@ export const THIS_CONFIG = {
     { name: "Hidden", value: "hidden" },
   ] as APIApplicationCommandOptionChoice<string>[],
 };
-

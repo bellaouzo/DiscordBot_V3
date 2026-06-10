@@ -26,7 +26,7 @@ function isStoredOverwriteArray(data: unknown): data is StoredOverwrite[] {
       "id" in item &&
       "allow" in item &&
       "deny" in item &&
-      "type" in item
+      "type" in item,
   );
 }
 
@@ -115,7 +115,7 @@ export class RaidModeScheduler {
         await channel.permissionOverwrites.set(overwrites);
         await channel.setRateLimitPerUser(
           state.rate_limit_per_user,
-          "Raid mode expired"
+          "Raid mode expired",
         );
       } catch (error) {
         logger.Warn("Failed to restore raid channel state", {

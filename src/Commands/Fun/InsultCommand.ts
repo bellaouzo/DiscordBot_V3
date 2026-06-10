@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -16,7 +13,7 @@ const apiConfig = LoadApiConfig();
 
 async function ExecuteInsult(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const targetUser = interaction.options.getUser("user", true);
 
@@ -67,7 +64,7 @@ export const InsultCommand = CreateCommand({
   config: Config.utility(3),
   configure: (builder) => {
     builder.addUserOption((option) =>
-      option.setName("user").setDescription("User to insult").setRequired(true)
+      option.setName("user").setDescription("User to insult").setRequired(true),
     );
   },
   execute: ExecuteInsult,

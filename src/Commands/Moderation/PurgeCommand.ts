@@ -1,6 +1,8 @@
 import {
-  ChatInputCommandInteraction, TextChannel, Message,
-  MessageFlags
+  ChatInputCommandInteraction,
+  TextChannel,
+  Message,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
@@ -9,7 +11,7 @@ import { EmbedFactory } from "@utilities";
 function ValidatePurgeOptions(
   amount: number,
   before?: number,
-  after?: number
+  after?: number,
 ): string | null {
   if (amount < 1 || amount > 100) {
     return "Amount must be between 1 and 100 messages.";
@@ -35,7 +37,7 @@ async function FetchMessagesToDelete(
   amount: number,
   userId?: string,
   beforeHours?: number,
-  afterHours?: number
+  afterHours?: number,
 ): Promise<{ messages: Message[]; totalFetched: number }> {
   const now = Date.now();
   const messagesToDelete: Message[] = [];
@@ -71,7 +73,7 @@ async function FetchMessagesToDelete(
 
 async function ExecutePurge(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -95,7 +97,7 @@ async function ExecutePurge(
   const validationError = ValidatePurgeOptions(
     amount,
     beforeHours ?? undefined,
-    afterHours ?? undefined
+    afterHours ?? undefined,
   );
 
   if (validationError) {
@@ -132,7 +134,7 @@ async function ExecutePurge(
         amount,
         targetUser?.id,
         beforeHours ?? undefined,
-        afterHours ?? undefined
+        afterHours ?? undefined,
       );
 
       if (messages.length === 0) {
@@ -147,7 +149,7 @@ async function ExecutePurge(
 
       if (messagesToDelete.length === 0) {
         throw new Error(
-          "All matching messages are older than 14 days and cannot be bulk deleted. (Discord limitation)"
+          "All matching messages are older than 14 days and cannot be bulk deleted. (Discord limitation)",
         );
       }
 
@@ -233,27 +235,27 @@ export const PurgeCommand = CreateCommand({
           .setDescription("Number of messages to delete (1-100)")
           .setRequired(true)
           .setMinValue(1)
-          .setMaxValue(100)
+          .setMaxValue(100),
       )
       .addUserOption((option) =>
         option
           .setName("user")
           .setDescription("Only delete messages from this user")
-          .setRequired(false)
+          .setRequired(false),
       )
       .addIntegerOption((option) =>
         option
           .setName("before")
           .setDescription("Only delete messages older than N hours")
           .setRequired(false)
-          .setMinValue(0)
+          .setMinValue(0),
       )
       .addIntegerOption((option) =>
         option
           .setName("after")
           .setDescription("Only delete messages newer than N hours")
           .setRequired(false)
-          .setMinValue(0)
+          .setMinValue(0),
       );
   },
 });

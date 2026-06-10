@@ -3,7 +3,7 @@ import { Logger } from "@shared/Logger";
 import { DeploymentConfig } from "@config/AppConfig";
 
 export type CommandDeployer = (
-  commands: SlashCommandBuilder[]
+  commands: SlashCommandBuilder[],
 ) => Promise<void>;
 
 export interface CommandDeployerOptions {
@@ -13,7 +13,7 @@ export interface CommandDeployerOptions {
 }
 
 export function CreateCommandDeployer(
-  options: CommandDeployerOptions
+  options: CommandDeployerOptions,
 ): CommandDeployer {
   return async (commands: SlashCommandBuilder[]) => {
     const rest = new REST().setToken(options.token);
@@ -22,9 +22,9 @@ export function CreateCommandDeployer(
       await rest.put(
         Routes.applicationGuildCommands(
           options.deployment.clientId,
-          options.deployment.guildId
+          options.deployment.guildId,
         ),
-        { body: commands }
+        { body: commands },
       );
     } catch (error) {
       options.logger.Error("Failed to deploy commands", { error });

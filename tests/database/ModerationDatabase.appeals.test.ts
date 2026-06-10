@@ -115,7 +115,7 @@ describe("ModerationDatabase appeal operations", () => {
         user_id: "user-1",
         action_type: "warning",
         action_ref: "5",
-      })
+      }),
     ).toBe(true);
 
     expect(
@@ -124,7 +124,7 @@ describe("ModerationDatabase appeal operations", () => {
         user_id: "user-1",
         action_type: "warning",
         action_ref: "99",
-      })
+      }),
     ).toBe(false);
   });
 
@@ -159,14 +159,14 @@ describe("ModerationDatabase appeal operations", () => {
         id: event.id,
         guild_id: "guild-1",
         action: "ban",
-      })
+      }),
     ).toBe(true);
     expect(
       db.RemoveModerationEventById({
         id: event.id,
         guild_id: "guild-1",
         action: "ban",
-      })
+      }),
     ).toBe(false);
   });
 });

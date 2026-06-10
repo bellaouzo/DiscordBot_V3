@@ -5,7 +5,7 @@ import { CreateTicketManager } from "@utilities";
 export async function HandleUserSelection(
   userSelectInteraction: UserSelectMenuInteraction,
   ticket: Ticket,
-  ticketManager: ReturnType<typeof CreateTicketManager>
+  ticketManager: ReturnType<typeof CreateTicketManager>,
 ): Promise<void> {
   await userSelectInteraction.deferReply({ flags: MessageFlags.Ephemeral });
 
@@ -17,7 +17,7 @@ export async function HandleUserSelection(
     const success = await ticketManager.AddUserToTicket(
       ticket.id,
       user.id,
-      userSelectInteraction.user.id
+      userSelectInteraction.user.id,
     );
 
     if (success) {
@@ -43,7 +43,7 @@ export async function HandleUserSelection(
 export async function HandleUserRemoval(
   userSelectInteraction: UserSelectMenuInteraction,
   ticket: Ticket,
-  ticketManager: ReturnType<typeof CreateTicketManager>
+  ticketManager: ReturnType<typeof CreateTicketManager>,
 ): Promise<void> {
   await userSelectInteraction.deferReply({ flags: MessageFlags.Ephemeral });
 
@@ -61,7 +61,7 @@ export async function HandleUserRemoval(
     const success = await ticketManager.RemoveUserFromTicket(
       ticket.id,
       user.id,
-      userSelectInteraction.user.id
+      userSelectInteraction.user.id,
     );
 
     if (success) {
@@ -83,5 +83,3 @@ export async function HandleUserRemoval(
     content: message || "No users were removed.",
   });
 }
-
-

@@ -51,7 +51,10 @@ export class AppealManager {
       }
 
       if (data.actionType === "kick" || data.actionType === "ban") {
-        return this.ValidateModerationEventTarget(data.actionType, data.actionRef);
+        return this.ValidateModerationEventTarget(
+          data.actionType,
+          data.actionRef,
+        );
       }
 
       return { success: false, message: "Unsupported appeal action type." };
@@ -95,7 +98,7 @@ export class AppealManager {
   }
 
   ListAppealableActions(
-    preferredAction?: AppealActionType
+    preferredAction?: AppealActionType,
   ): AppealableActionOption[] {
     const actions = preferredAction
       ? [preferredAction]
@@ -112,10 +115,10 @@ export class AppealManager {
               actionRef: String(warning.id),
               createdAt: warning.created_at,
               context: `Warning #${warning.id} from <t:${Math.floor(
-                warning.created_at / 1000
+                warning.created_at / 1000,
               )}:f>`,
               preview: `Mod: ${warning.moderator_id} | ${this.BuildReasonPreview(
-                warning.reason
+                warning.reason,
               )}`,
               moderatorId: warning.moderator_id,
             });
@@ -153,7 +156,7 @@ export class AppealManager {
               event.id
             } from <t:${Math.floor(event.created_at / 1000)}:f>`,
             preview: `Mod: ${event.moderator_id} | ${this.BuildReasonPreview(
-              event.reason
+              event.reason,
             )}`,
             moderatorId: event.moderator_id,
           });
@@ -168,7 +171,7 @@ export class AppealManager {
             user_id: this.options.userId,
             action_type: entry.actionType,
             action_ref: entry.actionRef,
-          })
+          }),
       )
       .sort((a, b) => b.createdAt - a.createdAt);
   }
@@ -188,10 +191,10 @@ export class AppealManager {
       actionRef: String(mute.id),
       createdAt: mute.created_at,
       context: `Mute #${mute.id} (${status}) from <t:${Math.floor(
-        mute.created_at / 1000
+        mute.created_at / 1000,
       )}:f>`,
       preview: `Mod: ${mute.moderator_id} | ${this.BuildReasonPreview(
-        mute.reason
+        mute.reason,
       )}`,
       moderatorId: mute.moderator_id,
     };
@@ -210,10 +213,12 @@ export class AppealManager {
     return `${normalized.slice(0, 47)}...`;
   }
 
-  private ValidateWarningTarget(actionRef?: string | null): AppealValidationResult {
+  private ValidateWarningTarget(
+    actionRef?: string | null,
+  ): AppealValidationResult {
     const warnings = this.options.userDb.GetWarnings(
       this.options.userId,
-      this.options.guildId
+      this.options.guildId,
     );
 
     if (warnings.length === 0) {
@@ -223,11 +228,15 @@ export class AppealManager {
     if (!actionRef) {
       const latest = warnings[warnings.length - 1];
       const context = `Warning #${latest.id} from <t:${Math.floor(
-        latest.created_at / 1000
+        latest.created_at / 1000,
       )}:f>`;
       return {
         success: true,
-        target: { actionType: "warning", actionRef: String(latest.id), context },
+        target: {
+          actionType: "warning",
+          actionRef: String(latest.id),
+          context,
+        },
       };
     }
 
@@ -239,7 +248,10 @@ export class AppealManager {
       };
     }
 
-    const warning = this.options.userDb.GetWarningById(warningId, this.options.guildId);
+    const warning = this.options.userDb.GetWarningById(
+      warningId,
+      this.options.guildId,
+    );
     if (!warning || warning.user_id !== this.options.userId) {
       return {
         success: false,
@@ -248,7 +260,7 @@ export class AppealManager {
     }
 
     const context = `Warning #${warning.id} from <t:${Math.floor(
-      warning.created_at / 1000
+      warning.created_at / 1000,
     )}:f>`;
     return {
       success: true,
@@ -256,7 +268,9 @@ export class AppealManager {
     };
   }
 
-  private ValidateMuteTarget(actionRef?: string | null): AppealValidationResult {
+  private ValidateMuteTarget(
+    actionRef?: string | null,
+  ): AppealValidationResult {
     const mutes = this.options.moderationDb.ListUserTempActions({
       guild_id: this.options.guildId,
       user_id: this.options.userId,
@@ -280,7 +294,7 @@ export class AppealManager {
     }
 
     const context = `Mute #${targetMute.id} from <t:${Math.floor(
-      targetMute.created_at / 1000
+      targetMute.created_at / 1000,
     )}:f>`;
     return {
       success: true,
@@ -290,7 +304,7 @@ export class AppealManager {
 
   private ValidateModerationEventTarget(
     actionType: "kick" | "ban",
-    actionRef?: string | null
+    actionRef?: string | null,
   ): AppealValidationResult {
     const events = this.options.moderationDb.ListModerationEvents({
       guild_id: this.options.guildId,
@@ -318,7 +332,7 @@ export class AppealManager {
     }
 
     const context = `${actionType.toUpperCase()} #${targetEvent.id} from <t:${Math.floor(
-      targetEvent.created_at / 1000
+      targetEvent.created_at / 1000,
     )}:f>`;
     return {
       success: true,
@@ -331,6 +345,8 @@ export class AppealManager {
   }
 }
 
-export function CreateAppealManager(options: AppealManagerOptions): AppealManager {
+export function CreateAppealManager(
+  options: AppealManagerOptions,
+): AppealManager {
   return new AppealManager(options);
 }

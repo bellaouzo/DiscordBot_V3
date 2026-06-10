@@ -1,14 +1,11 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 
 async function ExecutePing(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -42,7 +39,7 @@ async function ExecutePing(
       name: "⚡ Status",
       value: latency < 100 ? "Excellent" : latency < 200 ? "Good" : "Fair",
       inline: true,
-    }
+    },
   );
 
   await interactionResponder.Edit(interaction, { embeds: [responseEmbed] });
@@ -55,5 +52,3 @@ export const PingCommand = CreateCommand({
   config: Config.utility(1),
   execute: ExecutePing,
 });
-
-

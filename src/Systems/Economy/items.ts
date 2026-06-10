@@ -239,10 +239,9 @@ export const ITEM_MAP: Record<string, EconomyItem> = ITEM_CATALOG.reduce(
     acc[item.id] = item;
     return acc;
   },
-  {} as Record<string, EconomyItem>
+  {} as Record<string, EconomyItem>,
 );
 
 export const DEFAULT_ROTATION_IDS: string[] = ITEM_CATALOG.map(
-  (item) => item.id
+  (item) => item.id,
 );
-

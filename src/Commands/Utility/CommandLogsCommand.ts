@@ -15,7 +15,7 @@ const MAX_EXPORT_FILES = 50;
 
 async function HandleExport(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const targetUser = interaction.options.getUser("user", true);
   const limit = interaction.options.getInteger("limit") ?? DEFAULT_LIMIT;
@@ -94,24 +94,24 @@ export const CommandLogsCommand = CreateCommand({
         .setName("export")
         .setDescription("Export command logs for a user")
         .addUserOption((opt) =>
-          opt.setName("user").setDescription("Target user").setRequired(true)
+          opt.setName("user").setDescription("Target user").setRequired(true),
         )
         .addIntegerOption((opt) =>
           opt
             .setName("limit")
             .setDescription("Max logs to include (default 100)")
             .setMinValue(1)
-            .setMaxValue(1000)
+            .setMaxValue(1000),
         )
         .addStringOption((opt) =>
           opt
             .setName("start_date")
-            .setDescription("ISO start date (e.g., 2024-05-20)")
+            .setDescription("ISO start date (e.g., 2024-05-20)"),
         )
         .addStringOption((opt) =>
           opt
             .setName("end_date")
-            .setDescription("ISO end date (e.g., 2024-05-21T12:00:00Z)")
+            .setDescription("ISO end date (e.g., 2024-05-21T12:00:00Z)"),
         )
         .addStringOption((opt) =>
           opt
@@ -119,9 +119,9 @@ export const CommandLogsCommand = CreateCommand({
             .setDescription("Export format")
             .addChoices(
               { name: "txt", value: "txt" },
-              { name: "csv", value: "csv" }
-            )
-        )
+              { name: "csv", value: "csv" },
+            ),
+        ),
     );
   },
   config: {
@@ -150,15 +150,15 @@ function ParseDate(value: string | null): number | null {
 function BuildNoLogsDescription(
   userTag: string,
   start: number | null,
-  end: number | null
+  end: number | null,
 ): string {
   const parts: string[] = [`No command logs found for ${userTag}`];
 
   if (start && end) {
     parts.push(
       `between ${new Date(start).toISOString()} and ${new Date(
-        end
-      ).toISOString()}.`
+        end,
+      ).toISOString()}.`,
     );
   } else if (start) {
     parts.push(`at or after ${new Date(start).toISOString()}.`);
@@ -177,7 +177,7 @@ async function PruneOldExports(dir: string, maxFiles: number): Promise<void> {
     const targets = entries.filter(
       (name) =>
         name.startsWith(EXPORT_PREFIX) &&
-        (name.endsWith(".txt") || name.endsWith(".csv"))
+        (name.endsWith(".txt") || name.endsWith(".csv")),
     );
 
     if (targets.length <= maxFiles) {
@@ -188,7 +188,7 @@ async function PruneOldExports(dir: string, maxFiles: number): Promise<void> {
       targets.map(async (name) => {
         const stat = await fs.promises.stat(path.join(dir, name));
         return { name, mtime: stat.mtimeMs };
-      })
+      }),
     );
 
     withTime.sort((a, b) => b.mtime - a.mtime);
@@ -196,8 +196,8 @@ async function PruneOldExports(dir: string, maxFiles: number): Promise<void> {
 
     await Promise.all(
       toDelete.map((entry) =>
-        fs.promises.unlink(path.join(dir, entry.name)).catch(() => undefined)
-      )
+        fs.promises.unlink(path.join(dir, entry.name)).catch(() => undefined),
+      ),
     );
   } catch {
     // ignore prune errors

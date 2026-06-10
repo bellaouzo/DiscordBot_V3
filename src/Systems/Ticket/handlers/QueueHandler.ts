@@ -1,9 +1,6 @@
-import {
-  ChatInputCommandInteraction, GuildMember,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EmbedFactory } from "@utilities";
+import { EmbedFactory, ResolveInteractionMember } from "@utilities";
 import {
   CreateTicketServices,
   HasStaffPermissions,
@@ -12,7 +9,7 @@ import {
 
 export async function HandleTicketQueue(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const { logger } = context;
@@ -22,9 +19,9 @@ export async function HandleTicketQueue(
   }
 
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild!.id
+    interaction.guild!.id,
   );
-  const member = interaction.member as GuildMember | null;
+  const member = await ResolveInteractionMember(interaction);
 
   if (
     !HasStaffPermissions(member, {
@@ -47,23 +44,22 @@ export async function HandleTicketQueue(
     logger,
     interaction.guild!,
     context.databases.ticketDb,
-    context.databases.serverDb
+    context.databases.serverDb,
   );
 
-  const openTickets = ticketDb.GetGuildTickets(
-    interaction.guild!.id,
-    "open"
-  );
+  const openTickets = ticketDb.GetGuildTickets(interaction.guild!.id, "open");
   const claimedTickets = ticketDb.GetGuildTickets(
     interaction.guild!.id,
-    "claimed"
+    "claimed",
   );
   const activeTickets = [...openTickets, ...claimedTickets].sort(
-    (a, b) => a.created_at - b.created_at
+    (a, b) => a.created_at - b.created_at,
   );
 
   const categories = ticketDb.EnsureCategoryConfigs(interaction.guild!.id);
-  const tagMap = ticketDb.GetTagsForTickets(activeTickets.map((ticket) => ticket.id));
+  const tagMap = ticketDb.GetTagsForTickets(
+    activeTickets.map((ticket) => ticket.id),
+  );
 
   const embed = EmbedFactory.Create({
     title: "🎫 Ticket Queue",
@@ -91,7 +87,9 @@ export async function HandleTicketQueue(
         : "";
       const tags = tagMap[ticket.id] ?? [];
       const tagInfo =
-        tags.length > 0 ? ` — tags: ${tags.map((tag) => `\`${tag}\``).join(", ")}` : "";
+        tags.length > 0
+          ? ` — tags: ${tags.map((tag) => `\`${tag}\``).join(", ")}`
+          : "";
       return `${statusEmoji} **#${ticket.id}** ${categoryLabel} — ${channelLink} — <@${ticket.user_id}>${claimInfo}${tagInfo}`;
     });
 

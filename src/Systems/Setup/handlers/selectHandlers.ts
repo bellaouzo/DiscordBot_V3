@@ -24,7 +24,7 @@ interface RegisterSelectHandlersOptions {
 }
 
 export function RegisterSelectHandlers(
-  options: RegisterSelectHandlersOptions
+  options: RegisterSelectHandlersOptions,
 ): void {
   const {
     interaction,
@@ -43,7 +43,7 @@ export function RegisterSelectHandlers(
     expiresInMs: SETUP_TIMEOUT_MS,
     handler: async (selectInteraction) => {
       const selected = selectInteraction.values.filter(
-        (value) => value !== "none" && value !== "noop"
+        (value) => value !== "none" && value !== "noop",
       );
       draft.adminRoleIds = selected;
 
@@ -58,7 +58,7 @@ export function RegisterSelectHandlers(
     expiresInMs: SETUP_TIMEOUT_MS,
     handler: async (selectInteraction) => {
       const selected = selectInteraction.values.filter(
-        (value) => value !== "none" && value !== "noop"
+        (value) => value !== "none" && value !== "noop",
       );
       draft.modRoleIds = selected;
 
@@ -78,7 +78,7 @@ export function RegisterSelectHandlers(
         draft.ticketCategoryId = null;
       } else if (selection === "create") {
         const created = await channelManager.GetOrCreateCategory(
-          DEFAULT_TICKET_CATEGORY
+          DEFAULT_TICKET_CATEGORY,
         );
         if (created) {
           draft.ticketCategoryId = created.id;
@@ -114,7 +114,7 @@ export function RegisterSelectHandlers(
         draft.appealReviewCategoryId = null;
       } else if (selection === "create") {
         const created = await channelManager.GetOrCreateCategory(
-          DEFAULT_APPEAL_CATEGORY
+          DEFAULT_APPEAL_CATEGORY,
         );
         if (created) {
           draft.appealReviewCategoryId = created.id;
@@ -151,7 +151,7 @@ export function RegisterSelectHandlers(
       } else if (selection === "create") {
         const created = await channelManager.GetOrCreateTextChannel(
           loggingDefaults.commandLogChannelName,
-          loggingDefaults.commandLogCategoryName
+          loggingDefaults.commandLogCategoryName,
         );
         if (created) {
           draft.commandLogChannelId = created.id;
@@ -186,9 +186,8 @@ export function RegisterSelectHandlers(
       if (selection === "auto") {
         draft.ticketLogChannelId = null;
       } else if (selection === "create") {
-        const created = await channelManager.GetOrCreateTextChannel(
-          "ticket-logs"
-        );
+        const created =
+          await channelManager.GetOrCreateTextChannel("ticket-logs");
         if (created) {
           draft.ticketLogChannelId = created.id;
           if (
@@ -223,7 +222,8 @@ export function RegisterSelectHandlers(
         draft.deleteLogChannelId = null;
       } else if (selection === "create") {
         const created = await channelManager.GetOrCreateTextChannel(
-          loggingDefaults.messageDeleteChannelName || DEFAULT_DELETE_LOG_CHANNEL
+          loggingDefaults.messageDeleteChannelName ||
+            DEFAULT_DELETE_LOG_CHANNEL,
         );
         if (created) {
           draft.deleteLogChannelId = created.id;
@@ -261,7 +261,8 @@ export function RegisterSelectHandlers(
         draft.productionLogChannelId = null;
       } else if (selection === "create") {
         const created = await channelManager.GetOrCreateTextChannel(
-          loggingDefaults.deployLogChannelName || DEFAULT_PRODUCTION_LOG_CHANNEL
+          loggingDefaults.deployLogChannelName ||
+            DEFAULT_PRODUCTION_LOG_CHANNEL,
         );
         if (created) {
           draft.productionLogChannelId = created.id;
@@ -299,7 +300,7 @@ export function RegisterSelectHandlers(
         draft.announcementChannelId = null;
       } else if (selection === "create") {
         const created = await channelManager.GetOrCreateTextChannel(
-          DEFAULT_ANNOUNCEMENT_CHANNEL
+          DEFAULT_ANNOUNCEMENT_CHANNEL,
         );
         if (created) {
           draft.announcementChannelId = created.id;

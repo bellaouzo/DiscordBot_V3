@@ -13,6 +13,7 @@ import {
   ToActionRowData,
 } from "@utilities";
 import { CreateTicketServices } from "@systems/Ticket/validation/TicketValidation";
+import { CreateTicketPresentation } from "@systems/Ticket/TicketPresentation";
 import { InteractionResponder } from "@responders";
 
 const TICKET_CREATE_SELECT_TIMEOUT_MS = 5 * 60 * 1000;
@@ -24,24 +25,24 @@ export interface BeginTicketCreationOptions {
   sourceInteractionId: string;
   deferReply: () => Promise<void>;
   editReply: (
-    payload: Parameters<InteractionResponder["Edit"]>[1]
+    payload: Parameters<InteractionResponder["Edit"]>[1],
   ) => Promise<void>;
 }
 
 export async function BeginTicketCreation(
-  options: BeginTicketCreationOptions
+  options: BeginTicketCreationOptions,
 ): Promise<void> {
   const { context, guild, userId, sourceInteractionId } = options;
   const { selectMenuRouter } = context.responders;
   const { logger } = context;
 
   const settings = context.databases.serverDb.GetGuildSettings(guild.id);
-  const { ticketDb, ticketManager } = CreateTicketServices(
+  const { ticketDb, ticketManager, ticketPresentation } = CreateTicketServices(
     logger,
     guild,
     context.databases.ticketDb,
     context.databases.serverDb,
-    { ticketCategoryId: settings?.ticket_category_id ?? null }
+    { ticketCategoryId: settings?.ticket_category_id ?? null },
   );
 
   const activeTickets = ticketDb.GetActiveUserTickets(userId, guild.id);
@@ -89,8 +90,9 @@ export async function BeginTicketCreation(
       await HandleTicketCategorySelection(
         selectInteraction,
         ticketManager,
+        ticketPresentation,
         ticketDb,
-        guild
+        guild,
       );
     },
     expiresInMs: TICKET_CREATE_SELECT_TIMEOUT_MS,
@@ -112,7 +114,7 @@ export async function BeginTicketCreation(
 
 export async function HandleTicketCreate(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -148,8 +150,9 @@ export async function HandleTicketCreate(
 async function HandleTicketCategorySelection(
   selectInteraction: StringSelectMenuInteraction,
   ticketManager: ReturnType<typeof CreateTicketManager>,
+  ticketPresentation: ReturnType<typeof CreateTicketPresentation>,
   ticketDb: ReturnType<typeof CreateTicketServices>["ticketDb"],
-  guild: Guild
+  guild: Guild,
 ): Promise<void> {
   const selectedCategory = selectInteraction.values[0];
   const categories = ticketDb.EnsureCategoryConfigs(guild.id);
@@ -172,7 +175,7 @@ async function HandleTicketCategorySelection(
 
   const activeTickets = ticketDb.GetActiveUserTickets(
     selectInteraction.user.id,
-    guild.id
+    guild.id,
   );
   if (activeTickets.length > 0) {
     const existing = activeTickets[0];
@@ -198,8 +201,8 @@ async function HandleTicketCategorySelection(
       category: selectedCategory,
     });
 
-    const embed = ticketManager.CreateTicketEmbed(ticket);
-    const buttons = ticketManager.CreateTicketButtons(ticket.id);
+    const embed = ticketPresentation.CreateTicketEmbed(ticket);
+    const buttons = ticketPresentation.CreateTicketButtons(ticket.id);
 
     if ("send" in channel) {
       await channel.send({

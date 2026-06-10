@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { EmbedFactory, CreateNoteManager } from "@utilities";
@@ -12,7 +9,7 @@ const NOTE_LIST_PAGE_SIZE = 6;
 
 async function ExecuteNote(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const noteManager = CreateNoteManager({
     guildId: interaction.guild!.id,
@@ -41,7 +38,7 @@ async function ExecuteNote(
 async function HandleAdd(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  noteManager: ReturnType<typeof CreateNoteManager>
+  noteManager: ReturnType<typeof CreateNoteManager>,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const targetUser = interaction.options.getUser("user", true);
@@ -69,7 +66,7 @@ async function HandleAdd(
 async function HandleRemove(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  noteManager: ReturnType<typeof CreateNoteManager>
+  noteManager: ReturnType<typeof CreateNoteManager>,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const targetUser = interaction.options.getUser("user", true);
@@ -144,7 +141,7 @@ async function HandleRemove(
 async function HandleList(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  noteManager: ReturnType<typeof CreateNoteManager>
+  noteManager: ReturnType<typeof CreateNoteManager>,
 ): Promise<void> {
   const { interactionResponder, paginatedResponder } = context.responders;
   const targetUser = interaction.options.getUser("user") ?? interaction.user;
@@ -196,7 +193,7 @@ function BuildNotePages(notes: Note[], userTag: string): PaginationPage[] {
           value: `Mod: <@${note.moderator_id}>\n${note.content}`,
           inline: false,
         };
-      })
+      }),
     );
 
     pages.push({ embeds: [embed.toJSON()] });
@@ -221,14 +218,14 @@ export const NoteCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("User to note")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addStringOption((option) =>
             option
               .setName("content")
               .setDescription("Note content")
-              .setRequired(true)
-          )
+              .setRequired(true),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -238,15 +235,15 @@ export const NoteCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("User whose note to remove")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addIntegerOption((option) =>
             option
               .setName("note_id")
               .setDescription("Note number")
               .setRequired(true)
-              .setMinValue(1)
-          )
+              .setMinValue(1),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -256,8 +253,8 @@ export const NoteCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("User to view (defaults to yourself)")
-              .setRequired(true)
-          )
+              .setRequired(true),
+          ),
       );
   },
 });

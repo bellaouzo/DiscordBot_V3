@@ -37,11 +37,11 @@ export const EconomyCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("User to check (optional)")
-              .setRequired(false)
-          )
+              .setRequired(false),
+          ),
       )
       .addSubcommand((sub) =>
-        sub.setName("daily").setDescription("Claim your daily coins")
+        sub.setName("daily").setDescription("Claim your daily coins"),
       )
       .addSubcommand((sub) =>
         sub
@@ -53,8 +53,8 @@ export const EconomyCommand = CreateCommand({
               .setDescription("Bet amount (1-1000)")
               .setRequired(false)
               .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET)
-          )
+              .setMaxValue(MAX_BET),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -66,7 +66,7 @@ export const EconomyCommand = CreateCommand({
               .setDescription("Your guess (1-6)")
               .setMinValue(1)
               .setMaxValue(6)
-              .setRequired(false)
+              .setRequired(false),
           )
           .addIntegerOption((option) =>
             option
@@ -74,8 +74,8 @@ export const EconomyCommand = CreateCommand({
               .setDescription("Bet amount (1-1000)")
               .setRequired(false)
               .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET)
-          )
+              .setMaxValue(MAX_BET),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -87,8 +87,8 @@ export const EconomyCommand = CreateCommand({
               .setDescription("Bet amount (1-1000)")
               .setRequired(false)
               .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET)
-          )
+              .setMaxValue(MAX_BET),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -100,8 +100,8 @@ export const EconomyCommand = CreateCommand({
               .setDescription("Bet amount (1-1000)")
               .setRequired(false)
               .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET)
-          )
+              .setMaxValue(MAX_BET),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -113,8 +113,8 @@ export const EconomyCommand = CreateCommand({
               .setDescription("Bet amount (1-1000)")
               .setRequired(false)
               .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET)
-          )
+              .setMaxValue(MAX_BET),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -126,8 +126,8 @@ export const EconomyCommand = CreateCommand({
               .setDescription("Bet amount (1-1000)")
               .setRequired(false)
               .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET)
-          )
+              .setMaxValue(MAX_BET),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -139,8 +139,8 @@ export const EconomyCommand = CreateCommand({
               .setDescription("Bet amount (1-1000)")
               .setRequired(false)
               .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET)
-          )
+              .setMaxValue(MAX_BET),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -152,8 +152,8 @@ export const EconomyCommand = CreateCommand({
               .setDescription("Bet amount (1-1000)")
               .setRequired(false)
               .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET)
-          )
+              .setMaxValue(MAX_BET),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -165,13 +165,13 @@ export const EconomyCommand = CreateCommand({
               .setDescription("Bet amount (1-1000)")
               .setRequired(false)
               .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET)
-          )
+              .setMaxValue(MAX_BET),
+          ),
       )
       .addSubcommand((sub) =>
         sub
           .setName("leaderboard")
-          .setDescription("View the top coin balances in this server")
+          .setDescription("View the top coin balances in this server"),
       )
       .addSubcommand((sub) =>
         sub
@@ -181,7 +181,7 @@ export const EconomyCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("The user to gift coins to")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addIntegerOption((option) =>
             option
@@ -189,8 +189,8 @@ export const EconomyCommand = CreateCommand({
               .setDescription("Amount of coins to send")
               .setRequired(true)
               .setMinValue(1)
-              .setMaxValue(100000)
-          )
+              .setMaxValue(100000),
+          ),
       )
       .addSubcommandGroup((group) =>
         group
@@ -199,12 +199,12 @@ export const EconomyCommand = CreateCommand({
           .addSubcommand((sub) =>
             sub
               .setName("view")
-              .setDescription("View the current market rotation")
+              .setDescription("View the current market rotation"),
           )
           .addSubcommand((sub) =>
             sub
               .setName("refresh")
-              .setDescription("Force refresh the current market rotation")
+              .setDescription("Force refresh the current market rotation"),
           )
           .addSubcommand((sub) =>
             sub
@@ -226,8 +226,8 @@ export const EconomyCommand = CreateCommand({
                   .setName("quantity")
                   .setDescription("Quantity to buy")
                   .setMinValue(1)
-                  .setMaxValue(50)
-              )
+                  .setMaxValue(50),
+              ),
           )
           .addSubcommand((sub) =>
             sub
@@ -249,12 +249,12 @@ export const EconomyCommand = CreateCommand({
                   .setName("quantity")
                   .setDescription("Quantity to sell")
                   .setMinValue(1)
-                  .setMaxValue(50)
-              )
-          )
+                  .setMaxValue(50),
+              ),
+          ),
       )
       .addSubcommand((sub) =>
-        sub.setName("inventory").setDescription("View your inventory items")
+        sub.setName("inventory").setDescription("View your inventory items"),
       );
   },
   config: Config.utility(5),

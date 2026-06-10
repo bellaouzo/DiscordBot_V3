@@ -7,7 +7,7 @@ import {
 import { Logger } from "./Logger";
 
 export type ModalHandler = (
-  interaction: ModalSubmitInteraction
+  interaction: ModalSubmitInteraction,
 ) => Promise<void> | void;
 
 export interface RegisterModalOptions {
@@ -115,7 +115,7 @@ export class ModalRouter {
 
   private async ReplyIfNeeded(
     interaction: ModalSubmitInteraction,
-    options: InteractionReplyOptions
+    options: InteractionReplyOptions,
   ): Promise<void> {
     if (interaction.deferred || interaction.replied) {
       return;

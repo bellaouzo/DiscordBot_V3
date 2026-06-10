@@ -2,20 +2,17 @@ import {
   ButtonInteraction,
   Guild,
   ActionRowComponentData,
-  MessageFlags
+  MessageFlags,
 } from "discord.js";
 import { ButtonResponder } from "@responders";
 import { DatabaseSet } from "@database";
 import { Logger } from "@shared/Logger";
-import {
-  ComponentFactory,
-  EmbedFactory,
-  ToActionRowData,
-} from "@utilities";
+import { ComponentFactory, EmbedFactory, ToActionRowData } from "@utilities";
 import { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
 import {
   CreateTicketServices,
   ParseTicketButtonCustomId,
+  CanUserRemoveParticipants,
 } from "@systems/Ticket/validation/TicketValidation";
 import { HandleUserRemoval } from "@systems/Ticket/components/UserSelectionMenu";
 
@@ -27,7 +24,7 @@ export async function HandleRemoveUserButton(
     databases: DatabaseSet;
     logger: Logger;
     guild: Guild;
-  }
+  },
 ): Promise<void> {
   const parsed = ParseTicketButtonCustomId(buttonInteraction.customId);
   if (!parsed || parsed.action !== "remove") {
@@ -48,28 +45,22 @@ export async function HandleRemoveUserButton(
     return;
   }
 
-  const { ticketManager, guildResourceLocator, settings } =
-    CreateTicketServices(
-      options.logger,
-      options.guild,
-      options.databases.ticketDb,
-      options.databases.serverDb
-    );
+  const { guildResourceLocator, settings } = CreateTicketServices(
+    options.logger,
+    options.guild,
+    options.databases.ticketDb,
+    options.databases.serverDb,
+  );
 
   const member = await guildResourceLocator.GetMember(
-    buttonInteraction.user.id
+    buttonInteraction.user.id,
   );
 
   if (
-    !ticketManager.CanUserRemoveParticipants(
-      ticket,
-      buttonInteraction.user.id,
-      member,
-      {
-        adminRoleIds: settings?.admin_role_ids,
-        modRoleIds: settings?.mod_role_ids,
-      }
-    )
+    !CanUserRemoveParticipants(ticket, buttonInteraction.user.id, member, {
+      adminRoleIds: settings?.admin_role_ids,
+      modRoleIds: settings?.mod_role_ids,
+    })
   ) {
     await options.buttonResponder.Reply(buttonInteraction, {
       embeds: [
@@ -84,7 +75,7 @@ export async function HandleRemoveUserButton(
   }
 
   const activeParticipants = options.databases.ticketDb.GetActiveParticipants(
-    ticket.id
+    ticket.id,
   );
   const participantIds = activeParticipants
     .filter((p) => p.user_id !== ticket.user_id)
@@ -121,7 +112,7 @@ export async function HandleRemoveUserButton(
         options.logger,
         options.guild,
         options.databases.ticketDb,
-        options.databases.serverDb
+        options.databases.serverDb,
       );
       await HandleUserRemoval(userSelectInteraction, ticket, manager);
     },

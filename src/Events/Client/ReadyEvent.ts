@@ -97,7 +97,7 @@ async function AnnounceDeploy(context: EventContext): Promise<void> {
 
     const channel = await channelManager.GetOrCreateTextChannel(
       context.appConfig.logging.deployLogChannelName,
-      context.appConfig.logging.commandLogCategoryName
+      context.appConfig.logging.commandLogCategoryName,
     );
 
     if (!channel) {
@@ -114,7 +114,7 @@ async function AnnounceDeploy(context: EventContext): Promise<void> {
         {
           name: "Deployed At",
           value: `<t:${Math.floor(new Date(info.timestamp).getTime() / 1000)}:F>`,
-        }
+        },
       )
       .setTimestamp(new Date(info.timestamp));
 

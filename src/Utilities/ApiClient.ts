@@ -55,7 +55,7 @@ function SerializeBody(body?: unknown): {
 
 export async function RequestJson<T>(
   baseUrl: string,
-  options: ApiRequestOptions = {}
+  options: ApiRequestOptions = {},
 ): Promise<ApiResponse<T>> {
   const resolvedUrl = BuildUrl(baseUrl, options.query);
   const url = new URL(resolvedUrl);
@@ -106,7 +106,7 @@ export async function RequestJson<T>(
             });
           }
         });
-      }
+      },
     );
 
     request.on("error", (error) => {

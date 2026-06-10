@@ -1,6 +1,8 @@
 import {
-  ChatInputCommandInteraction, ChannelType, Role,
-  MessageFlags
+  ChatInputCommandInteraction,
+  ChannelType,
+  Role,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
@@ -19,7 +21,7 @@ function BuildMention(type: MentionType, role: Role | null): string {
 function BuildEmbed(
   kind: AnnouncementKind,
   title: string | null,
-  message: string
+  message: string,
 ) {
   const colorByKind: Record<AnnouncementKind, number> = {
     info: 0x5865f2,
@@ -49,7 +51,7 @@ function BuildEmbed(
 
 async function ExecuteAnnouncement(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const { logger, databases } = context;
@@ -91,7 +93,7 @@ async function ExecuteAnnouncement(
 
   if (!targetChannel || targetChannel.type !== ChannelType.GuildText) {
     targetChannel = await channelManager.GetOrCreateTextChannel(
-      announcementChannelId ? `announcements` : "announcements"
+      announcementChannelId ? `announcements` : "announcements",
     );
   }
 
@@ -143,10 +145,13 @@ export const AnnouncementCommand = CreateCommand({
         opt
           .setName("message")
           .setDescription("Announcement message")
-          .setRequired(true)
+          .setRequired(true),
       )
       .addStringOption((opt) =>
-        opt.setName("title").setDescription("Optional title").setRequired(false)
+        opt
+          .setName("title")
+          .setDescription("Optional title")
+          .setRequired(false),
       )
       .addStringOption((opt) =>
         opt
@@ -156,15 +161,15 @@ export const AnnouncementCommand = CreateCommand({
             { name: "None", value: "none" },
             { name: "@everyone", value: "everyone" },
             { name: "@here", value: "here" },
-            { name: "Specific role", value: "role" }
+            { name: "Specific role", value: "role" },
           )
-          .setRequired(false)
+          .setRequired(false),
       )
       .addRoleOption((opt) =>
         opt
           .setName("role")
           .setDescription("Role to mention (if mention=role)")
-          .setRequired(false)
+          .setRequired(false),
       )
       .addStringOption((opt) =>
         opt
@@ -174,9 +179,9 @@ export const AnnouncementCommand = CreateCommand({
             { name: "Info", value: "info" },
             { name: "Update", value: "update" },
             { name: "Maintenance", value: "maintenance" },
-            { name: "Event", value: "event" }
+            { name: "Event", value: "event" },
           )
-          .setRequired(false)
+          .setRequired(false),
       );
   },
   config: Config.admin(),

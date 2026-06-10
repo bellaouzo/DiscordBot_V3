@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -28,7 +25,7 @@ function GetMedalEmoji(rank: number): string {
 
 async function ExecuteLeaderboard(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const type = (interaction.options.getString("type") ??
     "xp") as LeaderboardType;
@@ -42,12 +39,12 @@ async function ExecuteLeaderboard(
 
 async function ShowXpLeaderboard(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { paginatedResponder } = context.responders;
   const levelManager = new LevelManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
 
   const entries = levelManager.GetLeaderboard(50);
@@ -88,7 +85,7 @@ async function ShowXpLeaderboard(
       }
 
       lines.push(
-        `${medal} ${displayName} — **Level ${entry.level}** (${entry.totalXpEarned.toLocaleString()} total XP)`
+        `${medal} ${displayName} — **Level ${entry.level}** (${entry.totalXpEarned.toLocaleString()} total XP)`,
       );
     }
 
@@ -103,19 +100,20 @@ async function ShowXpLeaderboard(
 
   await paginatedResponder.Send({
     interaction,
-    pages,    ownerId: interaction.user.id,
+    pages,
+    ownerId: interaction.user.id,
     timeoutMs: 1000 * 60 * 5,
   });
 }
 
 async function ShowCoinsLeaderboard(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { paginatedResponder } = context.responders;
   const economyManager = new EconomyManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
 
   const entries = economyManager.GetTopBalances(50);
@@ -158,7 +156,7 @@ async function ShowCoinsLeaderboard(
       }
 
       lines.push(
-        `${medal} ${displayName} — **${entry.balance.toLocaleString()}** 🪙`
+        `${medal} ${displayName} — **${entry.balance.toLocaleString()}** 🪙`,
       );
     }
 
@@ -173,7 +171,8 @@ async function ShowCoinsLeaderboard(
 
   await paginatedResponder.Send({
     interaction,
-    pages,    ownerId: interaction.user.id,
+    pages,
+    ownerId: interaction.user.id,
     timeoutMs: 1000 * 60 * 5,
   });
 }
@@ -190,8 +189,8 @@ export const LeaderboardCommand = CreateCommand({
         .setRequired(false)
         .addChoices(
           { name: "XP Levels", value: "xp" },
-          { name: "Coins", value: "coins" }
-        )
+          { name: "Coins", value: "coins" },
+        ),
     );
   },
   config: Config.utility(5),

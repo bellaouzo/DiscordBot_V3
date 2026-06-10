@@ -1,6 +1,7 @@
 import {
-  ButtonInteraction, ChatInputCommandInteraction,
-  MessageFlags
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
@@ -28,6 +29,14 @@ import {
   AwardEconomyXp,
   EconomyOutcome,
 } from "@systems/Economy/utils/EconomyXp";
+import {
+  AdvanceCrashMultiplier,
+  ApplyCrashBoosterBonus,
+  CalculateCrashPayout,
+  GenerateCrashPoint,
+  HasReachedCrashPoint,
+  ShouldAutoCashOut,
+} from "@systems/Economy/utils/crashLogic";
 
 interface CrashCustomIds {
   cashout: string;
@@ -36,7 +45,7 @@ interface CrashCustomIds {
 
 export async function HandleCrash(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
@@ -55,27 +64,30 @@ export async function HandleCrash(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
+  const manager = new EconomyManager(
+    interaction.guildId!,
+    context.databases.userDb,
+  );
   let balance = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
   const parachute = ITEM_MAP["parachute"];
   const hasParachute =
     parachute &&
     inventory.some(
-      (entry) => entry.itemId === parachute.id && entry.quantity > 0
+      (entry) => entry.itemId === parachute.id && entry.quantity > 0,
     );
   let parachuteUsed = false;
   const crashBooster = ITEM_MAP["crash-booster"];
   const hasBooster =
     crashBooster &&
     inventory.some(
-      (entry) => entry.itemId === crashBooster.id && entry.quantity > 0
+      (entry) => entry.itemId === crashBooster.id && entry.quantity > 0,
     );
   const autoCashItem = ITEM_MAP["crash-autocash"];
   const hasAutoCash =
     autoCashItem &&
     inventory.some(
-      (entry) => entry.itemId === autoCashItem.id && entry.quantity > 0
+      (entry) => entry.itemId === autoCashItem.id && entry.quantity > 0,
     );
   let autoCashUsed = false;
 
@@ -105,7 +117,7 @@ export async function HandleCrash(
     registrations.forEach((reg) => reg.dispose());
   };
 
-  const crashPoint = Math.max(1.1, 1 + Math.random() * 4.5);
+  const crashPoint = GenerateCrashPoint(Math.random());
   let multiplier = 1.0;
 
   const finalizeTimeout = async (): Promise<void> => {
@@ -181,7 +193,7 @@ export async function HandleCrash(
 
   const finalizeCashout = async (
     sourceInteraction?: ButtonInteraction,
-    extraNote?: string
+    extraNote?: string,
   ): Promise<void> => {
     if (resolved) {
       if (sourceInteraction) {
@@ -202,7 +214,7 @@ export async function HandleCrash(
     }
     disposeAll();
 
-    let payout = bet > 0 ? Math.floor(bet * multiplier) : 0;
+    let payout = CalculateCrashPayout(bet, multiplier);
     const notes: string[] = [];
     if (extraNote) {
       notes.push(extraNote);
@@ -214,8 +226,8 @@ export async function HandleCrash(
           itemId: crashBooster!.id,
           delta: -1,
         });
-        const bonus = Math.floor(payout * 0.15);
-        payout += bonus;
+        const boosted = ApplyCrashBoosterBonus(payout);
+        payout = boosted.payout;
         notes.push("Crash Booster — +15% payout.");
       }
       balance = manager.AdjustBalance(interaction.user.id, payout);
@@ -244,7 +256,7 @@ export async function HandleCrash(
         embeds: [
           embed
             .setDescription(
-              `${embed.data.description ?? ""}${noteText ? `\n**Item Used:** ${noteText}` : ""}`
+              `${embed.data.description ?? ""}${noteText ? `\n**Item Used:** ${noteText}` : ""}`,
             )
             .toJSON(),
         ],
@@ -255,7 +267,7 @@ export async function HandleCrash(
         embeds: [
           embed
             .setDescription(
-              `${embed.data.description ?? ""}${noteText ? `\n**Item Used:** ${noteText}` : ""}`
+              `${embed.data.description ?? ""}${noteText ? `\n**Item Used:** ${noteText}` : ""}`,
             )
             .toJSON(),
         ],
@@ -265,13 +277,13 @@ export async function HandleCrash(
   };
 
   const handleCashout = async (
-    buttonInteraction: ButtonInteraction
+    buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
     await finalizeCashout(buttonInteraction);
   };
 
   const handleCancel = async (
-    buttonInteraction: ButtonInteraction
+    buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
@@ -334,7 +346,8 @@ export async function HandleCrash(
 
   const replyResult = await interactionResponder.Reply(interaction, {
     embeds: [promptEmbed.toJSON()],
-    components: [BuildCrashButtons(customIds)],  });
+    components: [BuildCrashButtons(customIds)],
+  });
 
   if (!replyResult.success) {
     if (bet > 0) {
@@ -349,15 +362,12 @@ export async function HandleCrash(
       return;
     }
 
-    multiplier = Math.min(multiplier * 1.12, crashPoint + 0.5);
+    multiplier = AdvanceCrashMultiplier(multiplier, crashPoint);
     const displayMultiplier = Number(multiplier.toFixed(2));
 
     if (
       !resolved &&
-      hasAutoCash &&
-      !autoCashUsed &&
-      displayMultiplier >= 2.0 &&
-      bet > 0
+      ShouldAutoCashOut(displayMultiplier, bet, hasAutoCash, autoCashUsed)
     ) {
       autoCashUsed = true;
       manager.AdjustInventoryItem({
@@ -369,7 +379,7 @@ export async function HandleCrash(
       return;
     }
 
-    if (displayMultiplier >= crashPoint) {
+    if (HasReachedCrashPoint(displayMultiplier, crashPoint)) {
       void finalizeCrash(displayMultiplier);
       return;
     }
@@ -392,5 +402,3 @@ export async function HandleCrash(
     void finalizeTimeout();
   }, CRASH_TIMEOUT_MS);
 }
-
-

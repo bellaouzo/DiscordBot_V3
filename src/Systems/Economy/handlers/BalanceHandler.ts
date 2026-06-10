@@ -1,17 +1,17 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "../EconomyManager";
 import { BuildBalanceEmbed } from "@systems/Economy/utils/Embeds";
 
 export async function HandleBalance(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
-  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
+  const manager = new EconomyManager(
+    interaction.guildId!,
+    context.databases.userDb,
+  );
   const targetUser = interaction.options.getUser("user") ?? interaction.user;
   const isSelf = targetUser.id === interaction.user.id;
 
@@ -25,5 +25,3 @@ export async function HandleBalance(
     flags: MessageFlags.Ephemeral,
   });
 }
-
-

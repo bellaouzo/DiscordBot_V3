@@ -11,4 +11,3 @@ export const LoggingMiddleware: CommandMiddleware = {
     await next();
   },
 };
-

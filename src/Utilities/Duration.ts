@@ -2,7 +2,7 @@ export type DurationUnit = "seconds" | "minutes" | "hours" | "days";
 
 export function ConvertDurationToMs(
   length: number,
-  unit: DurationUnit
+  unit: DurationUnit,
 ): number {
   switch (unit) {
     case "seconds":
@@ -42,18 +42,23 @@ export function ParseDuration(input: string): number | null {
   }
 
   const cleaned = input.toLowerCase().trim();
-  
+
   const simpleMatch = cleaned.match(/^(\d+)(s|m|h|d|w)$/);
   if (simpleMatch) {
     const value = parseInt(simpleMatch[1], 10);
     const unit = simpleMatch[2];
-    
+
     switch (unit) {
-      case "s": return value * 1000;
-      case "m": return value * 60 * 1000;
-      case "h": return value * 60 * 60 * 1000;
-      case "d": return value * 24 * 60 * 60 * 1000;
-      case "w": return value * 7 * 24 * 60 * 60 * 1000;
+      case "s":
+        return value * 1000;
+      case "m":
+        return value * 60 * 1000;
+      case "h":
+        return value * 60 * 60 * 1000;
+      case "d":
+        return value * 24 * 60 * 60 * 1000;
+      case "w":
+        return value * 7 * 24 * 60 * 60 * 1000;
     }
   }
 
@@ -68,11 +73,21 @@ export function ParseDuration(input: string): number | null {
     const unit = match[2];
 
     switch (unit) {
-      case "s": total += value * 1000; break;
-      case "m": total += value * 60 * 1000; break;
-      case "h": total += value * 60 * 60 * 1000; break;
-      case "d": total += value * 24 * 60 * 60 * 1000; break;
-      case "w": total += value * 7 * 24 * 60 * 60 * 1000; break;
+      case "s":
+        total += value * 1000;
+        break;
+      case "m":
+        total += value * 60 * 1000;
+        break;
+      case "h":
+        total += value * 60 * 60 * 1000;
+        break;
+      case "d":
+        total += value * 24 * 60 * 60 * 1000;
+        break;
+      case "w":
+        total += value * 7 * 24 * 60 * 60 * 1000;
+        break;
     }
   }
 

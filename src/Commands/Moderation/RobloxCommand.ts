@@ -3,7 +3,10 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
-import { EnsureRobloxBridgeSettings, ExtractErrorMessage } from "@systems/Roblox/bridge";
+import {
+  EnsureRobloxBridgeSettings,
+  ExtractErrorMessage,
+} from "@systems/Roblox/bridge";
 import { ExecuteKickSubcommand } from "@systems/Roblox/handlers/KickHandler";
 import { ExecuteGroupAuditSubcommand } from "@systems/Roblox/handlers/GroupAuditHandler";
 import { ExecuteGroupInfoSubcommand } from "@systems/Roblox/handlers/GroupInfoHandler";
@@ -117,7 +120,9 @@ export const RobloxCommand = CreateCommand({
       .addSubcommand((subcommand) =>
         subcommand
           .setName("group-audit")
-          .setDescription("Look up a player's group membership (group key required)")
+          .setDescription(
+            "Look up a player's group membership (group key required)",
+          )
           .addStringOption((option) =>
             option
               .setName("player")
@@ -128,7 +133,9 @@ export const RobloxCommand = CreateCommand({
       .addSubcommand((subcommand) =>
         subcommand
           .setName("group-info")
-          .setDescription("View the linked Roblox group's info (group key required)"),
+          .setDescription(
+            "View the linked Roblox group's info (group key required)",
+          ),
       )
       .addSubcommand((subcommand) =>
         subcommand

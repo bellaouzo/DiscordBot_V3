@@ -1,4 +1,7 @@
-import { ApiFeatureWithRequiredKey, GetRequiredFeatureApiKey } from "@config/ApiConfig";
+import {
+  ApiFeatureWithRequiredKey,
+  GetRequiredFeatureApiKey,
+} from "@config/ApiConfig";
 import { CommandContext } from "@commands";
 
 export function RequireFeatureApiKey(options: {

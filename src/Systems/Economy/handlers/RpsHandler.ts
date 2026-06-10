@@ -1,6 +1,7 @@
 import {
-  ButtonInteraction, ChatInputCommandInteraction,
-  MessageFlags
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
@@ -32,7 +33,7 @@ interface RpsCustomIds {
 
 function DetermineOutcome(
   player: RpsChoice,
-  bot: RpsChoice
+  bot: RpsChoice,
 ): "win" | "loss" | "draw" {
   if (player === bot) {
     return "draw";
@@ -49,7 +50,7 @@ function DetermineOutcome(
 
 export async function HandleRps(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
@@ -70,7 +71,7 @@ export async function HandleRps(
 
   const manager = new EconomyManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
   let balanceValue = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
@@ -78,21 +79,21 @@ export async function HandleRps(
   const hasReroll =
     rerollItem &&
     inventory.some(
-      (entry) => entry.itemId === rerollItem.id && entry.quantity > 0
+      (entry) => entry.itemId === rerollItem.id && entry.quantity > 0,
     );
   let rerollAvailable = hasReroll;
   const rpsShield = ITEM_MAP["rps-shield"];
   const hasShield =
     rpsShield &&
     inventory.some(
-      (entry) => entry.itemId === rpsShield.id && entry.quantity > 0
+      (entry) => entry.itemId === rpsShield.id && entry.quantity > 0,
     );
   let shieldAvailable = hasShield;
   const rpsEdge = ITEM_MAP["rps-edge"];
   const hasEdge =
     rpsEdge &&
     inventory.some(
-      (entry) => entry.itemId === rpsEdge.id && entry.quantity > 0
+      (entry) => entry.itemId === rpsEdge.id && entry.quantity > 0,
     );
   let edgeAvailable = hasEdge;
 
@@ -149,7 +150,7 @@ export async function HandleRps(
 
   const handleResult = async (
     buttonInteraction: ButtonInteraction,
-    playerChoice: RpsChoice
+    playerChoice: RpsChoice,
   ): Promise<void> => {
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
@@ -241,7 +242,7 @@ export async function HandleRps(
   };
 
   const handleCancel = async (
-    buttonInteraction: ButtonInteraction
+    buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
@@ -301,7 +302,7 @@ export async function HandleRps(
     rockRegistration,
     paperRegistration,
     scissorsRegistration,
-    cancelRegistration
+    cancelRegistration,
   );
   customIds.rock = rockRegistration.customId;
   customIds.paper = paperRegistration.customId;
@@ -315,7 +316,8 @@ export async function HandleRps(
 
   const replyResult = await interactionResponder.Reply(interaction, {
     embeds: [promptEmbed.toJSON()],
-    components: [BuildRpsButtons(customIds)],  });
+    components: [BuildRpsButtons(customIds)],
+  });
 
   if (!replyResult.success) {
     if (bet > 0) {

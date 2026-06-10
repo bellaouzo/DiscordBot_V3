@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { EmbedFactory, CreateWarnManager } from "@utilities";
@@ -11,7 +8,7 @@ const WARN_LIST_PAGE_SIZE = 6;
 
 async function ExecuteWarn(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const warnManager = CreateWarnManager({
     guildId: interaction.guild!.id,
@@ -40,7 +37,7 @@ async function ExecuteWarn(
 async function HandleAdd(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  warnManager: ReturnType<typeof CreateWarnManager>
+  warnManager: ReturnType<typeof CreateWarnManager>,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const targetUser = interaction.options.getUser("user", true);
@@ -77,7 +74,7 @@ async function HandleAdd(
 async function HandleRemove(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  warnManager: ReturnType<typeof CreateWarnManager>
+  warnManager: ReturnType<typeof CreateWarnManager>,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const targetUser = interaction.options.getUser("user", true);
@@ -154,7 +151,7 @@ async function HandleRemove(
 async function HandleList(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  warnManager: ReturnType<typeof CreateWarnManager>
+  warnManager: ReturnType<typeof CreateWarnManager>,
 ): Promise<void> {
   const { interactionResponder, paginatedResponder } = context.responders;
   const targetUser = interaction.options.getUser("user") ?? interaction.user;
@@ -186,7 +183,7 @@ async function HandleList(
 
 function BuildWarningPages(
   warnings: ReturnType<ReturnType<typeof CreateWarnManager>["GetUserWarnings"]>,
-  userTag: string
+  userTag: string,
 ): PaginationPage[] {
   const pages: PaginationPage[] = [];
 
@@ -210,7 +207,7 @@ function BuildWarningPages(
           value: `Mod: <@${warning.moderator_id}>\nReason: ${reason}`,
           inline: false,
         };
-      })
+      }),
     );
 
     pages.push({ embeds: [embed.toJSON()] });
@@ -235,14 +232,14 @@ export const WarnCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("User to warn")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addStringOption((option) =>
             option
               .setName("reason")
               .setDescription("Reason for the warning")
-              .setRequired(true)
-          )
+              .setRequired(true),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -252,16 +249,16 @@ export const WarnCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("User whose warning will be removed")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addIntegerOption((option) =>
             option
               .setName("warning_id")
               .setDescription(
-                "Specific warning number to remove (latest if omitted)"
+                "Specific warning number to remove (latest if omitted)",
               )
-              .setRequired(false)
-          )
+              .setRequired(false),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -271,10 +268,10 @@ export const WarnCommand = CreateCommand({
             option
               .setName("user")
               .setDescription(
-                "User to view warnings for (defaults to yourself)"
+                "User to view warnings for (defaults to yourself)",
               )
-              .setRequired(false)
-          )
+              .setRequired(false),
+          ),
       );
   },
 });

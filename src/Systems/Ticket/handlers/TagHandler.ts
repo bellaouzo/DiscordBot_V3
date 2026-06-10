@@ -1,6 +1,7 @@
 import {
-  ChatInputCommandInteraction, GuildMember, TextChannel,
-  MessageFlags
+  ChatInputCommandInteraction,
+  TextChannel,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import {
@@ -9,7 +10,7 @@ import {
   ValidateTicketChannelOrReply,
   GetTicketOrReply,
 } from "@systems/Ticket/validation/TicketValidation";
-import { EmbedFactory } from "@utilities";
+import { EmbedFactory, ResolveInteractionMember } from "@utilities";
 
 type TagAction = "add" | "remove" | "list";
 
@@ -19,7 +20,7 @@ function NormalizeTag(tag: string | null): string {
 
 export async function HandleTicketTag(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -30,9 +31,9 @@ export async function HandleTicketTag(
   }
 
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild!.id
+    interaction.guild!.id,
   );
-  const member = interaction.member as GuildMember | null;
+  const member = await ResolveInteractionMember(interaction);
 
   if (
     !HasStaffPermissions(member, {
@@ -52,11 +53,11 @@ export async function HandleTicketTag(
   }
 
   const { logger } = context;
-  const { ticketDb, ticketManager } = CreateTicketServices(
+  const { ticketDb, ticketPresentation } = CreateTicketServices(
     logger,
     interaction.guild!,
     context.databases.ticketDb,
-    context.databases.serverDb
+    context.databases.serverDb,
   );
 
   const channel = interaction.channel as TextChannel;
@@ -64,7 +65,7 @@ export async function HandleTicketTag(
     ticketDb,
     channel as never,
     interaction,
-    interactionResponder
+    interactionResponder,
   );
 
   if (!ticket) {
@@ -120,7 +121,7 @@ export async function HandleTicketTag(
     });
 
     if (added) {
-      await ticketManager.SyncTicketChannelEmbed(ticket);
+      await ticketPresentation.SyncTicketChannelEmbed(ticket);
     }
     return;
   }
@@ -142,7 +143,7 @@ export async function HandleTicketTag(
     });
 
     if (removed) {
-      await ticketManager.SyncTicketChannelEmbed(ticket);
+      await ticketPresentation.SyncTicketChannelEmbed(ticket);
     }
   }
 }

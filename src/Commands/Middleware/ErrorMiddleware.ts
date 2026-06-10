@@ -35,7 +35,7 @@ export const ErrorMiddleware: CommandMiddleware = {
         if (context.interaction.replied || context.interaction.deferred) {
           await context.responders.interactionResponder.Edit(
             context.interaction,
-            message
+            message,
           );
           return;
         }
@@ -45,7 +45,7 @@ export const ErrorMiddleware: CommandMiddleware = {
           {
             ...message,
             flags: MessageFlags.Ephemeral,
-          }
+          },
         );
       } catch (responderError) {
         context.logger.Error("Failed to send command error response", {
@@ -58,4 +58,3 @@ export const ErrorMiddleware: CommandMiddleware = {
     }
   },
 };
-

@@ -58,9 +58,8 @@ describe("HelpCommand lifecycle", () => {
       editReply: vi.fn().mockResolvedValue(undefined),
     } as unknown as ButtonInteraction;
 
-    const handled = await responders.componentRouter.HandleButton(
-      buttonInteraction
-    );
+    const handled =
+      await responders.componentRouter.HandleButton(buttonInteraction);
 
     expect(handled).toBe(true);
     expect(buttonInteraction.deferUpdate).toHaveBeenCalled();

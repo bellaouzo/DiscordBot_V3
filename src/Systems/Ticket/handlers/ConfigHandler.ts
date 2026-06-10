@@ -1,9 +1,6 @@
-import {
-  ChatInputCommandInteraction, GuildMember,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EmbedFactory } from "@utilities";
+import { EmbedFactory, ResolveInteractionMember } from "@utilities";
 import {
   CreateTicketServices,
   HasStaffPermissions,
@@ -12,7 +9,7 @@ import {
 
 export async function HandleTicketConfig(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const { logger } = context;
@@ -22,9 +19,9 @@ export async function HandleTicketConfig(
   }
 
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild!.id
+    interaction.guild!.id,
   );
-  const member = interaction.member as GuildMember | null;
+  const member = await ResolveInteractionMember(interaction);
 
   if (
     !HasStaffPermissions(member, {
@@ -48,7 +45,7 @@ export async function HandleTicketConfig(
     logger,
     interaction.guild!,
     context.databases.ticketDb,
-    context.databases.serverDb
+    context.databases.serverDb,
   );
   const guildId = interaction.guild!.id;
 
@@ -68,7 +65,7 @@ export async function HandleTicketConfig(
     if (categories.length > 0) {
       const lines = categories.map(
         (cat) =>
-          `${cat.emoji} **${cat.label}** (\`${cat.value}\`) — ${cat.description}`
+          `${cat.emoji} **${cat.label}** (\`${cat.value}\`) — ${cat.description}`,
       );
       embed.addFields({
         name: "Categories",
@@ -87,8 +84,7 @@ export async function HandleTicketConfig(
   if (action === "add") {
     const value = interaction.options.getString("value", true);
     const label = interaction.options.getString("label", true);
-    const description =
-      interaction.options.getString("description") ?? label;
+    const description = interaction.options.getString("description") ?? label;
     const emoji = interaction.options.getString("emoji") ?? "📝";
 
     const existing = ticketDb.GetCategoryConfig(guildId, value);

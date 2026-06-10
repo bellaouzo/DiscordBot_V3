@@ -17,7 +17,7 @@ import { SetupDraft } from "../state";
 
 function FormatRoleList(
   roleIds: string[],
-  guild: ChatInputCommandInteraction["guild"]
+  guild: ChatInputCommandInteraction["guild"],
 ): string {
   if (!roleIds || roleIds.length === 0) {
     return "No roles selected (required)";
@@ -38,7 +38,7 @@ function FormatRoleList(
 function FormatCategory(
   categoryId: string | null,
   guild: ChatInputCommandInteraction["guild"],
-  fallbackName: string
+  fallbackName: string,
 ): string {
   if (!categoryId) {
     return `Auto-manage **${fallbackName}**`;
@@ -55,7 +55,7 @@ function FormatCategory(
 function FormatChannel(
   channelId: string | null,
   guild: ChatInputCommandInteraction["guild"],
-  fallbackName: string
+  fallbackName: string,
 ): string {
   if (!channelId) {
     return `Auto-manage **${fallbackName}**`;
@@ -70,7 +70,7 @@ function FormatChannel(
 function FormatChannelAllowNone(
   channelId: string | null,
   guild: ChatInputCommandInteraction["guild"],
-  fallbackName: string
+  fallbackName: string,
 ): string {
   if (channelId === null) {
     return "Disabled";
@@ -111,7 +111,7 @@ export function BuildSetupEmbed(options: {
         name: "Mod Roles",
         value: FormatRoleList(draft.modRoleIds, guild),
         inline: true,
-      }
+      },
     );
   } else if (step === 2) {
     fields.push(
@@ -120,7 +120,7 @@ export function BuildSetupEmbed(options: {
         value: FormatCategory(
           draft.ticketCategoryId,
           guild,
-          DEFAULT_TICKET_CATEGORY
+          DEFAULT_TICKET_CATEGORY,
         ),
         inline: false,
       },
@@ -129,7 +129,7 @@ export function BuildSetupEmbed(options: {
         value: FormatCategory(
           draft.appealReviewCategoryId,
           guild,
-          DEFAULT_APPEAL_CATEGORY
+          DEFAULT_APPEAL_CATEGORY,
         ),
         inline: false,
       },
@@ -138,7 +138,8 @@ export function BuildSetupEmbed(options: {
         value: FormatChannel(
           draft.deleteLogChannelId,
           guild,
-          loggingDefaults.messageDeleteChannelName || DEFAULT_DELETE_LOG_CHANNEL
+          loggingDefaults.messageDeleteChannelName ||
+            DEFAULT_DELETE_LOG_CHANNEL,
         ),
         inline: true,
       },
@@ -147,10 +148,10 @@ export function BuildSetupEmbed(options: {
         value: FormatChannel(
           draft.commandLogChannelId,
           guild,
-          loggingDefaults.commandLogChannelName
+          loggingDefaults.commandLogChannelName,
         ),
         inline: true,
-      }
+      },
     );
   } else if (step === 3) {
     fields.push(
@@ -164,7 +165,7 @@ export function BuildSetupEmbed(options: {
         value: FormatChannel(
           draft.announcementChannelId,
           guild,
-          DEFAULT_ANNOUNCEMENT_CHANNEL
+          DEFAULT_ANNOUNCEMENT_CHANNEL,
         ),
         inline: true,
       },
@@ -173,7 +174,8 @@ export function BuildSetupEmbed(options: {
         value: FormatChannelAllowNone(
           draft.productionLogChannelId,
           guild,
-          loggingDefaults.deployLogChannelName || DEFAULT_PRODUCTION_LOG_CHANNEL
+          loggingDefaults.deployLogChannelName ||
+            DEFAULT_PRODUCTION_LOG_CHANNEL,
         ),
         inline: true,
       },
@@ -181,7 +183,7 @@ export function BuildSetupEmbed(options: {
         name: "Welcome Channel",
         value: FormatChannel(draft.welcomeChannelId, guild, "welcome"),
         inline: true,
-      }
+      },
     );
   }
 

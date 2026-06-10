@@ -1,9 +1,14 @@
 import {
-  ChatInputCommandInteraction, TextChannel,
-  MessageFlags
+  ChatInputCommandInteraction,
+  TextChannel,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
-import { EmbedFactory, TranscriptGenerator } from "@utilities";
+import {
+  EmbedFactory,
+  TranscriptGenerator,
+  ResolveInteractionMember,
+} from "@utilities";
 import {
   CreateTicketServices,
   ValidateTicketChannelOrReply,
@@ -13,7 +18,7 @@ import {
 
 export async function HandleTicketTranscript(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const { logger } = context;
@@ -22,11 +27,13 @@ export async function HandleTicketTranscript(
     return;
 
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild!.id
+    interaction.guild!.id,
   );
 
+  const member = await ResolveInteractionMember(interaction);
+
   if (
-    !HasStaffPermissions(interaction.member, {
+    !HasStaffPermissions(member, {
       adminRoleIds: settings?.admin_role_ids,
       modRoleIds: settings?.mod_role_ids,
     })
@@ -42,26 +49,26 @@ export async function HandleTicketTranscript(
     return;
   }
 
-  const { ticketDb, ticketManager, guildResourceLocator } =
+  const { ticketDb, ticketLogService, guildResourceLocator } =
     CreateTicketServices(
       logger,
       interaction.guild!,
       context.databases.ticketDb,
-      context.databases.serverDb
+      context.databases.serverDb,
     );
   const ticket = await GetTicketOrReply(
     ticketDb,
     interaction.channel as TextChannel,
     interaction,
-    interactionResponder
+    interactionResponder,
   );
 
   if (!ticket) return;
 
   const messages = ticketDb.GetTicketMessages(ticket.id);
-  const member = await guildResourceLocator.GetMember(ticket.user_id);
+  const ticketOwner = await guildResourceLocator.GetMember(ticket.user_id);
   const user =
-    member?.user || (await interaction.client.users.fetch(ticket.user_id));
+    ticketOwner?.user || (await interaction.client.users.fetch(ticket.user_id));
   const participantHistory = ticketDb.GetParticipantHistory(ticket.id);
 
   const transcript = TranscriptGenerator.Generate({
@@ -74,7 +81,7 @@ export async function HandleTicketTranscript(
 
   const filename = TranscriptGenerator.GenerateFileName(ticket);
 
-  const logsChannel = await ticketManager.GetOrCreateTicketLogsChannel();
+  const logsChannel = await ticketLogService.GetOrCreateTicketLogsChannel();
 
   if (logsChannel) {
     const logEmbed = EmbedFactory.CreateSuccess({
@@ -106,6 +113,3 @@ export async function HandleTicketTranscript(
     });
   }
 }
-
-
-

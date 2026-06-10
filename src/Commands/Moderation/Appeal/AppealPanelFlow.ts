@@ -1,12 +1,16 @@
 import {
   ButtonStyle,
   ChatInputCommandInteraction,
-  GuildMember,
   TextChannel,
-  MessageFlags
+  MessageFlags,
 } from "discord.js";
 import { CommandContext } from "@commands";
-import { ComponentFactory, EmbedFactory, ToActionRowData } from "@utilities";
+import {
+  ComponentFactory,
+  EmbedFactory,
+  ToActionRowData,
+  ResolveInteractionMember,
+} from "@utilities";
 import { BeginAppealSubmission } from "@commands/Moderation/Appeal/AppealSubmitFlow";
 import { IsAppealReviewer } from "@commands/Moderation/Appeal/AppealShared";
 
@@ -30,7 +34,10 @@ export function RegisterAppealPanelButton(context: CommandContext): void {
         return;
       }
 
-      const deferred = await interactionResponder.Defer(buttonInteraction, true);
+      const deferred = await interactionResponder.Defer(
+        buttonInteraction,
+        true,
+      );
       if (!deferred.success) {
         return;
       }
@@ -46,7 +53,7 @@ export function RegisterAppealPanelButton(context: CommandContext): void {
 
 export async function HandlePanel(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   if (!interaction.guild) {
@@ -61,8 +68,10 @@ export async function HandlePanel(
     return;
   }
 
-  const settings = context.databases.serverDb.GetGuildSettings(interaction.guild.id);
-  const member = interaction.member as GuildMember | null;
+  const settings = context.databases.serverDb.GetGuildSettings(
+    interaction.guild.id,
+  );
+  const member = await ResolveInteractionMember(interaction);
   if (
     !IsAppealReviewer(member, {
       adminRoleIds: settings?.admin_role_ids,

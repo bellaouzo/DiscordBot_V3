@@ -26,7 +26,7 @@ export const DiscordLoggingMiddleware: CommandMiddleware = {
 
       await discordLogger.LogCommandExecution(
         context.interaction,
-        context.command
+        context.command,
       );
 
       await AppendCommandLog(context.interaction, context.command);

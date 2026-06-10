@@ -1,6 +1,7 @@
 import {
-  ButtonInteraction, ChatInputCommandInteraction,
-  MessageFlags
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
@@ -30,7 +31,7 @@ interface FlipCustomIds {
 
 export async function HandleFlip(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
@@ -53,7 +54,7 @@ export async function HandleFlip(
 
   const manager = new EconomyManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
   let balanceValue = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
@@ -63,17 +64,17 @@ export async function HandleFlip(
   const hasLuckyCoin =
     luckyCoin &&
     inventory.some(
-      (entry) => entry.itemId === luckyCoin.id && entry.quantity > 0
+      (entry) => entry.itemId === luckyCoin.id && entry.quantity > 0,
     );
   const hasFlipCharm =
     flipCharm &&
     inventory.some(
-      (entry) => entry.itemId === flipCharm.id && entry.quantity > 0
+      (entry) => entry.itemId === flipCharm.id && entry.quantity > 0,
     );
   const hasCoinGuardian =
     coinGuardian &&
     inventory.some(
-      (entry) => entry.itemId === coinGuardian.id && entry.quantity > 0
+      (entry) => entry.itemId === coinGuardian.id && entry.quantity > 0,
     );
 
   if (bet > balanceValue) {
@@ -133,7 +134,7 @@ export async function HandleFlip(
 
   const handleResult = async (
     buttonInteraction: ButtonInteraction,
-    playerChoice: FlipChoice
+    playerChoice: FlipChoice,
   ): Promise<void> => {
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
@@ -219,7 +220,7 @@ export async function HandleFlip(
   };
 
   const handleCancel = async (
-    buttonInteraction: ButtonInteraction
+    buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
@@ -283,7 +284,8 @@ export async function HandleFlip(
 
   const replyResult = await interactionResponder.Reply(interaction, {
     embeds: [promptEmbed.toJSON()],
-    components: [BuildFlipButtons(customIds)],  });
+    components: [BuildFlipButtons(customIds)],
+  });
 
   if (!replyResult.success) {
     // Refund and dispose on failure to send

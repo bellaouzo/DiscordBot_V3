@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -32,7 +29,7 @@ function BuildTempActionPages(entries: TempAction[]): PaginationPage[] {
           value: `<@${entry.user_id}> expires ${expires}\nMod: <@${entry.moderator_id}>\n${reason}`,
           inline: false,
         };
-      })
+      }),
     );
 
     pages.push({ embeds: [embed.toJSON()] });
@@ -43,7 +40,7 @@ function BuildTempActionPages(entries: TempAction[]): PaginationPage[] {
 
 async function ExecuteTempActions(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder, paginatedResponder } = context.responders;
   const db = context.databases.moderationDb;

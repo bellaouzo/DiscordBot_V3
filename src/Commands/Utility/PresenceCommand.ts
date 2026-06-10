@@ -4,7 +4,7 @@ import {
   PresenceData,
   PresenceStatusData,
   type ActivitiesOptions,
-  MessageFlags
+  MessageFlags,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
@@ -18,7 +18,7 @@ type ActivityKind =
   | "streaming";
 
 const sanitizeStatus = (
-  status?: PresenceStatusData | string | null
+  status?: PresenceStatusData | string | null,
 ): PresenceStatusData => {
   if (
     status === "online" ||
@@ -48,7 +48,7 @@ function mapActivityType(kind: ActivityKind): ActivityType {
 
 async function HandleStatus(
   interaction: ChatInputCommandInteraction,
-  status: PresenceStatusData
+  status: PresenceStatusData,
 ): Promise<void> {
   if (!interaction.client.user) {
     throw new Error("Client user unavailable.");
@@ -68,7 +68,7 @@ async function HandleActivity(
     name: string;
     kind: ActivityKind;
     url?: string | null;
-  }
+  },
 ): Promise<void> {
   if (!interaction.client.user) {
     throw new Error("Client user unavailable.");
@@ -96,7 +96,7 @@ async function HandleActivity(
 }
 
 async function HandleClearActivity(
-  interaction: ChatInputCommandInteraction
+  interaction: ChatInputCommandInteraction,
 ): Promise<void> {
   if (!interaction.client.user) {
     throw new Error("Client user unavailable.");
@@ -111,7 +111,7 @@ async function HandleClearActivity(
 
 async function ExecutePresence(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -133,7 +133,7 @@ async function ExecutePresence(
     if (sub === "status") {
       const status = interaction.options.getString(
         "status",
-        true
+        true,
       ) as PresenceStatusData;
       await HandleStatus(interaction, status);
 
@@ -211,9 +211,9 @@ export const PresenceCommand = CreateCommand({
                 { name: "Online", value: "online" },
                 { name: "Idle", value: "idle" },
                 { name: "Do Not Disturb", value: "dnd" },
-                { name: "Invisible", value: "invisible" }
-              )
-          )
+                { name: "Invisible", value: "invisible" },
+              ),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -223,7 +223,7 @@ export const PresenceCommand = CreateCommand({
             option
               .setName("name")
               .setDescription("Activity text")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addStringOption((option) =>
             option
@@ -235,22 +235,20 @@ export const PresenceCommand = CreateCommand({
                 { name: "Listening", value: "listening" },
                 { name: "Watching", value: "watching" },
                 { name: "Competing", value: "competing" },
-                { name: "Streaming", value: "streaming" }
-              )
+                { name: "Streaming", value: "streaming" },
+              ),
           )
           .addStringOption((option) =>
             option
               .setName("url")
               .setDescription("Streaming URL (only for streaming)")
-              .setRequired(false)
-          )
+              .setRequired(false),
+          ),
       )
       .addSubcommand((sub) =>
-        sub.setName("clearactivity").setDescription("Clear the bot's activity")
+        sub.setName("clearactivity").setDescription("Clear the bot's activity"),
       );
   },
   config: Config.admin(5),
   execute: ExecutePresence,
 });
-
-

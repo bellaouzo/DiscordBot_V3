@@ -70,54 +70,54 @@ export function CreateEmptySettings(guild_id: string): GuildSettings {
 
 export async function SanitizeGuildSettings(
   guild: ChatInputCommandInteraction["guild"],
-  settings: GuildSettings
+  settings: GuildSettings,
 ): Promise<GuildSettings> {
   const ticketCategoryId = await ResolveExistingChannelId(
     guild,
     settings.ticket_category_id,
-    ChannelType.GuildCategory
+    ChannelType.GuildCategory,
   );
 
   const appealReviewCategoryId = await ResolveExistingChannelId(
     guild,
     settings.appeal_review_category_id,
-    ChannelType.GuildCategory
+    ChannelType.GuildCategory,
   );
 
   const commandLogChannelId = await ResolveExistingChannelId(
     guild,
     settings.command_log_channel_id,
-    ChannelType.GuildText
+    ChannelType.GuildText,
   );
 
   const ticketLogChannelId = await ResolveExistingChannelId(
     guild,
     settings.ticket_log_channel_id,
-    ChannelType.GuildText
+    ChannelType.GuildText,
   );
 
   const announcementChannelId = await ResolveExistingChannelId(
     guild,
     settings.announcement_channel_id,
-    ChannelType.GuildText
+    ChannelType.GuildText,
   );
 
   const deleteLogChannelId = await ResolveExistingChannelId(
     guild,
     settings.delete_log_channel_id,
-    ChannelType.GuildText
+    ChannelType.GuildText,
   );
 
   const productionLogChannelId = await ResolveExistingChannelId(
     guild,
     settings.production_log_channel_id,
-    ChannelType.GuildText
+    ChannelType.GuildText,
   );
 
   const welcomeChannelId = await ResolveExistingChannelId(
     guild,
     settings.welcome_channel_id,
-    ChannelType.GuildText
+    ChannelType.GuildText,
   );
 
   return {
@@ -136,7 +136,7 @@ export async function SanitizeGuildSettings(
 export async function ResolveExistingChannelId(
   guild: ChatInputCommandInteraction["guild"],
   channelId: string | null,
-  expectedType: ChannelType
+  expectedType: ChannelType,
 ): Promise<string | null> {
   if (!channelId) {
     return null;

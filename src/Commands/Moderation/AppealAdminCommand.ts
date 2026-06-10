@@ -8,12 +8,15 @@ import {
   SlashCommandIntegerOption,
 } from "@commands";
 import { Config } from "@middleware";
-import { HandleList, HandleReview } from "@commands/Moderation/Appeal/AppealReviewFlow";
+import {
+  HandleList,
+  HandleReview,
+} from "@commands/Moderation/Appeal/AppealReviewFlow";
 import { HandlePanel } from "@commands/Moderation/Appeal/AppealPanelFlow";
 
 async function ExecuteAppealAdmin(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const subcommand = interaction.options.getSubcommand(true);
 
@@ -43,10 +46,10 @@ export const AppealAdminCommand = CreateCommand({
       .addSubcommand((sub: SlashCommandSubcommandBuilder) =>
         sub
           .setName("panel")
-          .setDescription("Post an appeal panel in this channel")
+          .setDescription("Post an appeal panel in this channel"),
       )
       .addSubcommand((sub: SlashCommandSubcommandBuilder) =>
-        sub.setName("list").setDescription("View open appeals")
+        sub.setName("list").setDescription("View open appeals"),
       )
       .addSubcommand((sub: SlashCommandSubcommandBuilder) =>
         sub
@@ -56,7 +59,7 @@ export const AppealAdminCommand = CreateCommand({
             option
               .setName("appeal_id")
               .setDescription("Appeal ID to resolve")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addStringOption((option: SlashCommandStringOption) =>
             option
@@ -65,15 +68,15 @@ export const AppealAdminCommand = CreateCommand({
               .setRequired(true)
               .addChoices(
                 { name: "Approve", value: "approved" },
-                { name: "Deny", value: "denied" }
-              )
+                { name: "Deny", value: "denied" },
+              ),
           )
           .addStringOption((option: SlashCommandStringOption) =>
             option
               .setName("review_reason")
               .setDescription("Reason for approval or denial")
-              .setRequired(false)
-          )
+              .setRequired(false),
+          ),
       );
   },
 });

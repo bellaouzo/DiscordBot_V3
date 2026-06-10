@@ -1,10 +1,10 @@
-import { Events, GuildMember, Message, TextChannel } from "discord.js";
+import { Events, Message, TextChannel } from "discord.js";
 import { CreateEvent, EventContext } from "@events/EventFactory";
-import { EmbedFactory, IsModerator } from "@utilities";
+import { EmbedFactory, IsModerator, ResolveMessageMember } from "@utilities";
 
 async function ExecuteMessageCreateEvent(
   context: EventContext,
-  msg: Message
+  msg: Message,
 ): Promise<void> {
   if (!msg.guild || !msg.channel.isTextBased() || msg.author.bot) {
     return;
@@ -12,16 +12,13 @@ async function ExecuteMessageCreateEvent(
 
   try {
     const settings = context.databases.serverDb.GetGuildSettings(msg.guild.id);
-    const member =
-      msg.member ??
-      (await msg.guild.members
-        ?.fetch(msg.author.id)
-        .catch(() => null) ??
-        null);
-    const isStaff = IsModerator(member as GuildMember | null, settings);
+    const member = await ResolveMessageMember(msg);
+    const isStaff = IsModerator(member, settings);
 
     if (!isStaff) {
-      const filters = context.databases.moderationDb.ListLinkFilters(msg.guild.id);
+      const filters = context.databases.moderationDb.ListLinkFilters(
+        msg.guild.id,
+      );
       const allow = filters
         .filter((f) => f.type === "allow")
         .map((f) => f.pattern);
@@ -51,13 +48,15 @@ async function ExecuteMessageCreateEvent(
           await msg.author.send({ embeds: [notice.toJSON()] });
           notified = true;
         } catch (error) {
-          context.logger.Warn("Failed to DM user about blocked link", { error });
+          context.logger.Warn("Failed to DM user about blocked link", {
+            error,
+          });
         }
 
         if (!notified && settings?.delete_log_channel_id) {
           try {
             const logChannel = await msg.guild.channels.fetch(
-              settings.delete_log_channel_id
+              settings.delete_log_channel_id,
             );
             if (logChannel?.isTextBased()) {
               await (logChannel as TextChannel).send({
@@ -66,9 +65,12 @@ async function ExecuteMessageCreateEvent(
               });
             }
           } catch (error) {
-            context.logger.Error("Failed to send link block notice to log channel", {
-              error,
-            });
+            context.logger.Error(
+              "Failed to send link block notice to log channel",
+              {
+                error,
+              },
+            );
           }
         }
 
@@ -76,13 +78,19 @@ async function ExecuteMessageCreateEvent(
       }
     }
 
-    const ticket = context.databases.ticketDb.GetTicketByChannel(msg.channel.id);
+    const ticket = context.databases.ticketDb.GetTicketByChannel(
+      msg.channel.id,
+    );
     if (!ticket) {
       return;
     }
 
     const messageContent = msg.content || "[Embed or Attachment]";
-    context.databases.ticketDb.AddMessage(ticket.id, msg.author.id, messageContent);
+    context.databases.ticketDb.AddMessage(
+      ticket.id,
+      msg.author.id,
+      messageContent,
+    );
   } catch (error) {
     context.logger.Error("Failed to process message", { error });
   }

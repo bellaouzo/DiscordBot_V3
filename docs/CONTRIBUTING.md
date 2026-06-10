@@ -8,7 +8,14 @@ Guidelines for contributing to Discord Bot V3: coding standards, scripts, and wh
 2. **Test:** `npm run test` must pass.
 3. **Format:** Code should follow project style. Run `npm run format` to apply Prettier to `src/`, or `npm run format:check` to verify without changing files.
 
-CI runs `npm run lint`, `npm run test`, and a [Gitleaks](https://github.com/gitleaks/gitleaks) scan on push and pull requests to `main`/`master`. Workflow: [.github/workflows/ci.yml](../.github/workflows/ci.yml). The leak scan uses full git history (`fetch-depth: 0`) so moved or renamed secrets in older commits are still detected.
+CI runs `npm audit --audit-level=high`, `npm run lint`, `npm run test`, `npm run test:coverage`, and a [Gitleaks](https://github.com/gitleaks/gitleaks) scan on push and pull requests to `main`/`master`. Workflow: [.github/workflows/ci.yml](../.github/workflows/ci.yml).
+
+### Dependency audit policy
+
+- CI **fails** when `npm audit` reports **high** or **critical** severity advisories.
+- Moderate and low advisories are logged but do not block merges.
+- When audit fails, prefer `npm audit fix` or a targeted dependency bump in the same PR. Document any justified exceptions in the PR description.
+- The leak scan uses full git history (`fetch-depth: 0`) so moved or renamed secrets in older commits are still detected.
 
 ## Coding standards
 

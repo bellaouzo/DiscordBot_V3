@@ -1,5 +1,40 @@
 import { Appeal } from "@database";
 import { EmbedFactory } from "@utilities";
+import { PaginationPage } from "@shared/Paginator";
+
+export const APPEAL_LIST_PAGE_SIZE = 10;
+
+export function BuildAppealListPages(appeals: Appeal[]): PaginationPage[] {
+  const pages: PaginationPage[] = [];
+
+  for (let index = 0; index < appeals.length; index += APPEAL_LIST_PAGE_SIZE) {
+    const slice = appeals.slice(index, index + APPEAL_LIST_PAGE_SIZE);
+    const start = index + 1;
+    const end = index + slice.length;
+
+    const embed = EmbedFactory.Create({
+      title: "Open Appeals",
+      description: `Showing ${start} - ${end} of ${appeals.length} open appeal(s).`,
+    });
+
+    embed.addFields(
+      slice.map((appeal) => {
+        const channelLink = appeal.review_channel_id
+          ? `<#${appeal.review_channel_id}>`
+          : "No review channel";
+        return {
+          name: `#${appeal.id} — ${appeal.action_type.toUpperCase()}`,
+          value: `User: <@${appeal.user_id}>\nChannel: ${channelLink}\nCreated: <t:${Math.floor(appeal.created_at / 1000)}:R>`,
+          inline: false,
+        };
+      }),
+    );
+
+    pages.push({ embeds: [embed.toJSON()] });
+  }
+
+  return pages;
+}
 
 export function BuildAppealReviewEmbed(data: {
   appeal: Appeal;
@@ -33,7 +68,9 @@ export function BuildAppealReviewEmbed(data: {
   ]);
 
   if (data.appeal.evidence) {
-    embed.addFields([{ name: "Evidence", value: data.appeal.evidence, inline: false }]);
+    embed.addFields([
+      { name: "Evidence", value: data.appeal.evidence, inline: false },
+    ]);
   }
 
   return embed;

@@ -33,7 +33,7 @@ describe("SafeJson", () => {
         (d): d is { id: number } =>
           typeof d === "object" &&
           d !== null &&
-          typeof (d as { id: unknown }).id === "number"
+          typeof (d as { id: unknown }).id === "number",
       );
       expect(result.success).toBe(false);
       expect(result.error).toBe("Validation failed");
@@ -45,7 +45,7 @@ describe("SafeJson", () => {
         (d): d is { id: number } =>
           typeof d === "object" &&
           d !== null &&
-          typeof (d as { id: unknown }).id === "number"
+          typeof (d as { id: unknown }).id === "number",
       );
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ id: 42 });

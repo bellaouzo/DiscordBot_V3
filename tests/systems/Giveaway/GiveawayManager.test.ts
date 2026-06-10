@@ -70,7 +70,7 @@ describe("GiveawayManager", () => {
       created_at: Date.now(),
     };
     vi.mocked(databases.userDb.CreateGiveaway).mockReturnValue(
-      giveaway as never
+      giveaway as never,
     );
     const manager = new GiveawayManager(guildId, databases.userDb);
     const result = manager.SaveGiveaway({
@@ -122,12 +122,12 @@ describe("GiveawayManager", () => {
       created_at: Date.now(),
     };
     vi.mocked(databases.userDb.GetGiveawayByMessageId).mockReturnValue(
-      giveaway as never
+      giveaway as never,
     );
     const manager = new GiveawayManager(guildId, databases.userDb);
     expect(manager.GetGiveaway("msg1")).toEqual(giveaway);
     expect(databases.userDb.GetGiveawayByMessageId).toHaveBeenCalledWith(
-      "msg1"
+      "msg1",
     );
   });
 });

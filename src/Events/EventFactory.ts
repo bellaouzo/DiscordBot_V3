@@ -37,7 +37,7 @@ export interface EventFactoryOptions<K extends keyof ClientEvents> {
 }
 
 export function CreateEvent<K extends keyof ClientEvents>(
-  options: EventFactoryOptions<K>
+  options: EventFactoryOptions<K>,
 ): EventDefinition<K> {
   return {
     name: options.name,

@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EmbedFactory } from "@utilities";
 import { CreateTicketServices } from "@systems/Ticket/validation/TicketValidation";
@@ -13,7 +10,7 @@ import { HandleTicketQueue } from "@systems/Ticket/handlers/QueueHandler";
 
 export async function HandleTicketList(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const scope = interaction.options.getString("scope") ?? "mine";
 
@@ -42,11 +39,11 @@ export async function HandleTicketList(
     logger,
     interaction.guild,
     context.databases.ticketDb,
-    context.databases.serverDb
+    context.databases.serverDb,
   );
   const tickets = ticketDb.GetUserTickets(
     interaction.user.id,
-    interaction.guild.id
+    interaction.guild.id,
   );
   const tagMap = ticketDb.GetTagsForTickets(tickets.map((t) => t.id));
   const ticketsWithTags = tickets.map((ticket) => ({
@@ -79,16 +76,16 @@ export async function HandleTicketList(
   RegisterTicketListButtons(
     componentRouter,
     buttonResponder,
-      ticketsWithTags,
+    ticketsWithTags,
     interaction.user.id,
-    totalPages
+    totalPages,
   );
 
   const firstPage = CreateTicketListPage(
     ticketsWithTags,
     0,
     pageSize,
-    totalPages
+    totalPages,
   );
   await interactionResponder.Reply(interaction, {
     embeds: firstPage.embeds,
@@ -96,6 +93,3 @@ export async function HandleTicketList(
     flags: MessageFlags.Ephemeral,
   });
 }
-
-
-

@@ -22,7 +22,7 @@ describe("EconomyManager", () => {
     expect(databases.userDb.EnsureBalance).toHaveBeenCalledWith(
       "u1",
       guildId,
-      100
+      100,
     );
   });
 

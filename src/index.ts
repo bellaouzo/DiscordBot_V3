@@ -25,6 +25,7 @@ import {
   RegisterInteractionHandlers,
   RegisterCommandHandler,
 } from "./interaction-handlers";
+import { ConfigureCooldownPersistence } from "@middleware/CooldownState";
 import { TempActionScheduler } from "./Moderation/TempActionScheduler";
 import { RaidModeScheduler } from "./Moderation/RaidModeScheduler";
 import { GiveawayScheduler } from "@systems/Giveaway/GiveawayScheduler";
@@ -52,7 +53,7 @@ async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     throw new Error(
       `Strict feature key validation failed:\n${strictViolations
         .map((entry) => `- ${entry.message}`)
-        .join("\n")}`
+        .join("\n")}`,
     );
   }
 
@@ -75,6 +76,11 @@ async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     serverDb: new ServerDatabase(logger.Child({ phase: "server-db" })),
     ticketDb: new TicketDatabase(logger.Child({ phase: "ticket-db" })),
   };
+
+  if (process.env.COOLDOWN_PERSIST === "1") {
+    ConfigureCooldownPersistence(databases.serverDb);
+    logger.Info("Command cooldown persistence enabled (SQLite)");
+  }
 
   const responders = CreateResponders({ logger });
 
@@ -120,7 +126,7 @@ async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
   const giveawayScheduler = new GiveawayScheduler(
     bot.client,
     databases.userDb,
-    logger.Child({ phase: "giveaways" })
+    logger.Child({ phase: "giveaways" }),
   );
 
   const loadedCommands = await loadCommands();

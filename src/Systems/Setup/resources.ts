@@ -7,7 +7,7 @@ import {
 import { SetupResources } from "./state";
 
 export function CollectResources(
-  guild: ChatInputCommandInteraction["guild"]
+  guild: ChatInputCommandInteraction["guild"],
 ): SetupResources {
   const roles = guild?.roles.cache
     .filter((role) => role.id !== guild.id && !role.managed)
@@ -22,7 +22,7 @@ export function CollectResources(
     .filter(
       (channel) =>
         channel.type === ChannelType.GuildText &&
-        !channel.name.toLowerCase().startsWith("ticket-")
+        !channel.name.toLowerCase().startsWith("ticket-"),
     )
     .map((channel) => channel as TextChannel)
     .sort((a, b) => b.rawPosition - a.rawPosition);
@@ -33,4 +33,3 @@ export function CollectResources(
     textChannels: textChannels ?? [],
   };
 }
-

@@ -2,6 +2,7 @@ import {
   ButtonInteraction,
   ChatInputCommandInteraction,
   Client,
+  DiscordAPIError,
   Events,
   Interaction,
   MessageFlags,
@@ -27,7 +28,7 @@ export interface InteractionHandlerDependencies {
 }
 
 export function RegisterInteractionHandlers(
-  dependencies: InteractionHandlerDependencies
+  dependencies: InteractionHandlerDependencies,
 ): void {
   dependencies.client.on(Events.InteractionCreate, async (interaction) => {
     await DispatchComponentInteraction(interaction, dependencies);
@@ -36,13 +37,13 @@ export function RegisterInteractionHandlers(
 
 async function DispatchComponentInteraction(
   interaction: Interaction,
-  dependencies: InteractionHandlerDependencies
+  dependencies: InteractionHandlerDependencies,
 ): Promise<void> {
   if (interaction.isButton()) {
     await HandleButtonInteraction(
       interaction,
       dependencies.componentRouter,
-      dependencies.logger
+      dependencies.logger,
     );
     return;
   }
@@ -51,7 +52,7 @@ async function DispatchComponentInteraction(
     await HandleSelectMenuInteraction(
       interaction,
       dependencies.selectMenuRouter,
-      dependencies.logger
+      dependencies.logger,
     );
     return;
   }
@@ -60,7 +61,7 @@ async function DispatchComponentInteraction(
     await HandleUserSelectMenuInteraction(
       interaction,
       dependencies.userSelectMenuRouter,
-      dependencies.logger
+      dependencies.logger,
     );
     return;
   }
@@ -69,7 +70,7 @@ async function DispatchComponentInteraction(
     await HandleModalInteraction(
       interaction,
       dependencies.modalRouter,
-      dependencies.logger
+      dependencies.logger,
     );
   }
 }
@@ -77,14 +78,14 @@ async function DispatchComponentInteraction(
 async function HandleButtonInteraction(
   interaction: ButtonInteraction,
   router: ComponentRouter,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> {
   const handled = await router.HandleButton(interaction);
   if (!handled) {
     await ReplyToUnhandledInteraction(
       interaction,
       logger,
-      "Unhandled button interaction"
+      "Unhandled button interaction",
     );
   }
 }
@@ -92,14 +93,14 @@ async function HandleButtonInteraction(
 async function HandleSelectMenuInteraction(
   interaction: StringSelectMenuInteraction,
   router: SelectMenuRouter,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> {
   const handled = await router.HandleSelectMenu(interaction);
   if (!handled) {
     await ReplyToUnhandledInteraction(
       interaction,
       logger,
-      "Unhandled select menu interaction"
+      "Unhandled select menu interaction",
     );
   }
 }
@@ -107,14 +108,14 @@ async function HandleSelectMenuInteraction(
 async function HandleUserSelectMenuInteraction(
   interaction: UserSelectMenuInteraction,
   router: UserSelectMenuRouter,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> {
   const handled = await router.HandleUserSelectMenu(interaction);
   if (!handled) {
     await ReplyToUnhandledInteraction(
       interaction,
       logger,
-      "Unhandled user select menu interaction"
+      "Unhandled user select menu interaction",
     );
   }
 }
@@ -122,14 +123,14 @@ async function HandleUserSelectMenuInteraction(
 async function HandleModalInteraction(
   interaction: ModalSubmitInteraction,
   router: ModalRouter,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> {
   const handled = await router.HandleModal(interaction);
   if (!handled) {
     await ReplyToUnhandledInteraction(
       interaction,
       logger,
-      "Unhandled modal interaction"
+      "Unhandled modal interaction",
     );
   }
 }
@@ -141,7 +142,7 @@ async function ReplyToUnhandledInteraction(
     | UserSelectMenuInteraction
     | ModalSubmitInteraction,
   logger: Logger,
-  logMessage: string
+  logMessage: string,
 ): Promise<void> {
   logger.Debug(logMessage, {
     extra: {
@@ -158,14 +159,32 @@ async function ReplyToUnhandledInteraction(
       content: "This interaction is no longer available.",
       flags: MessageFlags.Ephemeral,
     })
-    .catch(() => {});
+    .catch((error: unknown) => {
+      const code =
+        error instanceof DiscordAPIError ? String(error.code) : undefined;
+      const isExpected =
+        code === "10062" || code === "40060" || code === "10008";
+
+      if (isExpected) {
+        logger.Debug("Could not reply to unhandled interaction", {
+          extra: { customId: interaction.customId, code },
+          error,
+        });
+        return;
+      }
+
+      logger.Warn("Could not reply to unhandled interaction", {
+        extra: { customId: interaction.customId, code },
+        error,
+      });
+    });
 }
 
 export type CommandExecutorFn = (
   command: CommandDefinition,
   interaction: ChatInputCommandInteraction,
   responders: ResponderSet,
-  commandLogger: Logger
+  commandLogger: Logger,
 ) => Promise<void>;
 
 export interface CommandHandlerDependencies {
@@ -176,7 +195,7 @@ export interface CommandHandlerDependencies {
 }
 
 export function RegisterCommandHandler(
-  dependencies: CommandHandlerDependencies
+  dependencies: CommandHandlerDependencies,
 ): void {
   dependencies.client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isChatInputCommand()) {
@@ -199,7 +218,7 @@ export function RegisterCommandHandler(
       command,
       interaction,
       dependencies.responders,
-      commandLogger
+      commandLogger,
     );
   });
 }

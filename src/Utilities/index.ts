@@ -31,3 +31,4 @@ export * from "./ApiClient";
 export * from "./SafeJson";
 export * from "./ConfigGuard";
 export * from "./StaffPermissions";
+export * from "./GuildMemberResolver";

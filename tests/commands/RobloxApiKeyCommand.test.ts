@@ -14,7 +14,7 @@ import {
 let RobloxCommand: {
   execute: (
     interaction: ChatInputCommandInteraction,
-    context: ReturnType<typeof createMockContext>
+    context: ReturnType<typeof createMockContext>,
   ) => Promise<void>;
 };
 
@@ -56,19 +56,24 @@ describe("Roblox API Key subcommands", () => {
         tag: "AdminOne#0001",
       } as unknown as User,
     });
-    (interaction as unknown as { memberPermissions: { has: () => boolean } }).memberPermissions =
-      {
-        has: () => true,
-      };
+    (
+      interaction as unknown as { memberPermissions: { has: () => boolean } }
+    ).memberPermissions = {
+      has: () => true,
+    };
     stubInteractionOptions(interaction, {
       getSubcommand: () => "connect",
     });
 
     const context = createMockContext();
 
-    await expect(RobloxCommand.execute(interaction, context)).resolves.not.toThrow();
+    await expect(
+      RobloxCommand.execute(interaction, context),
+    ).resolves.not.toThrow();
 
-    expect(context.responders.interactionResponder.Reply).toHaveBeenCalledTimes(1);
+    expect(context.responders.interactionResponder.Reply).toHaveBeenCalledTimes(
+      1,
+    );
     expect(context.responders.interactionResponder.Reply).toHaveBeenCalledWith(
       interaction,
       expect.objectContaining({
@@ -78,12 +83,12 @@ describe("Roblox API Key subcommands", () => {
             title: expect.stringMatching(/Already Configured/i),
           }),
         ]),
-      })
+      }),
     );
     expect(requestSpy).toHaveBeenCalledTimes(1);
     expect(requestSpy).toHaveBeenCalledWith(
       expect.stringContaining("/api/v1/roblox/apikey?guild_id=guild-1"),
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 
@@ -103,17 +108,20 @@ describe("Roblox API Key subcommands", () => {
         tag: "AdminOne#0001",
       } as unknown as User,
     });
-    (interaction as unknown as { memberPermissions: { has: () => boolean } }).memberPermissions =
-      {
-        has: () => true,
-      };
+    (
+      interaction as unknown as { memberPermissions: { has: () => boolean } }
+    ).memberPermissions = {
+      has: () => true,
+    };
     stubInteractionOptions(interaction, {
       getSubcommand: () => "connect",
     });
 
     const context = createMockContext();
 
-    await expect(RobloxCommand.execute(interaction, context)).resolves.not.toThrow();
+    await expect(
+      RobloxCommand.execute(interaction, context),
+    ).resolves.not.toThrow();
 
     expect(context.responders.interactionResponder.Reply).toHaveBeenCalledWith(
       interaction,
@@ -124,21 +132,25 @@ describe("Roblox API Key subcommands", () => {
           expect.objectContaining({
             components: [
               expect.objectContaining({
-                url: expect.stringMatching(/expires=\d+&guild_id=guild-1&sig=[a-f0-9]{64}&user_id=admin-1/),
+                url: expect.stringMatching(
+                  /expires=\d+&guild_id=guild-1&sig=[a-f0-9]{64}&user_id=admin-1/,
+                ),
               }),
             ],
           }),
         ],
-      })
+      }),
     );
     // Should NOT register a button handler (no check-status button)
-    expect(context.responders.componentRouter.RegisterButton).not.toHaveBeenCalled();
+    expect(
+      context.responders.componentRouter.RegisterButton,
+    ).not.toHaveBeenCalled();
     // Should persist the linked user
     expect(context.databases.serverDb.UpsertGuildSettings).toHaveBeenCalledWith(
       expect.objectContaining({
         guild_id: "guild-1",
         roblox_linked_discord_user_id: "admin-1",
-      })
+      }),
     );
   });
 
@@ -168,21 +180,28 @@ describe("Roblox API Key subcommands", () => {
         tag: "AdminOne#0001",
       } as unknown as User,
     });
-    (interaction as unknown as { memberPermissions: { has: () => boolean } }).memberPermissions =
-      {
-        has: () => true,
-      };
+    (
+      interaction as unknown as { memberPermissions: { has: () => boolean } }
+    ).memberPermissions = {
+      has: () => true,
+    };
     stubInteractionOptions(interaction, {
       getSubcommand: () => "status",
     });
 
     const context = createMockContext();
 
-    await expect(RobloxCommand.execute(interaction, context)).resolves.not.toThrow();
+    await expect(
+      RobloxCommand.execute(interaction, context),
+    ).resolves.not.toThrow();
 
-    expect(context.responders.interactionResponder.Reply).toHaveBeenCalledTimes(1);
+    expect(context.responders.interactionResponder.Reply).toHaveBeenCalledTimes(
+      1,
+    );
     // Should NOT clear metadata when configured
-    expect(context.databases.serverDb.UpsertGuildSettings).not.toHaveBeenCalled();
+    expect(
+      context.databases.serverDb.UpsertGuildSettings,
+    ).not.toHaveBeenCalled();
   });
 
   it("status clears stale metadata when API key is not configured", async () => {
@@ -201,10 +220,11 @@ describe("Roblox API Key subcommands", () => {
         tag: "AdminOne#0001",
       } as unknown as User,
     });
-    (interaction as unknown as { memberPermissions: { has: () => boolean } }).memberPermissions =
-      {
-        has: () => true,
-      };
+    (
+      interaction as unknown as { memberPermissions: { has: () => boolean } }
+    ).memberPermissions = {
+      has: () => true,
+    };
     stubInteractionOptions(interaction, {
       getSubcommand: () => "status",
     });
@@ -220,14 +240,16 @@ describe("Roblox API Key subcommands", () => {
       roblox_linked_at: 1700000000000,
     });
 
-    await expect(RobloxCommand.execute(interaction, context)).resolves.not.toThrow();
+    await expect(
+      RobloxCommand.execute(interaction, context),
+    ).resolves.not.toThrow();
 
     expect(context.databases.serverDb.UpsertGuildSettings).toHaveBeenCalledWith(
       expect.objectContaining({
         guild_id: "guild-1",
         roblox_linked_discord_user_id: null,
         roblox_linked_at: null,
-      })
+      }),
     );
   });
 
@@ -269,35 +291,40 @@ describe("Roblox API Key subcommands", () => {
         tag: "AdminOne#0001",
       } as unknown as User,
     });
-    (interaction as unknown as { memberPermissions: { has: () => boolean } }).memberPermissions =
-      {
-        has: () => true,
-      };
+    (
+      interaction as unknown as { memberPermissions: { has: () => boolean } }
+    ).memberPermissions = {
+      has: () => true,
+    };
     stubInteractionOptions(interaction, {
       getSubcommand: () => "disconnect",
     });
 
     const context = createMockContext();
 
-    await expect(RobloxCommand.execute(interaction, context)).resolves.not.toThrow();
+    await expect(
+      RobloxCommand.execute(interaction, context),
+    ).resolves.not.toThrow();
 
     // Should have called status check and delete
     expect(requestSpy).toHaveBeenCalledWith(
       expect.stringContaining("/api/v1/roblox/apikey?guild_id=guild-1"),
-      expect.objectContaining({ method: "GET" })
+      expect.objectContaining({ method: "GET" }),
     );
     expect(requestSpy).toHaveBeenCalledWith(
       expect.stringContaining("/api/v1/roblox/apikey?guild_id=guild-1"),
-      expect.objectContaining({ method: "DELETE" })
+      expect.objectContaining({ method: "DELETE" }),
     );
     expect(context.databases.serverDb.UpsertGuildSettings).toHaveBeenCalledWith(
       expect.objectContaining({
         guild_id: "guild-1",
         roblox_linked_discord_user_id: null,
         roblox_linked_at: null,
-      })
+      }),
     );
-    expect(context.responders.interactionResponder.Reply).toHaveBeenCalledTimes(1);
+    expect(context.responders.interactionResponder.Reply).toHaveBeenCalledTimes(
+      1,
+    );
   });
 
   it("disconnect returns error when no API key is configured", async () => {
@@ -316,19 +343,24 @@ describe("Roblox API Key subcommands", () => {
         tag: "AdminOne#0001",
       } as unknown as User,
     });
-    (interaction as unknown as { memberPermissions: { has: () => boolean } }).memberPermissions =
-      {
-        has: () => true,
-      };
+    (
+      interaction as unknown as { memberPermissions: { has: () => boolean } }
+    ).memberPermissions = {
+      has: () => true,
+    };
     stubInteractionOptions(interaction, {
       getSubcommand: () => "disconnect",
     });
 
     const context = createMockContext();
 
-    await expect(RobloxCommand.execute(interaction, context)).resolves.not.toThrow();
+    await expect(
+      RobloxCommand.execute(interaction, context),
+    ).resolves.not.toThrow();
 
-    expect(context.databases.serverDb.UpsertGuildSettings).not.toHaveBeenCalled();
+    expect(
+      context.databases.serverDb.UpsertGuildSettings,
+    ).not.toHaveBeenCalled();
     expect(context.responders.interactionResponder.Reply).toHaveBeenCalledWith(
       interaction,
       expect.objectContaining({
@@ -337,7 +369,7 @@ describe("Roblox API Key subcommands", () => {
             title: expect.stringMatching(/Nothing to Disconnect/i),
           }),
         ]),
-      })
+      }),
     );
   });
 });

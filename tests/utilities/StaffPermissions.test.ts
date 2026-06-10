@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { PermissionFlagsBits } from "discord.js";
-import { IsAdmin, IsModerator, IsAppealReviewer } from "@utilities/StaffPermissions";
+import {
+  HasConfiguredAdminRole,
+  HasConfiguredModRole,
+  IsAdmin,
+  IsModerator,
+  IsAppealReviewer,
+} from "@utilities/StaffPermissions";
 
 function CreateMember(options: {
   roleIds?: string[];
@@ -40,7 +46,31 @@ describe("StaffPermissions", () => {
   });
 
   it("grants moderator via discord ban permission", () => {
-    const member = CreateMember({ permissions: [PermissionFlagsBits.BanMembers] });
+    const member = CreateMember({
+      permissions: [PermissionFlagsBits.BanMembers],
+    });
     expect(IsModerator(member, settings)).toBe(true);
+  });
+
+  it("checks configured admin role only via HasConfiguredAdminRole", () => {
+    const adminMember = CreateMember({ roleIds: ["admin-role"] });
+    const modMember = CreateMember({ roleIds: ["mod-role"] });
+    const permMember = CreateMember({
+      permissions: [PermissionFlagsBits.BanMembers],
+    });
+
+    expect(HasConfiguredAdminRole(adminMember, settings)).toBe(true);
+    expect(HasConfiguredAdminRole(modMember, settings)).toBe(false);
+    expect(HasConfiguredAdminRole(permMember, settings)).toBe(false);
+  });
+
+  it("checks configured mod role only via HasConfiguredModRole", () => {
+    const modMember = CreateMember({ roleIds: ["mod-role"] });
+    const permMember = CreateMember({
+      permissions: [PermissionFlagsBits.BanMembers],
+    });
+
+    expect(HasConfiguredModRole(modMember, settings)).toBe(true);
+    expect(HasConfiguredModRole(permMember, settings)).toBe(false);
   });
 });

@@ -26,7 +26,7 @@ export class ModerationEventStore {
       data.action,
       data.reason ?? null,
       data.duration_ms ?? null,
-      created_at
+      created_at,
     );
   }
 
@@ -43,7 +43,7 @@ export class ModerationEventStore {
       WHERE guild_id = ? AND user_id = ? AND action = ?
       ORDER BY created_at DESC
       ${options.limit ? "LIMIT ?" : ""}
-    `
+    `,
     );
 
     const rows = options.limit
@@ -51,7 +51,7 @@ export class ModerationEventStore {
           options.guild_id,
           options.user_id,
           options.action,
-          options.limit
+          options.limit,
         ) as Record<string, unknown>[])
       : (stmt.all(options.guild_id, options.user_id, options.action) as Record<
           string,
@@ -71,7 +71,7 @@ export class ModerationEventStore {
       SELECT COUNT(*) as count
       FROM moderation_events
       WHERE guild_id = ? AND user_id = ? AND action = ?
-    `
+    `,
     );
 
     const row = stmt.get(options.guild_id, options.user_id, options.action) as
@@ -88,10 +88,10 @@ export class ModerationEventStore {
   }): boolean {
     const stmt = data.action
       ? this.db.prepare(
-          "DELETE FROM moderation_events WHERE id = ? AND guild_id = ? AND action = ?"
+          "DELETE FROM moderation_events WHERE id = ? AND guild_id = ? AND action = ?",
         )
       : this.db.prepare(
-          "DELETE FROM moderation_events WHERE id = ? AND guild_id = ?"
+          "DELETE FROM moderation_events WHERE id = ? AND guild_id = ?",
         );
 
     const result = data.action

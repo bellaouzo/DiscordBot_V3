@@ -13,12 +13,12 @@ export interface DiscordLoggerOptions {
 export interface DiscordLogger {
   LogCommandExecution(
     interaction: ChatInputCommandInteraction,
-    command: CommandDefinition
+    command: CommandDefinition,
   ): Promise<void>;
 }
 
 export function CreateDiscordLogger(
-  options: DiscordLoggerOptions
+  options: DiscordLoggerOptions,
 ): DiscordLogger {
   const channelManager = CreateChannelManager({
     guild: options.guild,
@@ -28,12 +28,12 @@ export function CreateDiscordLogger(
   return {
     LogCommandExecution: async (
       interaction: ChatInputCommandInteraction,
-      command: CommandDefinition
+      command: CommandDefinition,
     ): Promise<void> => {
       try {
         const channel = await channelManager.GetOrCreateTextChannel(
           options.config.commandLogChannelName,
-          options.config.commandLogCategoryName
+          options.config.commandLogCategoryName,
         );
 
         if (!channel) {
@@ -66,7 +66,7 @@ export function CreateDiscordLogger(
 
 function CreateCommandLogEmbed(
   interaction: ChatInputCommandInteraction,
-  command: CommandDefinition
+  command: CommandDefinition,
 ): EmbedBuilder {
   const embed = EmbedFactory.Create({
     title: `Command Executed: ${command.data.name}`,
@@ -103,7 +103,7 @@ function CreateCommandLogEmbed(
     if (first.type === 1) {
       const subOptions =
         first.options?.map(
-          (subOpt) => `${subOpt.name}: ${FormatOptionValue(subOpt.value)}`
+          (subOpt) => `${subOpt.name}: ${FormatOptionValue(subOpt.value)}`,
         ) ?? [];
 
       embed.addFields([
@@ -124,7 +124,7 @@ function CreateCommandLogEmbed(
     } else {
       // Top-level options without subcommand
       const argLines = options.map(
-        (opt) => `${opt.name}: ${FormatOptionValue(opt.value)}`
+        (opt) => `${opt.name}: ${FormatOptionValue(opt.value)}`,
       );
 
       embed.addFields([

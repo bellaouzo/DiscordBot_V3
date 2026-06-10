@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { CreateChannelManager } from "@utilities";
@@ -20,7 +17,7 @@ import { RegisterButtonHandlers } from "@systems/Setup/handlers/buttonHandlers";
 
 async function ExecuteSetup(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const {
     interactionResponder,

@@ -10,7 +10,6 @@ export interface LogContext {
   readonly error?: unknown;
   readonly extra?: Record<string, unknown>;
 
-  // Common logging fields for better autocomplete
   readonly targetUserId?: string;
   readonly reason?: string;
   readonly name?: string;
@@ -27,6 +26,28 @@ export interface Logger {
   Debug(message: string, context?: LogContext): void;
   Child(context: LogContext): Logger;
 }
+
+const LEVEL_RANK: Record<LogLevel, number> = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+};
+
+function ResolveMinLogLevel(): LogLevel {
+  if (process.env.LOG_DEBUG === "true") {
+    return "debug";
+  }
+
+  const raw = (process.env.LOG_LEVEL ?? "info").toLowerCase();
+  if (raw in LEVEL_RANK) {
+    return raw as LogLevel;
+  }
+
+  return "info";
+}
+
+const MIN_LOG_LEVEL = ResolveMinLogLevel();
 
 class ConsoleLogger implements Logger {
   constructor(private readonly baseContext: LogContext = {}) {}
@@ -56,29 +77,29 @@ class ConsoleLogger implements Logger {
     message: string,
     context?: LogContext,
   ): void {
+    if (LEVEL_RANK[level] < LEVEL_RANK[MIN_LOG_LEVEL]) {
+      return;
+    }
+
     const timestamp = context?.timestamp ?? new Date().toISOString();
     const mergedContext = { ...this.baseContext, ...context };
 
-    // Separate regular fields from extra for better formatting
     const { extra, ...regularFields } = mergedContext;
     const regularEntries = Object.entries(regularFields).filter(
       ([, value]) => value !== undefined,
     );
     const hasExtra = extra && Object.keys(extra).length > 0;
 
-    // Color the log level based on severity
     const levelColor = this.GetLevelColor(level);
     const levelText = `[${level.toUpperCase()}]`;
 
     let output = `[${timestamp}] ${levelColor}${levelText}\x1b[0m ${message}`;
 
-    // Add regular context fields with spacing
     if (regularEntries.length > 0) {
       const regularContext = Object.fromEntries(regularEntries);
       output += ` \x1b[36m${JSON.stringify(regularContext).replace(/"/g, "").replace(/:/g, ": ").replace(/,/g, ", ")}\x1b[0m`;
     }
 
-    // Add extra fields with spacing
     if (hasExtra) {
       output += ` \x1b[32m${JSON.stringify({ extra }).replace(/"/g, "").replace(/:/g, ": ").replace(/,/g, ", ")}\x1b[0m`;
     }
@@ -89,15 +110,15 @@ class ConsoleLogger implements Logger {
   private GetLevelColor(level: LogLevel): string {
     switch (level) {
       case "error":
-        return "\x1b[31m"; // Red
+        return "\x1b[31m";
       case "warn":
-        return "\x1b[33m"; // Yellow
+        return "\x1b[33m";
       case "info":
-        return "\x1b[34m"; // Blue
+        return "\x1b[34m";
       case "debug":
-        return "\x1b[90m"; // Gray
+        return "\x1b[90m";
       default:
-        return "\x1b[0m"; // Reset
+        return "\x1b[0m";
     }
   }
 }

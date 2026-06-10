@@ -79,13 +79,16 @@ export async function ExecuteGroupAuditSubcommand(
       { name: "Entries", value: String(entryCount), inline: true },
     ]);
     if (entryCount > 0 && Array.isArray(entries)) {
-      const preview = entries.slice(0, 5).map((e, i) => {
-        const row =
-          typeof e === "object" && e !== null && "role" in e
-            ? `${(e as { role?: string }).role ?? "—"}`
-            : String(e);
-        return `${i + 1}. ${row}`;
-      }).join("\n");
+      const preview = entries
+        .slice(0, 5)
+        .map((e, i) => {
+          const row =
+            typeof e === "object" && e !== null && "role" in e
+              ? `${(e as { role?: string }).role ?? "—"}`
+              : String(e);
+          return `${i + 1}. ${row}`;
+        })
+        .join("\n");
       const more = entryCount > 5 ? `\n_… and ${entryCount - 5} more_` : "";
       embed.addFields([
         { name: "Details", value: preview + more, inline: false },

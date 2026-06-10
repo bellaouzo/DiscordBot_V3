@@ -34,7 +34,7 @@ export interface CommandContext {
  */
 export type CommandExecutor = (
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ) => Promise<void>;
 
 /**
@@ -68,7 +68,7 @@ export interface CommandFactoryOptions {
  * @returns Command definition for the registry
  */
 export function CreateCommand(
-  options: CommandFactoryOptions
+  options: CommandFactoryOptions,
 ): CommandDefinition {
   const data = new SlashCommandBuilder()
     .setName(options.name)

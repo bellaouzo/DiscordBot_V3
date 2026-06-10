@@ -2,7 +2,10 @@ import { MessageFlags } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 import type { CommandContext } from "@commands/CommandFactory";
 import { EmbedFactory } from "@utilities";
-import type { RobloxBridgeSettings, KickExecutionOutcome } from "@systems/Roblox/types";
+import type {
+  RobloxBridgeSettings,
+  KickExecutionOutcome,
+} from "@systems/Roblox/types";
 import {
   FindPlayerPresence,
   PostKickCommand,

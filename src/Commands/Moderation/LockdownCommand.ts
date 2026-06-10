@@ -1,295 +1,26 @@
 import {
   ChatInputCommandInteraction,
   ChannelType,
-  OverwriteType,
   TextChannel,
   CategoryChannel,
-  OverwriteResolvable,
-  MessageFlags
+  MessageFlags,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { EmbedFactory, SafeParseJson } from "@utilities";
+import { EmbedFactory } from "@utilities";
 import { LockdownScope } from "@database";
-
-type StoredOverwrite = {
-  id: string;
-  allow: string;
-  deny: string;
-  type: OverwriteType;
-};
-
-function isStoredOverwriteArray(data: unknown): data is StoredOverwrite[] {
-  if (!Array.isArray(data)) return false;
-  return data.every(
-    (item) =>
-      typeof item === "object" &&
-      item !== null &&
-      "id" in item &&
-      "allow" in item &&
-      "deny" in item &&
-      "type" in item
-  );
-}
-
-function SerializeOverwrites(
-  overwrites: Iterable<OverwriteResolvable>
-): string {
-  const serialized: StoredOverwrite[] = [];
-
-  const toBigInt = (value: unknown): bigint => {
-    if (typeof value === "bigint") return value;
-    if (typeof value === "number") return BigInt(value);
-    const bitfield = (value as { bitfield?: unknown })?.bitfield;
-    return typeof bitfield === "bigint" ? bitfield : 0n;
-  };
-
-  for (const overwrite of overwrites) {
-    const data = overwrite as Partial<{
-      id: string;
-      allow: unknown;
-      deny: unknown;
-      type: OverwriteType;
-    }>;
-
-    if (typeof data.id !== "string") {
-      continue;
-    }
-
-    serialized.push({
-      id: data.id,
-      allow: toBigInt(data.allow).toString(),
-      deny: toBigInt(data.deny).toString(),
-      type: data.type ?? OverwriteType.Role,
-    });
-  }
-
-  return JSON.stringify(serialized);
-}
-
-function DeserializeOverwrites(serialized: string): OverwriteResolvable[] {
-  const result = SafeParseJson(serialized, isStoredOverwriteArray);
-  if (!result.success || !result.data) {
-    return [];
-  }
-  return result.data.map((entry) => ({
-    id: entry.id,
-    allow: BigInt(entry.allow),
-    deny: BigInt(entry.deny),
-    type: entry.type,
-  }));
-}
-
-async function LockChannel(
-  interaction: ChatInputCommandInteraction,
-  context: CommandContext,
-  channel: TextChannel
-): Promise<void> {
-  const db = context.databases.moderationDb;
-  const existing = db.GetActiveLockdown(
-    "channel",
-    interaction.guild!.id,
-    channel.id
-  );
-
-  if (existing) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Already Locked",
-      description: `Channel ${channel} is already locked.`,
-    });
-    await context.responders.interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
-
-  const snapshot = SerializeOverwrites(
-    channel.permissionOverwrites.cache.values()
-  );
-
-  await channel.permissionOverwrites.edit(channel.guild.id, {
-    SendMessages: false,
-    SendMessagesInThreads: false,
-    AddReactions: false,
-    CreatePublicThreads: false,
-    CreatePrivateThreads: false,
-  });
-
-  db.AddLockdown({
-    scope: "channel",
-    guild_id: channel.guild.id,
-    target_id: channel.id,
-    applied_by: interaction.user.id,
-    overwrites: snapshot,
-  });
-
-  const embed = EmbedFactory.CreateSuccess({
-    title: "Channel Locked",
-    description: `Locked ${channel} for everyone.`,
-  });
-  await context.responders.interactionResponder.Reply(interaction, {
-    embeds: [embed.toJSON()],
-    flags: MessageFlags.Ephemeral,
-  });
-}
-
-async function LockCategory(
-  interaction: ChatInputCommandInteraction,
-  context: CommandContext,
-  category: CategoryChannel
-): Promise<void> {
-  const db = context.databases.moderationDb;
-  const existing = db.GetActiveLockdown(
-    "category",
-    interaction.guild!.id,
-    category.id
-  );
-
-  if (existing) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Already Locked",
-      description: `Category **${category.name}** is already locked.`,
-    });
-    await context.responders.interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
-
-  const snapshot = SerializeOverwrites(
-    category.permissionOverwrites.cache.values()
-  );
-
-  await category.permissionOverwrites.edit(category.guild.id, {
-    SendMessages: false,
-    SendMessagesInThreads: false,
-    AddReactions: false,
-    CreatePublicThreads: false,
-    CreatePrivateThreads: false,
-  });
-
-  db.AddLockdown({
-    scope: "category",
-    guild_id: category.guild.id,
-    target_id: category.id,
-    applied_by: interaction.user.id,
-    overwrites: snapshot,
-  });
-
-  const embed = EmbedFactory.CreateSuccess({
-    title: "Category Locked",
-    description: `Locked category **${category.name}** and its channels.`,
-  });
-  await context.responders.interactionResponder.Reply(interaction, {
-    embeds: [embed.toJSON()],
-    flags: MessageFlags.Ephemeral,
-  });
-}
-
-async function UnlockTarget(
-  interaction: ChatInputCommandInteraction,
-  context: CommandContext,
-  scope: LockdownScope,
-  targetId: string
-): Promise<void> {
-  const db = context.databases.moderationDb;
-  try {
-    const record = db.GetActiveLockdown(scope, interaction.guild!.id, targetId);
-    if (!record) {
-      const embed = EmbedFactory.CreateWarning({
-        title: "Not Locked",
-        description: "No active lockdown found for the target.",
-      });
-      await context.responders.interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
-
-    const overwrites = DeserializeOverwrites(record.overwrites);
-    const channel = interaction.guild!.channels.cache.get(targetId);
-
-    if (!channel || !("permissionOverwrites" in channel)) {
-      const embed = EmbedFactory.CreateError({
-        title: "Channel Missing",
-        description:
-          "Could not locate the locked target to restore permissions.",
-      });
-      await context.responders.interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
-
-    await (channel as TextChannel | CategoryChannel).permissionOverwrites.set(
-      overwrites
-    );
-
-    db.MarkLockdownLifted(record.id);
-
-    const embed = EmbedFactory.CreateSuccess({
-      title: "Lockdown Cleared",
-      description: `Restored permissions for ${channel}.`,
-    });
-    await context.responders.interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
-  } catch (error) {
-    context.logger.Error("Failed to unlock target", { error });
-  }
-}
-
-async function ShowStatus(
-  interaction: ChatInputCommandInteraction,
-  context: CommandContext
-): Promise<void> {
-  const db = context.databases.moderationDb;
-  try {
-    const active = db.ListActiveLockdowns(interaction.guild!.id);
-    if (active.length === 0) {
-      const embed = EmbedFactory.CreateWarning({
-        title: "No Active Lockdowns",
-        description: "There are no locked channels or categories.",
-      });
-      await context.responders.interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
-
-    const embed = EmbedFactory.Create({
-      title: "🔒 Active Lockdowns",
-      description: active
-        .map((lock) => {
-          const target =
-            lock.scope === "category"
-              ? `Category <#${lock.target_id}>`
-              : `Channel <#${lock.target_id}>`;
-          return `${target} — by <@${lock.applied_by}> <t:${Math.floor(
-            lock.applied_at / 1000
-          )}:R>`;
-        })
-        .join("\n"),
-    });
-
-    await context.responders.interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
-  } catch (error) {
-    context.logger.Error("Failed to show status", { error });
-  }
-}
+import {
+  HandleLockCategory,
+  HandleLockChannel,
+} from "@commands/Moderation/Lockdown/ApplyFlow";
+import {
+  HandleLockdownStatus,
+  HandleUnlockTarget,
+} from "@commands/Moderation/Lockdown/LiftFlow";
 
 async function ExecuteLockdown(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const sub = interaction.options.getSubcommand(true);
 
@@ -310,7 +41,7 @@ async function ExecuteLockdown(
       return;
     }
 
-    await LockChannel(interaction, context, target as TextChannel);
+    await HandleLockChannel(interaction, context, target as TextChannel);
     return;
   }
 
@@ -328,7 +59,7 @@ async function ExecuteLockdown(
       return;
     }
 
-    await LockCategory(interaction, context, target as CategoryChannel);
+    await HandleLockCategory(interaction, context, target as CategoryChannel);
     return;
   }
 
@@ -336,12 +67,12 @@ async function ExecuteLockdown(
     const target = interaction.options.getChannel("target", true);
     const scope: LockdownScope =
       target.type === ChannelType.GuildCategory ? "category" : "channel";
-    await UnlockTarget(interaction, context, scope, target.id);
+    await HandleUnlockTarget(interaction, context, scope, target.id);
     return;
   }
 
   if (sub === "status") {
-    await ShowStatus(interaction, context);
+    await HandleLockdownStatus(interaction, context);
     return;
   }
 }
@@ -365,9 +96,9 @@ export const LockdownCommand = CreateCommand({
               .setRequired(true)
               .addChannelTypes(
                 ChannelType.GuildText,
-                ChannelType.GuildAnnouncement
-              )
-          )
+                ChannelType.GuildAnnouncement,
+              ),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -378,8 +109,8 @@ export const LockdownCommand = CreateCommand({
               .setName("target")
               .setDescription("Category to lock")
               .setRequired(true)
-              .addChannelTypes(ChannelType.GuildCategory)
-          )
+              .addChannelTypes(ChannelType.GuildCategory),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -393,12 +124,12 @@ export const LockdownCommand = CreateCommand({
               .addChannelTypes(
                 ChannelType.GuildText,
                 ChannelType.GuildAnnouncement,
-                ChannelType.GuildCategory
-              )
-          )
+                ChannelType.GuildCategory,
+              ),
+          ),
       )
       .addSubcommand((sub) =>
-        sub.setName("status").setDescription("View active lockdowns")
+        sub.setName("status").setDescription("View active lockdowns"),
       );
   },
 });

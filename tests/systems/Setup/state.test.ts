@@ -43,7 +43,7 @@ describe("Setup state", () => {
     const result = await ResolveExistingChannelId(
       guild as never,
       "ch1",
-      4 as never
+      4 as never,
     );
     expect(result).toBe("ch1");
     expect(guild.channels.fetch).toHaveBeenCalledWith("ch1");
@@ -61,7 +61,7 @@ describe("Setup state", () => {
     const result = await ResolveExistingChannelId(
       guild as never,
       "ch1",
-      4 as never
+      4 as never,
     );
     expect(result).toBeNull();
   });

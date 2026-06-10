@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { CreateWarnManager, EmbedFactory, ToEmbedData } from "@utilities";
@@ -11,7 +8,7 @@ const WARN_LIST_PAGE_SIZE = 6;
 
 async function ExecuteWarnings(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder, paginatedResponder } = context.responders;
   const guild = interaction.guild!;
@@ -50,7 +47,7 @@ async function ExecuteWarnings(
 
 function BuildWarningPages(
   warnings: ReturnType<ReturnType<typeof CreateWarnManager>["GetUserWarnings"]>,
-  userTag: string
+  userTag: string,
 ): PaginationPage[] {
   const pages: PaginationPage[] = [];
 
@@ -74,7 +71,7 @@ function BuildWarningPages(
           value: `Mod: <@${warning.moderator_id}>\nReason: ${reason}`,
           inline: false,
         };
-      })
+      }),
     );
 
     pages.push({ embeds: [ToEmbedData(embed)] });

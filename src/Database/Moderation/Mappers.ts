@@ -79,7 +79,7 @@ export function MapRaidMode(row: Record<string, unknown>): RaidMode {
 }
 
 export function MapRaidModeChannel(
-  row: Record<string, unknown>
+  row: Record<string, unknown>,
 ): RaidModeChannelState {
   return {
     id: Number(row.id),
@@ -112,8 +112,12 @@ export function MapAppeal(row: Record<string, unknown>): Appeal {
     reason: String(row.reason),
     evidence: row.evidence ? String(row.evidence) : null,
     status,
-    review_channel_id: row.review_channel_id ? String(row.review_channel_id) : null,
-    review_message_id: row.review_message_id ? String(row.review_message_id) : null,
+    review_channel_id: row.review_channel_id
+      ? String(row.review_channel_id)
+      : null,
+    review_message_id: row.review_message_id
+      ? String(row.review_message_id)
+      : null,
     resolved_by: row.resolved_by ? String(row.resolved_by) : null,
     resolved_reason: row.resolved_reason ? String(row.resolved_reason) : null,
     created_at: Number(row.created_at),
@@ -125,7 +129,9 @@ export function MapAppeal(row: Record<string, unknown>): Appeal {
   };
 }
 
-export function MapModerationEvent(row: Record<string, unknown>): ModerationEvent {
+export function MapModerationEvent(
+  row: Record<string, unknown>,
+): ModerationEvent {
   return {
     id: Number(row.id),
     guild_id: String(row.guild_id),

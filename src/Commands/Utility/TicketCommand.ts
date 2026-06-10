@@ -21,7 +21,7 @@ import { HandleTicketPanel } from "@systems/Ticket/TicketPanelFlow";
 
 async function ExecuteTicket(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const subcommandGroup = interaction.options.getSubcommandGroup(false);
   const subcommand = interaction.options.getSubcommand(true);
@@ -60,15 +60,15 @@ export const TicketCommand = CreateCommand({
   config: Config.utility(3),
   configure: (builder: SlashCommandBuilder) => {
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-      subcommand
-        .setName("open")
-        .setDescription("Open a new support ticket")
+      subcommand.setName("open").setDescription("Open a new support ticket"),
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
         .setName("panel")
-        .setDescription("Post a ticket panel with an Open Ticket button (Staff)")
+        .setDescription(
+          "Post a ticket panel with an Open Ticket button (Staff)",
+        ),
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
@@ -81,23 +81,23 @@ export const TicketCommand = CreateCommand({
             .setDescription("Whose tickets to show")
             .addChoices(
               { name: "Mine", value: "mine" },
-              { name: "Server queue (Staff)", value: "server" }
-            )
-        )
+              { name: "Server queue (Staff)", value: "server" },
+            ),
+        ),
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
         .setName("transcript")
         .setDescription(
-          "Generate a transcript of the current ticket (Staff only)"
-        )
+          "Generate a transcript of the current ticket (Staff only)",
+        ),
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand
         .setName("reopen")
-        .setDescription("Reopen a closed ticket into a new channel (Staff)")
+        .setDescription("Reopen a closed ticket into a new channel (Staff)"),
     );
 
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
@@ -112,15 +112,15 @@ export const TicketCommand = CreateCommand({
             .addChoices(
               { name: "add", value: "add" },
               { name: "remove", value: "remove" },
-              { name: "list", value: "list" }
-            )
+              { name: "list", value: "list" },
+            ),
         )
         .addStringOption((option: SlashCommandStringOption) =>
           option
             .setName("tag")
             .setDescription("Tag text (required for add/remove)")
-            .setRequired(false)
-        )
+            .setRequired(false),
+        ),
     );
 
     builder.addSubcommandGroup((group: SlashCommandSubcommandGroupBuilder) =>
@@ -130,7 +130,7 @@ export const TicketCommand = CreateCommand({
         .addSubcommand((subcommand) =>
           subcommand
             .setName("list")
-            .setDescription("List configured ticket categories")
+            .setDescription("List configured ticket categories"),
         )
         .addSubcommand((subcommand) =>
           subcommand
@@ -140,26 +140,26 @@ export const TicketCommand = CreateCommand({
               option
                 .setName("value")
                 .setDescription("Unique category key (e.g. billing)")
-                .setRequired(true)
+                .setRequired(true),
             )
             .addStringOption((option) =>
               option
                 .setName("label")
                 .setDescription("Display label")
-                .setRequired(true)
+                .setRequired(true),
             )
             .addStringOption((option) =>
               option
                 .setName("description")
                 .setDescription("Short description for the select menu")
-                .setRequired(false)
+                .setRequired(false),
             )
             .addStringOption((option) =>
               option
                 .setName("emoji")
                 .setDescription("Emoji shown in the category list")
-                .setRequired(false)
-            )
+                .setRequired(false),
+            ),
         )
         .addSubcommand((subcommand) =>
           subcommand
@@ -169,26 +169,26 @@ export const TicketCommand = CreateCommand({
               option
                 .setName("value")
                 .setDescription("Category key to edit")
-                .setRequired(true)
+                .setRequired(true),
             )
             .addStringOption((option) =>
               option
                 .setName("label")
                 .setDescription("New display label")
-                .setRequired(false)
+                .setRequired(false),
             )
             .addStringOption((option) =>
               option
                 .setName("description")
                 .setDescription("New description")
-                .setRequired(false)
+                .setRequired(false),
             )
             .addStringOption((option) =>
               option
                 .setName("emoji")
                 .setDescription("New emoji")
-                .setRequired(false)
-            )
+                .setRequired(false),
+            ),
         )
         .addSubcommand((subcommand) =>
           subcommand
@@ -198,9 +198,9 @@ export const TicketCommand = CreateCommand({
               option
                 .setName("value")
                 .setDescription("Category key to remove")
-                .setRequired(true)
-            )
-        )
+                .setRequired(true),
+            ),
+        ),
     );
   },
   execute: ExecuteTicket,

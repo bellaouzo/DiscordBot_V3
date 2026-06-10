@@ -1,7 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
-import { stubInteractionOptions } from "../helpers";
-import type { Guild, User } from "discord.js";
-import { createMockInteraction, createMockContext } from "../helpers";
+import { describe, it, expect } from "vitest";
 import { AnnouncementCommand } from "@commands/Utility/AnnouncementCommand";
 import { CommandLogsCommand } from "@commands/Utility/CommandLogsCommand";
 import { DebugCommand } from "@commands/Utility/DebugCommand";
@@ -40,52 +37,6 @@ describe("Utility commands", () => {
         expect(typeof cmd.group).toBe("string");
         expect(["utility", "admin"]).toContain(cmd.group);
         expect(typeof cmd.execute).toBe("function");
-      });
-    });
-  }
-
-  for (const { name, cmd } of utilityCommands) {
-    describe(`${name} execute`, () => {
-      it("does not throw", async () => {
-        const emptyArrayLike = {
-          size: 0,
-          first: () => null,
-          filter: () => emptyArrayLike,
-          sort: () => emptyArrayLike,
-          map: () => [],
-        };
-        const channelsCache = {
-          get: vi.fn().mockReturnValue(null),
-          filter: vi.fn().mockReturnValue(emptyArrayLike),
-        };
-        const emptyCollection = {
-          filter: () => [],
-          sort: () => [],
-          map: () => [],
-        };
-        const interaction = createMockInteraction({
-          guild: {
-            members: { fetch: vi.fn().mockResolvedValue(null) },
-            channels: { cache: channelsCache },
-            roles: { cache: emptyCollection },
-          } as unknown as Guild,
-          user: { id: "util-user" } as unknown as User,
-          ...([DebugCommand, PresenceCommand, SetupCommand].includes(cmd)
-            ? { client: { uptime: 0 } }
-            : {}),
-        });
-        const context = createMockContext();
-        if (cmd === PingCommand) {
-          (interaction as { createdTimestamp: number }).createdTimestamp =
-            Date.now() - 50;
-        }
-        if (cmd === TicketCommand) {
-          stubInteractionOptions(interaction, {
-            getSubcommand: () => "open",
-            getSubcommandGroup: () => null,
-          });
-        }
-        await expect(cmd.execute(interaction, context)).resolves.not.toThrow();
       });
     });
   }

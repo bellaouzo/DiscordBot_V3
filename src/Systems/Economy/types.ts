@@ -28,7 +28,7 @@ export type CardValue =
 
 export type EconomyHandler = (
   interaction: import("discord.js").ChatInputCommandInteraction,
-  context: import("@commands/CommandFactory").CommandContext
+  context: import("@commands/CommandFactory").CommandContext,
 ) => Promise<void>;
 
 export type ItemRarity = "common" | "rare" | "epic";
@@ -102,4 +102,3 @@ export interface DailyClaimResultCooldown {
 export type DailyClaimResult =
   | DailyClaimResultSuccess
   | DailyClaimResultCooldown;
-

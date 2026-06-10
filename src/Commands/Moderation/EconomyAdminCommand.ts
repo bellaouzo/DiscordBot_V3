@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -29,7 +26,7 @@ function BuildBalanceEmbed(options: {
 
   embed.addFields(
     { name: "Previous Balance", value: `${options.before}`, inline: true },
-    { name: "New Balance", value: `${options.after}`, inline: true }
+    { name: "New Balance", value: `${options.after}`, inline: true },
   );
 
   if (options.note) {
@@ -60,7 +57,7 @@ function BuildItemEmbed(options: {
       value: `${options.delta > 0 ? "+" : ""}${options.delta}`,
       inline: true,
     },
-    { name: "New Quantity", value: `${options.quantity}`, inline: true }
+    { name: "New Quantity", value: `${options.quantity}`, inline: true },
   );
 
   return embed;
@@ -68,7 +65,7 @@ function BuildItemEmbed(options: {
 
 async function ExecuteEconomyAdmin(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -77,7 +74,7 @@ async function ExecuteEconomyAdmin(
 
   const manager = new EconomyManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
   if (subcommand === "setbalance") {
     const amount = interaction.options.getInteger("amount", true);
@@ -257,15 +254,15 @@ export const EconomyAdminCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("Target user")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addIntegerOption((option) =>
             option
               .setName("amount")
               .setDescription("Balance to set (0 or higher)")
               .setRequired(true)
-              .setMinValue(0)
-          )
+              .setMinValue(0),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -275,15 +272,15 @@ export const EconomyAdminCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("Target user")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addIntegerOption((option) =>
             option
               .setName("amount")
               .setDescription("Amount to add (positive)")
               .setRequired(true)
-              .setMinValue(1)
-          )
+              .setMinValue(1),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -293,15 +290,15 @@ export const EconomyAdminCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("Target user")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addIntegerOption((option) =>
             option
               .setName("amount")
               .setDescription("Amount to remove (positive)")
               .setRequired(true)
-              .setMinValue(1)
-          )
+              .setMinValue(1),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -311,21 +308,21 @@ export const EconomyAdminCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("Target user")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addStringOption((option) =>
             option
               .setName("item_id")
               .setDescription("Item ID to grant")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addIntegerOption((option) =>
             option
               .setName("quantity")
               .setDescription("Quantity to grant")
               .setRequired(true)
-              .setMinValue(1)
-          )
+              .setMinValue(1),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -335,21 +332,21 @@ export const EconomyAdminCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("Target user")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addStringOption((option) =>
             option
               .setName("item_id")
               .setDescription("Item ID to remove")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addIntegerOption((option) =>
             option
               .setName("quantity")
               .setDescription("Quantity to remove")
               .setRequired(true)
-              .setMinValue(1)
-          )
+              .setMinValue(1),
+          ),
       );
   },
   execute: ExecuteEconomyAdmin,

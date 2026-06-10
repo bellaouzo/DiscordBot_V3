@@ -27,7 +27,7 @@ function CalculateEconomyXp(bet: number, outcome: EconomyOutcome): number {
   const base = ECONOMY_BASE_XP;
   const bonus = Math.min(
     ECONOMY_BET_BONUS_CAP,
-    Math.floor(Math.max(0, bet) / ECONOMY_BET_DIVISOR)
+    Math.floor(Math.max(0, bet) / ECONOMY_BET_DIVISOR),
   );
 
   const multiplier =
@@ -75,7 +75,7 @@ export function AwardEconomyXp(options: {
 
   const levelManager = new LevelManager(
     interaction.guildId,
-    context.databases.userDb
+    context.databases.userDb,
   );
   levelManager.AddXp(interaction.user.id, toAward);
 

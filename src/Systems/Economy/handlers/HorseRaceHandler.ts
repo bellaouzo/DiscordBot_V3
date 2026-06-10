@@ -1,6 +1,7 @@
 import {
-  ButtonInteraction, ChatInputCommandInteraction,
-  MessageFlags
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
@@ -40,7 +41,7 @@ const HORSE_EMOJIS = ["🐎", "🦄", "🐴", "🫏"];
 
 export async function HandleHorseRace(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
@@ -61,7 +62,7 @@ export async function HandleHorseRace(
 
   const manager = new EconomyManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
   let balance = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
@@ -69,19 +70,19 @@ export async function HandleHorseRace(
   const hasSpur =
     spurItem &&
     inventory.some(
-      (entry) => entry.itemId === spurItem.id && entry.quantity > 0
+      (entry) => entry.itemId === spurItem.id && entry.quantity > 0,
     );
   const whistleItem = ITEM_MAP["horse-whistle"];
   const hasWhistle =
     whistleItem &&
     inventory.some(
-      (entry) => entry.itemId === whistleItem.id && entry.quantity > 0
+      (entry) => entry.itemId === whistleItem.id && entry.quantity > 0,
     );
   const rocketItem = ITEM_MAP["horse-rocket"];
   const hasRocket =
     rocketItem &&
     inventory.some(
-      (entry) => entry.itemId === rocketItem.id && entry.quantity > 0
+      (entry) => entry.itemId === rocketItem.id && entry.quantity > 0,
     );
   let spurConsumed = false;
   let whistleConsumed = false;
@@ -142,11 +143,11 @@ export async function HandleHorseRace(
   };
 
   const horseLabels = HORSE_EMOJIS.map(
-    (emoji, index) => `${emoji} Horse ${index + 1}`
+    (emoji, index) => `${emoji} Horse ${index + 1}`,
   );
 
   const handleCancel = async (
-    buttonInteraction: ButtonInteraction
+    buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
@@ -181,7 +182,7 @@ export async function HandleHorseRace(
   };
 
   const startRace = async (
-    buttonInteraction: ButtonInteraction
+    buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
@@ -334,7 +335,7 @@ export async function HandleHorseRace(
 
   const handleSelectHorse = async (
     buttonInteraction: ButtonInteraction,
-    horseIndex: HorseId
+    horseIndex: HorseId,
   ): Promise<void> => {
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
@@ -359,7 +360,7 @@ export async function HandleHorseRace(
       expiresInMs: HORSE_TIMEOUT_MS,
       handler: (buttonInteraction) =>
         handleSelectHorse(buttonInteraction, index as HorseId),
-    })
+    }),
   );
 
   const cancelRegistration = componentRouter.RegisterButton({
@@ -386,7 +387,8 @@ export async function HandleHorseRace(
 
   const replyResult = await interactionResponder.Reply(interaction, {
     embeds: [promptEmbed.toJSON()],
-    components: BuildHorseButtons(customIds, horseLabels),  });
+    components: BuildHorseButtons(customIds, horseLabels),
+  });
 
   if (!replyResult.success) {
     if (bet > 0) {

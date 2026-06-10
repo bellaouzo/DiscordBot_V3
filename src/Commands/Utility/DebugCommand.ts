@@ -46,7 +46,7 @@ function GetDiscordJsVersion(): string {
 
 async function ExecuteDebug(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -91,7 +91,7 @@ async function ExecuteDebug(
       name: "🔧 Commands",
       value: `${commandCount} registered`,
       inline: true,
-    }
+    },
   );
 
   await interactionResponder.Reply(interaction, { embeds: [embed] });
@@ -104,5 +104,3 @@ export const DebugCommand = CreateCommand({
   config: Config.admin(5),
   execute: ExecuteDebug,
 });
-
-

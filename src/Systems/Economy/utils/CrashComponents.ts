@@ -30,7 +30,7 @@ function BuildButton(options: {
 }
 
 export function BuildCrashButtons(
-  customIds: CrashButtonIds
+  customIds: CrashButtonIds,
 ): ActionRowData<ActionRowComponentData> {
   return {
     type: ComponentType.ActionRow,
@@ -52,7 +52,7 @@ export function BuildCrashButtons(
 }
 
 export function BuildDisabledCrashButtons(
-  customIds: CrashButtonIds
+  customIds: CrashButtonIds,
 ): ActionRowData<ActionRowComponentData> {
   return {
     type: ComponentType.ActionRow,
@@ -74,4 +74,3 @@ export function BuildDisabledCrashButtons(
     ],
   };
 }
-

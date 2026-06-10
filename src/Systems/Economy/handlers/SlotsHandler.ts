@@ -1,6 +1,7 @@
 import {
-  ButtonInteraction, ChatInputCommandInteraction,
-  MessageFlags
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
@@ -36,7 +37,7 @@ const SLOT_SYMBOLS: SlotSymbol[] = [
 function spinReel(): string {
   const totalWeight = SLOT_SYMBOLS.reduce(
     (sum, symbol) => sum + symbol.weight,
-    0
+    0,
   );
   const roll = Math.random() * totalWeight;
   let cumulative = 0;
@@ -55,7 +56,7 @@ function getSymbolData(icon: string): SlotSymbol | undefined {
 
 function evaluateSpin(
   middleRow: string[],
-  bet: number
+  bet: number,
 ): {
   payout: number;
   outcome: string;
@@ -107,7 +108,7 @@ function evaluateSpin(
 
 export async function HandleSlots(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
@@ -128,7 +129,7 @@ export async function HandleSlots(
 
   const manager = new EconomyManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
   let balance = manager.EnsureBalance(interaction.user.id);
 
@@ -166,7 +167,7 @@ export async function HandleSlots(
 
   const buildSpinEmbed = (
     state: string[],
-    label: string
+    label: string,
   ): ReturnType<typeof EmbedFactory.Create> => {
     const lines = [
       buildGrid(state),
@@ -215,7 +216,7 @@ export async function HandleSlots(
   };
 
   const handleSpin = async (
-    buttonInteraction: ButtonInteraction
+    buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
@@ -342,7 +343,7 @@ export async function HandleSlots(
       embeds: [
         buildSpinEmbed(
           buildFrame({ left: true, center: true, right: true }),
-          "Right reel stopped..."
+          "Right reel stopped...",
         ).toJSON(),
       ],
       components: [BuildDisabledSlotsButtons(customIds)],
@@ -375,12 +376,13 @@ export async function HandleSlots(
 
   const promptEmbed = buildSpinEmbed(
     placeholder,
-    "Press Spin to roll the reels."
+    "Press Spin to roll the reels.",
   );
 
   const replyResult = await interactionResponder.Reply(interaction, {
     embeds: [promptEmbed.toJSON()],
-    components: [BuildSlotsButtons(customIds)],  });
+    components: [BuildSlotsButtons(customIds)],
+  });
 
   if (!replyResult.success) {
     if (bet > 0) {

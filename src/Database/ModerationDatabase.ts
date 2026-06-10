@@ -3,12 +3,6 @@ import { join } from "path";
 import { ResolveDataDir } from "@config/DataConfig";
 import { Logger } from "@shared/Logger";
 import {
-  MapLinkFilter,
-  MapLockdown,
-  MapRaidMode,
-  MapRaidModeChannel,
-} from "@database/Moderation/Mappers";
-import {
   Appeal,
   AppealActionType,
   AppealStatus,
@@ -24,6 +18,9 @@ import {
 import { TempActionStore } from "@database/Moderation/Stores/TempActionStore";
 import { ModerationEventStore } from "@database/Moderation/Stores/ModerationEventStore";
 import { AppealStore } from "@database/Moderation/Stores/AppealStore";
+import { LockdownStore } from "@database/Moderation/Stores/LockdownStore";
+import { LinkFilterStore } from "@database/Moderation/Stores/LinkFilterStore";
+import { RaidModeStore } from "@database/Moderation/Stores/RaidModeStore";
 
 export type {
   Appeal,
@@ -44,6 +41,9 @@ export class ModerationDatabase {
   private readonly tempActions: TempActionStore;
   private readonly moderationEvents: ModerationEventStore;
   private readonly appeals: AppealStore;
+  private readonly lockdowns: LockdownStore;
+  private readonly linkFilters: LinkFilterStore;
+  private readonly raidModes: RaidModeStore;
 
   constructor(private readonly logger: Logger) {
     this.db = this.InitializeDatabase();
@@ -51,6 +51,9 @@ export class ModerationDatabase {
     this.tempActions = new TempActionStore(this.db);
     this.moderationEvents = new ModerationEventStore(this.db);
     this.appeals = new AppealStore(this.db);
+    this.lockdowns = new LockdownStore(this.db);
+    this.linkFilters = new LinkFilterStore(this.db);
+    this.raidModes = new RaidModeStore(this.db);
   }
 
   private InitializeDatabase(): Database.Database {
@@ -132,7 +135,6 @@ export class ModerationDatabase {
           FOREIGN KEY (raid_id) REFERENCES raid_modes(id) ON DELETE CASCADE
         );
 
-        -- Replace old unique index (active across all states) with partial unique on active=1
         DROP INDEX IF EXISTS idx_raid_mode_active;
         CREATE UNIQUE INDEX IF NOT EXISTS idx_raid_mode_active ON raid_modes(guild_id) WHERE active = 1;
         CREATE INDEX IF NOT EXISTS idx_raid_mode_expires ON raid_modes(expires_at);
@@ -229,64 +231,27 @@ export class ModerationDatabase {
     applied_by: string;
     overwrites: string;
   }): Lockdown {
-    const applied_at = Date.now();
-    const stmt = this.db.prepare(`
-      INSERT INTO lockdowns (scope, guild_id, target_id, applied_by, applied_at, overwrites, active)
-      VALUES (?, ?, ?, ?, ?, ?, 1)
-    `);
-
-    const id = stmt.run(
-      data.scope,
-      data.guild_id,
-      data.target_id,
-      data.applied_by,
-      applied_at,
-      data.overwrites
-    ).lastInsertRowid as number;
-
-    const record = this.GetLockdownById(id);
-    if (!record) {
-      throw new Error("Failed to create lockdown record");
-    }
-
-    return record;
+    return this.lockdowns.AddLockdown(data);
   }
 
   GetLockdownById(id: number): Lockdown | null {
-    const stmt = this.db.prepare("SELECT * FROM lockdowns WHERE id = ?");
-    const row = stmt.get(id) as Record<string, unknown> | undefined;
-    return row ? MapLockdown(row) : null;
+    return this.lockdowns.GetLockdownById(id);
   }
 
   GetActiveLockdown(
     scope: LockdownScope,
     guild_id: string,
-    target_id: string
+    target_id: string,
   ): Lockdown | null {
-    const stmt = this.db.prepare(
-      "SELECT * FROM lockdowns WHERE scope = ? AND guild_id = ? AND target_id = ? AND active = 1"
-    );
-    const row = stmt.get(scope, guild_id, target_id) as
-      | Record<string, unknown>
-      | undefined;
-    return row ? MapLockdown(row) : null;
+    return this.lockdowns.GetActiveLockdown(scope, guild_id, target_id);
   }
 
   ListActiveLockdowns(guild_id: string): Lockdown[] {
-    const stmt = this.db.prepare(
-      "SELECT * FROM lockdowns WHERE guild_id = ? AND active = 1 ORDER BY applied_at DESC"
-    );
-    const rows = stmt.all(guild_id) as Record<string, unknown>[];
-    return rows.map((row) => MapLockdown(row));
+    return this.lockdowns.ListActiveLockdowns(guild_id);
   }
 
   MarkLockdownLifted(id: number): boolean {
-    const lifted_at = Date.now();
-    const stmt = this.db.prepare(
-      "UPDATE lockdowns SET active = 0, lifted_at = ? WHERE id = ?"
-    );
-    const result = stmt.run(lifted_at, id);
-    return result.changes > 0;
+    return this.lockdowns.MarkLockdownLifted(id);
   }
 
   AddLinkFilter(data: {
@@ -295,41 +260,15 @@ export class ModerationDatabase {
     type: LinkFilterType;
     created_by: string;
   }): LinkFilter {
-    const created_at = Date.now();
-    const stmt = this.db.prepare(`
-      INSERT INTO link_filters (guild_id, pattern, type, created_by, created_at)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-
-    const normalizedPattern = data.pattern.trim().toLowerCase();
-    const id = stmt.run(
-      data.guild_id,
-      normalizedPattern,
-      data.type,
-      data.created_by,
-      created_at
-    ).lastInsertRowid as number;
-
-    const record = this.GetLinkFilterById(id);
-    if (!record) {
-      throw new Error("Failed to create link filter");
-    }
-
-    return record;
+    return this.linkFilters.AddLinkFilter(data);
   }
 
   GetLinkFilterById(id: number): LinkFilter | null {
-    const stmt = this.db.prepare("SELECT * FROM link_filters WHERE id = ?");
-    const row = stmt.get(id) as Record<string, unknown> | undefined;
-    return row ? MapLinkFilter(row) : null;
+    return this.linkFilters.GetLinkFilterById(id);
   }
 
   ListLinkFilters(guild_id: string): LinkFilter[] {
-    const stmt = this.db.prepare(
-      "SELECT * FROM link_filters WHERE guild_id = ? ORDER BY created_at DESC"
-    );
-    const rows = stmt.all(guild_id) as Record<string, unknown>[];
-    return rows.map((row) => MapLinkFilter(row));
+    return this.linkFilters.ListLinkFilters(guild_id);
   }
 
   RemoveLinkFilter(data: {
@@ -337,12 +276,7 @@ export class ModerationDatabase {
     pattern: string;
     type: LinkFilterType;
   }): boolean {
-    const normalizedPattern = data.pattern.trim().toLowerCase();
-    const stmt = this.db.prepare(
-      "DELETE FROM link_filters WHERE guild_id = ? AND pattern = ? AND type = ?"
-    );
-    const result = stmt.run(data.guild_id, normalizedPattern, data.type);
-    return result.changes > 0;
+    return this.linkFilters.RemoveLinkFilter(data);
   }
 
   AddRaidMode(data: {
@@ -351,57 +285,23 @@ export class ModerationDatabase {
     expires_at: number | null;
     applied_by: string;
   }): RaidMode {
-    const applied_at = Date.now();
-    const stmt = this.db.prepare(`
-      INSERT INTO raid_modes (guild_id, slowmode_seconds, expires_at, applied_by, applied_at, active)
-      VALUES (?, ?, ?, ?, ?, 1)
-    `);
-
-    const id = stmt.run(
-      data.guild_id,
-      data.slowmode_seconds,
-      data.expires_at,
-      data.applied_by,
-      applied_at
-    ).lastInsertRowid as number;
-
-    const record = this.GetRaidModeById(id);
-    if (!record) {
-      throw new Error("Failed to create raid mode");
-    }
-
-    return record;
+    return this.raidModes.AddRaidMode(data);
   }
 
   GetRaidModeById(id: number): RaidMode | null {
-    const stmt = this.db.prepare("SELECT * FROM raid_modes WHERE id = ?");
-    const row = stmt.get(id) as Record<string, unknown> | undefined;
-    return row ? MapRaidMode(row) : null;
+    return this.raidModes.GetRaidModeById(id);
   }
 
   GetActiveRaidMode(guild_id: string): RaidMode | null {
-    const stmt = this.db.prepare(
-      "SELECT * FROM raid_modes WHERE guild_id = ? AND active = 1"
-    );
-    const row = stmt.get(guild_id) as Record<string, unknown> | undefined;
-    return row ? MapRaidMode(row) : null;
+    return this.raidModes.GetActiveRaidMode(guild_id);
   }
 
   ListExpiredRaidModes(before: number): RaidMode[] {
-    const stmt = this.db.prepare(
-      "SELECT * FROM raid_modes WHERE active = 1 AND expires_at IS NOT NULL AND expires_at <= ?"
-    );
-    const rows = stmt.all(before) as Record<string, unknown>[];
-    return rows.map((row) => MapRaidMode(row));
+    return this.raidModes.ListExpiredRaidModes(before);
   }
 
   MarkRaidModeCleared(id: number): boolean {
-    const cleared_at = Date.now();
-    const stmt = this.db.prepare(
-      "UPDATE raid_modes SET active = 0, cleared_at = ? WHERE id = ?"
-    );
-    const result = stmt.run(cleared_at, id);
-    return result.changes > 0;
+    return this.raidModes.MarkRaidModeCleared(id);
   }
 
   AddRaidModeChannelState(data: {
@@ -411,41 +311,15 @@ export class ModerationDatabase {
     overwrites: string;
     rate_limit_per_user: number;
   }): RaidModeChannelState {
-    const stmt = this.db.prepare(`
-      INSERT INTO raid_mode_channels (raid_id, guild_id, channel_id, overwrites, rate_limit_per_user)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-
-    const id = stmt.run(
-      data.raid_id,
-      data.guild_id,
-      data.channel_id,
-      data.overwrites,
-      data.rate_limit_per_user
-    ).lastInsertRowid as number;
-
-    const row = this.db
-      .prepare("SELECT * FROM raid_mode_channels WHERE id = ?")
-      .get(id) as Record<string, unknown> | undefined;
-    if (!row) {
-      throw new Error("Failed to create raid mode channel state");
-    }
-    return MapRaidModeChannel(row);
+    return this.raidModes.AddRaidModeChannelState(data);
   }
 
   ListRaidModeChannelStates(raid_id: number): RaidModeChannelState[] {
-    const stmt = this.db.prepare(
-      "SELECT * FROM raid_mode_channels WHERE raid_id = ?"
-    );
-    const rows = stmt.all(raid_id) as Record<string, unknown>[];
-    return rows.map((row) => MapRaidModeChannel(row));
+    return this.raidModes.ListRaidModeChannelStates(raid_id);
   }
 
   ClearRaidModeChannelStates(raid_id: number): void {
-    const stmt = this.db.prepare(
-      "DELETE FROM raid_mode_channels WHERE raid_id = ?"
-    );
-    stmt.run(raid_id);
+    this.raidModes.ClearRaidModeChannelStates(raid_id);
   }
 
   AddModerationEvent(data: {

@@ -1,20 +1,18 @@
-import {
-  ButtonInteraction, Guild, GuildMember,
-  MessageFlags
-} from "discord.js";
+import { ButtonInteraction, Guild, MessageFlags } from "discord.js";
 import { ButtonResponder } from "@responders";
 import { DatabaseSet } from "@database";
 import { Logger } from "@shared/Logger";
 import {
   EmbedFactory,
-  CreateTicketManager,
   TranscriptGenerator,
+  ResolveInteractionMember,
 } from "@utilities";
 import {
   CanUserCloseTicket,
   CreateTicketServices,
   ParseTicketButtonCustomId,
 } from "@systems/Ticket/validation/TicketValidation";
+import { CreateTicketLogService } from "@systems/Ticket/services/TicketLogService";
 
 export async function HandleCloseButton(
   buttonInteraction: ButtonInteraction,
@@ -23,7 +21,7 @@ export async function HandleCloseButton(
     databases: DatabaseSet;
     logger: Logger;
     guild: Guild;
-  }
+  },
 ): Promise<void> {
   const parsed = ParseTicketButtonCustomId(buttonInteraction.customId);
   if (!parsed || parsed.action !== "close") {
@@ -45,9 +43,9 @@ export async function HandleCloseButton(
   }
 
   const settings = options.databases.serverDb.GetGuildSettings(
-    options.guild.id
+    options.guild.id,
   );
-  const member = buttonInteraction.member as GuildMember | null;
+  const member = await ResolveInteractionMember(buttonInteraction);
 
   if (
     !CanUserCloseTicket(ticket, buttonInteraction.user.id, member, {
@@ -71,27 +69,29 @@ export async function HandleCloseButton(
 
   const closeEmbed = EmbedFactory.CreateTicketClosed(
     ticket.id,
-    buttonInteraction.user.id
+    buttonInteraction.user.id,
   );
   await options.buttonResponder.EditMessage(buttonInteraction, {
     embeds: [closeEmbed.toJSON()],
     components: [],
   });
 
-  const { ticketManager, guildResourceLocator } = CreateTicketServices(
-    options.logger,
-    options.guild,
-    options.databases.ticketDb,
-    options.databases.serverDb
-  );
+  const { ticketManager, ticketLogService, guildResourceLocator } =
+    CreateTicketServices(
+      options.logger,
+      options.guild,
+      options.databases.ticketDb,
+      options.databases.serverDb,
+    );
 
   const messages = options.databases.ticketDb.GetTicketMessages(ticket.id);
   const ticketMember = await guildResourceLocator.GetMember(ticket.user_id);
   const user =
     ticketMember?.user ||
     (await buttonInteraction.client.users.fetch(ticket.user_id));
-  const participantHistory =
-    options.databases.ticketDb.GetParticipantHistory(ticket.id);
+  const participantHistory = options.databases.ticketDb.GetParticipantHistory(
+    ticket.id,
+  );
 
   const transcript = TranscriptGenerator.Generate({
     ticket,
@@ -104,25 +104,25 @@ export async function HandleCloseButton(
   const filename = TranscriptGenerator.GenerateFileName(ticket);
 
   await SendTicketLogs(
-    ticketManager,
+    ticketLogService,
     transcript,
     filename,
     `Ticket #${ticket.id} closed by <@${buttonInteraction.user.id}>`,
-    options.logger
+    options.logger,
   );
 
   await ticketManager.CloseTicket(ticket.id, buttonInteraction.user.id, false);
 }
 
 async function SendTicketLogs(
-  ticketManager: ReturnType<typeof CreateTicketManager>,
+  ticketLogService: ReturnType<typeof CreateTicketLogService>,
   transcript: string,
   filename: string,
   message: string,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> {
   try {
-    const logsChannel = await ticketManager.GetOrCreateTicketLogsChannel();
+    const logsChannel = await ticketLogService.GetOrCreateTicketLogsChannel();
     if (logsChannel) {
       const embed = EmbedFactory.CreateSuccess({
         title: "Ticket Closed",

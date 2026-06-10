@@ -1,6 +1,7 @@
 import {
-  ButtonInteraction, ChatInputCommandInteraction,
-  MessageFlags
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
@@ -27,31 +28,27 @@ import {
   AwardEconomyXp,
   EconomyOutcome,
 } from "@systems/Economy/utils/EconomyXp";
+import {
+  ApplyScratchBonusLossRefund,
+  ApplyScratchBonusPayout,
+  ApplyScratchCloverPayout,
+  ComputeScratchPayout,
+  FillRemainingScratchReveals,
+  PickRandomScratchSymbol,
+  SCRATCH_COLUMNS,
+  SCRATCH_HIDDEN_ICONS,
+  SCRATCH_SLOTS,
+  WinStillPossible,
+} from "@systems/Economy/utils/scratchLogic";
 
 interface ScratchCustomIds {
   slots: string[];
   cancel: string;
 }
 
-const SCRATCH_COLUMNS = 3;
-const SCRATCH_ROWS = 3;
-const SCRATCH_SLOTS = SCRATCH_COLUMNS * SCRATCH_ROWS;
-const SCRATCH_SYMBOLS: ScratchSymbol[] = ["💰", "⭐", "🍀", "🍒"];
-const SCRATCH_HIDDEN_ICONS = [
-  "1️⃣",
-  "2️⃣",
-  "3️⃣",
-  "4️⃣",
-  "5️⃣",
-  "6️⃣",
-  "7️⃣",
-  "8️⃣",
-  "9️⃣",
-];
-
 export async function HandleScratch(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
@@ -72,7 +69,7 @@ export async function HandleScratch(
 
   const manager = new EconomyManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
   let balance = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
@@ -83,13 +80,13 @@ export async function HandleScratch(
   const hasClover =
     cloverItem &&
     inventory.some(
-      (entry) => entry.itemId === cloverItem.id && entry.quantity > 0
+      (entry) => entry.itemId === cloverItem.id && entry.quantity > 0,
     );
   const bonusItem = ITEM_MAP["scratch-bonus"];
   const hasBonus =
     bonusItem &&
     inventory.some(
-      (entry) => entry.itemId === bonusItem.id && entry.quantity > 0
+      (entry) => entry.itemId === bonusItem.id && entry.quantity > 0,
     );
   const lensNote = hasLens
     ? "Scratch Lens — extra reveal consumed."
@@ -111,7 +108,7 @@ export async function HandleScratch(
   let timeoutHandle: NodeJS.Timeout | null = null;
   const reveals: Array<ScratchSymbol | null> = Array.from(
     { length: SCRATCH_SLOTS },
-    () => null
+    () => null,
   );
   const scratched = new Set<number>();
 
@@ -126,15 +123,6 @@ export async function HandleScratch(
   };
 
   const allRevealed = (): boolean => reveals.every((r) => r !== null);
-
-  const fillRemainingReveals = (): void => {
-    for (let i = 0; i < reveals.length; i++) {
-      if (reveals[i] === null) {
-        reveals[i] =
-          SCRATCH_SYMBOLS[Math.floor(Math.random() * SCRATCH_SYMBOLS.length)];
-      }
-    }
-  };
 
   const finalizeTimeout = async (): Promise<void> => {
     if (resolved) return;
@@ -156,46 +144,12 @@ export async function HandleScratch(
         components: BuildDisabledScratchButtons(
           customIds,
           SCRATCH_HIDDEN_ICONS,
-          SCRATCH_COLUMNS
+          SCRATCH_COLUMNS,
         ),
       });
     } finally {
       void 0;
     }
-  };
-
-  const computePayout = (): number => {
-    const counts = reveals.reduce<Record<ScratchSymbol, number>>(
-      (acc, sym) => {
-        if (sym) {
-          acc[sym] = (acc[sym] ?? 0) + 1;
-        }
-        return acc;
-      },
-      { "💰": 0, "⭐": 0, "🍀": 0, "🍒": 0 }
-    );
-
-    const maxCount = Math.max(...Object.values(counts));
-    if (bet === 0) return 0;
-    if (maxCount === 3) return bet * 5;
-    if (maxCount === 2) return bet * 2;
-    return 0;
-  };
-
-  const winStillPossible = (): boolean => {
-    const counts = reveals.reduce<Record<ScratchSymbol, number>>(
-      (acc, sym) => {
-        if (sym) {
-          acc[sym] = (acc[sym] ?? 0) + 1;
-        }
-        return acc;
-      },
-      { "💰": 0, "⭐": 0, "🍀": 0, "🍒": 0 }
-    );
-    const remaining = reveals.filter((r) => r === null).length;
-    const maxCount = Math.max(...Object.values(counts));
-    // Need at least a pair to win
-    return maxCount + remaining >= 2;
   };
 
   const finishGame = async (): Promise<void> => {
@@ -205,9 +159,12 @@ export async function HandleScratch(
     }
     disposeAll();
 
-    fillRemainingReveals();
+    FillRemainingScratchReveals(
+      reveals,
+      Array.from({ length: SCRATCH_SLOTS }, () => Math.random()),
+    );
 
-    let payout = computePayout();
+    let payout = ComputeScratchPayout(reveals, bet);
     const notes: string[] = [];
 
     if (payout === 0 && bet > 0 && hasClover) {
@@ -216,7 +173,7 @@ export async function HandleScratch(
         itemId: cloverItem!.id,
         delta: -1,
       });
-      payout = bet * 2;
+      payout = ApplyScratchCloverPayout(bet);
       notes.push("Scratch Clover — guaranteed minimum pair payout.");
     }
 
@@ -226,8 +183,8 @@ export async function HandleScratch(
         itemId: bonusItem!.id,
         delta: -1,
       });
-      const bonus = Math.floor(payout * 0.5);
-      payout += bonus;
+      const boosted = ApplyScratchBonusPayout(payout);
+      payout = boosted.payout;
       notes.push("Lucky Sticker — +50% payout.");
     } else if (payout === 0 && bet > 0 && hasBonus) {
       manager.AdjustInventoryItem({
@@ -235,7 +192,7 @@ export async function HandleScratch(
         itemId: bonusItem!.id,
         delta: -1,
       });
-      payout = Math.floor(bet * 0.5);
+      payout = ApplyScratchBonusLossRefund(bet);
       notes.push("Lucky Sticker — loss refunded 50%.");
     }
 
@@ -271,14 +228,14 @@ export async function HandleScratch(
       components: BuildDisabledScratchButtons(
         customIds,
         SCRATCH_HIDDEN_ICONS,
-        SCRATCH_COLUMNS
+        SCRATCH_COLUMNS,
       ),
     });
   };
 
   const handleScratch = async (
     buttonInteraction: ButtonInteraction,
-    index: number
+    index: number,
   ): Promise<void> => {
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
@@ -296,8 +253,7 @@ export async function HandleScratch(
       return;
     }
 
-    reveals[index] =
-      SCRATCH_SYMBOLS[Math.floor(Math.random() * SCRATCH_SYMBOLS.length)];
+    reveals[index] = PickRandomScratchSymbol(Math.random());
 
     const progressEmbed = BuildScratchProgressEmbed({
       bet,
@@ -315,11 +271,11 @@ export async function HandleScratch(
         customIds,
         SCRATCH_HIDDEN_ICONS,
         SCRATCH_COLUMNS,
-        scratched
+        scratched,
       ),
     });
 
-    if (!winStillPossible()) {
+    if (!WinStillPossible(reveals)) {
       await finishGame();
       return;
     }
@@ -330,7 +286,7 @@ export async function HandleScratch(
   };
 
   const handleCancel = async (
-    buttonInteraction: ButtonInteraction
+    buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
@@ -360,7 +316,7 @@ export async function HandleScratch(
       components: BuildDisabledScratchButtons(
         customIds,
         SCRATCH_HIDDEN_ICONS,
-        SCRATCH_COLUMNS
+        SCRATCH_COLUMNS,
       ),
     });
   };
@@ -370,7 +326,7 @@ export async function HandleScratch(
       ownerId: interaction.user.id,
       expiresInMs: SCRATCH_TIMEOUT_MS,
       handler: (buttonInteraction) => handleScratch(buttonInteraction, idx),
-    })
+    }),
   );
 
   const cancelRegistration = componentRouter.RegisterButton({
@@ -391,8 +347,7 @@ export async function HandleScratch(
 
   if (hasLens && lensItem) {
     const revealIndex = Math.floor(Math.random() * SCRATCH_SLOTS);
-    reveals[revealIndex] =
-      SCRATCH_SYMBOLS[Math.floor(Math.random() * SCRATCH_SYMBOLS.length)];
+    reveals[revealIndex] = PickRandomScratchSymbol(Math.random());
     manager.AdjustInventoryItem({
       userId: interaction.user.id,
       itemId: lensItem.id,
@@ -413,8 +368,9 @@ export async function HandleScratch(
     components: BuildScratchButtons(
       customIds,
       SCRATCH_HIDDEN_ICONS,
-      SCRATCH_COLUMNS
-    ),  });
+      SCRATCH_COLUMNS,
+    ),
+  });
 
   if (!replyResult.success) {
     if (bet > 0) {

@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory, RequestJson, RequireFeatureApiKey } from "@utilities";
@@ -84,7 +81,7 @@ const apiConfig = LoadApiConfig();
 
 async function ExecuteWeather(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const apiKey = RequireFeatureApiKey({
@@ -119,7 +116,7 @@ async function ExecuteWeather(
           appid: apiKey,
         },
         timeoutMs: apiConfig.weather.timeoutMs,
-      }
+      },
     );
 
     if (!response.ok || !response.data) {
@@ -201,7 +198,7 @@ async function ExecuteWeather(
         name: "🌇 Sunset",
         value: sunset,
         inline: true,
-      }
+      },
     );
 
     await interactionResponder.Edit(interaction, {
@@ -229,7 +226,7 @@ export const WeatherCommand = CreateCommand({
       option
         .setName("location")
         .setDescription("City name (e.g., 'London' or 'Paris, FR')")
-        .setRequired(true)
+        .setRequired(true),
     );
   },
   config: Config.utility(5),

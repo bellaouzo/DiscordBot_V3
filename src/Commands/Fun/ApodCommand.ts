@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory, RequireFeatureApiKey } from "@utilities";
@@ -47,7 +44,7 @@ function ValidateApodDate(input?: string | null): {
   const todayUTC = Date.UTC(
     today.getUTCFullYear(),
     today.getUTCMonth(),
-    today.getUTCDate()
+    today.getUTCDate(),
   );
   const inputUTC = Date.UTC(year, month - 1, day);
 
@@ -60,7 +57,7 @@ function ValidateApodDate(input?: string | null): {
 
 async function ExecuteApod(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const apiKey = RequireFeatureApiKey({
@@ -82,7 +79,7 @@ async function ExecuteApod(
   }
 
   const dateValidation = ValidateApodDate(
-    interaction.options.getString("date")
+    interaction.options.getString("date"),
   );
 
   if (dateValidation.error) {
@@ -153,7 +150,7 @@ export const ApodCommand = CreateCommand({
       option
         .setName("date")
         .setDescription("Date to fetch (YYYY-MM-DD, defaults to today)")
-        .setRequired(false)
+        .setRequired(false),
     );
   },
   execute: ExecuteApod,

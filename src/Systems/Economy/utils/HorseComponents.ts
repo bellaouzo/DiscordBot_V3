@@ -31,7 +31,7 @@ function BuildButton(options: {
 
 export function BuildHorseButtons(
   customIds: HorseButtonIds,
-  horseLabels: string[]
+  horseLabels: string[],
 ): ActionRowData<ActionRowComponentData>[] {
   const rows: ActionRowData<ActionRowComponentData>[] = [];
 
@@ -41,7 +41,7 @@ export function BuildHorseButtons(
       label,
       emoji: "🏇",
       style: ButtonStyle.Primary,
-    })
+    }),
   );
 
   // One row for horses (up to 4 fits in one row)
@@ -68,7 +68,7 @@ export function BuildHorseButtons(
 
 export function BuildDisabledHorseButtons(
   customIds: HorseButtonIds,
-  horseLabels: string[]
+  horseLabels: string[],
 ): ActionRowData<ActionRowComponentData>[] {
   const rows: ActionRowData<ActionRowComponentData>[] = [];
 
@@ -79,7 +79,7 @@ export function BuildDisabledHorseButtons(
       emoji: "🏇",
       style: ButtonStyle.Primary,
       disabled: true,
-    })
+    }),
   );
 
   rows.push({
@@ -102,4 +102,3 @@ export function BuildDisabledHorseButtons(
 
   return rows;
 }
-

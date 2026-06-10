@@ -38,7 +38,7 @@ export class WarnManager {
   CountWarnings(userId: string): number {
     const warnings = this.options.userDb.GetWarnings(
       userId,
-      this.options.guildId
+      this.options.guildId,
     );
     return warnings.length;
   }
@@ -50,14 +50,14 @@ export class WarnManager {
   RemoveWarningById(warningId: number): boolean {
     return this.options.userDb.RemoveWarningById(
       warningId,
-      this.options.guildId
+      this.options.guildId,
     );
   }
 
   RemoveLatestWarning(userId: string): Warning | null {
     return this.options.userDb.RemoveLatestWarning(
       userId,
-      this.options.guildId
+      this.options.guildId,
     );
   }
 }

@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory, CreateWarnManager, CreateNoteManager } from "@utilities";
@@ -48,22 +45,35 @@ function FormatBadges(flags: readonly string[]): string {
 
 async function ExecuteProfile(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  const targetUser = interaction.options.getUser("user") ?? interaction.user;
+  const requestedUser = interaction.options.getUser("user");
+  const targetUser = requestedUser ?? interaction.user;
   const targetMember = await interaction
     .guild!.members.fetch({ user: targetUser.id, withPresences: true })
     .catch(() => null);
 
+  if (requestedUser && !targetMember) {
+    const embed = EmbedFactory.CreateWarning({
+      title: "User Not Found",
+      description: `${requestedUser.displayName} is not a member of this server.`,
+    });
+    await interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
   const levelManager = new LevelManager(
     interaction.guild!.id,
-    context.databases.userDb
+    context.databases.userDb,
   );
   const economyManager = new EconomyManager(
     interaction.guild!.id,
-    context.databases.userDb
+    context.databases.userDb,
   );
   const warnManager = CreateWarnManager({
     guildId: interaction.guild!.id,
@@ -153,7 +163,7 @@ async function ExecuteProfile(
           : "**Activity:** None",
       ].join("\n"),
       inline: true,
-    }
+    },
   );
 
   embed.setFooter({
@@ -176,7 +186,7 @@ export const ProfileCommand = CreateCommand({
       option
         .setName("user")
         .setDescription("User to view profile for (optional)")
-        .setRequired(false)
+        .setRequired(false),
     );
   },
   config: Config.utility(3),

@@ -36,7 +36,7 @@ describe("DailyHandler", () => {
       expect.objectContaining({
         embeds: expect.any(Array),
         flags: MessageFlags.Ephemeral,
-      })
+      }),
     );
     expect(databases.userDb.ClaimDaily).toHaveBeenCalled();
   });
@@ -59,7 +59,7 @@ describe("DailyHandler", () => {
       expect.objectContaining({
         embeds: expect.any(Array),
         flags: MessageFlags.Ephemeral,
-      })
+      }),
     );
   });
 });

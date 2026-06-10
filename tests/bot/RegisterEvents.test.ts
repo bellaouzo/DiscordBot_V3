@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { RegisterEvents } from "@bot/RegisterEvents";
-import { createMockAppConfig, createMockDatabaseSet, createMockLogger, createMockResponderSet } from "../helpers";
+import {
+  createMockAppConfig,
+  createMockDatabaseSet,
+  createMockLogger,
+  createMockResponderSet,
+} from "../helpers";
 
 describe("RegisterEvents", () => {
   it("registers and executes event handlers with context", async () => {
@@ -28,7 +33,9 @@ describe("RegisterEvents", () => {
     });
 
     expect(on).toHaveBeenCalledTimes(1);
-    const handler = on.mock.calls[0][1] as (...args: unknown[]) => Promise<void>;
+    const handler = on.mock.calls[0][1] as (
+      ...args: unknown[]
+    ) => Promise<void>;
     const payload = { id: "message-1" };
 
     await handler(payload);
@@ -40,7 +47,7 @@ describe("RegisterEvents", () => {
         databases,
         appConfig,
       }),
-      payload
+      payload,
     );
   });
 
@@ -64,11 +71,13 @@ describe("RegisterEvents", () => {
       appConfig: createMockAppConfig(),
     });
 
-    const handler = on.mock.calls[0][1] as (...args: unknown[]) => Promise<void>;
+    const handler = on.mock.calls[0][1] as (
+      ...args: unknown[]
+    ) => Promise<void>;
     await expect(handler({ id: "msg-1" })).resolves.toBeUndefined();
     expect(logger.Error).toHaveBeenCalledWith(
       "Event handler failed",
-      expect.objectContaining({ error: expect.any(Error) })
+      expect.objectContaining({ error: expect.any(Error) }),
     );
   });
 });

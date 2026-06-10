@@ -3,12 +3,17 @@ import {
   PermissionsBitField,
   GuildMember,
   ChatInputCommandInteraction,
-  MessageFlags
+  MessageFlags,
 } from "discord.js";
 import { CommandMiddleware, MiddlewareContext } from "./index";
 import { ResponderSet } from "@responders";
 import { CreateErrorMessage } from "@responders/MessageFactory";
 import { CreateGuildResourceLocator } from "@utilities/GuildResourceLocator";
+import {
+  HasConfiguredAdminRole,
+  HasConfiguredModRole,
+} from "@utilities/StaffPermissions";
+import { ResolveInteractionMember } from "@utilities/GuildMemberResolver";
 import { CommandConfig } from "@commands/Middleware/CommandConfig";
 import { Logger } from "@shared/Logger";
 import { DatabaseSet } from "@database";
@@ -17,7 +22,7 @@ async function SendPermissionError(
   responders: ResponderSet,
   interaction: ChatInputCommandInteraction,
   title: string,
-  description: string
+  description: string,
 ): Promise<void> {
   const message = CreateErrorMessage({
     title: `❌ ${title}`,
@@ -39,7 +44,7 @@ function FormatPermissionName(permission: string): string {
 function GetValidPermissionValues(permissions: string[]): bigint[] {
   return permissions
     .map(
-      (perm) => PermissionFlagsBits[perm as keyof typeof PermissionFlagsBits]
+      (perm) => PermissionFlagsBits[perm as keyof typeof PermissionFlagsBits],
     )
     .filter((value): value is bigint => Boolean(value));
 }
@@ -47,13 +52,13 @@ function GetValidPermissionValues(permissions: string[]): bigint[] {
 function GetMissingPermissions(
   requiredPermissions: string[],
   memberPermissions: PermissionsBitField,
-  requireAny: boolean
+  requireAny: boolean,
 ): string[] {
   const permissionValues = GetValidPermissionValues(requiredPermissions);
 
   if (requireAny) {
     const hasAny = permissionValues.some((permission) =>
-      memberPermissions.has(permission)
+      memberPermissions.has(permission),
     );
     return hasAny ? [] : requiredPermissions;
   } else {
@@ -78,7 +83,7 @@ async function CheckOwnerPermission(context: {
       context.responders,
       context.interaction,
       "Owner Only Command",
-      "Only the server owner can use this command."
+      "Only the server owner can use this command.",
     );
     return false;
   }
@@ -115,7 +120,7 @@ async function CheckRolePermission(context: {
       context.responders,
       context.interaction,
       "Missing Required Role",
-      `You need the **${roleName}** role to use this command.`
+      `You need the **${roleName}** role to use this command.`,
     );
     return false;
   }
@@ -138,13 +143,13 @@ async function CheckAdminRolePermission(context: {
       context.responders,
       context.interaction,
       "Permission Check Failed",
-      "This command can only be used in a server."
+      "This command can only be used in a server.",
     );
     return false;
   }
 
   const guildSettings = context.databases.serverDb.GetGuildSettings(
-    context.interaction.guild.id
+    context.interaction.guild.id,
   );
 
   if (!guildSettings || !guildSettings.admin_role_ids.length) {
@@ -152,20 +157,12 @@ async function CheckAdminRolePermission(context: {
       context.responders,
       context.interaction,
       "Admin Role Not Configured",
-      "No admin roles have been configured for this server. Please use the setup command to configure admin roles."
+      "No admin roles have been configured for this server. Please use the setup command to configure admin roles.",
     );
     return false;
   }
 
-  const memberRoles = context.member?.roles?.cache
-    ? Array.from(context.member.roles.cache.keys())
-    : [];
-
-  const hasAdminRole = guildSettings.admin_role_ids.some((roleId) =>
-    memberRoles.includes(roleId)
-  );
-
-  if (!hasAdminRole) {
+  if (!HasConfiguredAdminRole(context.member, guildSettings)) {
     const locator = CreateGuildResourceLocator({
       guild: context.interaction.guild,
       logger: context.logger,
@@ -188,7 +185,7 @@ async function CheckAdminRolePermission(context: {
       context.responders,
       context.interaction,
       "Missing Admin Role",
-      `You need one of the following admin roles to use this command: **${roleList}**`
+      `You need one of the following admin roles to use this command: **${roleList}**`,
     );
     return false;
   }
@@ -211,13 +208,13 @@ async function CheckModRolePermission(context: {
       context.responders,
       context.interaction,
       "Permission Check Failed",
-      "This command can only be used in a server."
+      "This command can only be used in a server.",
     );
     return false;
   }
 
   const guildSettings = context.databases.serverDb.GetGuildSettings(
-    context.interaction.guild.id
+    context.interaction.guild.id,
   );
 
   if (!guildSettings || !guildSettings.mod_role_ids.length) {
@@ -225,20 +222,12 @@ async function CheckModRolePermission(context: {
       context.responders,
       context.interaction,
       "Mod Role Not Configured",
-      "No mod roles have been configured for this server. Please use the setup command to configure mod roles."
+      "No mod roles have been configured for this server. Please use the setup command to configure mod roles.",
     );
     return false;
   }
 
-  const memberRoles = context.member?.roles?.cache
-    ? Array.from(context.member.roles.cache.keys())
-    : [];
-
-  const hasModRole = guildSettings.mod_role_ids.some((roleId) =>
-    memberRoles.includes(roleId)
-  );
-
-  if (!hasModRole) {
+  if (!HasConfiguredModRole(context.member, guildSettings)) {
     const locator = CreateGuildResourceLocator({
       guild: context.interaction.guild,
       logger: context.logger,
@@ -261,7 +250,7 @@ async function CheckModRolePermission(context: {
       context.responders,
       context.interaction,
       "Missing Mod Role",
-      `You need one of the following mod roles to use this command: **${roleList}**`
+      `You need one of the following mod roles to use this command: **${roleList}**`,
     );
     return false;
   }
@@ -295,7 +284,7 @@ async function CheckDiscordPermissions(context: {
     const missingPermissions = GetMissingPermissions(
       requiredPermissions,
       memberPermissions,
-      requireAny
+      requireAny,
     );
     const formattedPermissions = missingPermissions.map(FormatPermissionName);
 
@@ -306,14 +295,14 @@ async function CheckDiscordPermissions(context: {
     let description: string;
     if (requireAny) {
       description = `You need at least one of these permissions:\n• ${formattedPermissions.join(
-        "\n• "
+        "\n• ",
       )}`;
     } else {
       description =
         formattedPermissions.length === 1
           ? `You need the **${formattedPermissions[0]}** permission to use this command.`
           : `You need these permissions:\n• ${formattedPermissions.join(
-              "\n• "
+              "\n• ",
             )}`;
     }
 
@@ -321,7 +310,7 @@ async function CheckDiscordPermissions(context: {
       context.responders,
       context.interaction,
       title,
-      description
+      description,
     );
     return false;
   }
@@ -331,15 +320,15 @@ async function CheckDiscordPermissions(context: {
 export const PermissionMiddleware: CommandMiddleware = {
   name: "permissions",
   execute: async (context: MiddlewareContext, next) => {
-    const member = context.interaction.member as GuildMember;
+    const member = await ResolveInteractionMember(context.interaction);
     const permissions = member?.permissions;
 
-    if (!permissions) {
+    if (!member || !permissions) {
       await SendPermissionError(
         context.responders,
         context.interaction,
         "Permission Check Failed",
-        "Unable to determine your permissions for this command."
+        "Unable to determine your permissions for this command.",
       );
       return;
     }

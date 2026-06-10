@@ -43,7 +43,7 @@ export class TranscriptGenerator {
 
         if (participant.removed_by && participant.removed_at) {
           const removedTimestamp = new Date(
-            participant.removed_at
+            participant.removed_at,
           ).toISOString();
           transcript += `[${timestamp}] User <@${participant.user_id}> ADDED by <@${participant.added_by}>\n`;
           transcript += `[${removedTimestamp}] User <@${participant.user_id}> REMOVED by <@${participant.removed_by}>\n`;

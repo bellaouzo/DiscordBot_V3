@@ -3,7 +3,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   type ChatInputCommandInteraction,
-  MessageFlags
+  MessageFlags,
 } from "discord.js";
 import type { CommandContext } from "@commands/CommandFactory";
 import { EmbedFactory } from "@utilities";

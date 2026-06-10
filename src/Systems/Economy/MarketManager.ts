@@ -18,7 +18,7 @@ export class MarketManager {
 
   constructor(
     private readonly guildId: string,
-    userDb: UserDatabase
+    userDb: UserDatabase,
   ) {
     this.economy = new EconomyManager(guildId, userDb);
   }
@@ -126,7 +126,7 @@ export class MarketManager {
     }
 
     const items = pickRotation(MARKET_ROTATION_SIZE).filter(
-      (id) => ITEM_MAP[id]
+      (id) => ITEM_MAP[id],
     );
     const generatedAt = now;
     const expiresAt = now + MARKET_ROTATION_MS;
@@ -136,4 +136,3 @@ export class MarketManager {
     return rotation;
   }
 }
-

@@ -1,6 +1,5 @@
 import {
   ChatInputCommandInteraction,
-  GuildMember,
   StringSelectMenuInteraction,
   ModalSubmitInteraction,
   ActionRowComponentData,
@@ -8,7 +7,7 @@ import {
   ModalBuilder,
   TextInputBuilder,
   ActionRowBuilder,
-  MessageFlags
+  MessageFlags,
 } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import {
@@ -21,13 +20,14 @@ import {
   TranscriptGenerator,
   ComponentFactory,
   ToActionRowData,
+  ResolveInteractionMember,
 } from "@utilities";
 
 const REOPEN_SELECT_TIMEOUT_MS = 5 * 60 * 1000;
 
 export async function HandleTicketReopen(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder, selectMenuRouter, modalRouter } =
     context.responders;
@@ -37,9 +37,9 @@ export async function HandleTicketReopen(
   }
 
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild!.id
+    interaction.guild!.id,
   );
-  const member = interaction.member as GuildMember | null;
+  const member = await ResolveInteractionMember(interaction);
 
   if (
     !HasStaffPermissions(member, {
@@ -65,7 +65,7 @@ export async function HandleTicketReopen(
 
   const closedTickets = context.databases.ticketDb.GetGuildTickets(
     interaction.guild!.id,
-    "closed"
+    "closed",
   );
 
   if (closedTickets.length === 0) {
@@ -111,7 +111,7 @@ export async function HandleTicketReopen(
         .setRequired(true)
         .setMaxLength(1000);
       modal.addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(reasonInput)
+        new ActionRowBuilder<TextInputBuilder>().addComponents(reasonInput),
       );
 
       modalRouter.RegisterModal({
@@ -145,7 +145,7 @@ export async function HandleTicketReopen(
 async function HandleReopenModal(
   modalInteraction: ModalSubmitInteraction,
   context: CommandContext,
-  ticketId: number
+  ticketId: number,
 ): Promise<void> {
   const { logger } = context;
 
@@ -153,17 +153,22 @@ async function HandleReopenModal(
 
   const reason = modalInteraction.fields.getTextInputValue("reason");
   const settings = context.databases.serverDb.GetGuildSettings(
-    modalInteraction.guild!.id
+    modalInteraction.guild!.id,
   );
 
-  const { ticketDb, ticketManager, guildResourceLocator } =
-    CreateTicketServices(
-      logger,
-      modalInteraction.guild!,
-      context.databases.ticketDb,
-      context.databases.serverDb,
-      { ticketCategoryId: settings?.ticket_category_id ?? null }
-    );
+  const {
+    ticketDb,
+    ticketManager,
+    ticketPresentation,
+    ticketLogService,
+    guildResourceLocator,
+  } = CreateTicketServices(
+    logger,
+    modalInteraction.guild!,
+    context.databases.ticketDb,
+    context.databases.serverDb,
+    { ticketCategoryId: settings?.ticket_category_id ?? null },
+  );
 
   try {
     const prior = ticketDb.GetTicket(ticketId);
@@ -172,7 +177,8 @@ async function HandleReopenModal(
         embeds: [
           EmbedFactory.CreateError({
             title: "Ticket Not Available",
-            description: "This ticket is no longer closed or could not be found.",
+            description:
+              "This ticket is no longer closed or could not be found.",
           }).toJSON(),
         ],
       });
@@ -185,8 +191,8 @@ async function HandleReopenModal(
       reason,
     });
 
-    const ticketEmbed = ticketManager.CreateTicketEmbed(newTicket);
-    const buttons = ticketManager.CreateTicketButtons(newTicket.id);
+    const ticketEmbed = ticketPresentation.CreateTicketEmbed(newTicket);
+    const buttons = ticketPresentation.CreateTicketButtons(newTicket.id);
 
     await channel.send({
       embeds: [ticketEmbed.toJSON()],
@@ -198,7 +204,9 @@ async function HandleReopenModal(
     const ticketMember = await guildResourceLocator.GetMember(prior.user_id);
     const user =
       ticketMember?.user ||
-      (await modalInteraction.client.users.fetch(prior.user_id).catch(() => null));
+      (await modalInteraction.client.users
+        .fetch(prior.user_id)
+        .catch(() => null));
 
     let transcriptBuffer: Buffer | null = null;
     if (user) {
@@ -224,10 +232,10 @@ async function HandleReopenModal(
         value: `<@${modalInteraction.user.id}>`,
         inline: true,
       },
-      { name: "Reason", value: reason, inline: false }
+      { name: "Reason", value: reason, inline: false },
     );
 
-    const logsChannel = await ticketManager.GetOrCreateTicketLogsChannel();
+    const logsChannel = await ticketLogService.GetOrCreateTicketLogsChannel();
     if (logsChannel) {
       await logsChannel.send({
         embeds: [auditEmbed.toJSON()],

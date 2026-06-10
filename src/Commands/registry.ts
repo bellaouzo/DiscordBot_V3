@@ -34,4 +34,3 @@ export function CommandGroups(): string[] {
   registry.forEach((command) => groups.add(command.group));
   return Array.from(groups);
 }
-

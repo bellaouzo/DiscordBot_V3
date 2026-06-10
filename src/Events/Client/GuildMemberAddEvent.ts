@@ -4,7 +4,7 @@ import { EmbedFactory } from "@utilities";
 
 async function ExecuteGuildMemberAddEvent(
   context: EventContext,
-  guildMember: GuildMember
+  guildMember: GuildMember,
 ): Promise<void> {
   context.logger.Debug("GuildMemberAdd event triggered", {
     guildId: guildMember.guild?.id,
@@ -18,7 +18,7 @@ async function ExecuteGuildMemberAddEvent(
 
   try {
     const settings = context.databases.serverDb.GetGuildSettings(
-      guildMember.guild.id
+      guildMember.guild.id,
     );
 
     if (!settings) {
@@ -36,7 +36,7 @@ async function ExecuteGuildMemberAddEvent(
     }
 
     const channel = await guildMember.guild.channels.fetch(
-      settings.welcome_channel_id
+      settings.welcome_channel_id,
     );
 
     if (!channel) {

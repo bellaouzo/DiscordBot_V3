@@ -26,7 +26,7 @@ export interface MockInteractionOverrides {
 }
 
 export function createMockInteraction(
-  overrides: MockInteractionOverrides = {}
+  overrides: MockInteractionOverrides = {},
 ): ChatInputCommandInteraction {
   const createdTimestamp = overrides.createdTimestamp ?? Date.now();
   let replied = overrides.replied ?? false;
@@ -116,13 +116,19 @@ export function createMockResponderSet(): ResponderSet {
   const buttonResponder = {
     Register: vi.fn(),
     Handle: vi.fn().mockResolvedValue(undefined),
+    Reply: vi.fn().mockResolvedValue({ success: true, message: "Reply sent" }),
+    Update: vi.fn().mockResolvedValue({ success: true, message: "Updated" }),
   };
   const paginatedResponder = {
+    Send: vi.fn().mockResolvedValue(undefined),
     SendPaginated: vi.fn().mockResolvedValue(undefined),
   };
   const componentRouter = {
     Register: vi.fn(),
-    RegisterButton: vi.fn(),
+    RegisterButton: vi.fn().mockImplementation(() => ({
+      customId: `mock-btn-${Math.random().toString(36).slice(2)}`,
+      dispose: vi.fn(),
+    })),
     Handle: vi.fn().mockResolvedValue(undefined),
   };
   const selectMenuRouter = {
@@ -157,7 +163,7 @@ export function createMockResponderSet(): ResponderSet {
 }
 
 function createStubbableDb<T>(
-  defaultStubs: Record<string, ReturnType<typeof vi.fn>>
+  defaultStubs: Record<string, ReturnType<typeof vi.fn>>,
 ): T {
   return new Proxy(defaultStubs, {
     get(target, prop: string) {
@@ -183,6 +189,29 @@ export function createMockDatabaseSet(): DatabaseSet {
       balance: 100,
       updated_at: Date.now(),
     }),
+    TransferBalance: vi.fn().mockReturnValue({
+      success: true,
+      from: {
+        user_id: "u",
+        guild_id: "g",
+        balance: 50,
+        updated_at: Date.now(),
+      },
+      to: {
+        user_id: "u2",
+        guild_id: "g",
+        balance: 150,
+        updated_at: Date.now(),
+      },
+    }),
+    AdjustInventoryQuantity: vi.fn().mockReturnValue({
+      user_id: "u",
+      guild_id: "g",
+      item_id: "reroll-token",
+      quantity: 1,
+      updated_at: Date.now(),
+    }),
+    SetMarketRotation: vi.fn(),
     AdjustBalance: vi.fn().mockReturnValue({
       user_id: "u",
       guild_id: "g",
@@ -300,7 +329,7 @@ export function createMockAppConfig(): AppConfig {
 }
 
 export function createMockContext(
-  overrides: Partial<CommandContext> = {}
+  overrides: Partial<CommandContext> = {},
 ): CommandContext {
   return {
     responders: overrides.responders ?? createMockResponderSet(),
@@ -325,7 +354,7 @@ export interface MockOptionOverrides {
 
 export function stubInteractionOptions(
   interaction: ChatInputCommandInteraction,
-  overrides: MockOptionOverrides
+  overrides: MockOptionOverrides,
 ): void {
   const opts = interaction.options as unknown as Record<
     string,

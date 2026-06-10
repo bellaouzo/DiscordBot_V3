@@ -18,7 +18,7 @@ interface RegisterButtonHandlersOptions {
 }
 
 export function RegisterButtonHandlers(
-  options: RegisterButtonHandlersOptions
+  options: RegisterButtonHandlersOptions,
 ): void {
   const {
     ids,

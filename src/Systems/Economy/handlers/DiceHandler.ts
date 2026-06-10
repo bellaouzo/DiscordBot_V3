@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { BuildDiceResultEmbed } from "@systems/Economy/utils/Embeds";
@@ -15,7 +12,7 @@ import {
 
 export async function HandleDice(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -46,26 +43,29 @@ export async function HandleDice(
     return;
   }
 
-  const manager = new EconomyManager(interaction.guildId!, context.databases.userDb);
+  const manager = new EconomyManager(
+    interaction.guildId!,
+    context.databases.userDb,
+  );
   let balance = manager.EnsureBalance(interaction.user.id);
   const inventory = manager.GetInventory(interaction.user.id);
   const loadedDie = ITEM_MAP["loaded-die"];
   const hasLoadedDie =
     loadedDie &&
     inventory.some(
-      (entry) => entry.itemId === loadedDie.id && entry.quantity > 0
+      (entry) => entry.itemId === loadedDie.id && entry.quantity > 0,
     );
   const diceNudgeItem = ITEM_MAP["dice-nudge"];
   const hasDiceNudge =
     diceNudgeItem &&
     inventory.some(
-      (entry) => entry.itemId === diceNudgeItem.id && entry.quantity > 0
+      (entry) => entry.itemId === diceNudgeItem.id && entry.quantity > 0,
     );
   const diceJackpot = ITEM_MAP["dice-jackpot"];
   const hasJackpot =
     diceJackpot &&
     inventory.some(
-      (entry) => entry.itemId === diceJackpot.id && entry.quantity > 0
+      (entry) => entry.itemId === diceJackpot.id && entry.quantity > 0,
     );
 
   if (bet > balance) {
@@ -136,8 +136,7 @@ export async function HandleDice(
     note: notes.length ? notes.map((n) => `• ${n}`).join("\n") : undefined,
   });
 
-  const outcome: EconomyOutcome =
-    win ? "win" : bet > 0 ? "loss" : "neutral";
+  const outcome: EconomyOutcome = win ? "win" : bet > 0 ? "loss" : "neutral";
   AwardEconomyXp({
     interaction,
     context,
@@ -146,7 +145,6 @@ export async function HandleDice(
   });
 
   await interactionResponder.Reply(interaction, {
-    embeds: [embed.toJSON()],  });
+    embeds: [embed.toJSON()],
+  });
 }
-
-

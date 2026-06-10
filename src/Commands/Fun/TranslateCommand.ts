@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory, RequestJson } from "@utilities";
@@ -57,7 +54,7 @@ function NormalizeLanguageCode(input: string): string {
 
 async function ExecuteTranslate(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -92,7 +89,7 @@ async function ExecuteTranslate(
           langpair: `${sourceCode}|${targetCode}`,
         },
         timeoutMs: apiConfig.translate.timeoutMs,
-      }
+      },
     );
 
     if (!response.ok || !response.data) {
@@ -197,21 +194,21 @@ export const TranslateCommand = CreateCommand({
           .setName("text")
           .setDescription("Text to translate")
           .setRequired(true)
-          .setMaxLength(500)
+          .setMaxLength(500),
       )
       .addStringOption((option) =>
         option
           .setName("target")
           .setDescription("Target language (e.g., spanish, es, fr, de)")
-          .setRequired(true)
+          .setRequired(true),
       )
       .addStringOption((option) =>
         option
           .setName("source")
           .setDescription(
-            "Source language (optional, auto-detects if not specified)"
+            "Source language (optional, auto-detects if not specified)",
           )
-          .setRequired(false)
+          .setRequired(false),
       );
   },
   config: Config.utility(3),

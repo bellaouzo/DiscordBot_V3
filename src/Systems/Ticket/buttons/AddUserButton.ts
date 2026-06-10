@@ -2,20 +2,17 @@ import {
   ButtonInteraction,
   Guild,
   ActionRowComponentData,
-  MessageFlags
+  MessageFlags,
 } from "discord.js";
 import { ButtonResponder } from "@responders";
 import { DatabaseSet } from "@database";
 import { Logger } from "@shared/Logger";
-import {
-  ComponentFactory,
-  EmbedFactory,
-  ToActionRowData,
-} from "@utilities";
+import { ComponentFactory, EmbedFactory, ToActionRowData } from "@utilities";
 import { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
 import {
   CreateTicketServices,
   ParseTicketButtonCustomId,
+  CanUserAddParticipants,
 } from "@systems/Ticket/validation/TicketValidation";
 import { HandleUserSelection } from "@systems/Ticket/components/UserSelectionMenu";
 
@@ -27,7 +24,7 @@ export async function HandleAddUserButton(
     databases: DatabaseSet;
     logger: Logger;
     guild: Guild;
-  }
+  },
 ): Promise<void> {
   const parsed = ParseTicketButtonCustomId(buttonInteraction.customId);
   if (!parsed || parsed.action !== "add") {
@@ -48,28 +45,22 @@ export async function HandleAddUserButton(
     return;
   }
 
-  const { ticketManager, guildResourceLocator, settings } =
-    CreateTicketServices(
-      options.logger,
-      options.guild,
-      options.databases.ticketDb,
-      options.databases.serverDb
-    );
+  const { guildResourceLocator, settings } = CreateTicketServices(
+    options.logger,
+    options.guild,
+    options.databases.ticketDb,
+    options.databases.serverDb,
+  );
 
   const member = await guildResourceLocator.GetMember(
-    buttonInteraction.user.id
+    buttonInteraction.user.id,
   );
 
   if (
-    !ticketManager.CanUserAddParticipants(
-      ticket,
-      buttonInteraction.user.id,
-      member,
-      {
-        adminRoleIds: settings?.admin_role_ids,
-        modRoleIds: settings?.mod_role_ids,
-      }
-    )
+    !CanUserAddParticipants(ticket, buttonInteraction.user.id, member, {
+      adminRoleIds: settings?.admin_role_ids,
+      modRoleIds: settings?.mod_role_ids,
+    })
   ) {
     await options.buttonResponder.Reply(buttonInteraction, {
       embeds: [
@@ -101,7 +92,7 @@ export async function HandleAddUserButton(
         options.logger,
         options.guild,
         options.databases.ticketDb,
-        options.databases.serverDb
+        options.databases.serverDb,
       );
       await HandleUserSelection(userSelectInteraction, ticket, manager);
     },

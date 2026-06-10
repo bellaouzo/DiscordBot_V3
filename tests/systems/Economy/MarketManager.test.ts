@@ -46,7 +46,7 @@ describe("MarketManager", () => {
     vi.mocked(databases.userDb.GetInventory).mockReturnValue([]);
     const manager = new MarketManager(guildId, databases.userDb);
     expect(() =>
-      manager.BuyItem({ userId: "u1", itemId: "lucky-coin", quantity: 1 })
+      manager.BuyItem({ userId: "u1", itemId: "lucky-coin", quantity: 1 }),
     ).toThrow("Item not available in current rotation");
   });
 
@@ -66,7 +66,7 @@ describe("MarketManager", () => {
     });
     const manager = new MarketManager(guildId, databases.userDb);
     expect(() =>
-      manager.BuyItem({ userId: "u1", itemId: "reroll-token", quantity: 1 })
+      manager.BuyItem({ userId: "u1", itemId: "reroll-token", quantity: 1 }),
     ).toThrow("Insufficient balance");
   });
 
@@ -123,7 +123,7 @@ describe("MarketManager", () => {
     ]);
     const manager = new MarketManager(guildId, databases.userDb);
     expect(() =>
-      manager.SellItem({ userId: "u1", itemId: "reroll-token", quantity: 5 })
+      manager.SellItem({ userId: "u1", itemId: "reroll-token", quantity: 5 }),
     ).toThrow("Not enough quantity to sell");
   });
 

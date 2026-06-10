@@ -1,6 +1,7 @@
 import {
-  ChatInputCommandInteraction, GuildBan,
-  MessageFlags
+  ChatInputCommandInteraction,
+  GuildBan,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands";
 import { Config } from "@middleware";
@@ -11,7 +12,7 @@ const PAGE_SIZE = 10;
 
 async function ExecuteBanList(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const subcommand = interaction.options.getSubcommand(false) ?? "list";
 
@@ -25,7 +26,7 @@ async function ExecuteBanList(
 
 async function ExecuteBanListPages(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { paginatedResponder, interactionResponder } = context.responders;
 
@@ -58,7 +59,7 @@ async function ExecuteBanListPages(
 
 async function ExecuteBanCheck(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const userOption = interaction.options.getUser("user", true);
@@ -101,7 +102,7 @@ async function ExecuteBanCheck(
 
 function BuildBanPages(bans: GuildBan[]): PaginationPage[] {
   const sortedBans = [...bans].sort((a, b) =>
-    a.user.username.localeCompare(b.user.username)
+    a.user.username.localeCompare(b.user.username),
   );
 
   const chunks: PaginationPage[] = [];
@@ -121,7 +122,7 @@ function BuildBanPages(bans: GuildBan[]): PaginationPage[] {
         name: `${start + sliceIndex}. ${ban.user.tag}`,
         value: `ID: ${ban.user.id}\nReason: ${ban.reason ?? "No reason provided"}`,
         inline: false,
-      }))
+      })),
     );
 
     chunks.push({ embeds: [embed.toJSON()] });
@@ -141,7 +142,7 @@ export const BanListCommand = CreateCommand({
       .addSubcommand((sub) =>
         sub
           .setName("list")
-          .setDescription("View the server ban list with pagination")
+          .setDescription("View the server ban list with pagination"),
       )
       .addSubcommand((sub) =>
         sub
@@ -151,8 +152,8 @@ export const BanListCommand = CreateCommand({
             option
               .setName("user")
               .setDescription("User to check")
-              .setRequired(true)
-          )
+              .setRequired(true),
+          ),
       );
   },
 });

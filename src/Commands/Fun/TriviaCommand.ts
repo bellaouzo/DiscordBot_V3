@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
@@ -90,12 +87,12 @@ function FormatTrivia(question: TriviaQuestion): {
 
 async function ExecuteTrivia(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const category = interaction.options.getInteger("category");
   const difficulty = interaction.options.getString(
-    "difficulty"
+    "difficulty",
   ) as TriviaDifficulty | null;
 
   const response = await RequestJson<TriviaResponse>(apiConfig.trivia.url, {
@@ -141,7 +138,7 @@ export const TriviaCommand = CreateCommand({
         option
           .setName("category")
           .setDescription("OpenTDB category ID (e.g., 18 = Computers)")
-          .setRequired(false)
+          .setRequired(false),
       )
       .addStringOption((option) =>
         option
@@ -151,8 +148,8 @@ export const TriviaCommand = CreateCommand({
           .addChoices(
             { name: "Easy", value: "easy" },
             { name: "Medium", value: "medium" },
-            { name: "Hard", value: "hard" }
-          )
+            { name: "Hard", value: "hard" },
+          ),
       );
   },
   execute: ExecuteTrivia,

@@ -1,5 +1,9 @@
 import { randomUUID } from "crypto";
-import { ButtonInteraction, InteractionReplyOptions, MessageFlags } from "discord.js";
+import {
+  ButtonInteraction,
+  InteractionReplyOptions,
+  MessageFlags,
+} from "discord.js";
 import { Logger } from "./Logger";
 
 export type ButtonHandler = (
@@ -68,7 +72,7 @@ export class ComponentRouter {
 
   RegisterButtonPrefix(
     prefix: string,
-    options: Omit<RegisterButtonOptions, "customId" | "prefix">
+    options: Omit<RegisterButtonOptions, "customId" | "prefix">,
   ): RegisteredButton {
     const expiresAt = options.expiresInMs
       ? Date.now() + options.expiresInMs
@@ -150,7 +154,7 @@ export class ComponentRouter {
   }
 
   private FindPrefixRegistration(
-    customId: string
+    customId: string,
   ): ButtonRegistration | undefined {
     let match: ButtonRegistration | undefined;
     let longestPrefix = 0;

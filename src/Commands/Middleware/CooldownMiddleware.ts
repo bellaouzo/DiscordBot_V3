@@ -1,39 +1,74 @@
 import { MessageFlags } from "discord.js";
-import { CommandMiddleware } from "./index";
+import { CommandConfig } from "./CommandConfig";
+import { CommandMiddleware, MiddlewareContext } from "./index";
 import { CreateErrorMessage } from "@responders/MessageFactory";
+import { GetCooldownStateStore } from "./CooldownState";
 
-const cooldowns = new Map<string, number>();
+export function ResolveCooldownMs(
+  cooldownConfig: NonNullable<CommandConfig["cooldown"]>,
+): number {
+  if (cooldownConfig.milliseconds) {
+    return cooldownConfig.milliseconds;
+  }
+  if (cooldownConfig.seconds) {
+    return cooldownConfig.seconds * 1000;
+  }
+  if (cooldownConfig.minutes) {
+    return cooldownConfig.minutes * 60 * 1000;
+  }
+  return 0;
+}
+
+export function BuildCooldownKey(userId: string, commandName: string): string {
+  return `${userId}:${commandName}`;
+}
+
+export function RecordCooldown(context: MiddlewareContext): void {
+  const cooldownConfig = context.config.cooldown;
+  if (!cooldownConfig) {
+    return;
+  }
+
+  const cooldownMs = ResolveCooldownMs(cooldownConfig);
+  if (cooldownMs === 0) {
+    return;
+  }
+
+  const key = BuildCooldownKey(
+    context.interaction.user.id,
+    context.command.data.name,
+  );
+  const now = Date.now();
+  const store = GetCooldownStateStore();
+  store.Set(key, now + cooldownMs);
+  store.Prune(now);
+}
+
+export function ResetCooldownsForTesting(): void {
+  GetCooldownStateStore().Clear();
+}
 
 export const CooldownMiddleware: CommandMiddleware = {
   name: "cooldown",
   execute: async (context, next) => {
-    const config = context.config;
-    const cooldownConfig = config.cooldown;
+    const cooldownConfig = context.config.cooldown;
 
     if (!cooldownConfig) {
       await next();
       return;
     }
 
-    const userId = context.interaction.user.id;
-    const commandName = context.command.data.name;
-
-    let cooldownMs = 0;
-    if (cooldownConfig.milliseconds) {
-      cooldownMs = cooldownConfig.milliseconds;
-    } else if (cooldownConfig.seconds) {
-      cooldownMs = cooldownConfig.seconds * 1000;
-    } else if (cooldownConfig.minutes) {
-      cooldownMs = cooldownConfig.minutes * 60 * 1000;
-    }
-
+    const cooldownMs = ResolveCooldownMs(cooldownConfig);
     if (cooldownMs === 0) {
       await next();
       return;
     }
 
-    const key = `${userId}:${commandName}`;
-    const expiresAt = cooldowns.get(key);
+    const key = BuildCooldownKey(
+      context.interaction.user.id,
+      context.command.data.name,
+    );
+    const expiresAt = GetCooldownStateStore().Get(key);
     const now = Date.now();
 
     if (expiresAt && now < expiresAt) {
@@ -52,17 +87,6 @@ export const CooldownMiddleware: CommandMiddleware = {
       return;
     }
 
-    cooldowns.set(key, now + cooldownMs);
-
-    if (cooldowns.size > 100) {
-      for (const [k, expiry] of cooldowns.entries()) {
-        if (now >= expiry) {
-          cooldowns.delete(k);
-        }
-      }
-    }
-
     await next();
   },
 };
-

@@ -17,19 +17,19 @@ export interface ChannelManager {
   GetOrCreateCategory(name: string): Promise<CategoryChannel | null>;
   GetOrCreateTextChannel(
     name: string,
-    categoryName?: string
+    categoryName?: string,
   ): Promise<TextChannel | null>;
 }
 
 export function CreateChannelManager(
-  options: ChannelManagerOptions
+  options: ChannelManagerOptions,
 ): ChannelManager {
   const categoryCache = new Map<string, CategoryChannel | null>();
   const channelCache = new Map<string, TextChannel | null>();
 
   return {
     GetOrCreateCategory: async (
-      name: string
+      name: string,
     ): Promise<CategoryChannel | null> => {
       const cached = categoryCache.get(name);
       if (cached !== undefined) {
@@ -38,7 +38,7 @@ export function CreateChannelManager(
 
       const existingCategories = options.guild.channels.cache.filter(
         (channel) =>
-          channel.type === ChannelType.GuildCategory && channel.name === name
+          channel.type === ChannelType.GuildCategory && channel.name === name,
       );
 
       if (existingCategories.size > 0) {
@@ -67,7 +67,7 @@ export function CreateChannelManager(
 
     GetOrCreateTextChannel: async (
       name: string,
-      categoryName?: string
+      categoryName?: string,
     ): Promise<TextChannel | null> => {
       const cacheKey = `${name}:${categoryName || "root"}`;
       const cached = channelCache.get(cacheKey);
@@ -77,7 +77,7 @@ export function CreateChannelManager(
 
       const existingChannels = options.guild.channels.cache.filter(
         (channel) =>
-          channel.type === ChannelType.GuildText && channel.name === name
+          channel.type === ChannelType.GuildText && channel.name === name,
       );
 
       if (existingChannels.size > 0) {
@@ -91,7 +91,7 @@ export function CreateChannelManager(
         if (categoryName) {
           parent =
             await CreateChannelManager(options).GetOrCreateCategory(
-              categoryName
+              categoryName,
             );
         }
 
@@ -100,7 +100,7 @@ export function CreateChannelManager(
           type: ChannelType.GuildText,
           parent: parent,
           permissionOverwrites: CreateDefaultPermissionOverwrites(
-            options.guild
+            options.guild,
           ),
         });
 
@@ -120,7 +120,7 @@ export function CreateChannelManager(
 }
 
 function CreateDefaultPermissionOverwrites(
-  guild: Guild
+  guild: Guild,
 ): OverwriteResolvable[] {
   return [
     {

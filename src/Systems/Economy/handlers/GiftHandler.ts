@@ -6,7 +6,7 @@ import { EmbedFactory } from "@utilities";
 
 export async function HandleGift(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const targetUser = interaction.options.getUser("user", true);
@@ -18,7 +18,8 @@ export async function HandleGift(
       description: "Gifts can only be sent inside a server.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],    });
+      embeds: [embed.toJSON()],
+    });
     return;
   }
 
@@ -28,7 +29,8 @@ export async function HandleGift(
       description: "Gift amount must be greater than zero.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],    });
+      embeds: [embed.toJSON()],
+    });
     return;
   }
 
@@ -38,7 +40,8 @@ export async function HandleGift(
       description: "Choose a different user to send coins to.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],    });
+      embeds: [embed.toJSON()],
+    });
     return;
   }
 
@@ -48,13 +51,14 @@ export async function HandleGift(
       description: "Select a human user to send coins to.",
     });
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],    });
+      embeds: [embed.toJSON()],
+    });
     return;
   }
 
   const manager = new EconomyManager(
     interaction.guildId,
-    context.databases.userDb
+    context.databases.userDb,
   );
 
   try {
@@ -71,7 +75,8 @@ export async function HandleGift(
         description: "You don't have enough coins to send that amount.",
       });
       await interactionResponder.Reply(interaction, {
-        embeds: [embed.toJSON()],      });
+        embeds: [embed.toJSON()],
+      });
       return;
     }
 
@@ -84,7 +89,8 @@ export async function HandleGift(
     });
 
     await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],    });
+      embeds: [embed.toJSON()],
+    });
   } finally {
     void 0;
   }

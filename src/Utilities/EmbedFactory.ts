@@ -55,17 +55,23 @@ export class EmbedFactory {
   }
 
   /** Same as Create with success (green) color. */
-  static CreateSuccess(options: Omit<EmbedOptions, "color">): DiscordEmbedBuilder {
+  static CreateSuccess(
+    options: Omit<EmbedOptions, "color">,
+  ): DiscordEmbedBuilder {
     return this.Create({ ...options, color: this.SUCCESS_COLOR });
   }
 
   /** Same as Create with warning (yellow) color. */
-  static CreateWarning(options: Omit<EmbedOptions, "color">): DiscordEmbedBuilder {
+  static CreateWarning(
+    options: Omit<EmbedOptions, "color">,
+  ): DiscordEmbedBuilder {
     return this.Create({ ...options, color: this.WARNING_COLOR });
   }
 
   /** Same as Create with error (red) color. */
-  static CreateError(options: Omit<EmbedOptions, "color">): DiscordEmbedBuilder {
+  static CreateError(
+    options: Omit<EmbedOptions, "color">,
+  ): DiscordEmbedBuilder {
     return this.Create({ ...options, color: this.ERROR_COLOR });
   }
 
@@ -73,7 +79,7 @@ export class EmbedFactory {
   static CreateHelpSection(
     sectionName: string,
     description: string,
-    commandCount: number
+    commandCount: number,
   ): DiscordEmbedBuilder {
     return this.Create({
       title: `📁 ${sectionName} Commands`,
@@ -88,7 +94,7 @@ export class EmbedFactory {
   /** Builds the main help overview embed with total commands and category count. */
   static CreateHelpOverview(
     totalCommands: number,
-    categoryCount: number
+    categoryCount: number,
   ): DiscordEmbedBuilder {
     return this.Create({
       title: "🤖 Bot Command Overview",
@@ -107,7 +113,7 @@ export class EmbedFactory {
       created_at: number;
       channel_id?: string | null;
       tags?: string[];
-    }>
+    }>,
   ): DiscordEmbedBuilder {
     const embed = this.Create({
       title: "🎫 Your Tickets",
@@ -152,7 +158,10 @@ export class EmbedFactory {
     return embed;
   }
 
-  static CreateTicketClosed(ticketId: number, closedBy: string): DiscordEmbedBuilder {
+  static CreateTicketClosed(
+    ticketId: number,
+    closedBy: string,
+  ): DiscordEmbedBuilder {
     return this.CreateWarning({
       title: "🔒 Ticket Closed",
       description: `Ticket #${ticketId} has been closed by <@${closedBy}>.`,
@@ -162,7 +171,7 @@ export class EmbedFactory {
 
   static CreateTicketClaimed(
     ticketId: number,
-    claimedBy: string
+    claimedBy: string,
   ): DiscordEmbedBuilder {
     return this.CreateSuccess({
       title: "📌 Ticket Claimed",

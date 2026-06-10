@@ -1,7 +1,4 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { BuildLeaderboardEmbed } from "@systems/Economy/utils/Embeds";
@@ -9,12 +6,12 @@ import { EmbedFactory } from "@utilities";
 
 export async function HandleLeaderboard(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const manager = new EconomyManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
 
   try {
@@ -39,7 +36,7 @@ export async function HandleLeaderboard(
           .fetch(entry.userId)
           .catch(() => null);
         return member?.displayName ?? member?.user?.username ?? undefined;
-      })
+      }),
     );
 
     const embed = BuildLeaderboardEmbed({

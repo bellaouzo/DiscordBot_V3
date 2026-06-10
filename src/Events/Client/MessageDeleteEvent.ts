@@ -5,7 +5,7 @@ import { EmbedFactory } from "@utilities";
 
 async function ExecuteMessageDeleteEvent(
   context: EventContext,
-  deleted: Message | PartialMessage
+  deleted: Message | PartialMessage,
 ): Promise<void> {
   const msg = deleted;
 
@@ -20,7 +20,7 @@ async function ExecuteMessageDeleteEvent(
 
   const logChannel = await channelManager.GetOrCreateTextChannel(
     context.appConfig.logging.messageDeleteChannelName,
-    context.appConfig.logging.commandLogCategoryName
+    context.appConfig.logging.commandLogCategoryName,
   );
 
   if (!logChannel) {

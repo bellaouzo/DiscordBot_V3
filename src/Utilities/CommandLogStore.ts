@@ -35,7 +35,7 @@ function EnsureLogDir(): void {
 
 export async function AppendCommandLog(
   interaction: ChatInputCommandInteraction,
-  command: CommandDefinition
+  command: CommandDefinition,
 ): Promise<void> {
   EnsureLogDir();
 
@@ -61,7 +61,7 @@ export async function GetLogsForUser(
     start?: number;
     end?: number;
     guildId?: string | null;
-  }
+  },
 ): Promise<CommandLogEntry[]> {
   EnsureLogDir();
   if (!fs.existsSync(LOG_FILE)) {
@@ -95,7 +95,7 @@ export type LogExportFormat = "txt" | "csv";
 
 export function FormatLogs(
   logs: CommandLogEntry[],
-  format: LogExportFormat
+  format: LogExportFormat,
 ): Buffer {
   if (format === "csv") {
     const header = [
@@ -139,7 +139,7 @@ function FormatLine(entry: CommandLogEntry): string {
     : "none";
   const sub = entry.subcommand ? ` ${entry.subcommand}` : "";
   return `[${date}] ${entry.command}${sub} | ${locationParts.join(
-    " | "
+    " | ",
   )} | args: ${args}`;
 }
 
@@ -150,7 +150,7 @@ function EscapeCsv(value: string): string {
   return value;
 }
 function BuildOptionMap(
-  interaction: ChatInputCommandInteraction
+  interaction: ChatInputCommandInteraction,
 ): Record<string, unknown> | undefined {
   const data = interaction.options.data;
   if (!data || data.length === 0) {

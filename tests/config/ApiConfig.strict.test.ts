@@ -42,8 +42,8 @@ describe("ListStrictStartupFeatureViolations", () => {
 
     expect(
       violations.some((entry) =>
-        entry.message.includes("ROBLOX_BRIDGE_URL_SIGNING_SECRET")
-      )
+        entry.message.includes("ROBLOX_BRIDGE_URL_SIGNING_SECRET"),
+      ),
     ).toBe(true);
   });
 });

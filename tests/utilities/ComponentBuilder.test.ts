@@ -67,7 +67,7 @@ describe("ComponentFactory", () => {
       const rows = ComponentFactory.CreateHelpSectionButtons(
         [{ name: "Fun" }, { name: "Utility" }],
         "abc",
-        -1
+        -1,
       );
       expect(rows.length).toBeGreaterThanOrEqual(1);
       const first = rows[0].toJSON();

@@ -1,6 +1,7 @@
 import {
-  ChatInputCommandInteraction, EmbedBuilder,
-  MessageFlags
+  ChatInputCommandInteraction,
+  EmbedBuilder,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
@@ -44,7 +45,7 @@ function CreateMemeEmbed(payload: MemeResponse): EmbedBuilder | null {
 
 async function ExecuteMeme(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const subreddit = interaction.options.getString("subreddit");
@@ -53,7 +54,7 @@ async function ExecuteMeme(
     BuildMemeUrl(apiConfig.meme.url, subreddit),
     {
       timeoutMs: apiConfig.meme.timeoutMs,
-    }
+    },
   );
 
   if (!response.ok || !response.data) {
@@ -96,11 +97,10 @@ export const MemeCommand = CreateCommand({
       option
         .setName("subreddit")
         .setDescription(
-          "Fetch from a specific subreddit (e.g., memes, dankmemes)"
+          "Fetch from a specific subreddit (e.g., memes, dankmemes)",
         )
-        .setRequired(false)
+        .setRequired(false),
     );
   },
   execute: ExecuteMeme,
 });
-

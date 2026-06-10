@@ -32,7 +32,7 @@ function BuildButton(options: {
 }
 
 export function BuildRpsButtons(
-  customIds: RpsButtonIds
+  customIds: RpsButtonIds,
 ): ActionRowData<ActionRowComponentData> {
   return {
     type: ComponentType.ActionRow,
@@ -66,7 +66,7 @@ export function BuildRpsButtons(
 }
 
 export function BuildDisabledRpsButtons(
-  customIds: RpsButtonIds
+  customIds: RpsButtonIds,
 ): ActionRowData<ActionRowComponentData> {
   return {
     type: ComponentType.ActionRow,
@@ -102,4 +102,3 @@ export function BuildDisabledRpsButtons(
     ],
   };
 }
-

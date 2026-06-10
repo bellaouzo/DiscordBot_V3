@@ -1,6 +1,7 @@
 import {
-  ButtonInteraction, ChatInputCommandInteraction,
-  MessageFlags
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  MessageFlags,
 } from "discord.js";
 import { CommandContext } from "@commands/CommandFactory";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
@@ -40,7 +41,7 @@ function renderWheel(currentIndex: number): string {
     const seg = SEGMENTS[i];
     const pointer = i === currentIndex ? "➡️" : "  ";
     lines.push(
-      `${pointer} ${seg.emoji}  ${seg.label} (${seg.multiplier.toFixed(2)}x)`
+      `${pointer} ${seg.emoji}  ${seg.label} (${seg.multiplier.toFixed(2)}x)`,
     );
   }
   return lines.join("\n");
@@ -48,7 +49,7 @@ function renderWheel(currentIndex: number): string {
 
 export async function HandleWheel(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
@@ -69,7 +70,7 @@ export async function HandleWheel(
 
   const manager = new EconomyManager(
     interaction.guildId!,
-    context.databases.userDb
+    context.databases.userDb,
   );
   let balance = manager.EnsureBalance(interaction.user.id);
 
@@ -139,7 +140,7 @@ export async function HandleWheel(
   };
 
   const handleSpin = async (
-    buttonInteraction: ButtonInteraction
+    buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
     if (resolved) {
       await buttonResponder.Reply(buttonInteraction, {
@@ -181,7 +182,7 @@ export async function HandleWheel(
         embeds: [
           buildWheelEmbed(
             ticks[i],
-            i >= ticks.length - 2 ? "Slowing..." : "Spinning..."
+            i >= ticks.length - 2 ? "Slowing..." : "Spinning...",
           ).toJSON(),
         ],
         components: [BuildDisabledWheelButtons(customIds)],
@@ -231,7 +232,8 @@ export async function HandleWheel(
 
   const replyResult = await interactionResponder.Reply(interaction, {
     embeds: [promptEmbed.toJSON()],
-    components: [BuildWheelButtons(customIds)],  });
+    components: [BuildWheelButtons(customIds)],
+  });
 
   if (!replyResult.success) {
     if (bet > 0) {

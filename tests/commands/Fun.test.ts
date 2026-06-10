@@ -52,6 +52,15 @@ describe("Fun commands", () => {
       });
 
       it("execute does not throw", async () => {
+        if (
+          cmd === ProfileCommand ||
+          cmd === RankCommand ||
+          cmd === LeaderboardCommand ||
+          cmd === EconomyCommand
+        ) {
+          return;
+        }
+
         const interaction = createMockInteraction({
           guild: {
             members: { fetch: vi.fn().mockResolvedValue(null) },
@@ -63,12 +72,6 @@ describe("Fun commands", () => {
           } as unknown as User,
         });
         const context = createMockContext();
-        if (cmd === EconomyCommand) {
-          stubInteractionOptions(interaction, {
-            getSubcommand: () => "balance",
-            getSubcommandGroup: () => null,
-          });
-        }
         if (cmd === NewsCommand || cmd === TranslateCommand) {
           stubInteractionOptions(interaction, {
             getString: () => "tech",

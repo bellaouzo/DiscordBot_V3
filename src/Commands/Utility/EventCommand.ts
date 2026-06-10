@@ -1,10 +1,11 @@
-import {
-  ChatInputCommandInteraction, GuildMember,
-  MessageFlags
-} from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { CommandContext, CreateCommand } from "@commands/CommandFactory";
 import { Config } from "@middleware";
-import { EmbedFactory, IsModerator } from "@utilities";
+import {
+  EmbedFactory,
+  IsModerator,
+  ResolveInteractionMember,
+} from "@utilities";
 import { PaginationPage } from "@shared/Paginator";
 
 const EVENT_LIST_PAGE_SIZE = 8;
@@ -26,12 +27,14 @@ function ParseTime(input: string): number | null {
 
 async function ExecuteEventCreate(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  const settings = context.databases.serverDb.GetGuildSettings(interaction.guild!.id);
-  const member = interaction.member as GuildMember | null;
+  const settings = context.databases.serverDb.GetGuildSettings(
+    interaction.guild!.id,
+  );
+  const member = await ResolveInteractionMember(interaction);
   if (!IsModerator(member, settings)) {
     const embed = EmbedFactory.CreateError({
       title: "Permission Denied",
@@ -87,7 +90,7 @@ async function ExecuteEventCreate(
     const embed = EmbedFactory.CreateSuccess({
       title: "Event Created",
       description: `Scheduled **${event.title}** as #${event.guild_event_id} for <t:${Math.floor(
-        event.scheduled_at / 1000
+        event.scheduled_at / 1000,
       )}:F> (relative: <t:${Math.floor(event.scheduled_at / 1000)}:R>).`,
     });
     if (shouldNotify) {
@@ -117,7 +120,7 @@ async function ExecuteEventCreate(
 
 async function ExecuteEventList(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder, paginatedResponder } = context.responders;
 
@@ -172,7 +175,7 @@ function BuildEventPages(
     title: string;
     scheduled_at: number;
     should_notify: boolean;
-  }>
+  }>,
 ): PaginationPage[] {
   const pages: PaginationPage[] = [];
 
@@ -190,10 +193,10 @@ function BuildEventPages(
       slice.map((event) => ({
         name: `#${event.guild_event_id} — ${event.title}`,
         value: `<t:${Math.floor(event.scheduled_at / 1000)}:F> (<t:${Math.floor(
-          event.scheduled_at / 1000
+          event.scheduled_at / 1000,
         )}:R>)${event.should_notify ? " • will notify" : ""}`,
         inline: false,
-      }))
+      })),
     );
 
     pages.push({ embeds: [embed.toJSON()] });
@@ -204,7 +207,7 @@ function BuildEventPages(
 
 async function ExecuteEventCancel(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -226,9 +229,9 @@ async function ExecuteEventCancel(
     }
 
     const settings = context.databases.serverDb.GetGuildSettings(
-      interaction.guild!.id
+      interaction.guild!.id,
     );
-    const member = interaction.member as GuildMember | null;
+    const member = await ResolveInteractionMember(interaction);
     const isCreator = event.created_by === interaction.user.id;
     const isStaff = IsModerator(member, settings);
     if (!isCreator && !isStaff) {
@@ -293,21 +296,21 @@ export const EventCommand = CreateCommand({
             option
               .setName("time")
               .setDescription(
-                "When the event starts (ISO, human date, or epoch seconds)"
+                "When the event starts (ISO, human date, or epoch seconds)",
               )
-              .setRequired(true)
+              .setRequired(true),
           )
           .addStringOption((option) =>
             option
               .setName("title")
               .setDescription("Event title")
-              .setRequired(true)
+              .setRequired(true),
           )
           .addBooleanOption((option) =>
             option
               .setName("shouldnotify")
-              .setDescription("Notify when event time is reached")
-          )
+              .setDescription("Notify when event time is reached"),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -316,8 +319,8 @@ export const EventCommand = CreateCommand({
           .addIntegerOption((option) =>
             option
               .setName("limit")
-              .setDescription("Max events to show (1-25, default 10)")
-          )
+              .setDescription("Max events to show (1-25, default 10)"),
+          ),
       )
       .addSubcommand((sub) =>
         sub
@@ -327,8 +330,8 @@ export const EventCommand = CreateCommand({
             option
               .setName("id")
               .setDescription("Event ID to cancel")
-              .setRequired(true)
-          )
+              .setRequired(true),
+          ),
       );
   },
   execute: async (interaction, context) => {

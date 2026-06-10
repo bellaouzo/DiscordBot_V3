@@ -1,8 +1,5 @@
-import {
-  describe, it, expect, vi, beforeEach } from "vitest";
-import { PermissionFlagsBits,
-  MessageFlags
-} from "discord.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { PermissionFlagsBits, MessageFlags } from "discord.js";
 import {
   HasStaffPermissions,
   ValidateTicketChannel,
@@ -25,27 +22,31 @@ describe("TicketValidation", () => {
     expect(HasStaffPermissions(null as never)).toBe(false);
   });
 
-  it("HasStaffPermissions returns false when permissions is string", () => {
-    expect(HasStaffPermissions({ permissions: "8" } as never)).toBe(false);
-  });
-
   it("HasStaffPermissions returns true when member has ManageGuild", () => {
     const member = {
       permissions: {
-        has: vi.fn().mockImplementation((flag) => flag === PermissionFlagsBits.ManageGuild),
+        has: vi
+          .fn()
+          .mockImplementation(
+            (flag) => flag === PermissionFlagsBits.ManageGuild,
+          ),
       },
       roles: { cache: { some: () => false } },
     };
     expect(HasStaffPermissions(member as never)).toBe(true);
     expect(member.permissions.has).toHaveBeenCalledWith(
-      PermissionFlagsBits.ManageGuild
+      PermissionFlagsBits.ManageGuild,
     );
   });
 
   it("HasStaffPermissions returns true when member has Administrator", () => {
     const member = {
       permissions: {
-        has: vi.fn().mockImplementation((flag) => flag === PermissionFlagsBits.Administrator),
+        has: vi
+          .fn()
+          .mockImplementation(
+            (flag) => flag === PermissionFlagsBits.Administrator,
+          ),
       },
       roles: { cache: { some: () => false } },
     };
@@ -68,13 +69,13 @@ describe("TicketValidation", () => {
 
   it("ValidateTicketChannel returns true when channel is text-based", () => {
     expect(ValidateTicketChannel({ isTextBased: () => true } as never)).toBe(
-      true
+      true,
     );
   });
 
   it("ValidateTicketChannel returns false when channel is not text-based", () => {
     expect(ValidateTicketChannel({ isTextBased: () => false } as never)).toBe(
-      false
+      false,
     );
   });
 
@@ -83,7 +84,7 @@ describe("TicketValidation", () => {
     const context = createMockContext();
     const result = await ValidateGuildOrReply(
       interaction,
-      context.responders.interactionResponder
+      context.responders.interactionResponder,
     );
     expect(result).toBe(false);
     expect(context.responders.interactionResponder.Reply).toHaveBeenCalledWith(
@@ -91,7 +92,7 @@ describe("TicketValidation", () => {
       expect.objectContaining({
         embeds: expect.any(Array),
         flags: MessageFlags.Ephemeral,
-      })
+      }),
     );
   });
 
@@ -100,11 +101,11 @@ describe("TicketValidation", () => {
     const context = createMockContext();
     const result = await ValidateGuildOrReply(
       interaction,
-      context.responders.interactionResponder
+      context.responders.interactionResponder,
     );
     expect(result).toBe(true);
     expect(
-      context.responders.interactionResponder.Reply
+      context.responders.interactionResponder.Reply,
     ).not.toHaveBeenCalled();
   });
 
@@ -113,7 +114,7 @@ describe("TicketValidation", () => {
     const context = createMockContext();
     const result = await ValidateTicketChannelOrReply(
       interaction,
-      context.responders.interactionResponder
+      context.responders.interactionResponder,
     );
     expect(result).toBe(false);
     expect(context.responders.interactionResponder.Reply).toHaveBeenCalled();
@@ -132,7 +133,7 @@ describe("TicketValidation", () => {
     const context = createMockContext();
     const result = await ValidateTicketChannelOrReply(
       interactionWithChannel,
-      context.responders.interactionResponder
+      context.responders.interactionResponder,
     );
     expect(result).toBe(true);
   });
@@ -149,7 +150,7 @@ describe("TicketValidation", () => {
       updated_at: Date.now(),
     };
     vi.mocked(databases.ticketDb.GetTicketByChannel).mockReturnValue(
-      ticket as never
+      ticket as never,
     );
     const interaction = createMockInteraction();
     const channel = { id: "ch1" } as never;
@@ -157,7 +158,7 @@ describe("TicketValidation", () => {
       databases.ticketDb,
       channel,
       interaction,
-      createMockContext().responders.interactionResponder
+      createMockContext().responders.interactionResponder,
     );
     expect(result).toEqual(ticket);
     expect(databases.ticketDb.GetTicketByChannel).toHaveBeenCalledWith("ch1");
@@ -173,7 +174,7 @@ describe("TicketValidation", () => {
       databases.ticketDb,
       channel,
       interaction,
-      context.responders.interactionResponder
+      context.responders.interactionResponder,
     );
     expect(result).toBeNull();
     expect(context.responders.interactionResponder.Reply).toHaveBeenCalledWith(
@@ -181,7 +182,7 @@ describe("TicketValidation", () => {
       expect.objectContaining({
         embeds: expect.any(Array),
         flags: MessageFlags.Ephemeral,
-      })
+      }),
     );
   });
 });

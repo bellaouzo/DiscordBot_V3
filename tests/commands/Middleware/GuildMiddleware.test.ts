@@ -55,7 +55,7 @@ describe("GuildMiddleware", () => {
             description: expect.stringContaining("server"),
           }),
         ]),
-      })
+      }),
     );
   });
 
@@ -69,7 +69,7 @@ describe("GuildMiddleware", () => {
 
     expect(next).toHaveBeenCalledOnce();
     expect(
-      context.responders.interactionResponder.Reply
+      context.responders.interactionResponder.Reply,
     ).not.toHaveBeenCalled();
   });
 });

@@ -33,7 +33,7 @@ export function BuildScratchButtons(
   customIds: ScratchButtonIds,
   labels: string[],
   columns = 3,
-  disabledIndices: Set<number> = new Set()
+  disabledIndices: Set<number> = new Set(),
 ): ActionRowData<ActionRowComponentData>[] {
   const rows: ActionRowData<ActionRowComponentData>[] = [];
 
@@ -47,7 +47,7 @@ export function BuildScratchButtons(
           emoji: "🎟️",
           style: ButtonStyle.Primary,
           disabled: disabledIndices.has(i + idx),
-        })
+        }),
       ),
     });
   }
@@ -70,7 +70,7 @@ export function BuildScratchButtons(
 export function BuildDisabledScratchButtons(
   customIds: ScratchButtonIds,
   labels: string[],
-  columns = 3
+  columns = 3,
 ): ActionRowData<ActionRowComponentData>[] {
   const rows: ActionRowData<ActionRowComponentData>[] = [];
 
@@ -84,7 +84,7 @@ export function BuildDisabledScratchButtons(
           emoji: "🎟️",
           style: ButtonStyle.Primary,
           disabled: true,
-        })
+        }),
       ),
     });
   }
@@ -104,4 +104,3 @@ export function BuildDisabledScratchButtons(
 
   return rows;
 }
-

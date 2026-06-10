@@ -31,7 +31,7 @@ export interface CommandMiddleware {
   readonly name: string;
   readonly execute: (
     context: MiddlewareContext,
-    next: () => Promise<void>
+    next: () => Promise<void>,
   ) => Promise<void>;
 }
 
@@ -53,7 +53,7 @@ export interface MiddlewareConfiguration {
 export async function RunMiddlewareChain(
   middleware: CommandMiddleware[],
   context: MiddlewareContext,
-  finalHandler: () => Promise<void>
+  finalHandler: () => Promise<void>,
 ): Promise<void> {
   let index = -1;
 
@@ -92,7 +92,7 @@ export * from "@middleware/CommandConfig";
  * @returns before and after middleware arrays
  */
 export function AutoMiddleware(
-  config?: CommandConfig
+  config?: CommandConfig,
 ): MiddlewareConfiguration {
   const before: CommandMiddleware[] = [LoggingMiddleware];
   const after: CommandMiddleware[] = [ErrorMiddleware];

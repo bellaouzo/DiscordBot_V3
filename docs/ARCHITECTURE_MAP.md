@@ -1,6 +1,6 @@
 # Architecture Map
 
-This document is the quick map for core runtime boundaries and request flow.
+This document is the quick map for core runtime boundaries and request flow. See also [MODULE_OWNERSHIP.md](./MODULE_OWNERSHIP.md) and [TESTING_STRATEGY.md](./TESTING_STRATEGY.md).
 
 ## Runtime Boundaries
 
@@ -10,29 +10,153 @@ This document is the quick map for core runtime boundaries and request flow.
 - `src/Events` owns event-driven workflows that do not begin with slash commands.
 - `src/Responders` owns safe interaction response lifecycle (`reply`, `defer`, `edit`, component routing).
 - `src/Database` owns persistence adapters and query logic for each SQLite domain.
-- `src/Systems` owns larger workflows with independent domain logic (Economy, Ticket, Giveaway, Roblox).
+- `src/Systems` owns larger workflows with independent domain logic (Economy, Ticket, Giveaway, Roblox, Setup).
 - `src/Utilities` owns shared formatting, API client, managers, and reusable command helpers.
 
 ## Moderation Domain Map
 
-- `src/Commands/Moderation/AppealCommand.ts` is the command entry-point and subcommand router.
-- `src/Commands/Moderation/Appeal/AppealSubmitFlow.ts` owns select -> modal -> appeal creation flow.
-- `src/Commands/Moderation/Appeal/AppealReviewFlow.ts` owns reviewer resolution and review-message sync.
-- `src/Commands/Moderation/Appeal/AppealShared.ts` owns reusable cross-flow helpers.
-- `src/Database/ModerationDatabase.ts` is the moderation persistence facade.
-- `src/Database/Moderation/Stores` owns focused sub-stores:
-  - `TempActionStore` for mute/ban temp lifecycle rows.
-  - `ModerationEventStore` for moderation history events.
-  - `AppealStore` for appeal persistence and state transitions.
+### Command entry points
+
+- `src/Commands/Moderation/AppealCommand.ts` — user-facing appeal submit/history router.
+- `src/Commands/Moderation/AppealAdminCommand.ts` — staff list/review/panel router.
+
+### Appeal flows (`src/Commands/Moderation/Appeal/`)
+
+| Module | Responsibility |
+|--------|----------------|
+| `AppealSubmitFlow.ts` | Thin router for submit subcommand |
+| `AppealSubmitSelectFlow.ts` | Select menu → modal registration |
+| `AppealSubmitModalFlow.ts` | Modal submit → DB + review channel creation |
+| `AppealReviewFlow.ts` | Thin router for `HandleList` / `HandleReview` slash paths |
+| `AppealReviewResolveFlow.ts` | Approve/deny button + modal finalize handlers |
+| `AppealFormatters.ts` | List pages, resolved review embeds |
+| `AppealShared.ts` | Cross-flow helpers (permissions, notify, remove action) |
+| `AppealPanelFlow.ts` | Staff appeal panel button |
+
+**Tests:** `tests/commands/AppealCommand.test.ts`, `tests/commands/AppealAdminCommand.test.ts`, `tests/commands/Appeal/AppealReview.lifecycle.test.ts`
+
+### Moderation command splits
+
+| Folder / file | Responsibility |
+|---------------|----------------|
+| `Lockdown/ApplyFlow.ts`, `LiftFlow.ts` | Channel overwrite lockdown apply/lift |
+| `RaidMode/ActivateFlow.ts`, `DeactivateFlow.ts`, `StatusFlow.ts`, `ClearRaidMode.ts` | Raid mode lifecycle |
+| `Casefile/QueryFlow.ts`, `Formatters.ts` | Casefile query + embed formatting |
+| `shared/OverwriteSerialization.ts` | Serialize/restore channel permission overwrites |
+
+**Tests:** `tests/commands/Moderation/LockdownCommand.test.ts`, `tests/commands/Moderation/RaidModeCommand.test.ts`, `tests/commands/Moderation/CasefileCommand.test.ts`
+
+### Persistence
+
+- `src/Database/ModerationDatabase.ts` — moderation persistence facade.
+- `src/Database/Moderation/Stores/` — `TempActionStore`, `ModerationEventStore`, `AppealStore`.
+
+## Utility Domain Map
+
+### Giveaway (`src/Commands/Utility/Giveaway/`)
+
+| Module | Responsibility |
+|--------|----------------|
+| `GiveawayCreateFlow.ts` | Create giveaway message + register entry button |
+| `GiveawayEndFlow.ts` | End active giveaway, pick winners |
+| `GiveawayRerollFlow.ts` | Reroll ended giveaway winners |
+| `GiveawayListFlow.ts` | List active giveaways embed |
+| `GiveawayShared.ts` | Shared helpers (entry count update, staff checks) |
+
+**System:** `src/Systems/Giveaway/GiveawayEntryHandler.ts` — entry/leave button handler; `GiveawayManager.ts` — persistence + winner selection.
+
+**Tests:** `tests/commands/Giveaway/Giveaway.lifecycle.test.ts`, `tests/systems/Giveaway/GiveawayEntryHandler.test.ts`
+
+### Poll (`src/Commands/Utility/Poll/`)
+
+| Module | Responsibility |
+|--------|----------------|
+| `CreateFlow.ts` | Create poll message + vote buttons |
+| `EndFlow.ts` | End poll and tally |
+| `ListFlow.ts` | List active polls |
+| `PollShared.ts` | Shared poll helpers |
+
+**Tests:** `tests/commands/Utility/PollCommand.test.ts`
+
+### Setup wizard (`src/Systems/Setup/`)
+
+```
+state.ts (draft + step state)
+  → builders/components.ts + embed.ts (UI)
+  → handlers/selectHandlers.ts (role/channel selects)
+  → handlers/buttonHandlers.ts (next/back/save/cancel)
+```
+
+**Tests:** `tests/systems/Setup/selectHandlers.lifecycle.test.ts`, `tests/systems/Setup/components.lifecycle.test.ts`, `tests/commands/Utility/SetupCommand.test.ts`
+
+## Economy Game Pattern
+
+Economy minigames follow a consistent shape:
+
+1. Slash subcommand handler in `src/Systems/Economy/handlers/` receives interaction.
+2. Handler registers follow-up buttons via `context.responders.componentRouter.RegisterButton`.
+3. Pure logic lives in `src/Systems/Economy/utils/` (`blackjackLogic.ts`, `crashLogic.ts`, `scratchLogic.ts`).
+4. Tests use `tests/helpers/economyInteraction.ts` to capture button handlers and drive multi-step flows.
+
+**Tests:** `tests/systems/Economy/crashLogic.test.ts`, `tests/systems/Economy/scratchLogic.test.ts`, economy handler tests under `tests/systems/Economy/`
+
+## Cooldown Persistence
+
+| Piece | Location |
+|-------|----------|
+| In-memory state | `src/Commands/Middleware/CooldownState.ts` |
+| Middleware | `src/Commands/Middleware/CooldownMiddleware.ts` |
+| SQLite table | `server.db` → `command_cooldowns` via `ServerDatabase` |
+| Opt-in env | `COOLDOWN_PERSIST=1` |
+
+**Tests:** `tests/commands/Middleware/CooldownMiddleware.test.ts`
+
+## Roblox Bridge (`src/Systems/Roblox/`)
+
+| Module | Responsibility |
+|--------|----------------|
+| `bridge.ts` | Re-exports + `EnsureAdminAccess` (backward compatible entry) |
+| `bridgeSettings.ts` | `EnsureRobloxBridgeSettings`, `BuildApiKeySetupUrl` |
+| `bridgeApi.ts` | Kick/API key/group HTTP helpers |
+| `bridgePresence.ts` | `FindPlayerPresence` |
+| `bridgeEmbeds.ts` | `BuildStatusEmbed`, `ExtractErrorMessage` |
+| `handlers/` | Slash subcommand handlers (kick, status, group audit, etc.) |
+
+**Tests:** `tests/systems/Roblox/bridgeApi.test.ts`, `tests/commands/RobloxApiKeyCommand.test.ts`
 
 ## Request Flow
 
-1. Discord emits an interaction/event.
+### Standard slash command
+
+1. Discord emits an interaction.
 2. `RegisterEvents` or interaction handlers route to command/event implementation.
-3. Command/event executes through responder utilities and database facade(s).
-4. Domain helpers in `Utilities` format embeds/components and enforce shared logic.
-5. Database facades delegate to domain stores and return typed records.
-6. Response is emitted via responder wrappers to prevent raw Discord API lifecycle mistakes.
+3. Middleware runs (logging, permissions, cooldowns, guild-only).
+4. Command executes through responder utilities and database facade(s).
+5. Domain helpers in `Utilities` format embeds/components and enforce shared logic.
+6. Database facades delegate to domain stores and return typed records.
+7. Response is emitted via responder wrappers to prevent raw Discord API lifecycle mistakes.
+
+### Multi-step interaction (select → modal → DB → edit)
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant Router as ComponentRouter / SelectMenuRouter / ModalRouter
+  participant Flow as Domain Flow Module
+  participant DB as Database Facade
+  participant Discord
+
+  User->>Router: slash /appeal submit
+  Router->>Flow: defer + register select handler
+  User->>Router: select menu interaction
+  Flow->>Router: register modal handler
+  User->>Router: modal submit
+  Flow->>DB: persist record
+  Flow->>Discord: editReply success embed
+  Flow->>Discord: optional channel message update
+```
+
+Appeal submit, Setup wizard, Giveaway entry, Economy bet sessions, and Ticket open all follow variants of this pattern.
 
 ## Configuration Flow
 

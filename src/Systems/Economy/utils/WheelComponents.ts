@@ -29,7 +29,7 @@ function BuildButton(options: {
 }
 
 export function BuildWheelButtons(
-  customIds: WheelButtonIds
+  customIds: WheelButtonIds,
 ): ActionRowData<ActionRowComponentData> {
   return {
     type: ComponentType.ActionRow,
@@ -45,7 +45,7 @@ export function BuildWheelButtons(
 }
 
 export function BuildDisabledWheelButtons(
-  customIds: WheelButtonIds
+  customIds: WheelButtonIds,
 ): ActionRowData<ActionRowComponentData> {
   return {
     type: ComponentType.ActionRow,
@@ -60,4 +60,3 @@ export function BuildDisabledWheelButtons(
     ],
   };
 }
-

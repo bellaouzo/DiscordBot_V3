@@ -1,10 +1,7 @@
-import {
-  ButtonInteraction, GuildMember,
-  MessageFlags
-} from "discord.js";
+import { ButtonInteraction, MessageFlags } from "discord.js";
 import { ButtonResponder } from "@responders";
 import { TicketDatabase } from "@database";
-import { EmbedFactory } from "@utilities";
+import { EmbedFactory, ResolveInteractionMember } from "@utilities";
 import {
   HasStaffPermissions,
   ParseTicketButtonCustomId,
@@ -19,7 +16,7 @@ export async function HandleClaimButton(
     ticketDb: TicketDatabase;
     logger: Logger;
     databases: DatabaseSet;
-  }
+  },
 ): Promise<void> {
   const parsed = ParseTicketButtonCustomId(buttonInteraction.customId);
   if (!parsed || parsed.action !== "claim") {
@@ -27,9 +24,9 @@ export async function HandleClaimButton(
   }
 
   const settings = options.databases.serverDb.GetGuildSettings(
-    buttonInteraction.guild!.id
+    buttonInteraction.guild!.id,
   );
-  const member = buttonInteraction.member as GuildMember | null;
+  const member = await ResolveInteractionMember(buttonInteraction);
 
   if (
     !HasStaffPermissions(member, {
@@ -68,12 +65,12 @@ export async function HandleClaimButton(
   options.ticketDb.UpdateTicketStatus(
     parsed.ticketId,
     "claimed",
-    buttonInteraction.user.id
+    buttonInteraction.user.id,
   );
 
   const claimEmbed = EmbedFactory.CreateTicketClaimed(
     parsed.ticketId,
-    buttonInteraction.user.id
+    buttonInteraction.user.id,
   );
   await options.buttonResponder.EditMessage(buttonInteraction, {
     embeds: [claimEmbed.toJSON()],

@@ -1,12 +1,17 @@
 import {
   ButtonStyle,
   ChatInputCommandInteraction,
-  GuildMember,
   MessageFlags,
   TextChannel,
 } from "discord.js";
 import { CommandContext } from "@commands";
-import { ComponentFactory, EmbedFactory, ToActionRowData, IsTicketStaff } from "@utilities";
+import {
+  ComponentFactory,
+  EmbedFactory,
+  ToActionRowData,
+  IsTicketStaff,
+  ResolveInteractionMember,
+} from "@utilities";
 import { BeginTicketCreation } from "@systems/Ticket/handlers/CreateHandler";
 
 export const PANEL_BUTTON_CUSTOM_ID = "ticket-panel:create";
@@ -47,7 +52,7 @@ export function RegisterTicketPanelButton(context: CommandContext): void {
 
 export async function HandleTicketPanel(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
 
@@ -64,9 +69,9 @@ export async function HandleTicketPanel(
   }
 
   const settings = context.databases.serverDb.GetGuildSettings(
-    interaction.guild.id
+    interaction.guild.id,
   );
-  const member = interaction.member as GuildMember | null;
+  const member = await ResolveInteractionMember(interaction);
 
   if (
     !IsTicketStaff(member, {

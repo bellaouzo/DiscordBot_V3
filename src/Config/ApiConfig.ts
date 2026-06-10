@@ -112,49 +112,49 @@ export function LoadApiConfig(): ApiConfig {
       url: process.env.API_QUOTE_URL || DEFAULTS.quote.url,
       timeoutMs: toNumber(
         process.env.API_QUOTE_TIMEOUT_MS,
-        DEFAULTS.quote.timeoutMs
+        DEFAULTS.quote.timeoutMs,
       ),
     },
     meme: {
       url: process.env.API_MEME_URL || DEFAULTS.meme.url,
       timeoutMs: toNumber(
         process.env.API_MEME_TIMEOUT_MS,
-        DEFAULTS.meme.timeoutMs
+        DEFAULTS.meme.timeoutMs,
       ),
     },
     joke: {
       url: process.env.API_JOKE_URL || DEFAULTS.joke.url,
       timeoutMs: toNumber(
         process.env.API_JOKE_TIMEOUT_MS,
-        DEFAULTS.joke.timeoutMs
+        DEFAULTS.joke.timeoutMs,
       ),
     },
     dadJoke: {
       url: process.env.API_DADJOKE_URL || DEFAULTS.dadJoke.url,
       timeoutMs: toNumber(
         process.env.API_DADJOKE_TIMEOUT_MS,
-        DEFAULTS.dadJoke.timeoutMs
+        DEFAULTS.dadJoke.timeoutMs,
       ),
     },
     fact: {
       url: process.env.API_FACT_URL || DEFAULTS.fact.url,
       timeoutMs: toNumber(
         process.env.API_FACT_TIMEOUT_MS,
-        DEFAULTS.fact.timeoutMs
+        DEFAULTS.fact.timeoutMs,
       ),
     },
     trivia: {
       url: process.env.API_TRIVIA_URL || DEFAULTS.trivia.url,
       timeoutMs: toNumber(
         process.env.API_TRIVIA_TIMEOUT_MS,
-        DEFAULTS.trivia.timeoutMs
+        DEFAULTS.trivia.timeoutMs,
       ),
     },
     apod: {
       url: process.env.API_APOD_URL || DEFAULTS.apod.url,
       timeoutMs: toNumber(
         process.env.API_APOD_TIMEOUT_MS,
-        DEFAULTS.apod.timeoutMs
+        DEFAULTS.apod.timeoutMs,
       ),
       apiKey: process.env.API_APOD_KEY?.trim() || DEFAULTS.apod.apiKey,
     },
@@ -162,7 +162,7 @@ export function LoadApiConfig(): ApiConfig {
       url: process.env.API_NEWS_URL || DEFAULTS.news.url,
       timeoutMs: toNumber(
         process.env.API_NEWS_TIMEOUT_MS,
-        DEFAULTS.news.timeoutMs
+        DEFAULTS.news.timeoutMs,
       ),
       apiKey: process.env.API_NEWS_KEY?.trim() || DEFAULTS.news.apiKey,
     },
@@ -170,7 +170,7 @@ export function LoadApiConfig(): ApiConfig {
       url: process.env.API_WEATHER_URL || DEFAULTS.weather.url,
       timeoutMs: toNumber(
         process.env.API_WEATHER_TIMEOUT_MS,
-        DEFAULTS.weather.timeoutMs
+        DEFAULTS.weather.timeoutMs,
       ),
       apiKey: process.env.OPENWEATHER_API_KEY || DEFAULTS.weather.apiKey,
     },
@@ -178,7 +178,7 @@ export function LoadApiConfig(): ApiConfig {
       url: process.env.API_TRANSLATE_URL || DEFAULTS.translate.url,
       timeoutMs: toNumber(
         process.env.API_TRANSLATE_TIMEOUT_MS,
-        DEFAULTS.translate.timeoutMs
+        DEFAULTS.translate.timeoutMs,
       ),
       apiKey: process.env.API_TRANSLATE_KEY || DEFAULTS.translate.apiKey,
     },
@@ -186,14 +186,14 @@ export function LoadApiConfig(): ApiConfig {
       url: process.env.API_INSULT_URL || DEFAULTS.insult.url,
       timeoutMs: toNumber(
         process.env.API_INSULT_TIMEOUT_MS,
-        DEFAULTS.insult.timeoutMs
+        DEFAULTS.insult.timeoutMs,
       ),
     },
     robloxBridge: {
       url: process.env.ROBLOX_BRIDGE_API_URL || DEFAULTS.robloxBridge.url,
       timeoutMs: toNumber(
         process.env.API_ROBLOX_BRIDGE_TIMEOUT_MS,
-        DEFAULTS.robloxBridge.timeoutMs
+        DEFAULTS.robloxBridge.timeoutMs,
       ),
       apiKey: process.env.ROBLOX_BRIDGE_API_KEY || DEFAULTS.robloxBridge.apiKey,
       urlSigningSecret:
@@ -205,7 +205,7 @@ export function LoadApiConfig(): ApiConfig {
 
 export function GetRequiredFeatureApiKey(
   feature: ApiFeatureWithRequiredKey,
-  config: ApiConfig = LoadApiConfig()
+  config: ApiConfig = LoadApiConfig(),
 ): {
   readonly apiKey: string | null;
   readonly envVar: string;
@@ -233,8 +233,11 @@ export function GetRequiredFeatureApiKey(
 }
 
 export function ListMissingRequiredFeatureApiKeys(
-  config: ApiConfig = LoadApiConfig()
-): Array<{ readonly feature: ApiFeatureWithRequiredKey; readonly envVar: string }> {
+  config: ApiConfig = LoadApiConfig(),
+): Array<{
+  readonly feature: ApiFeatureWithRequiredKey;
+  readonly envVar: string;
+}> {
   const features: ApiFeatureWithRequiredKey[] = [
     "apod",
     "news",
@@ -243,7 +246,10 @@ export function ListMissingRequiredFeatureApiKeys(
   ];
 
   return features
-    .map((feature) => ({ feature, result: GetRequiredFeatureApiKey(feature, config) }))
+    .map((feature) => ({
+      feature,
+      result: GetRequiredFeatureApiKey(feature, config),
+    }))
     .filter(({ result }) => !result.configured)
     .map(({ feature, result }) => ({ feature, envVar: result.envVar }));
 }
@@ -259,7 +265,7 @@ export function StrictFeatureKeysEnabled(): boolean {
 }
 
 export function ListStrictStartupFeatureViolations(
-  config: ApiConfig = LoadApiConfig()
+  config: ApiConfig = LoadApiConfig(),
 ): StrictStartupViolation[] {
   const violations: StrictStartupViolation[] = [];
   for (const entry of ListMissingRequiredFeatureApiKeys(config)) {

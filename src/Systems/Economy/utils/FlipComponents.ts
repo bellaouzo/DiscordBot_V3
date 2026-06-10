@@ -31,7 +31,7 @@ function BuildButton(options: {
 }
 
 export function BuildFlipButtons(
-  customIds: FlipButtonIds
+  customIds: FlipButtonIds,
 ): ActionRowData<ActionRowComponentData> {
   return {
     type: ComponentType.ActionRow,
@@ -59,7 +59,7 @@ export function BuildFlipButtons(
 }
 
 export function BuildDisabledFlipButtons(
-  customIds: FlipButtonIds
+  customIds: FlipButtonIds,
 ): ActionRowData<ActionRowComponentData> {
   return {
     type: ComponentType.ActionRow,
@@ -88,4 +88,3 @@ export function BuildDisabledFlipButtons(
     ],
   };
 }
-

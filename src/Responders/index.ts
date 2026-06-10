@@ -47,7 +47,7 @@ export interface ResponderSet {
  * @returns ResponderSet for command context
  */
 export function CreateResponders(
-  dependencies?: ResponderDependencies
+  dependencies?: ResponderDependencies,
 ): ResponderSet {
   const logger = ResolveResponderLogger(dependencies);
   const componentRouter = CreateComponentRouter(logger);
@@ -60,7 +60,7 @@ export function CreateResponders(
     interactionResponder,
     buttonResponder,
     componentRouter,
-    logger
+    logger,
   );
 
   return {

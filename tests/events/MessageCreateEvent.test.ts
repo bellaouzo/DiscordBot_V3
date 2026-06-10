@@ -39,6 +39,10 @@ describe("MessageCreateEvent", () => {
       guild: { id: "guild-1" },
       channel: { isTextBased: () => true },
       author: { id: "user-1", bot: false, send: sendDm },
+      member: {
+        permissions: { has: () => false },
+        roles: { cache: { some: () => false } },
+      },
       content: "check this https://bad.site/link",
       delete: deleteMessage,
     } as never;
@@ -49,7 +53,7 @@ describe("MessageCreateEvent", () => {
     expect(sendDm).toHaveBeenCalledWith(
       expect.objectContaining({
         embeds: expect.any(Array),
-      })
+      }),
     );
     expect(context.databases.ticketDb.AddMessage).not.toHaveBeenCalled();
   });
@@ -66,16 +70,20 @@ describe("MessageCreateEvent", () => {
     (
       context.databases.moderationDb.ListLinkFilters as ReturnType<typeof vi.fn>
     ).mockReturnValue([]);
-    (context.databases.ticketDb.GetTicketByChannel as ReturnType<typeof vi.fn>).mockReturnValue(
-      {
-        id: 77,
-      }
-    );
+    (
+      context.databases.ticketDb.GetTicketByChannel as ReturnType<typeof vi.fn>
+    ).mockReturnValue({
+      id: 77,
+    });
 
     const message = {
       guild: { id: "guild-1" },
       channel: { id: "channel-1", isTextBased: () => true },
       author: { id: "user-22", bot: false },
+      member: {
+        permissions: { has: () => false },
+        roles: { cache: { some: () => false } },
+      },
       content: "ticket follow-up",
       delete: vi.fn(),
     } as never;
@@ -85,7 +93,7 @@ describe("MessageCreateEvent", () => {
     expect(context.databases.ticketDb.AddMessage).toHaveBeenCalledWith(
       77,
       "user-22",
-      "ticket follow-up"
+      "ticket follow-up",
     );
   });
 });
