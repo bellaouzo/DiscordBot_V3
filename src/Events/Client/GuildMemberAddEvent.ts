@@ -3,6 +3,7 @@ import { Events } from "discord.js";
 import type { EventContext } from "@events/EventFactory";
 import { CreateEvent } from "@events/EventFactory";
 import { EmbedFactory, TryAssignAutorole } from "@utilities";
+import { AssignUnverifiedRole } from "@systems/Verification/VerifyMember";
 
 async function SendWelcomeMessage(
   context: EventContext,
@@ -102,6 +103,24 @@ async function ExecuteGuildMemberAddEvent(
         error,
       });
     }
+  }
+
+  if (settings.verification_enabled && settings.unverified_role_id) {
+    try {
+      await AssignUnverifiedRole(guildMember, settings);
+      context.logger.Debug("Unverified role assigned", {
+        guildId: guildMember.guild.id,
+        userId: guildMember.user.id,
+        extra: { roleId: settings.unverified_role_id },
+      });
+    } catch (verificationError) {
+      context.logger.Warn("Failed to assign unverified role", {
+        guildId: guildMember.guild.id,
+        userId: guildMember.user.id,
+        error: verificationError,
+      });
+    }
+    return;
   }
 
   if (settings.autorole_id) {

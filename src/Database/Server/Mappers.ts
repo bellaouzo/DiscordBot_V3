@@ -109,6 +109,21 @@ export function MapGuildSettings(
       row.roblox_linked_at !== null && row.roblox_linked_at !== undefined
         ? Number(row.roblox_linked_at)
         : null,
+    verification_enabled: Boolean(row.verification_enabled),
+    unverified_role_id: row.unverified_role_id
+      ? String(row.unverified_role_id)
+      : null,
+    verified_role_id: row.verified_role_id
+      ? String(row.verified_role_id)
+      : null,
+    verification_min_account_age_days:
+      row.verification_min_account_age_days !== null &&
+      row.verification_min_account_age_days !== undefined
+        ? Number(row.verification_min_account_age_days)
+        : 0,
+    verification_channel_id: row.verification_channel_id
+      ? String(row.verification_channel_id)
+      : null,
     created_at: Number(row.created_at),
     updated_at: Number(row.updated_at),
   };

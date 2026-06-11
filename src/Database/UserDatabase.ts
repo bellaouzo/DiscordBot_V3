@@ -521,6 +521,13 @@ export class UserDatabase {
     return this.lotteries.EndLottery(id, winner_id);
   }
 
+  Ping(): boolean {
+    const row = this.db.prepare("SELECT 1 AS ok").get() as
+      | { ok: number }
+      | undefined;
+    return row?.ok === 1;
+  }
+
   Close(): void {
     this.db.close();
   }

@@ -8,10 +8,13 @@ import { GuildXpSettingsStore } from "@database/Server/Stores/GuildXpSettingsSto
 import { ReactionRoleStore } from "@database/Server/Stores/ReactionRoleStore";
 import { StarboardStore } from "@database/Server/Stores/StarboardStore";
 import { CommandCooldownStore } from "@database/Server/Stores/CommandCooldownStore";
+import { LevelRoleRewardStore } from "@database/Server/Stores/LevelRoleRewardStore";
+import { DisabledCommandStore } from "@database/Server/Stores/DisabledCommandStore";
 
 import type {
   GuildSettings,
   GuildXpSettings,
+  LevelRoleReward,
   ReactionRoleMapping,
   ReactionRolePanel,
   ScheduledEvent,
@@ -21,6 +24,7 @@ import type {
 export type {
   GuildSettings,
   GuildXpSettings,
+  LevelRoleReward,
   ReactionRoleMapping,
   ReactionRolePanel,
   ScheduledEvent,
@@ -35,6 +39,8 @@ export class ServerDatabase {
   private readonly reactionRoles: ReactionRoleStore;
   private readonly starboard: StarboardStore;
   private readonly commandCooldowns: CommandCooldownStore;
+  private readonly levelRoleRewards: LevelRoleRewardStore;
+  private readonly disabledCommands: DisabledCommandStore;
 
   constructor(private readonly logger: Logger) {
     this.db = this.InitializeDatabase();
@@ -45,6 +51,8 @@ export class ServerDatabase {
     this.reactionRoles = new ReactionRoleStore(this.db);
     this.starboard = new StarboardStore(this.db);
     this.commandCooldowns = new CommandCooldownStore(this.db);
+    this.levelRoleRewards = new LevelRoleRewardStore(this.db);
+    this.disabledCommands = new DisabledCommandStore(this.db);
   }
 
   private InitializeDatabase(): Database.Database {
@@ -74,6 +82,11 @@ export class ServerDatabase {
     ["starboard_channel_id", "TEXT"],
     ["starboard_emoji", "TEXT"],
     ["starboard_threshold", "INTEGER"],
+    ["verification_enabled", "INTEGER"],
+    ["unverified_role_id", "TEXT"],
+    ["verified_role_id", "TEXT"],
+    ["verification_min_account_age_days", "INTEGER"],
+    ["verification_channel_id", "TEXT"],
   ]);
 
   private CreateTables(): void {
@@ -156,6 +169,19 @@ export class ServerDatabase {
           star_count INTEGER NOT NULL,
           created_at INTEGER NOT NULL,
           UNIQUE(guild_id, source_message_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS level_role_rewards (
+          guild_id TEXT NOT NULL,
+          level INTEGER NOT NULL,
+          role_id TEXT NOT NULL,
+          PRIMARY KEY (guild_id, level)
+        );
+
+        CREATE TABLE IF NOT EXISTS guild_disabled_commands (
+          guild_id TEXT NOT NULL,
+          command_name TEXT NOT NULL,
+          PRIMARY KEY (guild_id, command_name)
         );
       `);
 
@@ -337,8 +363,59 @@ export class ServerDatabase {
     starboard_threshold?: number | null;
     roblox_linked_discord_user_id?: string | null;
     roblox_linked_at?: number | null;
+    verification_enabled?: boolean;
+    unverified_role_id?: string | null;
+    verified_role_id?: string | null;
+    verification_min_account_age_days?: number;
+    verification_channel_id?: string | null;
   }) {
     return this.guildSettings.UpsertGuildSettings(settings);
+  }
+
+  GetLevelRoleRewards(guild_id: string): LevelRoleReward[] {
+    return this.levelRoleRewards.GetLevelRoleRewards(guild_id);
+  }
+
+  GetLevelRoleReward(
+    guild_id: string,
+    level: number,
+  ): LevelRoleReward | null {
+    return this.levelRoleRewards.GetLevelRoleReward(guild_id, level);
+  }
+
+  UpsertLevelRoleReward(data: {
+    guild_id: string;
+    level: number;
+    role_id: string;
+  }): LevelRoleReward {
+    return this.levelRoleRewards.UpsertLevelRoleReward(data);
+  }
+
+  RemoveLevelRoleReward(guild_id: string, level: number): boolean {
+    return this.levelRoleRewards.RemoveLevelRoleReward(guild_id, level);
+  }
+
+  IsCommandDisabled(guild_id: string, command_name: string): boolean {
+    return this.disabledCommands.IsCommandDisabled(guild_id, command_name);
+  }
+
+  DisableCommand(guild_id: string, command_name: string): void {
+    this.disabledCommands.DisableCommand(guild_id, command_name);
+  }
+
+  EnableCommand(guild_id: string, command_name: string): boolean {
+    return this.disabledCommands.EnableCommand(guild_id, command_name);
+  }
+
+  ListDisabledCommands(guild_id: string): string[] {
+    return this.disabledCommands.ListDisabledCommands(guild_id);
+  }
+
+  Ping(): boolean {
+    const row = this.db.prepare("SELECT 1 AS ok").get() as
+      | { ok: number }
+      | undefined;
+    return row?.ok === 1;
   }
 
   CreateReactionRolePanel(data: {

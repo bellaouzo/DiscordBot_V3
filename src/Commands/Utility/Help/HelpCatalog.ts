@@ -7,19 +7,28 @@ import type {
 } from "@commands/Utility/Help/HelpTypes";
 import { CACHE_DURATION, commandCache } from "@commands/Utility/Help/HelpTypes";
 
-export async function GetAllCommandsCached(): Promise<CommandInfo[]> {
-  const cacheKey = "all-commands";
+export async function GetAllCommandsCached(
+  guildId?: string,
+  isCommandDisabled?: (guildId: string, commandName: string) => boolean,
+): Promise<CommandInfo[]> {
+  const cacheKey = guildId ? `all-commands:${guildId}` : "all-commands";
   const cached = commandCache.get(cacheKey);
 
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return cached.data;
   }
 
-  const commands = AllCommands().map((cmd) => ({
+  let commands = AllCommands().map((cmd) => ({
     name: cmd.data.name,
     description: cmd.data.description,
     group: cmd.group,
   }));
+
+  if (guildId && isCommandDisabled) {
+    commands = commands.filter(
+      (cmd) => !isCommandDisabled(guildId, cmd.name),
+    );
+  }
 
   commandCache.set(cacheKey, { data: commands, timestamp: Date.now() });
   return commands;

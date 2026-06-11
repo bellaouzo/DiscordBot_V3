@@ -3,7 +3,12 @@ import { ChannelType, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { RequireGuild, EmbedFactory, AppendFeatureGuideHint } from "@utilities";
+import {
+  RequireGuild,
+  EmbedFactory,
+  AppendFeatureGuideHint,
+  ValidateAssignableRole,
+} from "@utilities";
 import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";
 import {
   CHAT_XP_DEFAULT_COOLDOWN_SECONDS,
@@ -57,6 +62,17 @@ function BuildSettingsEmbed(
       inline: false,
     },
   );
+
+  const rewardCount = context.databases.serverDb.GetLevelRoleRewards(guildId)
+    .length;
+  embed.addFields({
+    name: "Level role rewards",
+    value:
+      rewardCount > 0
+        ? `${rewardCount} reward${rewardCount === 1 ? "" : "s"} configured`
+        : "None configured",
+    inline: true,
+  });
 
   AppendFeatureGuideHint(embed, "xpconfig");
 
@@ -268,6 +284,98 @@ async function ExecuteExcludeList(
   });
 }
 
+async function ExecuteRoleRewardAdd(
+  interaction: ChatInputCommandInteraction,
+  context: CommandContext,
+): Promise<void> {
+  const guild = RequireGuild(interaction);
+  const level = interaction.options.getInteger("level", true);
+  const roleOption = interaction.options.getRole("role", true);
+  const role = await guild.roles.fetch(roleOption.id);
+  const validation = ValidateAssignableRole(guild, role);
+
+  if (!validation.valid) {
+    const embed = EmbedFactory.CreateError({
+      title: "Invalid Role",
+      description: validation.reason,
+    });
+    await context.responders.interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  context.databases.serverDb.UpsertLevelRoleReward({
+    guild_id: guild.id,
+    level,
+    role_id: roleOption.id,
+  });
+
+  const embed = EmbedFactory.CreateSuccess({
+    title: "Level Role Reward Added",
+    description: `Members reaching **Level ${level}** will receive ${roleOption}.`,
+  });
+  await context.responders.interactionResponder.Reply(interaction, {
+    embeds: [embed.toJSON()],
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
+async function ExecuteRoleRewardRemove(
+  interaction: ChatInputCommandInteraction,
+  context: CommandContext,
+): Promise<void> {
+  const guild = RequireGuild(interaction);
+  const level = interaction.options.getInteger("level", true);
+  const removed = context.databases.serverDb.RemoveLevelRoleReward(
+    guild.id,
+    level,
+  );
+
+  if (!removed) {
+    const embed = EmbedFactory.CreateWarning({
+      title: "No Reward Found",
+      description: `No role reward is configured for level ${level}.`,
+    });
+    await context.responders.interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const embed = EmbedFactory.CreateSuccess({
+    title: "Level Role Reward Removed",
+    description: `Removed the role reward for **Level ${level}**.`,
+  });
+  await context.responders.interactionResponder.Reply(interaction, {
+    embeds: [embed.toJSON()],
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
+async function ExecuteRoleRewardList(
+  interaction: ChatInputCommandInteraction,
+  context: CommandContext,
+): Promise<void> {
+  const guild = RequireGuild(interaction);
+  const rewards = context.databases.serverDb.GetLevelRoleRewards(guild.id);
+  const embed = EmbedFactory.Create({
+    title: "Level Role Rewards",
+    description:
+      rewards.length > 0
+        ? rewards
+            .map((reward) => `**Level ${reward.level}** — <@&${reward.role_id}>`)
+            .join("\n")
+        : "No level role rewards are configured.",
+  });
+  await context.responders.interactionResponder.Reply(interaction, {
+    embeds: [embed.toJSON()],
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
 async function ExecuteView(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
@@ -371,6 +479,46 @@ export const XpConfigCommand = CreateCommand({
             sub.setName("list").setDescription("List excluded channels"),
           ),
       )
+      .addSubcommandGroup((group) =>
+        group
+          .setName("role-reward")
+          .setDescription("Manage roles granted at specific levels")
+          .addSubcommand((sub) =>
+            sub
+              .setName("add")
+              .setDescription("Grant a role when a member reaches a level")
+              .addIntegerOption((option) =>
+                option
+                  .setName("level")
+                  .setDescription("Level to reward")
+                  .setRequired(true)
+                  .setMinValue(1)
+                  .setMaxValue(500),
+              )
+              .addRoleOption((option) =>
+                option
+                  .setName("role")
+                  .setDescription("Role to grant")
+                  .setRequired(true),
+              ),
+          )
+          .addSubcommand((sub) =>
+            sub
+              .setName("remove")
+              .setDescription("Remove a level role reward")
+              .addIntegerOption((option) =>
+                option
+                  .setName("level")
+                  .setDescription("Level to remove")
+                  .setRequired(true)
+                  .setMinValue(1)
+                  .setMaxValue(500),
+              ),
+          )
+          .addSubcommand((sub) =>
+            sub.setName("list").setDescription("List level role rewards"),
+          ),
+      )
       .addSubcommand((sub) =>
         sub.setName("view").setDescription("View current chat XP settings"),
       )
@@ -411,6 +559,16 @@ export const XpConfigCommand = CreateCommand({
         await ExecuteExcludeRemove(interaction, context);
       } else if (sub === "list") {
         await ExecuteExcludeList(interaction, context);
+      }
+      return;
+    }
+    if (group === "role-reward") {
+      if (sub === "add") {
+        await ExecuteRoleRewardAdd(interaction, context);
+      } else if (sub === "remove") {
+        await ExecuteRoleRewardRemove(interaction, context);
+      } else if (sub === "list") {
+        await ExecuteRoleRewardList(interaction, context);
       }
     }
   },

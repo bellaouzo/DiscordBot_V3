@@ -28,8 +28,19 @@ export interface GuildSettings {
   starboard_threshold: number;
   roblox_linked_discord_user_id: string | null;
   roblox_linked_at: number | null;
+  verification_enabled: boolean;
+  unverified_role_id: string | null;
+  verified_role_id: string | null;
+  verification_min_account_age_days: number;
+  verification_channel_id: string | null;
   created_at: number;
   updated_at: number;
+}
+
+export interface LevelRoleReward {
+  guild_id: string;
+  level: number;
+  role_id: string;
 }
 
 export type GuildSettingsRow = {
@@ -50,6 +61,11 @@ export type GuildSettingsRow = {
   starboard_threshold?: number | null;
   roblox_linked_discord_user_id?: string | null;
   roblox_linked_at?: number | null;
+  verification_enabled?: number | null;
+  unverified_role_id?: string | null;
+  verified_role_id?: string | null;
+  verification_min_account_age_days?: number | null;
+  verification_channel_id?: string | null;
   created_at: number;
   updated_at: number;
 };

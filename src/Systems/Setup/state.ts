@@ -67,6 +67,11 @@ export function CreateEmptySettings(guild_id: string): GuildSettings {
     starboard_threshold: 3,
     roblox_linked_discord_user_id: null,
     roblox_linked_at: null,
+    verification_enabled: false,
+    unverified_role_id: null,
+    verified_role_id: null,
+    verification_min_account_age_days: 0,
+    verification_channel_id: null,
     created_at: Date.now(),
     updated_at: Date.now(),
   };

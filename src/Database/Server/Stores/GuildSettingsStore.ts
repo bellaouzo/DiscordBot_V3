@@ -12,7 +12,7 @@ export class GuildSettingsStore {
   GetGuildSettings(guild_id: string): GuildSettings | null {
     const stmt = this.db.prepare(
       `
-      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, appeal_review_category_id, command_log_channel_id, ticket_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, autorole_id, starboard_channel_id, starboard_emoji, starboard_threshold, roblox_linked_discord_user_id, roblox_linked_at, created_at, updated_at
+      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, appeal_review_category_id, command_log_channel_id, ticket_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, autorole_id, starboard_channel_id, starboard_emoji, starboard_threshold, roblox_linked_discord_user_id, roblox_linked_at, verification_enabled, unverified_role_id, verified_role_id, verification_min_account_age_days, verification_channel_id, created_at, updated_at
       FROM guild_settings
       WHERE guild_id = ?
     `,
@@ -45,6 +45,11 @@ export class GuildSettingsStore {
     starboard_threshold?: number | null;
     roblox_linked_discord_user_id?: string | null;
     roblox_linked_at?: number | null;
+    verification_enabled?: boolean;
+    unverified_role_id?: string | null;
+    verified_role_id?: string | null;
+    verification_min_account_age_days?: number;
+    verification_channel_id?: string | null;
   }): GuildSettings {
     const existing = this.GetGuildSettings(settings.guild_id);
     const now = Date.now();
@@ -96,6 +101,24 @@ export class GuildSettingsStore {
       null;
     const robloxLinkedAt =
       settings.roblox_linked_at ?? existing?.roblox_linked_at ?? null;
+    const verificationEnabled =
+      settings.verification_enabled ?? existing?.verification_enabled ?? false;
+    const unverifiedRoleId =
+      settings.unverified_role_id !== undefined
+        ? settings.unverified_role_id
+        : (existing?.unverified_role_id ?? null);
+    const verifiedRoleId =
+      settings.verified_role_id !== undefined
+        ? settings.verified_role_id
+        : (existing?.verified_role_id ?? null);
+    const verificationMinAccountAgeDays =
+      settings.verification_min_account_age_days ??
+      existing?.verification_min_account_age_days ??
+      0;
+    const verificationChannelId =
+      settings.verification_channel_id !== undefined
+        ? settings.verification_channel_id
+        : (existing?.verification_channel_id ?? null);
     const createdAt = existing?.created_at ?? now;
 
     const stmt = this.db.prepare(
@@ -118,10 +141,15 @@ export class GuildSettingsStore {
         starboard_threshold,
         roblox_linked_discord_user_id,
         roblox_linked_at,
+        verification_enabled,
+        unverified_role_id,
+        verified_role_id,
+        verification_min_account_age_days,
+        verification_channel_id,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(guild_id) DO UPDATE SET
         admin_role_ids = excluded.admin_role_ids,
         mod_role_ids = excluded.mod_role_ids,
@@ -139,6 +167,11 @@ export class GuildSettingsStore {
         starboard_threshold = excluded.starboard_threshold,
         roblox_linked_discord_user_id = excluded.roblox_linked_discord_user_id,
         roblox_linked_at = excluded.roblox_linked_at,
+        verification_enabled = excluded.verification_enabled,
+        unverified_role_id = excluded.unverified_role_id,
+        verified_role_id = excluded.verified_role_id,
+        verification_min_account_age_days = excluded.verification_min_account_age_days,
+        verification_channel_id = excluded.verification_channel_id,
         updated_at = excluded.updated_at
     `,
     );
@@ -161,6 +194,11 @@ export class GuildSettingsStore {
       starboardThreshold,
       robloxLinkedDiscordUserId,
       robloxLinkedAt,
+      verificationEnabled ? 1 : 0,
+      unverifiedRoleId,
+      verifiedRoleId,
+      verificationMinAccountAgeDays,
+      verificationChannelId,
       createdAt,
       now,
     );

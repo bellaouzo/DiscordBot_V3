@@ -4,6 +4,7 @@ import type { EventContext } from "@events/EventFactory";
 import { CreateEvent } from "@events/EventFactory";
 import { EmbedFactory, IsModerator, ResolveMessageMember } from "@utilities";
 import { AwardChatXp } from "@systems/Leveling/ChatXp";
+import { ApplyLevelRoleRewards } from "@systems/Leveling/LevelRewardManager";
 
 async function ExecuteMessageCreateEvent(
   context: EventContext,
@@ -115,6 +116,26 @@ async function ExecuteMessageCreateEvent(
           context.logger.Warn("Failed to send level-up announcement", {
             error: levelError,
           });
+        }
+
+        if (
+          xpResult.previousLevel !== undefined &&
+          msg.member
+        ) {
+          try {
+            await ApplyLevelRoleRewards({
+              member: msg.member,
+              guild: msg.guild,
+              previousLevel: xpResult.previousLevel,
+              newLevel: xpResult.newLevel,
+              serverDb: context.databases.serverDb,
+              logger: context.logger,
+            });
+          } catch (rewardError) {
+            context.logger.Warn("Failed to apply level role rewards", {
+              error: rewardError,
+            });
+          }
         }
       }
     } catch (xpError) {

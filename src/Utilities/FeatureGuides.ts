@@ -40,8 +40,30 @@ export const FEATURE_GUIDES: readonly FeatureGuide[] = [
     summary: "Rewards active members with XP and levels for chatting.",
     howItWorks:
       "Members earn XP from messages (with cooldowns, length checks, and daily caps). Level-ups can be announced in a configured channel. Some channels can be excluded.",
-    setup: "`/xpconfig enable` → `/xpconfig set` → `/xpconfig view`",
+    setup:
+      "`/xpconfig enable` → `/xpconfig set` → `/xpconfig role-reward add` → `/xpconfig view`",
     command: "/xpconfig",
+  },
+  {
+    key: "verification",
+    name: "Verification",
+    icon: "✅",
+    summary: "Gate new members behind a verify button before full server access.",
+    howItWorks:
+      "New members receive an unverified role on join. The panel guides them through eligibility checks and a confirmation step before granting access. Optional verified role, account age minimum, and autorole apply after verification. Channel permissions for the unverified role are set in Discord.",
+    setup:
+      "`/verify set unverified-role:@Unverified` → `/verify enable` → `/verify panel`",
+    command: "/verify",
+  },
+  {
+    key: "hub",
+    name: "Quick Hub",
+    icon: "🏠",
+    summary: "One-stop dashboard for tickets, help, stats, appeals, and more.",
+    howItWorks:
+      "Members get quick-action buttons for opening tickets, browsing commands, viewing stats, submitting appeals, and verifying. Staff see extra shortcuts for open tickets, pending appeals, and disabled commands.",
+    setup: "Members run `/hub open` anytime for the quick-action menu",
+    command: "/hub",
   },
   {
     key: "autorole",

@@ -10,6 +10,7 @@ import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
 import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
 import { GuildMiddleware } from "@middleware/GuildMiddleware";
+import { CommandEnabledMiddleware } from "@middleware/CommandEnabledMiddleware";
 
 /**
  * Context passed to middleware: interaction, command, logger, responders, config, databases, appConfig.
@@ -81,6 +82,11 @@ export { PermissionMiddleware } from "@middleware/PermissionMiddleware";
 export { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 export { CooldownMiddleware } from "@middleware/CooldownMiddleware";
 export { GuildMiddleware } from "@middleware/GuildMiddleware";
+export { CommandEnabledMiddleware } from "@middleware/CommandEnabledMiddleware";
+export {
+  IsProtectedCommand,
+  PROTECTED_COMMANDS,
+} from "@middleware/ProtectedCommands";
 export { DiscordLoggingMiddleware } from "@middleware/DiscordLoggingMiddleware";
 export * from "@middleware/CommandConfig";
 
@@ -99,6 +105,7 @@ export function AutoMiddleware(
 
   if (config?.guildOnly) {
     before.push(GuildMiddleware);
+    before.push(CommandEnabledMiddleware);
   }
 
   if (config) {

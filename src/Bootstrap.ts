@@ -33,6 +33,7 @@ import { LotteryScheduler } from "@systems/Economy/LotteryScheduler";
 import { RegisterAppealPanelButton } from "@commands/Moderation/Appeal/AppealPanelFlow";
 import { RegisterTicketButtons } from "@systems/Ticket/TicketButtonRegistry";
 import { RegisterTicketPanelButton } from "@systems/Ticket/TicketPanelFlow";
+import { RegisterVerificationPanelButton } from "@systems/Verification/VerificationPanelFlow";
 import type { Client } from "discord.js";
 
 export interface AppResources {
@@ -102,6 +103,7 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
 
   RegisterTicketButtons(ticketContext);
   RegisterTicketPanelButton(ticketContext);
+  RegisterVerificationPanelButton(ticketContext);
 
   const bot = CreateBot({ logger });
   const loadCommands = CreateCommandLoader(logger);

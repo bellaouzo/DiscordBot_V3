@@ -19,7 +19,14 @@ async function ExecuteHelp(
     context.responders;
   const { logger } = context;
 
-  const allCommands = await GetAllCommandsCached();
+  const guildId = interaction.guild?.id;
+  const allCommands = await GetAllCommandsCached(
+    guildId,
+    guildId
+      ? (id, commandName) =>
+          context.databases.serverDb.IsCommandDisabled(id, commandName)
+      : undefined,
+  );
   const categories = [
     BuildFeatureCategoryView(),
     ...BuildCategoryViews(allCommands),
