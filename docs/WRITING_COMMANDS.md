@@ -36,6 +36,7 @@ Use `Config` presets for common cases:
 | Preset | What it enables |
 |--------|-----------------|
 | `Config.utility(seconds)` | Guild-only, cooldown, logging, error handling |
+| `Config.utilityWithFeature("economy" \| "giveaways", seconds)` | Guild-only, feature gate, cooldown, logging, error handling |
 | `Config.mod(seconds).build()` | Guild-only, mod role, cooldown, logging, error handling |
 | `Config.admin(seconds)` | Guild-only, admin role, cooldown, logging, error handling |
 | `Config.create()...build()` | Custom guild-only, Discord permissions, roles, cooldown |
@@ -65,8 +66,9 @@ From `src/Commands/Middleware/index.ts`, defaults are:
 
 | Always | When `config` includes |
 |--------|-------------------------|
-| `LoggingMiddleware` (before) | `guildOnly` → `GuildMiddleware` |
-| `ErrorMiddleware` (after) | permissions / mod / admin / owner / role → `PermissionMiddleware` |
+| `LoggingMiddleware` (before) | `guildOnly` → `GuildMiddleware`, `CommandEnabledMiddleware` |
+| `ErrorMiddleware` (after) | `requiredFeature` → `FeatureEnabledMiddleware` |
+| | permissions / mod / admin / owner / role → `PermissionMiddleware` |
 | | `cooldown` → `CooldownMiddleware` |
 
 `Config.utility()`, `Config.mod()`, and `Config.admin()` already set `guildOnly` and cooldown, so logging, guild check, permission (where applicable), cooldown, and error handling are wired without extra code.
@@ -109,10 +111,22 @@ export const CustomMiddleware: CommandMiddleware = {
 
 **PermissionMiddleware**
 
-- Validates Discord permissions, roles, and owner-only commands
-- Supports `required` permissions (all or any)
-- Checks for specific roles and server ownership
+- Validates Discord permissions, configured staff roles, and owner-only commands
+- Before setup: allows Discord **Administrator** / **Manage Server** holders to run admin commands; others see **Setup Required**
+- After setup: checks configured admin/mod roles; Discord admins still bypass via `IsAdmin` / `IsModerator`
+- Supports `required` permissions (all or any), specific roles, and server ownership
 - Provides clear permission error messages
+
+**FeatureEnabledMiddleware**
+
+- Blocks commands when a per-guild feature is disabled (`economy` or `giveaways`)
+- Applied automatically when using `Config.utilityWithFeature(...)` or `Config.create().requiredFeature(...).build()`
+- Reads toggles from `guild_settings` via `@shared/GuildFeatures`
+
+**CommandEnabledMiddleware**
+
+- Blocks guild commands that an admin has disabled via the command management system
+- Applied automatically for guild-only commands (`Config.utility()`, `Config.mod()`, `Config.admin()`, etc.)
 
 **CooldownMiddleware**
 

@@ -37,6 +37,9 @@ This repository favors fast unit and focused integration-style tests around comm
 - **Interaction routing:** `tests/bot/interaction-handlers.test.ts` covers component dispatch and slash command handler registration.
 - **Bot factory:** `tests/bot/CreateBot.test.ts` validates client intents and login wiring.
 - **Bootstrap:** `tests/bootstrap.smoke.test.ts`, `tests/bootstrap.integration.test.ts`, and `tests/bootstrap.shutdown.test.ts` cover startup, strict config keys, and graceful shutdown.
+- **Database migrations:** `tests/database/MigrationRunner.test.ts`, `tests/database/ServerMigrations.test.ts`.
+- **MessageCreate handlers:** `tests/events/MessageCreate/RunMessageCreateHandlers.test.ts`.
+- **Middleware:** `tests/commands/Middleware/PermissionMiddleware.test.ts`, `tests/commands/Middleware/FeatureEnabledMiddleware.test.ts`.
 - **Deployer / logging:** `tests/bot/CreateCommandDeployer.test.ts`, `tests/utilities/DiscordLogger.test.ts`.
 - **Shared routers:** `tests/shared/ModalRouter.test.ts`, `tests/shared/ComponentRouter.test.ts`, `tests/shared/Paginator.test.ts`, `tests/responders/PaginatedResponder.test.ts`.
 - **HTTP client:** `tests/utilities/ApiClient.test.ts`.

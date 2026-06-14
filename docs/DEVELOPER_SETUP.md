@@ -4,7 +4,7 @@ Step-by-step guide to get the Discord Bot V3 codebase running locally for develo
 
 ## Prerequisites
 
-- **Node.js** 16 or higher
+- **Node.js** 20 or higher
 - **npm** (comes with Node.js)
 
 Check versions:
@@ -65,39 +65,51 @@ npm run dev:watch:dist
 
 Slash commands deploy on startup (`global` by default, or to `GUILD_ID` when `COMMAND_DEPLOY_SCOPE=guild`). If you see the bot online in Discord, setup is complete.
 
-## 4. Run lint and tests
+## 4. Git hooks
+
+`npm install` runs the `prepare` script, which registers [Husky](https://typicode.github.io/husky/) hooks. A **pre-push** hook runs `npm run lint` automatically before every `git push`.
+
+If hooks are missing after clone, run:
+
+```bash
+npm run prepare
+```
+
+## 5. Run lint and tests
 
 Before committing, run:
 
 ```bash
 npm run lint
 npm run lint:examples
+npm run format:check
 npm run test
 npm run test:coverage
 npm run check:commands
 ```
 
 - **Lint:** Runs `tsc --noEmit` and ESLint on `src/` and `tests/`.
-- **Examples lint:** ESLint on `examples/` reference files.
+- **Examples lint:** TypeScript + ESLint on `examples/` reference files.
+- **Format check:** Verifies Prettier formatting without writing files.
 - **Test:** Runs the Vitest test suite.
-- **Coverage:** Runs tests with coverage gates (global branch floor: 45%).
+- **Coverage:** Runs tests with coverage gates (global floors: 65% lines / 55% branches).
 - **Command check:** Verifies no duplicate top-level slash command names.
 
-CI runs these on push/PR to `main`; see [.github/workflows/ci.yml](../.github/workflows/ci.yml).
+CI runs these on push/PR to `main`/`master`; see [.github/workflows/ci.yml](../.github/workflows/ci.yml).
 
 ## Run modes
 
-| Command                 | Description                                                 |
-| ----------------------- | ----------------------------------------------------------- |
-| `npm run dev`           | Compile and run the bot (deploys slash commands on startup) |
-| `npm start`             | Same as `dev`: compile then run                             |
-| `npm run build`         | Compile TypeScript to `dist/` only                          |
-| `npm run test`          | Run Vitest once                                             |
-| `npm run test:watch`    | Run Vitest in watch mode                                    |
-| `npm run test:coverage` | Run tests with coverage report                              |
-| `npm run format`        | Format code with Prettier                                   |
-| `npm run format:check`  | Check formatting without writing                            |
-| `npm run clean`         | Remove `dist/`                                              |
+| Command                 | Description                                                              |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `npm run dev`           | Run from TypeScript source via `tsx` (deploys slash commands on startup) |
+| `npm start`             | Build to `dist/` then run compiled output                                |
+| `npm run build`         | Compile TypeScript to `dist/` only                                       |
+| `npm run test`          | Run Vitest once                                                          |
+| `npm run test:watch`    | Run Vitest in watch mode                                                 |
+| `npm run test:coverage` | Run tests with coverage report                                           |
+| `npm run format`        | Format code with Prettier                                                |
+| `npm run format:check`  | Check formatting without writing                                         |
+| `npm run clean`         | Remove `dist/`                                                           |
 
 ## Next steps
 

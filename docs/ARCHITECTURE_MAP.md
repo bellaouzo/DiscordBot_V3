@@ -80,14 +80,31 @@ This document is the quick map for core runtime boundaries and request flow. See
 
 ### Setup wizard (`src/Systems/Setup/`)
 
+Six-step wizard: welcome → staff roles → feature modules → support/logging → community → review.
+
 ```
-state.ts (draft + step state)
-  → builders/components.ts + embed.ts (UI)
+constants.ts, state.ts (draft + step state)
+  → steps/ (per-step embed + component builders)
+  → features/FeatureModules.ts (economy, leveling, starboard, verification, giveaways)
+  → builders/ (components, embed, formatters, navigation)
   → handlers/selectHandlers.ts (role/channel selects)
   → handlers/buttonHandlers.ts (next/back/save/cancel)
+  → handlers/featureToggleHandlers.ts (feature on/off toggles)
+  → persistence/SaveSetupDraft.ts, SyncDraftFromSavedSettings.ts
 ```
 
-**Tests:** `tests/systems/Setup/selectHandlers.lifecycle.test.ts`, `tests/systems/Setup/components.lifecycle.test.ts`, `tests/commands/Utility/SetupCommand.test.ts`
+**Tests:** `tests/systems/Setup/selectHandlers.lifecycle.test.ts`, `tests/systems/Setup/components.lifecycle.test.ts`, `tests/systems/Setup/SaveSetupDraft.test.ts`, `tests/commands/Utility/SetupCommand.test.ts`
+
+### MessageCreate handlers (`src/Events/MessageCreate/`)
+
+| Module | Responsibility |
+|--------|----------------|
+| `RunMessageCreateHandlers.ts` | Runs registered handlers in order; `"stop"` short-circuits the chain |
+| `ChatXpHandler.ts` | Awards chat XP when leveling is enabled |
+| `LinkFilterHandler.ts` | Deletes blocked links based on guild settings |
+| `TicketMessageHandler.ts` | Persists ticket channel messages |
+
+**Tests:** `tests/events/MessageCreate/RunMessageCreateHandlers.test.ts`
 
 ## Economy Game Pattern
 
@@ -111,6 +128,19 @@ Economy minigames follow a consistent shape:
 
 **Tests:** `tests/commands/Middleware/CooldownMiddleware.test.ts`
 
+## Database migrations (`src/Database/Migrations/`)
+
+| Piece | Location |
+|-------|----------|
+| Runner | `MigrationRunner.ts` — tracks applied migrations in a `_migrations` table |
+| Server migrations | `Migrations/server/index.ts` — column backfills for `server.db` |
+| Ticket migrations | `Migrations/ticket/index.ts` — schema changes for `tickets.db` |
+| Helpers | `AddTableColumnIfMissing`, `AddTableColumnsIfMissing` |
+
+Each database facade calls `RunMigrations(...)` in its constructor. Fresh installs get the full schema from `CreateTables`; migrations only alter existing databases.
+
+**Tests:** `tests/database/MigrationRunner.test.ts`, `tests/database/ServerMigrations.test.ts`
+
 ## Roblox Bridge (`src/Systems/Roblox/`)
 
 | Module | Responsibility |
@@ -130,7 +160,7 @@ Economy minigames follow a consistent shape:
 
 1. Discord emits an interaction.
 2. `RegisterEvents` or interaction handlers route to command/event implementation.
-3. Middleware chain runs (`AutoMiddleware` from command `config`: logging, guild-only, permissions, cooldowns, error handling).
+3. Middleware chain runs (`AutoMiddleware` from command `config`: logging, guild-only, command enabled, optional feature gate, permissions, cooldowns, error handling).
 4. Command executes through responder utilities and database facade(s).
 5. Domain helpers in `Utilities` format embeds/components and enforce shared logic.
 6. Database facades delegate to domain stores and return typed records.

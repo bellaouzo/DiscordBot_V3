@@ -9,7 +9,7 @@ This folder contains practical examples of how to use the Discord Bot V3 framewo
 1. **[Starter Template](basic/starter-template.ts)** - 🟢 **Beginner** - Complete working command you can copy and run immediately
 2. Copy it to `src/Commands/Utility/your-command.ts`
 3. Modify the name, description, and logic
-4. Run `npm run dev` and test it!
+4. Run `npm run dev:watch` and test it!
 
 ## 📁 Available Examples
 
@@ -53,7 +53,7 @@ This folder contains practical examples of how to use the Discord Bot V3 framewo
 2. **Copy the entire file** to your `src/Commands/` directory
 3. **Update the command name** and description
 4. **Modify the logic** to fit your needs
-5. **Run `npm run dev`** to test your command
+5. **Run `npm run dev:watch`** to test your command
 
 ### Example Workflow
 
@@ -67,14 +67,14 @@ cp examples/basic/starter-template.ts src/Commands/Utility/my-command.ts
 # - Modify the execute function
 
 # 3. Test it
-npm run dev
+npm run dev:watch
 ```
 
 ## 🔧 Troubleshooting Examples
 
 **Import errors:**
 - Make sure you're copying to the correct directory structure
-- Check that all imports use the correct paths (`../../src/...`)
+- Inside `src/Commands/`, use path aliases (`@commands`, `@middleware`, `@utilities`) instead of relative `../../src/` paths
 
 **Command not working:**
 - Verify the command name is unique

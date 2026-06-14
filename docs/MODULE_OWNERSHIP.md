@@ -5,8 +5,12 @@ Ownership in this repository is feature-based. If a change spans multiple areas,
 ## Ownership Areas
 
 - **Core bootstrap and runtime wiring**
-  - Paths: `src/index.ts`, `src/Bot`, `src/Responders`
-  - Scope: startup, shutdown, command/event registration, interaction lifecycle safety.
+  - Paths: `src/index.ts`, `src/Bootstrap.ts`, `src/Bootstrap/SystemRegistry.ts`, `src/Bot`, `src/Responders`
+  - Scope: startup, shutdown, command/event registration, global system handler registration, interaction lifecycle safety.
+
+- **Database and migrations**
+  - Paths: `src/Database`, `src/Database/Migrations`
+  - Scope: SQLite facades, stores, schema migrations, and migration tests.
 
 - **Moderation and safety systems**
   - Paths: `src/Commands/Moderation`, `src/Database/Moderation*`, `src/Moderation`
@@ -23,6 +27,10 @@ Ownership in this repository is feature-based. If a change spans multiple areas,
 - **Economy and leveling**
   - Paths: `src/Systems/Economy`, `src/Systems/Leveling`, economy-related commands and tests.
   - Scope: balances, XP progression, rewards, market rotation behavior.
+
+- **Setup wizard**
+  - Paths: `src/Systems/Setup`, `src/Commands/Utility/SetupCommand.ts`
+  - Scope: multi-step guild configuration, feature toggles, draft persistence.
 
 - **Roblox bridge**
   - Paths: `src/Commands/Moderation/RobloxCommand.ts`, `src/Systems/Roblox`

@@ -75,7 +75,9 @@ npm run test:coverage # Coverage report + threshold gates
 npm run format        # Prettier
 ```
 
-Before opening a PR: lint, test, and coverage must pass. CI also runs `npm audit --audit-level=high` (fails on high/critical advisories).
+`npm install` registers a **pre-push** git hook (Husky) that runs `npm run lint` before every push.
+
+Before opening a PR: lint, format check, test, and coverage must pass. CI also runs `npm audit --audit-level=high` (fails on high/critical advisories).
 
 - [Writing Commands](docs/WRITING_COMMANDS.md) — `CreateCommand`, `Config` (auto middleware), responders
 - [Contributing](docs/CONTRIBUTING.md) — standards, audit policy, PR process
@@ -117,7 +119,7 @@ See [docs/DEVELOPER_SETUP.md](docs/DEVELOPER_SETUP.md) for run modes and environ
 |-------|-----|
 | Commands not appearing | Run `npm run dev` to redeploy; for faster local iteration set `COMMAND_DEPLOY_SCOPE=guild` and `GUILD_ID` |
 | Bot not responding | Verify `DISCORD_TOKEN`; check intents in Developer Portal |
-| Permission errors | Run `/setup` and assign admin/mod roles |
+| Permission errors | Before setup: use a role with **Administrator** permission to run `/setup`. After setup: assign admin/mod roles in the wizard |
 | SQLite errors | Ensure `DATA_DIR` is writable |
 | CI audit failure | Run `npm audit`; upgrade or patch vulnerable dependencies |
 | Coverage gate failure | Run `npm run test:coverage` locally; add behavior tests for uncovered flows |

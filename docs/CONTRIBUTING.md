@@ -4,11 +4,12 @@ Guidelines for contributing to Discord Bot V3: coding standards, scripts, and wh
 
 ## Before you submit
 
-1. **Lint:** `npm run lint` must pass (TypeScript check + ESLint).
+1. **Lint:** `npm run lint` must pass (TypeScript check + ESLint). A Husky **pre-push** hook runs this automatically on `git push`.
 2. **Examples:** `npm run lint:examples` must pass (`tsc --noEmit -p examples/tsconfig.json` + ESLint).
-3. **Test:** `npm run test` must pass.
-4. **Coverage:** `npm run test:coverage` must pass (global floors: 65% lines / 55% branches).
-5. **Format:** Code should follow project style. Run `npm run format` to apply Prettier to `src/`, or `npm run format:check` to verify without changing files.
+3. **Format:** `npm run format:check` must pass (CI enforces Prettier on `src/` and `tests/`).
+4. **Test:** `npm run test` must pass.
+5. **Coverage:** `npm run test:coverage` must pass (global floors: 65% lines / 55% branches).
+6. **Style:** Code should follow project conventions. Run `npm run format` to apply Prettier to `src/` and `tests/`.
 
 CI runs `npm audit --audit-level=high`, `npm run lint`, `npm run lint:examples`, `npm run check:commands`, `npm run test`, `npm run test:coverage`, and a [Gitleaks](https://github.com/gitleaks/gitleaks) scan on push and pull requests to `main`/`master`. Workflow: [.github/workflows/ci.yml](../.github/workflows/ci.yml). Tagged `v*` releases run [.github/workflows/release.yml](../.github/workflows/release.yml).
 
@@ -50,7 +51,7 @@ Do not import from `@commands/CommandFactory` or use relative `../Commands/` pat
 ## Project structure
 
 - **Commands** – Slash commands in `src/Commands/` (Fun, Moderation, Utility). Use `CreateCommand` with `config: Config.utility()` / `Config.mod().build()` / etc. Middleware is applied via `AutoMiddleware(config)` — avoid hand-wiring `before` / `after` arrays unless you need a custom chain.
-- **Middleware** – `src/Commands/Middleware/` (logging, permissions, cooldowns, guild-only, error handling). New built-in middleware should be registered in `AutoMiddleware`; command authors configure behavior through `CommandConfig`.
+- **Middleware** – `src/Commands/Middleware/` (logging, permissions, feature gates, command enabled, cooldowns, guild-only, error handling). New built-in middleware should be registered in `AutoMiddleware`; command authors configure behavior through `CommandConfig`.
 - **Systems** – Economy, Giveaway, Leveling, Setup, Ticket in `src/Systems/`.
 - **Tests** – Vitest tests in `tests/`; mirror `src/` layout (e.g. `tests/commands/`, `tests/systems/`). Use helpers and mocks from `tests/helpers/`.
 
@@ -64,7 +65,7 @@ Do not import from `@commands/CommandFactory` or use relative `../Commands/` pat
 
 ## Database migrations
 
-Each SQLite database (`server.db`, `ticket.db`, `user.db`, `moderation.db`) runs pending migrations automatically on startup via `RunMigrations` in its database constructor.
+Each SQLite database (`server.db`, `tickets.db`, `users.db`, `moderation.db`) runs pending migrations automatically on startup via `RunMigrations` in its database constructor.
 
 ### When to add a migration
 
@@ -74,7 +75,7 @@ Add a new migration whenever you **ALTER an existing table** (new column, index 
 
 1. Add a new numbered entry in the migration array for that database:
    - `src/Database/Migrations/server/index.ts` for `server.db`
-   - `src/Database/Migrations/ticket/index.ts` for `ticket.db`
+   - `src/Database/Migrations/ticket/index.ts` for `tickets.db`
    - Create `src/Database/Migrations/user/index.ts` or `moderation/index.ts` when the first schema change is needed for those databases (they currently use `RunMigrations([])`).
 2. Use `AddTableColumnIfMissing` or `AddTableColumnsIfMissing` from `@database/Migrations` so the migration is idempotent.
 3. Update the matching store, types, and mappers under `src/Database/`.

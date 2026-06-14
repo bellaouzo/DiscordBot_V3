@@ -6,7 +6,12 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
-- `src/Bootstrap.ts` extracted from `index.ts`; bootstrap integration and shutdown tests.
+- SQLite migration runner (`src/Database/Migrations/`) with server and ticket migration arrays; applied automatically on database startup.
+- Setup wizard refactor: step modules, feature toggle handlers, draft persistence (`SaveSetupDraft`, `SyncDraftFromSavedSettings`).
+- `FeatureEnabledMiddleware` and `@shared/GuildFeatures` for per-guild economy/giveaway gates.
+- `MessageCreate` handler split (`ChatXpHandler`, `LinkFilterHandler`, `TicketMessageHandler`, `RunMessageCreateHandlers`).
+- Husky pre-push hook (`.husky/pre-push`) runs `npm run lint` before every `git push`.
+- `src/Bootstrap/SystemRegistry.ts` for bootstrap-wide button/select/modal handler registration.
 - Shared infrastructure tests: `ApiClient`, `ModalRouter`, `ComponentRouter`, `Paginator`, `PaginatedResponder`.
 - Roblox bridge handler tests (connect, disconnect, status, kick, group audit/info, `bridgeApi`, `bridgeAccess`, `bridgeSettings`).
 - Appeal submit modal lifecycle tests; extended appeal panel and `AppealShared` coverage.
@@ -28,6 +33,7 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Permission middleware allows Discord **Administrator** / **Manage Server** holders to run admin commands before staff roles are configured; others see **Setup Required**.
 - Removed duplicate `HelpCommand` re-export barrel; help command loads from `Utility/Help/HelpCommand.ts` only.
 - Hardened command loader to skip re-export-only `*Command.ts` barrels.
 - Standardized imports to path aliases (`@commands`, `@utilities`, etc.); `CommandFactory` uses aliases internally.
@@ -40,6 +46,7 @@ All notable changes to this project are documented in this file.
 
 ### Documentation
 
+- Updated architecture, configuration, contributing, developer setup, and writing commands docs for migrations, setup wizard, git hooks, and permission bootstrap behavior.
 - Command file naming rules in `docs/WRITING_COMMANDS.md`.
 - SQLite scaling notes in `docs/ARCHITECTURE_MAP.md`.
 - Import conventions in `docs/CONTRIBUTING.md`.

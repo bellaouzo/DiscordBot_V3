@@ -41,6 +41,23 @@ Feature toggles are stored in SQLite (`server.db`):
 
 Both `economy_enabled` and `giveaways_enabled` default to `true` for existing guilds.
 
+Commands that require per-guild feature toggles use `Config.utilityWithFeature("economy" | "giveaways")`, which adds `FeatureEnabledMiddleware` to the chain.
+
+### Staff roles and first-time setup
+
+Admin and mod commands check configured staff roles from `guild_settings`. Before setup has been run:
+
+- Users with Discord **Administrator** or **Manage Server** permission can still use admin commands (including `/setup`).
+- Everyone else sees a **Setup Required** message pointing them to someone with Administrator permission.
+
+After setup, configured admin/mod roles apply. Discord administrators still bypass role checks via `IsAdmin` / `IsModerator` in `src/Utilities/StaffPermissions.ts`.
+
+### Cooldown persistence
+
+| Variable           | Default | Description |
+| ------------------ | ------- | ----------- |
+| `COOLDOWN_PERSIST` | (unset) | Set to `1` to persist command cooldowns in `server.db` across restarts |
+
 ## Optional variables
 
 ### Logging channel names
@@ -119,7 +136,7 @@ Examples:
 
 | Variable   | Description |
 | ---------- | ----------- |
-| `DATA_DIR` | Absolute or relative directory used for SQLite files (for example `moderation.db`, `users.db`, and other runtime data). Defaults to `<project>/data`. |
+| `DATA_DIR` | Directory used for SQLite files: `server.db`, `users.db`, `moderation.db`, and `tickets.db`. Defaults to `<project>/data`. |
 
 ## Config shape in code
 
