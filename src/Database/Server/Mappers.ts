@@ -124,6 +124,14 @@ export function MapGuildSettings(
     verification_channel_id: row.verification_channel_id
       ? String(row.verification_channel_id)
       : null,
+    economy_enabled:
+      row.economy_enabled !== null && row.economy_enabled !== undefined
+        ? Boolean(row.economy_enabled)
+        : true,
+    giveaways_enabled:
+      row.giveaways_enabled !== null && row.giveaways_enabled !== undefined
+        ? Boolean(row.giveaways_enabled)
+        : true,
     created_at: Number(row.created_at),
     updated_at: Number(row.updated_at),
   };

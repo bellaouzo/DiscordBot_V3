@@ -6,8 +6,8 @@ import type {
   ActionRowComponentData,
 } from "discord.js";
 import { MessageFlags } from "discord.js";
-import type { Logger } from "../Shared/Logger";
-import { CreateConsoleLogger } from "../Shared/Logger";
+import type { Logger } from "@shared/Logger";
+import { CreateConsoleLogger } from "@shared/Logger";
 
 export type ResponderMessageOptions = Pick<
   MessageCreateOptions,

@@ -12,7 +12,7 @@ export class GuildSettingsStore {
   GetGuildSettings(guild_id: string): GuildSettings | null {
     const stmt = this.db.prepare(
       `
-      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, appeal_review_category_id, command_log_channel_id, ticket_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, autorole_id, starboard_channel_id, starboard_emoji, starboard_threshold, roblox_linked_discord_user_id, roblox_linked_at, verification_enabled, unverified_role_id, verified_role_id, verification_min_account_age_days, verification_channel_id, created_at, updated_at
+      SELECT guild_id, admin_role_ids, mod_role_ids, ticket_category_id, appeal_review_category_id, command_log_channel_id, ticket_log_channel_id, announcement_channel_id, delete_log_channel_id, production_log_channel_id, welcome_channel_id, autorole_id, starboard_channel_id, starboard_emoji, starboard_threshold, roblox_linked_discord_user_id, roblox_linked_at, verification_enabled, unverified_role_id, verified_role_id, verification_min_account_age_days, verification_channel_id, economy_enabled, giveaways_enabled, created_at, updated_at
       FROM guild_settings
       WHERE guild_id = ?
     `,
@@ -50,6 +50,8 @@ export class GuildSettingsStore {
     verified_role_id?: string | null;
     verification_min_account_age_days?: number;
     verification_channel_id?: string | null;
+    economy_enabled?: boolean;
+    giveaways_enabled?: boolean;
   }): GuildSettings {
     const existing = this.GetGuildSettings(settings.guild_id);
     const now = Date.now();
@@ -119,6 +121,10 @@ export class GuildSettingsStore {
       settings.verification_channel_id !== undefined
         ? settings.verification_channel_id
         : (existing?.verification_channel_id ?? null);
+    const economyEnabled =
+      settings.economy_enabled ?? existing?.economy_enabled ?? true;
+    const giveawaysEnabled =
+      settings.giveaways_enabled ?? existing?.giveaways_enabled ?? true;
     const createdAt = existing?.created_at ?? now;
 
     const stmt = this.db.prepare(
@@ -146,10 +152,12 @@ export class GuildSettingsStore {
         verified_role_id,
         verification_min_account_age_days,
         verification_channel_id,
+        economy_enabled,
+        giveaways_enabled,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(guild_id) DO UPDATE SET
         admin_role_ids = excluded.admin_role_ids,
         mod_role_ids = excluded.mod_role_ids,
@@ -172,6 +180,8 @@ export class GuildSettingsStore {
         verified_role_id = excluded.verified_role_id,
         verification_min_account_age_days = excluded.verification_min_account_age_days,
         verification_channel_id = excluded.verification_channel_id,
+        economy_enabled = excluded.economy_enabled,
+        giveaways_enabled = excluded.giveaways_enabled,
         updated_at = excluded.updated_at
     `,
     );
@@ -199,6 +209,8 @@ export class GuildSettingsStore {
       verifiedRoleId,
       verificationMinAccountAgeDays,
       verificationChannelId,
+      economyEnabled ? 1 : 0,
+      giveawaysEnabled ? 1 : 0,
       createdAt,
       now,
     );

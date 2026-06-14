@@ -9,24 +9,37 @@ import type {
   StepState,
 } from "@systems/Setup/state";
 import { createMockLogger, createMockDatabaseSet } from "../../helpers";
+import { SETUP_STEP_COUNT } from "@systems/Setup/constants";
 
 function createSetupIds(interactionId: string): NavigationIds {
+  const prefix = `setup:${interactionId}`;
   return {
-    adminSelect: `setup:${interactionId}:admin`,
-    modSelect: `setup:${interactionId}:mod`,
-    ticketSelect: `setup:${interactionId}:ticket`,
-    appealSelect: `setup:${interactionId}:appeal`,
-    commandLogSelect: `setup:${interactionId}:cmdlog`,
-    ticketLogSelect: `setup:${interactionId}:ticketlog`,
-    deleteLogSelect: `setup:${interactionId}:deletelog`,
-    productionLogSelect: `setup:${interactionId}:prodlog`,
-    announcementSelect: `setup:${interactionId}:announce`,
-    welcomeSelect: `setup:${interactionId}:welcome`,
-    next: `setup:${interactionId}:next`,
-    back: `setup:${interactionId}:back`,
-    save: `setup:${interactionId}:save`,
-    saveAndQuit: `setup:${interactionId}:savequit`,
-    cancel: `setup:${interactionId}:cancel`,
+    adminSelect: `${prefix}:admin`,
+    modSelect: `${prefix}:mod`,
+    ticketSelect: `${prefix}:ticket`,
+    appealSelect: `${prefix}:appeal`,
+    commandLogSelect: `${prefix}:cmdlog`,
+    ticketLogSelect: `${prefix}:ticketlog`,
+    deleteLogSelect: `${prefix}:deletelog`,
+    productionLogSelect: `${prefix}:prodlog`,
+    announcementSelect: `${prefix}:announce`,
+    welcomeSelect: `${prefix}:welcome`,
+    starboardChannelSelect: `${prefix}:starboard`,
+    levelUpChannelSelect: `${prefix}:levelup`,
+    verificationChannelSelect: `${prefix}:verifychannel`,
+    unverifiedRoleSelect: `${prefix}:unverifiedrole`,
+    verifiedRoleSelect: `${prefix}:verifiedrole`,
+    featureToggleIds: {
+      economy: `${prefix}:feat:economy`,
+      leveling: `${prefix}:feat:leveling`,
+      starboard: `${prefix}:feat:starboard`,
+      verification: `${prefix}:feat:verification`,
+      giveaways: `${prefix}:feat:giveaways`,
+    },
+    next: `${prefix}:next`,
+    back: `${prefix}:back`,
+    saveAndQuit: `${prefix}:savequit`,
+    cancel: `${prefix}:cancel`,
   };
 }
 
@@ -42,6 +55,16 @@ function createEmptyDraft(): SetupDraft {
     deleteLogChannelId: null,
     productionLogChannelId: null,
     welcomeChannelId: null,
+    economyEnabled: true,
+    levelingEnabled: false,
+    starboardEnabled: false,
+    verificationEnabled: false,
+    giveawaysEnabled: true,
+    starboardChannelId: null,
+    levelUpChannelId: null,
+    verificationChannelId: null,
+    unverifiedRoleId: null,
+    verifiedRoleId: null,
   };
 }
 
@@ -68,6 +91,21 @@ function registerSetupButtons(stepState: StepState, draft: SetupDraft) {
     delete_log_channel_id: draft.deleteLogChannelId,
     production_log_channel_id: draft.productionLogChannelId,
     welcome_channel_id: draft.welcomeChannelId,
+    economy_enabled: draft.economyEnabled,
+    giveaways_enabled: draft.giveawaysEnabled,
+    verification_enabled: draft.verificationEnabled,
+    starboard_channel_id: draft.starboardChannelId,
+    verification_channel_id: draft.verificationChannelId,
+    unverified_role_id: draft.unverifiedRoleId,
+    verified_role_id: draft.verifiedRoleId,
+    autorole_id: null,
+    starboard_emoji: "⭐",
+    starboard_threshold: 3,
+    roblox_linked_discord_user_id: null,
+    roblox_linked_at: null,
+    verification_min_account_age_days: 0,
+    created_at: Date.now(),
+    updated_at: Date.now(),
   });
 
   RegisterButtonHandlers({
@@ -129,6 +167,16 @@ describe("Setup button handlers lifecycle", () => {
     expect(updateMessage).toHaveBeenCalledTimes(1);
   });
 
+  it("next stops at the final setup step", async () => {
+    const stepState: StepState = { current: SETUP_STEP_COUNT };
+    const draft = createEmptyDraft();
+    const { componentRouter, ids } = registerSetupButtons(stepState, draft);
+
+    await componentRouter.HandleButton(createButtonInteraction(ids.next));
+
+    expect(stepState.current).toBe(SETUP_STEP_COUNT);
+  });
+
   it("back decrements step and calls updateMessage", async () => {
     const stepState: StepState = { current: 2 };
     const draft = createEmptyDraft();
@@ -171,13 +219,11 @@ describe("Setup button handlers lifecycle", () => {
     );
   });
 
-  it("save and quit persists settings and shows completion embed", async () => {
-    const stepState: StepState = { current: 3 };
+  it("save and finish persists settings and shows completion embed", async () => {
+    const stepState: StepState = { current: SETUP_STEP_COUNT };
     const draft = createEmptyDraft();
-    const { componentRouter, buttonResponder, ids } = registerSetupButtons(
-      stepState,
-      draft,
-    );
+    const { componentRouter, buttonResponder, ids, databases } =
+      registerSetupButtons(stepState, draft);
     const editSpy = vi.spyOn(buttonResponder, "EditReply");
 
     const handled = await componentRouter.HandleButton(
@@ -185,35 +231,14 @@ describe("Setup button handlers lifecycle", () => {
     );
 
     expect(handled).toBe(true);
+    expect(databases.serverDb.UpsertGuildSettings).toHaveBeenCalled();
+    expect(databases.serverDb.UpsertGuildXpSettings).toHaveBeenCalled();
     expect(editSpy).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
         embeds: expect.arrayContaining([
-          expect.objectContaining({ title: "Setup Saved" }),
+          expect.objectContaining({ title: "Setup Complete" }),
         ]),
-      }),
-    );
-  });
-
-  it("save persists guild settings via serverDb", async () => {
-    const stepState: StepState = { current: 3 };
-    const draft = createEmptyDraft();
-    const { componentRouter, databases, ids } = registerSetupButtons(
-      stepState,
-      draft,
-    );
-
-    const handled = await componentRouter.HandleButton(
-      createButtonInteraction(ids.save),
-    );
-
-    expect(handled).toBe(true);
-    expect(databases.serverDb.UpsertGuildSettings).toHaveBeenCalledWith(
-      expect.objectContaining({
-        guild_id: "guild-1",
-        admin_role_ids: ["admin-role"],
-        mod_role_ids: ["mod-role"],
-        ticket_category_id: "cat-1",
       }),
     );
   });

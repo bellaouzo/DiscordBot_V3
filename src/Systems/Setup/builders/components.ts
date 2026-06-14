@@ -6,130 +6,11 @@ import type {
   CategoryChannel,
 } from "discord.js";
 import {
-  ButtonStyle,
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
 } from "discord.js";
 import { ComponentFactory, ToActionRowData } from "@utilities";
-import type { LoadAppConfig } from "@config/AppConfig";
-import {
-  DEFAULT_ANNOUNCEMENT_CHANNEL,
-  DEFAULT_DELETE_LOG_CHANNEL,
-  DEFAULT_PRODUCTION_LOG_CHANNEL,
-  DEFAULT_APPEAL_CATEGORY,
-  DEFAULT_TICKET_CATEGORY,
-} from "../constants";
-import type { NavigationIds, SetupDraft, SetupResources } from "../state";
-
-export function BuildStepComponents(options: {
-  step: number;
-  draft: SetupDraft;
-  resources: SetupResources;
-  ids: NavigationIds;
-  loggingDefaults: ReturnType<typeof LoadAppConfig>["logging"];
-}): ActionRowData<ActionRowComponentData>[] {
-  const { draft, resources, ids, loggingDefaults } = options;
-  const rows: ActionRowData<ActionRowComponentData>[] = [];
-
-  switch (options.step) {
-    case 1: {
-      rows.push(
-        BuildRoleSelectRow(
-          ids.adminSelect,
-          "Admin roles — full access",
-          resources.roles,
-          draft.adminRoleIds,
-          "Admin Roles",
-        ),
-        BuildRoleSelectRow(
-          ids.modSelect,
-          "Mod roles — day-to-day moderation",
-          resources.roles,
-          draft.modRoleIds,
-          "Mod Roles",
-        ),
-      );
-      break;
-    }
-    case 2: {
-      rows.push(
-        BuildCategorySelectRow({
-          customId: ids.ticketSelect,
-          categories: resources.categories,
-          selectedId: draft.ticketCategoryId,
-          placeholder: "Ticket category for new ticket channels",
-          defaultCategoryName: DEFAULT_TICKET_CATEGORY,
-        }),
-        BuildCategorySelectRow({
-          customId: ids.appealSelect,
-          categories: resources.categories,
-          selectedId: draft.appealReviewCategoryId,
-          placeholder: "Appeal category for review channels",
-          defaultCategoryName: DEFAULT_APPEAL_CATEGORY,
-        }),
-        BuildChannelSelectRow({
-          customId: ids.commandLogSelect,
-          channels: resources.textChannels,
-          selectedId: draft.commandLogChannelId,
-          placeholder: "Choose a command log channel",
-          defaultName: loggingDefaults.commandLogChannelName,
-          includeCategoryName: loggingDefaults.commandLogCategoryName,
-        }),
-        BuildChannelSelectRow({
-          customId: ids.deleteLogSelect,
-          channels: resources.textChannels,
-          selectedId: draft.deleteLogChannelId,
-          placeholder: "Choose a delete logs channel",
-          defaultName:
-            loggingDefaults.messageDeleteChannelName ||
-            DEFAULT_DELETE_LOG_CHANNEL,
-        }),
-      );
-      break;
-    }
-    case 3: {
-      rows.push(
-        BuildChannelSelectRow({
-          customId: ids.ticketLogSelect,
-          channels: resources.textChannels,
-          selectedId: draft.ticketLogChannelId,
-          placeholder: "Choose a ticket logs channel",
-          defaultName: "ticket-logs",
-        }),
-        BuildChannelSelectRow({
-          customId: ids.announcementSelect,
-          channels: resources.textChannels,
-          selectedId: draft.announcementChannelId,
-          placeholder: "Choose an announcements channel (optional)",
-          defaultName: DEFAULT_ANNOUNCEMENT_CHANNEL,
-        }),
-        BuildChannelSelectRow({
-          customId: ids.productionLogSelect,
-          channels: resources.textChannels,
-          selectedId: draft.productionLogChannelId,
-          placeholder: "Choose a production logs channel (or disable)",
-          defaultName:
-            loggingDefaults.deployLogChannelName ||
-            DEFAULT_PRODUCTION_LOG_CHANNEL,
-          allowNone: true,
-        }),
-        BuildChannelSelectRow({
-          customId: ids.welcomeSelect,
-          channels: resources.textChannels,
-          selectedId: draft.welcomeChannelId,
-          placeholder: "Choose a welcome channel (optional)",
-          defaultName: "welcome",
-        }),
-      );
-      break;
-    }
-    default:
-      break;
-  }
-
-  rows.push(BuildNavigationRow(options.step, ids));
-  return rows;
-}
+import { DEFAULT_TICKET_CATEGORY } from "../constants";
 
 export function BuildRoleSelectRow(
   customId: string,
@@ -184,6 +65,61 @@ export function BuildRoleSelectRow(
   }
 
   return row;
+}
+
+export function BuildSingleRoleSelectRow(options: {
+  customId: string;
+  placeholder: string;
+  roles: Role[];
+  selectedId: string | null;
+  allowNone?: boolean;
+}): ActionRowData<ActionRowComponentData> {
+  const { customId, placeholder, roles, selectedId, allowNone = false } =
+    options;
+  const hasRoles = roles.length > 0;
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId(customId)
+    .setPlaceholder(placeholder)
+    .setMinValues(1)
+    .setMaxValues(1);
+
+  if (allowNone) {
+    menu.addOptions(
+      new StringSelectMenuOptionBuilder()
+        .setLabel("None")
+        .setValue("none")
+        .setDescription("Do not assign this role")
+        .setDefault(!selectedId),
+    );
+  }
+
+  if (!hasRoles) {
+    menu.addOptions(
+      new StringSelectMenuOptionBuilder()
+        .setLabel("No roles available")
+        .setValue("noop")
+        .setDescription("Create roles in Discord, then rerun /setup")
+        .setDefault(true),
+    );
+  } else {
+    roles.slice(0, allowNone ? 24 : 25).forEach((role) => {
+      const roleId = String(role.id);
+      const option = new StringSelectMenuOptionBuilder()
+        .setLabel(role.name.slice(0, 95))
+        .setValue(roleId)
+        .setDescription(`ID: ${roleId}`);
+
+      if (selectedId === roleId) {
+        option.setDefault(true);
+      }
+
+      menu.addOptions(option);
+    });
+  }
+
+  return ToActionRowData<ActionRowComponentData>(
+    ComponentFactory.CreateSelectMenuRow(menu),
+  );
 }
 
 export function BuildCategorySelectRow(options: {
@@ -335,50 +271,4 @@ export function BuildChannelSelectRow(options: {
   return ToActionRowData<ActionRowComponentData>(
     ComponentFactory.CreateSelectMenuRow(menu),
   );
-}
-
-export function BuildNavigationRow(
-  step: number,
-  ids: NavigationIds,
-): ActionRowData<ActionRowComponentData> {
-  const isFinalStep = step >= 3;
-  const buttons = [
-    {
-      label: "Back",
-      style: ButtonStyle.Secondary,
-      emoji: "◀",
-      disabled: step === 1,
-    },
-    ...(isFinalStep
-      ? []
-      : [
-          {
-            label: "Next",
-            style: ButtonStyle.Primary,
-            emoji: "▶",
-          },
-        ]),
-    {
-      label: "Save & Quit",
-      style: ButtonStyle.Success,
-      emoji: "💾",
-    },
-    {
-      label: "Cancel",
-      style: ButtonStyle.Danger,
-      emoji: "✖",
-    },
-  ];
-
-  const customIds = [
-    ids.back,
-    ...(isFinalStep ? [] : [ids.next]),
-    ids.saveAndQuit,
-    ids.cancel,
-  ];
-
-  return ComponentFactory.CreateActionRow({
-    buttons,
-    customIds,
-  }).toJSON() as ActionRowData<ActionRowComponentData>;
 }

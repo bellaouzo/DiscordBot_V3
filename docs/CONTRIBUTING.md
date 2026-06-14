@@ -27,6 +27,7 @@ CI runs `npm audit --audit-level=high`, `npm run lint`, `npm run lint:examples`,
 ## Coding standards
 
 - **Style:** Use the existing patterns in the repo: path aliases (`@commands`, `@middleware`, etc.), consistent spacing and returns, guard clauses where they keep logic clear.
+- **Error handling:** Do not use empty `catch` blocks. Log with context via `Logger`, return a safe fallback, or rethrow when the failure must propagate.
 
 ### Import conventions
 
@@ -60,6 +61,31 @@ Do not import from `@commands/CommandFactory` or use relative `../Commands/` pat
 - Test strategy and coverage expectations: [TESTING_STRATEGY.md](./TESTING_STRATEGY.md)
 - API stability and semver policy: [STABILITY.md](./STABILITY.md)
 - Configuration and secret handling: [CONFIGURATION.md](./CONFIGURATION.md)
+
+## Database migrations
+
+Each SQLite database (`server.db`, `ticket.db`, `user.db`, `moderation.db`) runs pending migrations automatically on startup via `RunMigrations` in its database constructor.
+
+### When to add a migration
+
+Add a new migration whenever you **ALTER an existing table** (new column, index change, backfill). Updating TypeScript types or store SELECT statements alone is not enough.
+
+### How to add a migration
+
+1. Add a new numbered entry in the migration array for that database:
+   - `src/Database/Migrations/server/index.ts` for `server.db`
+   - `src/Database/Migrations/ticket/index.ts` for `ticket.db`
+   - Create `src/Database/Migrations/user/index.ts` or `moderation/index.ts` when the first schema change is needed for those databases (they currently use `RunMigrations([])`).
+2. Use `AddTableColumnIfMissing` or `AddTableColumnsIfMissing` from `@database/Migrations` so the migration is idempotent.
+3. Update the matching store, types, and mappers under `src/Database/`.
+4. Update the `CreateTables` baseline DDL in the database class so **fresh installs** get the full schema immediately (migrations remain no-ops for new databases).
+5. Add an integration test in `tests/database/` that simulates a database at the previous migration version, runs `RunMigrations`, and asserts the new schema works with the store.
+
+### Anti-patterns
+
+- **Do not** add columns to `GUILD_SETTINGS_COLUMNS` in `server/index.ts` — that map is frozen at v1 and only runs once on existing databases.
+- **Do not** update TypeScript types or store queries without a matching migration and `CreateTables` baseline update.
+- **Do not** rely on editing `CREATE TABLE IF NOT EXISTS` alone — existing production databases will not pick up new columns without a migration.
 
 ## Commits and PRs
 

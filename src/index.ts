@@ -1,4 +1,4 @@
-import "module-alias/register";
+import "./register-aliases";
 import {
   Bootstrap,
   SetupGracefulShutdown,

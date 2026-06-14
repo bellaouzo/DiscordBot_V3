@@ -1,6 +1,8 @@
 import type { Client, TextChannel } from "discord.js";
 import type { UserDatabase } from "@database";
+import type { ServerDatabase } from "@database/ServerDatabase";
 import type { Logger } from "@shared/Logger";
+import { IsEconomyEnabled } from "@shared/GuildFeatures";
 import { LotteryManager } from "@systems/Economy/LotteryManager";
 
 const POLL_INTERVAL_MS = 30_000;
@@ -12,6 +14,7 @@ export class LotteryScheduler {
   constructor(
     private readonly client: Client,
     private readonly userDb: UserDatabase,
+    private readonly serverDb: ServerDatabase,
     private readonly logger: Logger,
   ) {}
 
@@ -43,6 +46,9 @@ export class LotteryScheduler {
       const ended = this.userDb.GetEndedLotteriesToProcess();
 
       for (const lottery of ended) {
+        if (!IsEconomyEnabled(this.serverDb, lottery.guild_id)) {
+          continue;
+        }
         await this.ProcessLottery(lottery.guild_id, lottery.message_id);
       }
     } catch (error) {

@@ -165,7 +165,7 @@ export async function NotifyAppealUser(
     embed.addFields(deniedFields);
     await user.send({ embeds: [embed.toJSON()] });
   } catch {
-    // noop
+    void 0;
   }
 }
 

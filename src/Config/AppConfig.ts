@@ -7,10 +7,14 @@ export interface DiscordConfig {
   readonly token: string;
 }
 
-/** Application and guild IDs for slash command deployment (CLIENT_ID, GUILD_ID). */
+/** Where slash commands are registered on startup. */
+export type CommandDeployScope = "global" | "guild";
+
+/** Application ID and command deployment target (CLIENT_ID, COMMAND_DEPLOY_SCOPE). */
 export interface DeploymentConfig {
   readonly clientId: string;
-  readonly guildId: string;
+  readonly deployScope: CommandDeployScope;
+  readonly guildId?: string;
 }
 
 /** Channel/category names for command logs, delete logs, deploy logs. */
@@ -73,9 +77,45 @@ function RequireEnv(variableName: string): string {
   return value;
 }
 
+function LoadDeploymentConfig(): DeploymentConfig {
+  const scopeRaw = (process.env.COMMAND_DEPLOY_SCOPE ?? "global")
+    .trim()
+    .toLowerCase();
+
+  if (scopeRaw !== "global" && scopeRaw !== "guild") {
+    throw new Error(
+      `Invalid COMMAND_DEPLOY_SCOPE "${process.env.COMMAND_DEPLOY_SCOPE}". Use "global" or "guild".`,
+    );
+  }
+
+  const deployScope: CommandDeployScope =
+    scopeRaw === "guild" ? "guild" : "global";
+
+  const guildId = process.env.GUILD_ID?.trim();
+
+  if (deployScope === "guild") {
+    if (!guildId) {
+      throw new Error(
+        "Environment variable GUILD_ID is required when COMMAND_DEPLOY_SCOPE=guild",
+      );
+    }
+    return {
+      clientId: RequireEnv("CLIENT_ID"),
+      deployScope,
+      guildId,
+    };
+  }
+
+  return {
+    clientId: RequireEnv("CLIENT_ID"),
+    deployScope,
+    ...(guildId ? { guildId } : {}),
+  };
+}
+
 /**
  * Loads .env (from project root or APP_ENV_PATH), validates required vars, and returns AppConfig.
- * Throws if DISCORD_TOKEN, CLIENT_ID, or GUILD_ID are missing or empty.
+ * Throws if DISCORD_TOKEN or CLIENT_ID are missing or empty.
  *
  * @returns AppConfig with discord, deployment, logging, apiKeys
  */
@@ -86,10 +126,7 @@ export function LoadAppConfig(): AppConfig {
     discord: {
       token: RequireEnv("DISCORD_TOKEN"),
     },
-    deployment: {
-      clientId: RequireEnv("CLIENT_ID"),
-      guildId: RequireEnv("GUILD_ID"),
-    },
+    deployment: LoadDeploymentConfig(),
     logging: {
       commandLogChannelName:
         process.env.COMMAND_LOG_CHANNEL_NAME || "command-logs",

@@ -2,8 +2,10 @@ import type { ComponentRouter } from "@shared/ComponentRouter";
 import type { ButtonResponder } from "@responders/ButtonResponder";
 import { EmbedFactory } from "@utilities";
 import type { ServerDatabase } from "@database/ServerDatabase";
-import { SETUP_TIMEOUT_MS } from "../../Setup/constants";
-import type { NavigationIds, SetupDraft, StepState } from "../../Setup/state";
+import { SETUP_TIMEOUT_MS, SETUP_STEP_COUNT } from "../constants";
+import type { NavigationIds, SetupDraft, StepState } from "../state";
+import { SaveSetupDraft } from "../persistence/SaveSetupDraft";
+import { SyncDraftFromSavedSettings } from "../persistence/SyncDraftFromSavedSettings";
 
 interface RegisterButtonHandlersOptions {
   ids: NavigationIds;
@@ -37,7 +39,7 @@ export function RegisterButtonHandlers(
     ownerId,
     expiresInMs: SETUP_TIMEOUT_MS,
     handler: async (buttonInteraction) => {
-      stepState.current = Math.min(stepState.current + 1, 3);
+      stepState.current = Math.min(stepState.current + 1, SETUP_STEP_COUNT);
       await buttonResponder.DeferUpdate(buttonInteraction);
       await updateMessage();
     },
@@ -73,90 +75,40 @@ export function RegisterButtonHandlers(
   });
 
   componentRouter.RegisterButton({
-    customId: ids.save,
-    ownerId,
-    expiresInMs: SETUP_TIMEOUT_MS,
-    handler: async (buttonInteraction) => {
-      const saved = serverDb.UpsertGuildSettings({
-        guild_id: guildId,
-        admin_role_ids: draft.adminRoleIds,
-        mod_role_ids: draft.modRoleIds,
-        ticket_category_id: draft.ticketCategoryId,
-        appeal_review_category_id: draft.appealReviewCategoryId,
-        command_log_channel_id: draft.commandLogChannelId,
-        ticket_log_channel_id: draft.ticketLogChannelId,
-        announcement_channel_id: draft.announcementChannelId,
-        delete_log_channel_id: draft.deleteLogChannelId,
-        production_log_channel_id: draft.productionLogChannelId,
-        welcome_channel_id: draft.welcomeChannelId,
-      });
-
-      await buttonResponder.DeferUpdate(buttonInteraction);
-      await buttonResponder.EditReply(buttonInteraction, {
-        embeds: [
-          EmbedFactory.CreateSuccess({
-            title: "Setup Saved",
-            description:
-              "Your configuration has been saved. You can rerun `/setup` anytime to update it.",
-          }).toJSON(),
-        ],
-        components: [],
-      });
-
-      draft.adminRoleIds = [...saved.admin_role_ids];
-      draft.modRoleIds = [...saved.mod_role_ids];
-      draft.ticketCategoryId = saved.ticket_category_id;
-      draft.appealReviewCategoryId = saved.appeal_review_category_id;
-      draft.commandLogChannelId = saved.command_log_channel_id;
-      draft.ticketLogChannelId = saved.ticket_log_channel_id;
-      draft.announcementChannelId = saved.announcement_channel_id;
-      draft.deleteLogChannelId = saved.delete_log_channel_id;
-      draft.productionLogChannelId = saved.production_log_channel_id;
-      draft.welcomeChannelId = saved.welcome_channel_id;
-    },
-  });
-
-  componentRouter.RegisterButton({
     customId: ids.saveAndQuit,
     ownerId,
     expiresInMs: SETUP_TIMEOUT_MS,
     handler: async (buttonInteraction) => {
-      const saved = serverDb.UpsertGuildSettings({
-        guild_id: guildId,
-        admin_role_ids: draft.adminRoleIds,
-        mod_role_ids: draft.modRoleIds,
-        ticket_category_id: draft.ticketCategoryId,
-        appeal_review_category_id: draft.appealReviewCategoryId,
-        command_log_channel_id: draft.commandLogChannelId,
-        ticket_log_channel_id: draft.ticketLogChannelId,
-        announcement_channel_id: draft.announcementChannelId,
-        delete_log_channel_id: draft.deleteLogChannelId,
-        production_log_channel_id: draft.productionLogChannelId,
-        welcome_channel_id: draft.welcomeChannelId,
-      });
+      const result = SaveSetupDraft({ serverDb, guildId, draft });
+
+      if (!result.success) {
+        await buttonResponder.Reply(buttonInteraction, {
+          embeds: [
+            EmbedFactory.CreateError({
+              title: "Setup Not Saved",
+              description: result.error,
+            }).toJSON(),
+          ],
+          flags: 64,
+        });
+        return;
+      }
+
+      SyncDraftFromSavedSettings(draft, result.guildSettings, serverDb, guildId);
 
       await buttonResponder.DeferUpdate(buttonInteraction);
       await buttonResponder.EditReply(buttonInteraction, {
         embeds: [
           EmbedFactory.CreateSuccess({
-            title: "Setup Saved",
-            description:
-              "Your configuration has been saved. You can rerun `/setup` anytime to update it.",
+            title: "Setup Complete",
+            description: [
+              "Your server configuration has been saved.",
+              "Use `/hub` for quick actions or `/help` to browse commands.",
+            ].join("\n"),
           }).toJSON(),
         ],
         components: [],
       });
-
-      draft.adminRoleIds = [...saved.admin_role_ids];
-      draft.modRoleIds = [...saved.mod_role_ids];
-      draft.ticketCategoryId = saved.ticket_category_id;
-      draft.appealReviewCategoryId = saved.appeal_review_category_id;
-      draft.commandLogChannelId = saved.command_log_channel_id;
-      draft.ticketLogChannelId = saved.ticket_log_channel_id;
-      draft.announcementChannelId = saved.announcement_channel_id;
-      draft.deleteLogChannelId = saved.delete_log_channel_id;
-      draft.productionLogChannelId = saved.production_log_channel_id;
-      draft.welcomeChannelId = saved.welcome_channel_id;
     },
   });
 }

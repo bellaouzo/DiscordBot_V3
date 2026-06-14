@@ -21,6 +21,7 @@ import { AppealStore } from "@database/Moderation/Stores/AppealStore";
 import { LockdownStore } from "@database/Moderation/Stores/LockdownStore";
 import { LinkFilterStore } from "@database/Moderation/Stores/LinkFilterStore";
 import { RaidModeStore } from "@database/Moderation/Stores/RaidModeStore";
+import { RunMigrations } from "@database/Migrations";
 
 export type {
   Appeal,
@@ -176,6 +177,8 @@ export class ModerationDatabase {
         CREATE INDEX IF NOT EXISTS idx_appeals_user ON appeals(guild_id, user_id, created_at DESC);
         CREATE INDEX IF NOT EXISTS idx_appeals_action ON appeals(guild_id, action_type, action_ref);
       `);
+
+      RunMigrations(this.db, [], this.logger);
     } catch (error) {
       this.logger.Error("Failed to create moderation tables", { error });
       throw error;

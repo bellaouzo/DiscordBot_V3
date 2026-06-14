@@ -100,6 +100,6 @@ export const GiveawayCommand = CreateCommand({
           .setDescription("Learn what giveaways are and how to run them"),
       );
   },
-  config: Config.utility(5),
+  config: Config.utilityWithFeature("giveaways", 5),
   execute: ExecuteGiveaway,
 });

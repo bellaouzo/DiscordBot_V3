@@ -158,6 +158,16 @@ sequenceDiagram
 
 Appeal submit, Setup wizard, Giveaway entry, Economy bet sessions, and Ticket open all follow variants of this pattern.
 
+## Bootstrap system registration
+
+Global button, select, and modal handlers that must exist before commands run are registered through [`SystemRegistry.ts`](../src/Bootstrap/SystemRegistry.ts).
+
+1. Export a `RegisterXxx(context)` function from your system module.
+2. Append it to `SYSTEM_REGISTRARS` in `SystemRegistry.ts`.
+3. Keep command-scoped registrations (for example Setup wizard steps registered when `/setup` runs) inside the command — only **bootstrap-wide** handlers belong in the registry.
+
+Custom ID prefixes should stay namespaced (`ticket:`, `appeal:`, `verification-panel:`, `economy:`) to avoid router collisions.
+
 ## Database and Scaling Notes
 
 Persistence uses **better-sqlite3** (synchronous SQLite) via facades such as [`ServerDatabase.ts`](../src/Database/ServerDatabase.ts) and per-domain stores under `src/Database/*/Stores/`.

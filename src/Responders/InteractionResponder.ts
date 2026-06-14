@@ -4,7 +4,7 @@ import type {
   ButtonInteraction,
 } from "discord.js";
 import { MessageFlags } from "discord.js";
-import type { Logger } from "../Shared/Logger";
+import type { Logger } from "@shared/Logger";
 import type {
   ResponseOptions,
   ResponseResult,

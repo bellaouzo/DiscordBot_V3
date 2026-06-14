@@ -27,6 +27,18 @@ const sharedRules = {
           group: ["../*/Commands/*", "../*/Commands"],
           message: "Use @commands path alias instead of relative imports.",
         },
+        {
+          group: ["../*/Shared/*", "../Shared/*"],
+          message: "Use @shared path alias instead of relative imports.",
+        },
+        {
+          group: ["../*/Responders/*", "../Responders/*"],
+          message: "Use @responders path alias instead of relative imports.",
+        },
+        {
+          group: ["../*/Utilities/*", "../Utilities/*"],
+          message: "Use @utilities path alias instead of relative imports.",
+        },
       ],
     },
   ],
@@ -48,7 +60,7 @@ export default [
       },
     },
     rules: {
-      "no-empty": ["warn", { allowEmptyCatch: true }],
+      "no-empty": ["error", { allowEmptyCatch: false }],
       ...sharedRules,
     },
   },
@@ -77,7 +89,7 @@ export default [
       },
     },
     rules: {
-      "no-empty": ["warn", { allowEmptyCatch: true }],
+      "no-empty": ["error", { allowEmptyCatch: false }],
       ...sharedRules,
       "@typescript-eslint/no-non-null-assertion": "off",
     },

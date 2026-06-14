@@ -337,7 +337,7 @@ export const EconomyCommand = CreateCommand({
           .setDescription("Learn how the server economy works"),
       );
   },
-  config: Config.utility(5),
+  config: Config.utilityWithFeature("economy", 5),
   execute: async (interaction, context) => {
     const subcommandGroup = interaction.options.getSubcommandGroup(false);
     const subcommand = interaction.options.getSubcommand(true);

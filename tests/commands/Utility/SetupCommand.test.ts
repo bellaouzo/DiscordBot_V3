@@ -50,6 +50,45 @@ describe("SetupCommand behavior", () => {
       user: { id: "admin-1" } as unknown as User,
     });
     const context = createMockContext();
+    vi.mocked(context.databases.serverDb.GetGuildSettings).mockReturnValue({
+      guild_id: "guild-1",
+      admin_role_ids: [],
+      mod_role_ids: [],
+      ticket_category_id: null,
+      appeal_review_category_id: null,
+      command_log_channel_id: null,
+      ticket_log_channel_id: null,
+      announcement_channel_id: null,
+      delete_log_channel_id: null,
+      production_log_channel_id: null,
+      welcome_channel_id: null,
+      autorole_id: null,
+      starboard_channel_id: null,
+      starboard_emoji: "⭐",
+      starboard_threshold: 3,
+      roblox_linked_discord_user_id: null,
+      roblox_linked_at: null,
+      verification_enabled: false,
+      unverified_role_id: null,
+      verified_role_id: null,
+      verification_min_account_age_days: 0,
+      verification_channel_id: null,
+      economy_enabled: true,
+      giveaways_enabled: true,
+      created_at: Date.now(),
+      updated_at: Date.now(),
+    });
+    vi.mocked(context.databases.serverDb.GetGuildXpSettings).mockReturnValue({
+      guild_id: "guild-1",
+      enabled: false,
+      xp_per_message: 1,
+      cooldown_seconds: 60,
+      min_message_length: 1,
+      daily_cap: 100,
+      excluded_channel_ids: [],
+      level_up_channel_id: null,
+    });
+
     await SetupCommand.execute(interaction, context);
 
     expect(context.responders.interactionResponder.Reply).toHaveBeenCalledWith(
@@ -58,7 +97,7 @@ describe("SetupCommand behavior", () => {
         flags: MessageFlags.Ephemeral,
         embeds: expect.arrayContaining([
           expect.objectContaining({
-            title: "Server Setup — Step 1/3",
+            title: "Server Setup",
           }),
         ]),
         components: expect.any(Array),
@@ -99,6 +138,17 @@ describe("SetupCommand behavior", () => {
       delete_log_channel_id: null,
       production_log_channel_id: null,
       welcome_channel_id: null,
+      economy_enabled: true,
+      giveaways_enabled: true,
+      verification_enabled: false,
+      autorole_id: null,
+      starboard_channel_id: null,
+      starboard_emoji: "⭐",
+      starboard_threshold: 3,
+      unverified_role_id: null,
+      verified_role_id: null,
+      verification_min_account_age_days: 0,
+      verification_channel_id: null,
       roblox_linked_discord_user_id: null,
       roblox_linked_at: null,
       created_at: Date.now(),

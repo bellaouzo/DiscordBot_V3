@@ -30,10 +30,7 @@ import { RaidModeScheduler } from "./Moderation/RaidModeScheduler";
 import { GiveawayScheduler } from "@systems/Giveaway/GiveawayScheduler";
 import { EventScheduler } from "@systems/Event/EventScheduler";
 import { LotteryScheduler } from "@systems/Economy/LotteryScheduler";
-import { RegisterAppealPanelButton } from "@commands/Moderation/Appeal/AppealPanelFlow";
-import { RegisterTicketButtons } from "@systems/Ticket/TicketButtonRegistry";
-import { RegisterTicketPanelButton } from "@systems/Ticket/TicketPanelFlow";
-import { RegisterVerificationPanelButton } from "@systems/Verification/VerificationPanelFlow";
+import { RegisterAllSystems } from "./Bootstrap/SystemRegistry";
 import type { Client } from "discord.js";
 
 export interface AppResources {
@@ -87,23 +84,12 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
 
   const responders = CreateResponders({ logger });
 
-  RegisterAppealPanelButton({
+  RegisterAllSystems({
     responders,
-    logger: logger.Child({ phase: "appeal-panel" }),
+    logger: logger.Child({ phase: "systems" }),
     databases,
     appConfig: config,
   });
-
-  const ticketContext = {
-    responders,
-    logger: logger.Child({ phase: "ticket-system" }),
-    databases,
-    appConfig: config,
-  };
-
-  RegisterTicketButtons(ticketContext);
-  RegisterTicketPanelButton(ticketContext);
-  RegisterVerificationPanelButton(ticketContext);
 
   const bot = CreateBot({ logger });
   const loadCommands = CreateCommandLoader(logger);
@@ -140,6 +126,7 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
   const lotteryScheduler = new LotteryScheduler(
     bot.client,
     databases.userDb,
+    databases.serverDb,
     logger.Child({ phase: "lottery" }),
   );
 

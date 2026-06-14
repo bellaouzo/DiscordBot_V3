@@ -1,23 +1,26 @@
 import type { ChatInputCommandInteraction } from "discord.js";
-import { MessageFlags } from "discord.js";
+import { ChannelType, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { RequireGuild, CreateChannelManager } from "@utilities";
-import type {
-  NavigationIds,
-  SetupDraft,
-  StepState,
-} from "@systems/Setup/state";
+import type { StepState } from "@systems/Setup/state";
 import {
   CreateEmptySettings,
   SanitizeGuildSettings,
+  CreateNavigationIds,
+  BuildDraftFromSettings,
+  ResolveExistingChannelId,
 } from "@systems/Setup/state";
 import { CollectResources } from "@systems/Setup/resources";
-import { BuildSetupEmbed } from "@systems/Setup/builders/embed";
-import { BuildStepComponents } from "@systems/Setup/builders/components";
+import {
+  BuildSetupEmbed,
+  BuildStepComponents,
+} from "@systems/Setup/steps";
 import { RegisterSelectHandlers } from "@systems/Setup/handlers/selectHandlers";
 import { RegisterButtonHandlers } from "@systems/Setup/handlers/buttonHandlers";
+import { RegisterFeatureToggleHandlers } from "@systems/Setup/handlers/featureToggleHandlers";
+import type { SetupContext } from "@systems/Setup/steps/types";
 
 async function ExecuteSetup(
   interaction: ChatInputCommandInteraction,
@@ -39,22 +42,22 @@ async function ExecuteSetup(
     CreateEmptySettings(guild.id);
 
   const sanitizedSettings = await SanitizeGuildSettings(guild, currentSettings);
+  const xpSettings = databases.serverDb.GetGuildXpSettings(guild.id);
+  const sanitizedLevelUpChannelId = await ResolveExistingChannelId(
+    guild,
+    xpSettings.level_up_channel_id,
+    ChannelType.GuildText,
+  );
+
+  if (sanitizedLevelUpChannelId !== xpSettings.level_up_channel_id) {
+    databases.serverDb.UpsertGuildXpSettings({
+      guild_id: guild.id,
+      level_up_channel_id: sanitizedLevelUpChannelId,
+    });
+  }
+
   const settingsChanged =
-    sanitizedSettings.ticket_category_id !==
-      currentSettings.ticket_category_id ||
-    sanitizedSettings.appeal_review_category_id !==
-      currentSettings.appeal_review_category_id ||
-    sanitizedSettings.command_log_channel_id !==
-      currentSettings.command_log_channel_id ||
-    sanitizedSettings.ticket_log_channel_id !==
-      currentSettings.ticket_log_channel_id ||
-    sanitizedSettings.announcement_channel_id !==
-      currentSettings.announcement_channel_id ||
-    sanitizedSettings.delete_log_channel_id !==
-      currentSettings.delete_log_channel_id ||
-    sanitizedSettings.production_log_channel_id !==
-      currentSettings.production_log_channel_id ||
-    sanitizedSettings.welcome_channel_id !== currentSettings.welcome_channel_id;
+    JSON.stringify(sanitizedSettings) !== JSON.stringify(currentSettings);
 
   if (settingsChanged) {
     databases.serverDb.UpsertGuildSettings({
@@ -69,62 +72,39 @@ async function ExecuteSetup(
       delete_log_channel_id: sanitizedSettings.delete_log_channel_id,
       production_log_channel_id: sanitizedSettings.production_log_channel_id,
       welcome_channel_id: sanitizedSettings.welcome_channel_id,
+      starboard_channel_id: sanitizedSettings.starboard_channel_id,
+      verification_channel_id: sanitizedSettings.verification_channel_id,
+      unverified_role_id: sanitizedSettings.unverified_role_id,
+      verified_role_id: sanitizedSettings.verified_role_id,
     });
   }
 
-  const draft: SetupDraft = {
-    adminRoleIds: [...sanitizedSettings.admin_role_ids],
-    modRoleIds: [...sanitizedSettings.mod_role_ids],
-    ticketCategoryId: sanitizedSettings.ticket_category_id,
-    appealReviewCategoryId: sanitizedSettings.appeal_review_category_id,
-    commandLogChannelId: sanitizedSettings.command_log_channel_id,
-    ticketLogChannelId: sanitizedSettings.ticket_log_channel_id,
-    announcementChannelId: sanitizedSettings.announcement_channel_id,
-    deleteLogChannelId: sanitizedSettings.delete_log_channel_id,
-    productionLogChannelId: sanitizedSettings.production_log_channel_id,
-    welcomeChannelId: sanitizedSettings.welcome_channel_id,
-  };
-
+  const refreshedXpSettings = databases.serverDb.GetGuildXpSettings(guild.id);
+  const draft = BuildDraftFromSettings(sanitizedSettings, refreshedXpSettings);
   const resources = CollectResources(guild);
-
-  const interactionId = String(interaction.id);
-  const ids: NavigationIds = {
-    adminSelect: `setup:${interactionId}:admin`,
-    modSelect: `setup:${interactionId}:mod`,
-    ticketSelect: `setup:${interactionId}:ticket`,
-    appealSelect: `setup:${interactionId}:appeal`,
-    commandLogSelect: `setup:${interactionId}:cmdlog`,
-    ticketLogSelect: `setup:${interactionId}:ticketlog`,
-    deleteLogSelect: `setup:${interactionId}:deletelog`,
-    productionLogSelect: `setup:${interactionId}:prodlog`,
-    announcementSelect: `setup:${interactionId}:announce`,
-    welcomeSelect: `setup:${interactionId}:welcome`,
-    next: `setup:${interactionId}:next`,
-    back: `setup:${interactionId}:back`,
-    save: `setup:${interactionId}:save`,
-    saveAndQuit: `setup:${interactionId}:savequit`,
-    cancel: `setup:${interactionId}:cancel`,
-  };
-
+  const ids = CreateNavigationIds(String(interaction.id));
   const stepState: StepState = { current: 1 };
 
-  const updateMessage = async (): Promise<void> => {
+  const setupContext: SetupContext = {
+    guild,
+    draft,
+    resources,
+    ids,
+    stepState,
+    loggingDefaults,
+    channelManager,
+    serverDb: databases.serverDb,
+    ownerId: String(interaction.user.id),
+    selectMenuRouter,
+    componentRouter,
+    buttonResponder,
+    updateMessage: async () => {},
+  };
+
+  setupContext.updateMessage = async () => {
     await interaction.editReply({
-      embeds: [
-        BuildSetupEmbed({
-          draft,
-          step: stepState.current,
-          guild,
-          loggingDefaults,
-        }).toJSON(),
-      ],
-      components: BuildStepComponents({
-        step: stepState.current,
-        draft,
-        resources,
-        ids,
-        loggingDefaults,
-      }),
+      embeds: [BuildSetupEmbed(setupContext).toJSON()],
+      components: BuildStepComponents(setupContext),
     });
   };
 
@@ -136,7 +116,7 @@ async function ExecuteSetup(
     loggingDefaults,
     channelManager,
     selectMenuRouter,
-    updateMessage,
+    updateMessage: setupContext.updateMessage,
   });
 
   RegisterButtonHandlers({
@@ -148,32 +128,21 @@ async function ExecuteSetup(
     serverDb: databases.serverDb,
     guildId: String(guild.id),
     ownerId: String(interaction.user.id),
-    updateMessage,
+    updateMessage: setupContext.updateMessage,
   });
 
+  RegisterFeatureToggleHandlers(setupContext);
+
   await interactionResponder.Reply(interaction, {
-    embeds: [
-      BuildSetupEmbed({
-        draft,
-        step: stepState.current,
-        guild,
-        loggingDefaults,
-      }).toJSON(),
-    ],
-    components: BuildStepComponents({
-      step: stepState.current,
-      draft,
-      resources,
-      ids,
-      loggingDefaults,
-    }),
+    embeds: [BuildSetupEmbed(setupContext).toJSON()],
+    components: BuildStepComponents(setupContext),
     flags: MessageFlags.Ephemeral,
   });
 }
 
 export const SetupCommand = CreateCommand({
   name: "setup",
-  description: "Interactive first-time setup for roles and channels",
+  description: "Interactive guided setup for roles, features, and channels",
   group: "admin",
   config: Config.admin(),
   execute: ExecuteSetup,

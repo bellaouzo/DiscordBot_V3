@@ -8,6 +8,7 @@ import { ButtonStyle } from "discord.js";
 import type { CommandContext } from "@commands";
 import type { GuildSettings } from "@database/Server/Types";
 import { ComponentFactory, EmbedFactory, ToActionRowData } from "@utilities";
+import { IsEconomyEnabled } from "@shared/GuildFeatures";
 import { CreateHubActionCustomId } from "@commands/Utility/Hub/HubTypes";
 
 export interface HubContext {
@@ -17,6 +18,7 @@ export interface HubContext {
   readonly member: GuildMember;
   readonly settings: GuildSettings | null;
   readonly isStaff: boolean;
+  readonly levelingEnabled: boolean;
 }
 
 export interface HubPayload {
@@ -64,8 +66,11 @@ export function BuildHubPayload(hub: HubContext): HubPayload {
     style?: ButtonStyle;
   }> = [
     { label: "Browse Commands", emoji: "📚", action: "help" },
-    { label: "My Stats", emoji: "📊", action: "stats" },
   ];
+
+  if ((settings?.economy_enabled ?? true) || hub.levelingEnabled) {
+    memberButtons.push({ label: "My Stats", emoji: "📊", action: "stats" });
+  }
 
   if (ticketsEnabled) {
     memberButtons.unshift({
@@ -174,11 +179,15 @@ export function BuildHubStatsEmbed(
       value: xp ? `**${xp.level}** (${xp.xp} XP)` : "No XP yet",
       inline: true,
     },
-    {
-      name: "Coins",
-      value: balance ? `**${balance.balance}**` : "**0**",
-      inline: true,
-    },
+    ...(IsEconomyEnabled(context.databases.serverDb, guildId)
+      ? [
+          {
+            name: "Coins",
+            value: balance ? `**${balance.balance}**` : "**0**",
+            inline: true,
+          },
+        ]
+      : []),
     {
       name: "Warnings",
       value: `**${warnings.length}**`,

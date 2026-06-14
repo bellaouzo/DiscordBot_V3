@@ -34,7 +34,10 @@ Edit `.env` and set the **required** variables:
 
 - `DISCORD_TOKEN` – Bot token from the [Discord Developer Portal](https://discord.com/developers/applications) (Bot section)
 - `CLIENT_ID` – Application ID (General Information)
-- `GUILD_ID` – ID of the Discord server where you want to test (enable Developer Mode in Discord, then right-click the server and copy ID)
+
+Optional for faster local command deploy:
+
+- `COMMAND_DEPLOY_SCOPE=guild` and `GUILD_ID` – deploy slash commands instantly to one test server (enable Developer Mode in Discord, then right-click the server and copy ID)
 
 Optional variables and defaults are documented in [CONFIGURATION.md](CONFIGURATION.md).
 
@@ -46,15 +49,21 @@ For day-to-day development (recommended):
 npm run dev:watch
 ```
 
-This runs TypeScript in watch mode and restarts the bot when `dist/` changes.
+This runs TypeScript from source via `tsx` and reloads on save — no compile step required.
 
-For a one-shot compile and start:
+For a one-shot start from source:
 
 ```bash
 npm run dev
 ```
 
-Slash commands are deployed to the guild specified by `GUILD_ID` on startup. If you see the bot online in Discord, setup is complete.
+To test the compiled production output locally:
+
+```bash
+npm run dev:watch:dist
+```
+
+Slash commands deploy on startup (`global` by default, or to `GUILD_ID` when `COMMAND_DEPLOY_SCOPE=guild`). If you see the bot online in Discord, setup is complete.
 
 ## 4. Run lint and tests
 

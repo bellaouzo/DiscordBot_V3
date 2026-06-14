@@ -112,7 +112,7 @@ async function ExecuteTranslate(
             errorMessage = errorData.error;
           }
         } catch {
-          // Ignore parse errors
+          void 0;
         }
       }
 

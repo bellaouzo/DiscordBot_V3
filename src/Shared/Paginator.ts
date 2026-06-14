@@ -7,9 +7,9 @@ import type {
 import { ButtonStyle, ComponentType } from "discord.js";
 import type { ComponentRouter, RegisteredButton } from "./ComponentRouter";
 import type { Logger } from "./Logger";
-import type { InteractionResponder } from "../Responders/InteractionResponder";
-import type { ButtonResponder } from "../Responders/ButtonResponder";
-import type { ResponderMessageOptions } from "../Responders";
+import type { InteractionResponder } from "@responders/InteractionResponder";
+import type { ButtonResponder } from "@responders/ButtonResponder";
+import type { ResponderMessageOptions } from "@responders";
 
 export interface PaginationPage {
   readonly embeds?: APIEmbed[];

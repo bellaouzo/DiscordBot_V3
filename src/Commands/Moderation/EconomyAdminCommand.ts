@@ -245,7 +245,7 @@ export const EconomyAdminCommand = CreateCommand({
   name: "economyadmin",
   description: "Administer user balances and items",
   group: "moderation",
-  config: Config.mod().build(),
+  config: Config.mod(5).requiredFeature("economy").build(),
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

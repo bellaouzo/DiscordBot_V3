@@ -363,4 +363,133 @@ export function RegisterSelectHandlers(
       await updateMessage();
     },
   });
+
+  registerOptionalChannelSelect({
+    interaction,
+    draft,
+    resources,
+    channelManager,
+    selectMenuRouter,
+    updateMessage,
+    customId: ids.starboardChannelSelect,
+    assign: (value) => {
+      draft.starboardChannelId = value;
+    },
+    defaultName: "starboard",
+  });
+
+  registerOptionalChannelSelect({
+    interaction,
+    draft,
+    resources,
+    channelManager,
+    selectMenuRouter,
+    updateMessage,
+    customId: ids.levelUpChannelSelect,
+    assign: (value) => {
+      draft.levelUpChannelId = value;
+    },
+    defaultName: "level-up",
+    allowNone: true,
+  });
+
+  registerOptionalChannelSelect({
+    interaction,
+    draft,
+    resources,
+    channelManager,
+    selectMenuRouter,
+    updateMessage,
+    customId: ids.verificationChannelSelect,
+    assign: (value) => {
+      draft.verificationChannelId = value;
+    },
+    defaultName: "verification",
+  });
+
+  selectMenuRouter.RegisterSelectMenu({
+    customId: ids.unverifiedRoleSelect,
+    ownerId: interaction.user.id,
+    expiresInMs: SETUP_TIMEOUT_MS,
+    handler: async (selectInteraction) => {
+      const selection = selectInteraction.values[0];
+      draft.unverifiedRoleId =
+        selection === "none" || selection === "noop" ? null : selection;
+      await selectInteraction.deferUpdate();
+      await updateMessage();
+    },
+  });
+
+  selectMenuRouter.RegisterSelectMenu({
+    customId: ids.verifiedRoleSelect,
+    ownerId: interaction.user.id,
+    expiresInMs: SETUP_TIMEOUT_MS,
+    handler: async (selectInteraction) => {
+      const selection = selectInteraction.values[0];
+      draft.verifiedRoleId =
+        selection === "none" || selection === "noop" ? null : selection;
+      await selectInteraction.deferUpdate();
+      await updateMessage();
+    },
+  });
+}
+
+function registerOptionalChannelSelect(options: {
+  interaction: RegisterSelectHandlersOptions["interaction"];
+  draft: SetupDraft;
+  resources: SetupResources;
+  channelManager: RegisterSelectHandlersOptions["channelManager"];
+  selectMenuRouter: SelectMenuRouter;
+  updateMessage: () => Promise<void>;
+  customId: string;
+  assign: (value: string | null) => void;
+  defaultName: string;
+  allowNone?: boolean;
+}): void {
+  const {
+    interaction,
+    resources,
+    channelManager,
+    selectMenuRouter,
+    updateMessage,
+    customId,
+    assign,
+    defaultName,
+    allowNone = false,
+  } = options;
+
+  selectMenuRouter.RegisterSelectMenu({
+    customId,
+    ownerId: interaction.user.id,
+    expiresInMs: SETUP_TIMEOUT_MS,
+    handler: async (selectInteraction) => {
+      const selection = selectInteraction.values[0];
+
+      if (selection === "auto") {
+        assign(null);
+      } else if (selection === "create") {
+        const created = await channelManager.GetOrCreateTextChannel(defaultName);
+        if (created) {
+          assign(created.id);
+          if (
+            !resources.textChannels.find((channel) => channel.id === created.id)
+          ) {
+            resources.textChannels.unshift(created);
+          }
+        } else {
+          await selectInteraction.followUp({
+            content: `Could not create #${defaultName}. Check bot permissions.`,
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+      } else if (selection === "none" && allowNone) {
+        assign(null);
+      } else {
+        assign(selection);
+      }
+
+      await selectInteraction.deferUpdate();
+      await updateMessage();
+    },
+  });
 }

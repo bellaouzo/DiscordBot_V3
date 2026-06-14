@@ -355,5 +355,8 @@ export async function ResolveHubContext(
       adminRoleIds: settings?.admin_role_ids,
       modRoleIds: settings?.mod_role_ids,
     }),
+    levelingEnabled: context.databases.serverDb.GetGuildXpSettings(
+      interaction.guild.id,
+    ).enabled,
   };
 }

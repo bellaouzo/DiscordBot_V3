@@ -199,6 +199,6 @@ async function PruneOldExports(dir: string, maxFiles: number): Promise<void> {
       ),
     );
   } catch {
-    // ignore prune errors
+    void 0;
   }
 }

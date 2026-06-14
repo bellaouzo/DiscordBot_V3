@@ -83,7 +83,7 @@ async function ShowXpLeaderboard(
           displayName = member.displayName;
         }
       } catch {
-        // Use mention fallback
+        void 0;
       }
 
       lines.push(
@@ -154,7 +154,7 @@ async function ShowCoinsLeaderboard(
           displayName = member.displayName;
         }
       } catch {
-        // Use mention fallback
+        void 0;
       }
 
       lines.push(

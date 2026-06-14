@@ -127,6 +127,7 @@ describe("Bootstrap integration", () => {
   const previousEnv = {
     DISCORD_TOKEN: process.env.DISCORD_TOKEN,
     CLIENT_ID: process.env.CLIENT_ID,
+    COMMAND_DEPLOY_SCOPE: process.env.COMMAND_DEPLOY_SCOPE,
     GUILD_ID: process.env.GUILD_ID,
     BOT_STRICT_FEATURE_KEYS: process.env.BOT_STRICT_FEATURE_KEYS,
     ROBLOX_BRIDGE_API_URL: process.env.ROBLOX_BRIDGE_API_URL,
@@ -140,7 +141,8 @@ describe("Bootstrap integration", () => {
     vi.clearAllMocks();
     process.env.DISCORD_TOKEN = "test-discord-token";
     process.env.CLIENT_ID = "123456789012345678";
-    process.env.GUILD_ID = "987654321098765432";
+    delete process.env.COMMAND_DEPLOY_SCOPE;
+    delete process.env.GUILD_ID;
     delete process.env.BOT_STRICT_FEATURE_KEYS;
     delete process.env.ROBLOX_BRIDGE_API_URL;
     delete process.env.ROBLOX_BRIDGE_API_KEY;

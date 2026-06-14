@@ -126,7 +126,7 @@ export function RegisterLotteryEntryHandler(options: {
             components: [row],
           });
         } catch {
-          // ignore edit failures
+          void 0;
         }
       }
 

@@ -11,6 +11,7 @@ import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
 import { GuildMiddleware } from "@middleware/GuildMiddleware";
 import { CommandEnabledMiddleware } from "@middleware/CommandEnabledMiddleware";
+import { FeatureEnabledMiddleware } from "@middleware/FeatureEnabledMiddleware";
 
 /**
  * Context passed to middleware: interaction, command, logger, responders, config, databases, appConfig.
@@ -83,6 +84,7 @@ export { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 export { CooldownMiddleware } from "@middleware/CooldownMiddleware";
 export { GuildMiddleware } from "@middleware/GuildMiddleware";
 export { CommandEnabledMiddleware } from "@middleware/CommandEnabledMiddleware";
+export { FeatureEnabledMiddleware } from "@middleware/FeatureEnabledMiddleware";
 export {
   IsProtectedCommand,
   PROTECTED_COMMANDS,
@@ -106,6 +108,10 @@ export function AutoMiddleware(
   if (config?.guildOnly) {
     before.push(GuildMiddleware);
     before.push(CommandEnabledMiddleware);
+  }
+
+  if (config?.requiredFeature) {
+    before.push(FeatureEnabledMiddleware);
   }
 
   if (config) {

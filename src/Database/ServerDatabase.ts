@@ -10,6 +10,8 @@ import { StarboardStore } from "@database/Server/Stores/StarboardStore";
 import { CommandCooldownStore } from "@database/Server/Stores/CommandCooldownStore";
 import { LevelRoleRewardStore } from "@database/Server/Stores/LevelRoleRewardStore";
 import { DisabledCommandStore } from "@database/Server/Stores/DisabledCommandStore";
+import { RunMigrations } from "@database/Migrations";
+import { ServerMigrations } from "@database/Migrations/server";
 
 import type {
   GuildSettings,
@@ -67,28 +69,6 @@ export class ServerDatabase {
     }
   }
 
-  private static readonly VALID_GUILD_SETTINGS_COLUMNS = new Map<
-    string,
-    "TEXT" | "INTEGER"
-  >([
-    ["appeal_review_category_id", "TEXT"],
-    ["ticket_log_channel_id", "TEXT"],
-    ["delete_log_channel_id", "TEXT"],
-    ["production_log_channel_id", "TEXT"],
-    ["welcome_channel_id", "TEXT"],
-    ["roblox_linked_discord_user_id", "TEXT"],
-    ["roblox_linked_at", "INTEGER"],
-    ["autorole_id", "TEXT"],
-    ["starboard_channel_id", "TEXT"],
-    ["starboard_emoji", "TEXT"],
-    ["starboard_threshold", "INTEGER"],
-    ["verification_enabled", "INTEGER"],
-    ["unverified_role_id", "TEXT"],
-    ["verified_role_id", "TEXT"],
-    ["verification_min_account_age_days", "INTEGER"],
-    ["verification_channel_id", "TEXT"],
-  ]);
-
   private CreateTables(): void {
     try {
       this.db.exec(`
@@ -99,6 +79,7 @@ export class ServerDatabase {
           title TEXT NOT NULL,
           scheduled_at INTEGER NOT NULL,
           should_notify INTEGER DEFAULT 0,
+          notified_at INTEGER,
           created_by TEXT NOT NULL,
           created_at INTEGER NOT NULL
         );
@@ -110,11 +91,26 @@ export class ServerDatabase {
           admin_role_ids TEXT NOT NULL,
           mod_role_ids TEXT NOT NULL,
           ticket_category_id TEXT,
+          appeal_review_category_id TEXT,
           command_log_channel_id TEXT,
+          ticket_log_channel_id TEXT,
           announcement_channel_id TEXT,
           delete_log_channel_id TEXT,
           production_log_channel_id TEXT,
           welcome_channel_id TEXT,
+          autorole_id TEXT,
+          starboard_channel_id TEXT,
+          starboard_emoji TEXT,
+          starboard_threshold INTEGER,
+          roblox_linked_discord_user_id TEXT,
+          roblox_linked_at INTEGER,
+          verification_enabled INTEGER,
+          unverified_role_id TEXT,
+          verified_role_id TEXT,
+          verification_min_account_age_days INTEGER,
+          verification_channel_id TEXT,
+          economy_enabled INTEGER,
+          giveaways_enabled INTEGER,
           created_at INTEGER NOT NULL,
           updated_at INTEGER NOT NULL
         );
@@ -185,99 +181,11 @@ export class ServerDatabase {
         );
       `);
 
-      this.EnsureGuildSettingsColumns();
-      this.EnsureGuildEventIdColumn();
-      this.EnsureEventColumns();
+      RunMigrations(this.db, ServerMigrations, this.logger);
     } catch (error) {
       this.logger.Error("Failed to create server tables", { error });
       throw error;
     }
-  }
-
-  private EnsureGuildSettingsColumns(): void {
-    const columns = this.db
-      .prepare("PRAGMA table_info(guild_settings)")
-      .all() as Array<{ name: string }>;
-
-    const ensureColumn = (name: string): void => {
-      const columnType = ServerDatabase.VALID_GUILD_SETTINGS_COLUMNS.get(name);
-      if (!columnType) {
-        throw new Error(`Invalid column name for guild_settings: ${name}`);
-      }
-      const has = columns.some((c) => c.name === name);
-      if (!has) {
-        this.db
-          .prepare(
-            `ALTER TABLE guild_settings ADD COLUMN ${name} ${columnType}`,
-          )
-          .run();
-      }
-    };
-
-    for (const columnName of ServerDatabase.VALID_GUILD_SETTINGS_COLUMNS.keys()) {
-      ensureColumn(columnName);
-    }
-  }
-
-  private EnsureGuildEventIdColumn(): void {
-    const columns = this.db
-      .prepare("PRAGMA table_info(events)")
-      .all() as Array<{ name: string }>;
-    const hasColumn = columns.some(
-      (column) => column.name === "guild_event_id",
-    );
-
-    if (hasColumn) {
-      return;
-    }
-
-    const addColumn = this.db.prepare(
-      "ALTER TABLE events ADD COLUMN guild_event_id INTEGER",
-    );
-    addColumn.run();
-
-    this.BackfillGuildEventIds();
-  }
-
-  private EnsureEventColumns(): void {
-    const columns = this.db
-      .prepare("PRAGMA table_info(events)")
-      .all() as Array<{ name: string }>;
-    const hasNotifiedAt = columns.some(
-      (column) => column.name === "notified_at",
-    );
-
-    if (!hasNotifiedAt) {
-      this.db
-        .prepare("ALTER TABLE events ADD COLUMN notified_at INTEGER")
-        .run();
-    }
-  }
-
-  private BackfillGuildEventIds(): void {
-    const guilds = this.db
-      .prepare("SELECT DISTINCT guild_id FROM events")
-      .all() as Array<{ guild_id: string }>;
-
-    const selectEvents = this.db.prepare(
-      "SELECT id FROM events WHERE guild_id = ? ORDER BY scheduled_at ASC, id ASC",
-    );
-    const updateEvent = this.db.prepare(
-      "UPDATE events SET guild_event_id = ? WHERE id = ?",
-    );
-
-    const transaction = this.db.transaction(() => {
-      guilds.forEach((guild) => {
-        const events = selectEvents.all(guild.guild_id) as Array<{
-          id: number;
-        }>;
-        events.forEach((event, index) => {
-          updateEvent.run(index + 1, event.id);
-        });
-      });
-    });
-
-    transaction();
   }
 
   CreateEvent(data: {
@@ -368,6 +276,8 @@ export class ServerDatabase {
     verified_role_id?: string | null;
     verification_min_account_age_days?: number;
     verification_channel_id?: string | null;
+    economy_enabled?: boolean;
+    giveaways_enabled?: boolean;
   }) {
     return this.guildSettings.UpsertGuildSettings(settings);
   }

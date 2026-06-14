@@ -43,6 +43,12 @@ describe("LotteryScheduler", () => {
           .fn()
           .mockReturnValue([{ guild_id: "guild-1", message_id: "msg-1" }]),
       } as never,
+      {
+        GetGuildSettings: vi.fn().mockReturnValue({
+          guild_id: "guild-1",
+          economy_enabled: true,
+        }),
+      } as never,
       createMockLogger(),
     );
 

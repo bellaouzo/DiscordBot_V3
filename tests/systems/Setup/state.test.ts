@@ -17,7 +17,8 @@ describe("Setup state", () => {
     expect(result.delete_log_channel_id).toBeNull();
     expect(result.production_log_channel_id).toBeNull();
     expect(result.welcome_channel_id).toBeNull();
-    expect(result.created_at).toBeDefined();
+    expect(result.economy_enabled).toBe(true);
+    expect(result.giveaways_enabled).toBe(true);
     expect(result.updated_at).toBeDefined();
   });
 

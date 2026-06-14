@@ -25,8 +25,8 @@ A modular Discord bot framework built with TypeScript and Discord.js v14 — sla
    cd discord-bot-v3
    npm install
    ```
-2. **Create `.env`** — copy [.env.example](.env.example) and set `DISCORD_TOKEN`, `CLIENT_ID`, and `GUILD_ID`.
-3. **Run locally** — `npm run dev:watch` for active development (rebuilds on save), or `npm run dev` for a one-shot start. Both deploy slash commands to `GUILD_ID` on startup.
+2. **Create `.env`** — copy [.env.example](.env.example) and set `DISCORD_TOKEN` and `CLIENT_ID`.
+3. **Run locally** — `npm run dev:watch` runs TypeScript directly with hot reload (no build step). Use `npm run dev:watch:dist` to test the compiled `dist/` output, or `npm start` for production.
 4. **Invite the bot** — use the OAuth2 URL generator in the [Discord Developer Portal](https://discord.com/developers/applications) with `applications.commands` and required intents.
 5. **Configure the server** — run `/setup` in your guild to set staff roles and log channels.
 
@@ -49,7 +49,8 @@ A modular Discord bot framework built with TypeScript and Discord.js v14 — sla
 |----------|----------|---------|
 | `DISCORD_TOKEN` | Yes | Bot token from Developer Portal |
 | `CLIENT_ID` | Yes | Application client ID |
-| `GUILD_ID` | Yes | Guild for dev command deployment |
+| `COMMAND_DEPLOY_SCOPE` | No | `global` (default) or `guild` — where slash commands are registered |
+| `GUILD_ID` | No | Required only when `COMMAND_DEPLOY_SCOPE=guild` (instant dev deploy) |
 | `COOLDOWN_PERSIST` | No | Set `1` to persist command cooldowns across restarts |
 | `OPENWEATHER_API_KEY` | No | Enables `/weather` |
 | `ROBLOX_BRIDGE_API_URL` | No | Roblox bridge base URL |
@@ -114,7 +115,7 @@ See [docs/DEVELOPER_SETUP.md](docs/DEVELOPER_SETUP.md) for run modes and environ
 
 | Issue | Fix |
 |-------|-----|
-| Commands not appearing | Run `npm run dev` to redeploy; confirm `GUILD_ID` |
+| Commands not appearing | Run `npm run dev` to redeploy; for faster local iteration set `COMMAND_DEPLOY_SCOPE=guild` and `GUILD_ID` |
 | Bot not responding | Verify `DISCORD_TOKEN`; check intents in Developer Portal |
 | Permission errors | Run `/setup` and assign admin/mod roles |
 | SQLite errors | Ensure `DATA_DIR` is writable |

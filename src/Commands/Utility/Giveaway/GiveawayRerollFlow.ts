@@ -73,7 +73,7 @@ export async function HandleReroll(
       });
     }
   } catch {
-    // Channel may not exist
+    void 0;
   }
 
   const winnerMentions =

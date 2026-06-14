@@ -173,7 +173,7 @@ export class GiveawayManager {
         components: [row],
       });
     } catch {
-      // Message may have been deleted
+      void 0;
     }
   }
 

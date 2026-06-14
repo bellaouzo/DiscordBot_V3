@@ -15,6 +15,8 @@ import { TicketTagStore } from "@database/Ticket/Stores/TicketTagStore";
 import { TicketParticipantStore } from "@database/Ticket/Stores/TicketParticipantStore";
 import { TicketReopenAuditStore } from "@database/Ticket/Stores/TicketReopenAuditStore";
 import { TicketCategoryConfigStore } from "@database/Ticket/Stores/TicketCategoryConfigStore";
+import { RunMigrations } from "@database/Migrations";
+import { TicketMigrations } from "@database/Migrations/ticket";
 
 export type {
   Ticket,
@@ -142,30 +144,7 @@ export class TicketDatabase {
       CREATE INDEX IF NOT EXISTS idx_ticket_category_configs_guild ON ticket_category_configs(guild_id);
     `);
 
-    this.MigrateDatabase();
-  }
-
-  private MigrateDatabase(): void {
-    try {
-      const tableInfo = this.db
-        .prepare<
-          unknown[],
-          { name: string }
-        >("PRAGMA table_info(ticket_participants)")
-        .all();
-      const hasRemovedBy = tableInfo.some(
-        (column) => column.name === "removed_by",
-      );
-
-      if (!hasRemovedBy) {
-        this.db.exec(`
-          ALTER TABLE ticket_participants ADD COLUMN removed_by TEXT;
-          ALTER TABLE ticket_participants ADD COLUMN removed_at INTEGER;
-        `);
-      }
-    } catch (error) {
-      this.logger.Error("Failed to migrate database", { error });
-    }
+    RunMigrations(this.db, TicketMigrations, this.logger);
   }
 
   CreateTicket(data: {

@@ -33,6 +33,8 @@ export interface GuildSettings {
   verified_role_id: string | null;
   verification_min_account_age_days: number;
   verification_channel_id: string | null;
+  economy_enabled: boolean;
+  giveaways_enabled: boolean;
   created_at: number;
   updated_at: number;
 }
@@ -66,6 +68,8 @@ export type GuildSettingsRow = {
   verified_role_id?: string | null;
   verification_min_account_age_days?: number | null;
   verification_channel_id?: string | null;
+  economy_enabled?: number | null;
+  giveaways_enabled?: number | null;
   created_at: number;
   updated_at: number;
 };

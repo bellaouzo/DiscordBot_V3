@@ -291,6 +291,26 @@ export function createMockDatabaseSet(): DatabaseSet {
   const serverDbStubs: Record<string, ReturnType<typeof vi.fn>> = {
     GetGuildSettings: vi.fn().mockReturnValue(null),
     UpsertGuildSettings: vi.fn().mockReturnValue(undefined),
+    GetGuildXpSettings: vi.fn().mockReturnValue({
+      guild_id: "guild-1",
+      enabled: false,
+      xp_per_message: 1,
+      cooldown_seconds: 60,
+      min_message_length: 1,
+      daily_cap: 100,
+      excluded_channel_ids: [],
+      level_up_channel_id: null,
+    }),
+    UpsertGuildXpSettings: vi.fn().mockImplementation((settings) => ({
+      guild_id: settings.guild_id,
+      enabled: settings.enabled ?? false,
+      xp_per_message: 1,
+      cooldown_seconds: 60,
+      min_message_length: 1,
+      daily_cap: 100,
+      excluded_channel_ids: [],
+      level_up_channel_id: settings.level_up_channel_id ?? null,
+    })),
     ListUpcomingEvents: vi.fn().mockReturnValue([]),
     CreateEvent: vi.fn().mockReturnValue(undefined),
     Close: vi.fn(),
@@ -327,7 +347,7 @@ export function createMockDatabaseSet(): DatabaseSet {
 export function createMockAppConfig(): AppConfig {
   return {
     discord: { token: "test-token" },
-    deployment: { clientId: "test-client", guildId: "test-guild" },
+    deployment: { clientId: "test-client", deployScope: "global" },
     logging: {
       commandLogChannelName: "logs",
       commandLogCategoryName: "Logs",

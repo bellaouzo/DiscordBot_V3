@@ -20,6 +20,7 @@ import { ChatXpDailyStore } from "@database/User/Stores/ChatXpDailyStore";
 import { DuelStore } from "@database/User/Stores/DuelStore";
 import { LotteryStore } from "@database/User/Stores/LotteryStore";
 import type { InventoryEntry, MarketRotation } from "@systems/Economy/types";
+import { RunMigrations } from "@database/Migrations";
 
 export type {
   Balance,
@@ -222,6 +223,8 @@ export class UserDatabase {
         FOREIGN KEY (lottery_id) REFERENCES economy_lotteries(id) ON DELETE CASCADE
       );
     `);
+
+    RunMigrations(this.db, [], this.logger);
   }
 
   AddNote(data: {

@@ -19,6 +19,7 @@ export interface CommandConfig {
   readonly modRole?: boolean;
   readonly adminRole?: boolean;
   readonly owner?: boolean;
+  readonly requiredFeature?: "economy" | "giveaways";
 }
 
 /**
@@ -101,6 +102,11 @@ export class CommandConfigBuilder {
     return this;
   }
 
+  requiredFeature(feature: "economy" | "giveaways"): this {
+    this.config = { ...this.config, requiredFeature: feature };
+    return this;
+  }
+
   /** Returns the built config. */
   build(): CommandConfig {
     return this.config;
@@ -153,5 +159,15 @@ export const Config = {
     CommandConfigBuilder.create()
       .guildOnly()
       .cooldownSeconds(cooldownSeconds)
+      .build(),
+
+  utilityWithFeature: (
+    feature: "economy" | "giveaways",
+    cooldownSeconds = 1,
+  ) =>
+    CommandConfigBuilder.create()
+      .guildOnly()
+      .cooldownSeconds(cooldownSeconds)
+      .requiredFeature(feature)
       .build(),
 };

@@ -13,9 +13,33 @@ These must be set or the process will throw at startup.
 | --------------- | ------------------------------------------------------ |
 | `DISCORD_TOKEN` | Discord bot token (from Developer Portal → Bot)        |
 | `CLIENT_ID`     | Discord application ID (General Information)           |
-| `GUILD_ID`      | Discord server (guild) ID for slash command deployment |
 
 Copy [.env.example](../.env.example) to `.env` and fill these in.
+
+### Command deployment
+
+| Variable               | Default  | Description                                                                 |
+| ---------------------- | -------- | --------------------------------------------------------------------------- |
+| `COMMAND_DEPLOY_SCOPE` | `global` | `global` registers commands in all guilds; `guild` deploys to one guild only |
+| `GUILD_ID`             | (none)   | Required when `COMMAND_DEPLOY_SCOPE=guild` (recommended for local dev)      |
+
+Global commands can take up to an hour to propagate on Discord. For instant iteration during development, set `COMMAND_DEPLOY_SCOPE=guild` and `GUILD_ID` to your test server.
+
+### Guild setup and feature toggles
+
+Run `/setup` in a guild to configure staff roles, channels, and per-guild feature modules in a 6-step wizard (welcome → staff → features → support/logging → community → review).
+
+Feature toggles are stored in SQLite (`server.db`):
+
+| Setting | Table / field | Effect |
+| ------- | ------------- | ------ |
+| Economy | `guild_settings.economy_enabled` | Blocks `/economy` and `/economyadmin` when off |
+| Giveaways | `guild_settings.giveaways_enabled` | Blocks `/giveaway` when off |
+| Leveling | `guild_xp_settings.enabled` | Disables chat XP awards when off |
+| Starboard | `guild_settings.starboard_channel_id` | Cleared when starboard is turned off in setup |
+| Verification | `guild_settings.verification_enabled` | Disables verification flows when off |
+
+Both `economy_enabled` and `giveaways_enabled` default to `true` for existing guilds.
 
 ## Optional variables
 

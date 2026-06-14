@@ -110,6 +110,6 @@ export async function UpdateEntryCount(
       });
     }
   } catch {
-    // Message may have been deleted
+    void 0;
   }
 }
