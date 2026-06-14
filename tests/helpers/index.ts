@@ -8,6 +8,7 @@ export {
   stubInteractionOptions,
 } from "./mocks";
 export type { MockInteractionOverrides, MockOptionOverrides } from "./mocks";
+export { LoadAllCommandsOnce, LoadAllEventsOnce } from "./loaderCache";
 export {
   captureButtonHandlers,
   createMockButtonInteraction,

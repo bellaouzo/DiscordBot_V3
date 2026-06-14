@@ -55,7 +55,7 @@ Do not import from `@commands/CommandFactory` or use relative `../Commands/` pat
 - Architecture boundaries: [ARCHITECTURE_MAP.md](./ARCHITECTURE_MAP.md)
 - Ownership and feature responsibility: [MODULE_OWNERSHIP.md](./MODULE_OWNERSHIP.md)
 - Test strategy and coverage expectations: [TESTING_STRATEGY.md](./TESTING_STRATEGY.md)
-- API stability and semver policy: [STABILITY.md](./STABILITY.md)
+- API stability and semver policy: [Stability policy](./STABILITY.md)
 - Configuration and secret handling: [ENVIRONMENT.md](./ENVIRONMENT.md)
 - Guild settings from `/setup`: [CONFIGURATION.md](./CONFIGURATION.md)
 

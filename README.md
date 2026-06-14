@@ -7,7 +7,7 @@ A modular Discord bot framework built with TypeScript and Discord.js v14 — sla
 [![TypeScript](https://img.shields.io/badge/typescript-5+-blue.svg)](https://www.typescriptlang.org/)
 [![Discord.js](https://img.shields.io/badge/discord.js-v14-7289DA?logo=discord&logoColor=white)](https://discord.js.org/)
 
-> APIs are stabilizing; see [CHANGELOG.md](CHANGELOG.md) for recent changes and [STABILITY.md](docs/STABILITY.md) for semver policy.
+> APIs are stabilizing; see [Changelog](CHANGELOG.md) for recent changes and [Stability policy](docs/STABILITY.md) for semver policy.
 
 ## Choose your path
 
@@ -17,7 +17,7 @@ A modular Discord bot framework built with TypeScript and Discord.js v14 — sla
 | **Run or deploy the bot** | [Quick Start](#quick-start) → [Developer Setup](docs/DEVELOPER_SETUP.md) |
 | **Build or contribute code** | [Documentation hub](docs/README.md) → [Writing Commands](docs/WRITING_COMMANDS.md) |
 
-Full index: [docs/README.md](docs/README.md)
+Full index: [Documentation hub](docs/README.md)
 
 ## Quick Start
 
@@ -66,7 +66,7 @@ Full list: [.env.example](.env.example) · [Environment Variables](docs/ENVIRONM
 
 Multi-step flows (appeals, setup, economy bets, tickets) register handlers on `ComponentRouter`, `SelectMenuRouter`, and `ModalRouter` so each interaction step stays typed and testable.
 
-Deep dive: [docs/ARCHITECTURE_MAP.md](docs/ARCHITECTURE_MAP.md)
+Deep dive: [Architecture map](docs/ARCHITECTURE_MAP.md)
 
 ## Development
 
@@ -113,7 +113,7 @@ Production-style start (pull, build, PM2):
 npm run vps:start
 ```
 
-See [docs/DEVELOPER_SETUP.md](docs/DEVELOPER_SETUP.md) for run modes. Environment variables: [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md).
+See [Developer setup](docs/DEVELOPER_SETUP.md) for run modes. Environment variables: [Environment variables](docs/ENVIRONMENT.md).
 
 ## Troubleshooting
 

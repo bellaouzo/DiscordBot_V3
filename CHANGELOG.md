@@ -31,9 +31,17 @@ All notable changes to this project are documented in this file.
 - Static duplicate command name check (`npm run check:commands`).
 - Examples typecheck + lint in CI (`npm run lint:examples`).
 
+- Database store tests for reaction roles, starboard, inventory, lottery, and duels.
+- Shared loader cache (`tests/helpers/loaderCache.ts`) deduplicates command/event filesystem scans across loader and smoke tests.
+- Branch gate suite (`tests/coverage/branchGateBoost.test.ts`) for permission middleware, guild features, and fun API error paths.
+
 ### Changed
 
 - Permission middleware allows Discord **Administrator** / **Manage Server** holders to run admin commands before staff roles are configured; others see **Setup Required**.
+- README and doc link labels use human-readable text instead of raw filenames.
+- Vitest coverage excludes register-aliases, barrel `index.ts`, and type-only modules from the denominator.
+- Bootstrap smoke test no longer duplicates full command loader coverage; loader tests use shared cache and 30s timeouts.
+- CI Vitest pool uses `forks` with `maxWorkers: 2` to reduce memory spikes.
 - Removed duplicate `HelpCommand` re-export barrel; help command loads from `Utility/Help/HelpCommand.ts` only.
 - Hardened command loader to skip re-export-only `*Command.ts` barrels.
 - Standardized imports to path aliases (`@commands`, `@utilities`, etc.); `CommandFactory` uses aliases internally.

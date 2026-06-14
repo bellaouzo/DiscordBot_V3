@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ButtonStyle } from "discord.js";
-import { BuildHubPayload } from "@commands/Utility/Hub/HubComponents";
+import { BuildHubPayload, BuildHubStatsEmbed } from "@commands/Utility/Hub/HubComponents";
 import type { HubContext } from "@commands/Utility/Hub/HubComponents";
+import { createMockContext } from "../../helpers";
 function CreateHubContext(overrides: Partial<HubContext> = {}): HubContext {
   return {
     guildId: "guild-1",
@@ -111,5 +112,40 @@ describe("HubComponents", () => {
     expect(customIds.some((id) => id?.includes(":staff-tickets"))).toBe(true);
     expect(customIds.some((id) => id?.includes(":staff-appeals"))).toBe(true);
     expect(customIds.some((id) => id?.includes(":staff-commands"))).toBe(true);
+  });
+
+  it("builds stats embed with and without economy data", () => {
+    const context = createMockContext();
+    context.databases.userDb.GetUserXp = vi.fn().mockReturnValue(null);
+    context.databases.userDb.GetBalance = vi.fn().mockReturnValue(null);
+    context.databases.userDb.GetWarnings = vi.fn().mockReturnValue([]);
+    context.databases.ticketDb.GetUserTickets = vi.fn().mockReturnValue([]);
+    context.databases.serverDb.GetGuildSettings = vi.fn().mockReturnValue({
+      economy_enabled: false,
+    });
+
+    const hub = CreateHubContext({
+      member: {
+        id: "user-1",
+        toString: () => "<@user-1>",
+      } as HubContext["member"],
+    });
+
+    const withoutEconomy = BuildHubStatsEmbed(context, hub);
+    expect(withoutEconomy.fields?.some((field) => field.name === "Coins")).toBe(
+      false,
+    );
+
+    context.databases.serverDb.GetGuildSettings = vi.fn().mockReturnValue({
+      economy_enabled: true,
+    });
+    context.databases.userDb.GetBalance = vi.fn().mockReturnValue({
+      balance: 250,
+    });
+
+    const withEconomy = BuildHubStatsEmbed(context, hub);
+    expect(withEconomy.fields?.some((field) => field.name === "Coins")).toBe(
+      true,
+    );
   });
 });

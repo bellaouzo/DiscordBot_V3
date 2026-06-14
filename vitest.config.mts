@@ -10,11 +10,20 @@ export default defineConfig({
     environment: "node",
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/**/*.test.ts", "tests/**/*.spec.ts"],
+    pool: "forks",
+    maxWorkers: process.env.CI ? 2 : undefined,
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
       include: ["src/**/*.ts"],
-      exclude: ["src/index.ts", "**/*.d.ts"],
+      exclude: [
+        "src/index.ts",
+        "src/register-aliases.ts",
+        "**/index.ts",
+        "src/**/types.ts",
+        "src/**/Types.ts",
+        "**/*.d.ts",
+      ],
       thresholds: {
         lines: 65,
         functions: 68,

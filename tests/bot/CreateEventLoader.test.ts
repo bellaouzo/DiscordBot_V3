@@ -1,11 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { CreateEventLoader } from "@bot/CreateEventLoader";
-import { createMockLogger } from "../helpers";
+import { LoadAllEventsOnce } from "../helpers/loaderCache";
 
 describe("CreateEventLoader", () => {
   it("loads all events without errors", async () => {
-    const loadEvents = CreateEventLoader(createMockLogger());
-    const events = await loadEvents();
+    const events = await LoadAllEventsOnce();
 
     expect(events.length).toBeGreaterThanOrEqual(4);
 
@@ -16,5 +14,5 @@ describe("CreateEventLoader", () => {
       expect(event.name).toBeTruthy();
       expect(typeof event.execute).toBe("function");
     }
-  }, 60_000);
+  }, 30_000);
 });

@@ -52,4 +52,4 @@ Central index for Discord Bot V3 documentation. Pick the path that matches what 
 
 - [Project README](../README.md) — overview, quick start, and feature summary
 - [Examples](../examples/) — copy-paste command templates
-- [CHANGELOG](../CHANGELOG.md) — release history
+- [Changelog](../CHANGELOG.md) — release history
