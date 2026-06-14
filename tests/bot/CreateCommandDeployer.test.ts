@@ -57,9 +57,7 @@ describe("CreateCommandDeployer", () => {
     await deploy(commands);
 
     expect(setTokenMock).toHaveBeenCalledWith("deploy-token");
-    expect(applicationCommandsMock).toHaveBeenCalledWith(
-      "123456789012345678",
-    );
+    expect(applicationCommandsMock).toHaveBeenCalledWith("123456789012345678");
     expect(applicationGuildCommandsMock).not.toHaveBeenCalled();
     expect(putMock).toHaveBeenCalledWith("global-commands-route", {
       body: commands,

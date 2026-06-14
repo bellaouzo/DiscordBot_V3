@@ -2,9 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ButtonStyle } from "discord.js";
 import { BuildHubPayload } from "@commands/Utility/Hub/HubComponents";
 import type { HubContext } from "@commands/Utility/Hub/HubComponents";
-function CreateHubContext(
-  overrides: Partial<HubContext> = {},
-): HubContext {
+function CreateHubContext(overrides: Partial<HubContext> = {}): HubContext {
   return {
     guildId: "guild-1",
     guildName: "Test Guild",
@@ -98,9 +96,7 @@ describe("HubComponents", () => {
   });
 
   it("includes staff buttons for moderators", () => {
-    const payload = BuildHubPayload(
-      CreateHubContext({ isStaff: true }),
-    );
+    const payload = BuildHubPayload(CreateHubContext({ isStaff: true }));
 
     const customIds = payload.components
       .flatMap((row) => row.components)

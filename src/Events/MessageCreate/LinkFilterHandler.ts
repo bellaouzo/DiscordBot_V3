@@ -67,9 +67,12 @@ export const LinkFilterHandler: MessageCreateHandler = {
           });
         }
       } catch (error) {
-        context.logger.Error("Failed to send link block notice to log channel", {
-          error,
-        });
+        context.logger.Error(
+          "Failed to send link block notice to log channel",
+          {
+            error,
+          },
+        );
       }
     }
 

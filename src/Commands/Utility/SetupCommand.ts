@@ -13,10 +13,7 @@ import {
   ResolveExistingChannelId,
 } from "@systems/Setup/state";
 import { CollectResources } from "@systems/Setup/resources";
-import {
-  BuildSetupEmbed,
-  BuildStepComponents,
-} from "@systems/Setup/steps";
+import { BuildSetupEmbed, BuildStepComponents } from "@systems/Setup/steps";
 import { RegisterSelectHandlers } from "@systems/Setup/handlers/selectHandlers";
 import { RegisterButtonHandlers } from "@systems/Setup/handlers/buttonHandlers";
 import { RegisterFeatureToggleHandlers } from "@systems/Setup/handlers/featureToggleHandlers";

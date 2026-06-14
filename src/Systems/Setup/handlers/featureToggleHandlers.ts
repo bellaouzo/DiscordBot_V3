@@ -16,7 +16,10 @@ export function RegisterFeatureToggleHandlers(context: SetupContext): void {
         const current = GetDraftFeatureEnabled(context.draft, module.id);
         SetDraftFeatureEnabled(context.draft, module.id, !current);
 
-        if (module.id === "starboard" && !GetDraftFeatureEnabled(context.draft, module.id)) {
+        if (
+          module.id === "starboard" &&
+          !GetDraftFeatureEnabled(context.draft, module.id)
+        ) {
           context.draft.starboardChannelId = null;
         }
 

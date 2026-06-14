@@ -11,9 +11,7 @@ export function FormatRoleList(
   required = false,
 ): string {
   if (!roleIds || roleIds.length === 0) {
-    return required
-      ? "No roles selected (required)"
-      : "None selected";
+    return required ? "No roles selected (required)" : "None selected";
   }
 
   const mentions = roleIds

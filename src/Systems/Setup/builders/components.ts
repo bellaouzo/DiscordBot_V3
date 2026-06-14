@@ -74,8 +74,13 @@ export function BuildSingleRoleSelectRow(options: {
   selectedId: string | null;
   allowNone?: boolean;
 }): ActionRowData<ActionRowComponentData> {
-  const { customId, placeholder, roles, selectedId, allowNone = false } =
-    options;
+  const {
+    customId,
+    placeholder,
+    roles,
+    selectedId,
+    allowNone = false,
+  } = options;
   const hasRoles = roles.length > 0;
   const menu = new StringSelectMenuBuilder()
     .setCustomId(customId)

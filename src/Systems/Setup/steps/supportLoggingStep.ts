@@ -1,17 +1,11 @@
 import { EmbedFactory } from "@utilities";
-import {
-  DEFAULT_APPEAL_CATEGORY,
-  DEFAULT_TICKET_CATEGORY,
-} from "../constants";
+import { DEFAULT_APPEAL_CATEGORY, DEFAULT_TICKET_CATEGORY } from "../constants";
 import {
   BuildCategorySelectRow,
   BuildChannelSelectRow,
 } from "../builders/components";
 import { BuildNavigationRow } from "../builders/navigation";
-import {
-  FormatCategory,
-  FormatChannel,
-} from "../builders/formatters";
+import { FormatCategory, FormatChannel } from "../builders/formatters";
 import { SETUP_STEP_COUNT } from "../constants";
 import type { SetupStepDefinition } from "./types";
 import { BuildStepFooter } from "./types";
@@ -23,7 +17,8 @@ export const supportLoggingStep: SetupStepDefinition = {
   buildEmbed(context) {
     const embed = EmbedFactory.Create({
       title: "Support & Logging",
-      description: "Configure ticket/appeal categories and moderation log channels.",
+      description:
+        "Configure ticket/appeal categories and moderation log channels.",
       color: 0x5865f2,
     });
 

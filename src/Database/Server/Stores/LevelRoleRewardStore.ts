@@ -33,10 +33,7 @@ export class LevelRoleRewardStore {
     return rows.map(MapLevelRoleReward);
   }
 
-  GetLevelRoleReward(
-    guild_id: string,
-    level: number,
-  ): LevelRoleReward | null {
+  GetLevelRoleReward(guild_id: string, level: number): LevelRoleReward | null {
     const row = this.db
       .prepare(
         "SELECT guild_id, level, role_id FROM level_role_rewards WHERE guild_id = ? AND level = ?",

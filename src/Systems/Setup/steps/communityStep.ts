@@ -72,7 +72,11 @@ export const communityStep: SetupStepDefinition = {
     if (draft.starboardEnabled) {
       fields.push({
         name: "Starboard Channel",
-        value: FormatChannel(draft.starboardChannelId, context.guild, "starboard"),
+        value: FormatChannel(
+          draft.starboardChannelId,
+          context.guild,
+          "starboard",
+        ),
         inline: true,
       });
     }
@@ -80,11 +84,7 @@ export const communityStep: SetupStepDefinition = {
     if (draft.levelingEnabled) {
       fields.push({
         name: "Level-up Channel",
-        value: FormatChannel(
-          draft.levelUpChannelId,
-          context.guild,
-          "level-up",
-        ),
+        value: FormatChannel(draft.levelUpChannelId, context.guild, "level-up"),
         inline: true,
       });
     }

@@ -94,7 +94,12 @@ export function RegisterButtonHandlers(
         return;
       }
 
-      SyncDraftFromSavedSettings(draft, result.guildSettings, serverDb, guildId);
+      SyncDraftFromSavedSettings(
+        draft,
+        result.guildSettings,
+        serverDb,
+        guildId,
+      );
 
       await buttonResponder.DeferUpdate(buttonInteraction);
       await buttonResponder.EditReply(buttonInteraction, {

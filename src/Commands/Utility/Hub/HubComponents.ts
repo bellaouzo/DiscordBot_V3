@@ -27,11 +27,14 @@ export interface HubPayload {
   readonly components: ActionRowData<ActionRowComponentData>[];
 }
 
-function IsUnverified(member: GuildMember, settings: GuildSettings | null): boolean {
+function IsUnverified(
+  member: GuildMember,
+  settings: GuildSettings | null,
+): boolean {
   return Boolean(
     settings?.verification_enabled &&
-      settings.unverified_role_id &&
-      member.roles.cache.has(settings.unverified_role_id),
+    settings.unverified_role_id &&
+    member.roles.cache.has(settings.unverified_role_id),
   );
 }
 
@@ -64,9 +67,7 @@ export function BuildHubPayload(hub: HubContext): HubPayload {
     emoji?: string;
     action: Parameters<typeof CreateHubActionCustomId>[1];
     style?: ButtonStyle;
-  }> = [
-    { label: "Browse Commands", emoji: "📚", action: "help" },
-  ];
+  }> = [{ label: "Browse Commands", emoji: "📚", action: "help" }];
 
   if ((settings?.economy_enabled ?? true) || hub.levelingEnabled) {
     memberButtons.push({ label: "My Stats", emoji: "📊", action: "stats" });

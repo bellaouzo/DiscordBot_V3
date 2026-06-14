@@ -3,8 +3,7 @@ import { readFileSync } from "fs";
 import path from "path";
 
 const isSourceRun =
-  process.env.RUN_FROM_SOURCE === "1" ||
-  !__dirname.endsWith(`${path.sep}dist`);
+  process.env.RUN_FROM_SOURCE === "1" || !__dirname.endsWith(`${path.sep}dist`);
 
 if (!isSourceRun) {
   const projectRoot = path.join(__dirname, "..");

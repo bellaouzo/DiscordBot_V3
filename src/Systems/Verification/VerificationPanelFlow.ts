@@ -21,13 +21,12 @@ import {
 
 export const VERIFICATION_PANEL_BEGIN_CUSTOM_ID = "verification-panel:begin";
 export const VERIFICATION_PANEL_CHECK_CUSTOM_ID = "verification-panel:check";
-export const VERIFICATION_PANEL_CONFIRM_CUSTOM_ID = "verification-panel:confirm";
+export const VERIFICATION_PANEL_CONFIRM_CUSTOM_ID =
+  "verification-panel:confirm";
 
 const CONFIRM_SESSION_MS = 1000 * 60 * 10;
 
-export function RegisterVerificationPanelButton(
-  context: CommandContext,
-): void {
+export function RegisterVerificationPanelButton(context: CommandContext): void {
   RegisterVerificationPanelButtons(context);
 }
 
@@ -110,8 +109,9 @@ export function RegisterVerificationPanelButtons(
         handler: async (confirmInteraction) => {
           await confirmInteraction.deferUpdate();
 
-          const confirmSettings =
-            context.databases.serverDb.GetGuildSettings(guild.id);
+          const confirmSettings = context.databases.serverDb.GetGuildSettings(
+            guild.id,
+          );
           if (!confirmSettings?.verification_enabled) {
             const embed = EmbedFactory.CreateWarning({
               title: "Verification Disabled",
@@ -165,9 +165,7 @@ export function RegisterVerificationPanelButtons(
       });
 
       await buttonInteraction.editReply({
-        embeds: [
-          BuildVerificationConfirmEmbed(member, settings, eligibility),
-        ],
+        embeds: [BuildVerificationConfirmEmbed(member, settings, eligibility)],
         components: [ToActionRowData(confirmRow)],
       });
     },

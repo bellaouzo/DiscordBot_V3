@@ -19,9 +19,7 @@ function createMiddlewareContext(options: {
   serverDb: ServerDatabase;
 }): MiddlewareContext {
   const interaction = createMockInteraction({
-    guild: options.guildId
-      ? { id: options.guildId, name: "Test Guild" }
-      : null,
+    guild: options.guildId ? { id: options.guildId, name: "Test Guild" } : null,
     user: { id: "user-1", username: "TestUser" },
   });
   const command = {

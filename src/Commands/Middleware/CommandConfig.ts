@@ -161,10 +161,7 @@ export const Config = {
       .cooldownSeconds(cooldownSeconds)
       .build(),
 
-  utilityWithFeature: (
-    feature: "economy" | "giveaways",
-    cooldownSeconds = 1,
-  ) =>
+  utilityWithFeature: (feature: "economy" | "giveaways", cooldownSeconds = 1) =>
     CommandConfigBuilder.create()
       .guildOnly()
       .cooldownSeconds(cooldownSeconds)

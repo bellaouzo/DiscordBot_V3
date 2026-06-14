@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createMockDatabaseSet } from "../../helpers";
-import { SaveSetupDraft, ValidateSetupDraft } from "@systems/Setup/persistence/SaveSetupDraft";
+import {
+  SaveSetupDraft,
+  ValidateSetupDraft,
+} from "@systems/Setup/persistence/SaveSetupDraft";
 import type { SetupDraft } from "@systems/Setup/state";
 
 function createFullDraft(): SetupDraft {

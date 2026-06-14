@@ -11,11 +11,7 @@ import { CreateOverviewPayload } from "@commands/Utility/Help/HelpComponents";
 import { RegisterHelpButtons } from "@commands/Utility/Help/HelpRouting";
 import { BeginAppealSubmission } from "@commands/Moderation/Appeal/AppealSubmitFlow";
 import { BuildAppealListPages } from "@commands/Moderation/Appeal/AppealFormatters";
-import {
-  CreateAppealManager,
-  EmbedFactory,
-  IsModerator,
-} from "@utilities";
+import { CreateAppealManager, EmbedFactory, IsModerator } from "@utilities";
 import { BeginTicketCreation } from "@systems/Ticket/handlers/CreateHandler";
 import { CreateTicketServices } from "@systems/Ticket/validation/TicketValidation";
 import { VerifyGuildMember } from "@systems/Verification/VerifyMember";
@@ -103,10 +99,8 @@ async function HandleHubAction(options: {
   if (action === "help") {
     await buttonResponder.DeferUpdate(buttonInteraction);
     const guildId = hub.guildId;
-    const allCommands = await GetAllCommandsCached(
-      guildId,
-      (id, commandName) =>
-        context.databases.serverDb.IsCommandDisabled(id, commandName),
+    const allCommands = await GetAllCommandsCached(guildId, (id, commandName) =>
+      context.databases.serverDb.IsCommandDisabled(id, commandName),
     );
     const categories = [
       BuildFeatureCategoryView(),

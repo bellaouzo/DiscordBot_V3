@@ -48,7 +48,8 @@ export const FEATURE_GUIDES: readonly FeatureGuide[] = [
     key: "verification",
     name: "Verification",
     icon: "✅",
-    summary: "Gate new members behind a verify button before full server access.",
+    summary:
+      "Gate new members behind a verify button before full server access.",
     howItWorks:
       "New members receive an unverified role on join. The panel guides them through eligibility checks and a confirmation step before granting access. Optional verified role, account age minimum, and autorole apply after verification. Channel permissions for the unverified role are set in Discord.",
     setup:

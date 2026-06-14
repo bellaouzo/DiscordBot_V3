@@ -53,10 +53,12 @@ describe("VerificationPanelPresentation", () => {
     );
 
     expect(embed.title).toContain("Test Guild");
-    expect(embed.fields?.some((field) => field.name.includes("How to verify"))).toBe(
+    expect(
+      embed.fields?.some((field) => field.name.includes("How to verify")),
+    ).toBe(true);
+    expect(embed.fields?.some((field) => field.value?.includes("3"))).toBe(
       true,
     );
-    expect(embed.fields?.some((field) => field.value?.includes("3"))).toBe(true);
     expect(embed.footer?.text).toContain("420");
   });
 });

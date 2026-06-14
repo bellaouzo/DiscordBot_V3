@@ -2,9 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ValidateVerificationSettings } from "@systems/Verification/VerifyMember";
 import type { GuildSettings } from "@database/Server/Types";
 
-function CreateSettings(
-  overrides: Partial<GuildSettings> = {},
-): GuildSettings {
+function CreateSettings(overrides: Partial<GuildSettings> = {}): GuildSettings {
   return {
     guild_id: "guild-1",
     admin_role_ids: [],

@@ -55,11 +55,9 @@ export const ServerMigrations: readonly Migration[] = [
     version: 1,
     name: "guild_settings_columns",
     up(db) {
-      AddTableColumnsIfMissing(
-        db,
-        "guild_settings",
-        [...GUILD_SETTINGS_COLUMNS.entries()],
-      );
+      AddTableColumnsIfMissing(db, "guild_settings", [
+        ...GUILD_SETTINGS_COLUMNS.entries(),
+      ]);
     },
   },
   {
@@ -70,9 +68,7 @@ export const ServerMigrations: readonly Migration[] = [
         return;
       }
 
-      db.prepare(
-        "ALTER TABLE events ADD COLUMN guild_event_id INTEGER",
-      ).run();
+      db.prepare("ALTER TABLE events ADD COLUMN guild_event_id INTEGER").run();
       BackfillGuildEventIds(db);
     },
   },

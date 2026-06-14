@@ -468,7 +468,8 @@ function registerOptionalChannelSelect(options: {
       if (selection === "auto") {
         assign(null);
       } else if (selection === "create") {
-        const created = await channelManager.GetOrCreateTextChannel(defaultName);
+        const created =
+          await channelManager.GetOrCreateTextChannel(defaultName);
         if (created) {
           assign(created.id);
           if (

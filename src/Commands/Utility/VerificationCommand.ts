@@ -87,7 +87,8 @@ async function ExecuteEnable(
 
   const embed = EmbedFactory.CreateSuccess({
     title: "Verification Enabled",
-    description: "New members will receive the unverified role until they verify.",
+    description:
+      "New members will receive the unverified role until they verify.",
   });
   await context.responders.interactionResponder.Reply(interaction, {
     embeds: [embed.toJSON()],
@@ -308,9 +309,7 @@ export const VerificationCommand = CreateCommand({
           ),
       )
       .addSubcommand((sub) =>
-        sub
-          .setName("clear")
-          .setDescription("Clear all verification settings"),
+        sub.setName("clear").setDescription("Clear all verification settings"),
       )
       .addSubcommand((sub) =>
         sub.setName("view").setDescription("View verification settings"),

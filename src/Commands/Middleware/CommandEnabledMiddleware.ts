@@ -33,12 +33,9 @@ export const CommandEnabledMiddleware: CommandMiddleware = {
       description: "This command is disabled in this server.",
     });
 
-    await context.responders.interactionResponder.Reply(
-      context.interaction,
-      {
-        embeds: [embed.toJSON()],
-        flags: MessageFlags.Ephemeral,
-      },
-    );
+    await context.responders.interactionResponder.Reply(context.interaction, {
+      embeds: [embed.toJSON()],
+      flags: MessageFlags.Ephemeral,
+    });
   },
 };

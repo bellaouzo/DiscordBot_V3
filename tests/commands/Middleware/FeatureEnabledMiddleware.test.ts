@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { MessageFlags, type ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
 import { FeatureEnabledMiddleware } from "@middleware/FeatureEnabledMiddleware";
 import type { MiddlewareContext } from "@middleware";
 import {

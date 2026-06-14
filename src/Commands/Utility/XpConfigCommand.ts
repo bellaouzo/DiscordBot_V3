@@ -63,8 +63,8 @@ function BuildSettingsEmbed(
     },
   );
 
-  const rewardCount = context.databases.serverDb.GetLevelRoleRewards(guildId)
-    .length;
+  const rewardCount =
+    context.databases.serverDb.GetLevelRoleRewards(guildId).length;
   embed.addFields({
     name: "Level role rewards",
     value:
@@ -366,7 +366,9 @@ async function ExecuteRoleRewardList(
     description:
       rewards.length > 0
         ? rewards
-            .map((reward) => `**Level ${reward.level}** — <@&${reward.role_id}>`)
+            .map(
+              (reward) => `**Level ${reward.level}** — <@&${reward.role_id}>`,
+            )
             .join("\n")
         : "No level role rewards are configured.",
   });

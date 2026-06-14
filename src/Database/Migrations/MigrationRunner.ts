@@ -53,9 +53,9 @@ export function HasTableColumn(
   tableName: string,
   columnName: string,
 ): boolean {
-  const columns = db
-    .prepare(`PRAGMA table_info(${tableName})`)
-    .all() as Array<{ name: string }>;
+  const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{
+    name: string;
+  }>;
   return columns.some((column) => column.name === columnName);
 }
 

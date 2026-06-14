@@ -28,10 +28,9 @@ export function BuildVerificationEligibility(
   const accountAgeDays = GetAccountAgeDays(member);
   const hasUnverifiedRole = Boolean(
     settings.unverified_role_id &&
-      member.roles.cache.has(settings.unverified_role_id),
+    member.roles.cache.has(settings.unverified_role_id),
   );
-  const alreadyVerified =
-    settings.verification_enabled && !hasUnverifiedRole;
+  const alreadyVerified = settings.verification_enabled && !hasUnverifiedRole;
   const daysRemaining = Math.max(0, minAccountAgeDays - accountAgeDays);
   const meetsAge =
     minAccountAgeDays <= 0 || accountAgeDays >= minAccountAgeDays;

@@ -8,7 +8,10 @@ import {
 } from "../features/FeatureModules";
 import { BuildNavigationRow } from "../builders/navigation";
 import { BuildRoleSelectRow } from "../builders/components";
-import { FormatRoleList, FormatFeatureModulesOverview } from "../builders/formatters";
+import {
+  FormatRoleList,
+  FormatFeatureModulesOverview,
+} from "../builders/formatters";
 import { SETUP_STEP_COUNT } from "../constants";
 import type { SetupStepDefinition } from "./types";
 import { BuildStepFooter } from "./types";
@@ -38,7 +41,8 @@ export const welcomeStep: SetupStepDefinition = {
       },
       {
         name: "Tip",
-        value: "Use **Get Started** when you're ready. All changes stay in this session until you save on the final step.",
+        value:
+          "Use **Get Started** when you're ready. All changes stay in this session until you save on the final step.",
         inline: false,
       },
     );
@@ -139,7 +143,7 @@ export const featuresStep: SetupStepDefinition = {
     const togglePairs = [
       FEATURE_MODULES.slice(0, 2),
       FEATURE_MODULES.slice(2, 4),
-      [FEATURE_MODULES[4]!],
+      FEATURE_MODULES.slice(4, 5),
     ];
 
     togglePairs.forEach((pair) => {

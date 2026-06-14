@@ -114,9 +114,7 @@ export function BuildEligibilityEmbed(
     : "❌ You do not have the unverified role. Contact staff if this is wrong.";
 
   const embed = EmbedFactory.Create({
-    title: eligibility.eligible
-      ? "You're eligible!"
-      : "Not eligible yet",
+    title: eligibility.eligible ? "You're eligible!" : "Not eligible yet",
     description: eligibility.eligible
       ? "You meet all requirements. Click **Begin Verification** on the panel when you're ready."
       : "You don't meet every requirement yet. Check the details below.",

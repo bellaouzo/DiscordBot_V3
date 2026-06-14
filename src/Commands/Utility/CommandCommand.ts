@@ -9,9 +9,7 @@ import type { PaginationPage } from "@shared/Paginator";
 
 const DISABLED_LIST_PAGE_SIZE = 10;
 
-function ResolveCommandName(
-  interaction: ChatInputCommandInteraction,
-): string {
+function ResolveCommandName(interaction: ChatInputCommandInteraction): string {
   return interaction.options.getString("name", true).trim().toLowerCase();
 }
 

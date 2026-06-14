@@ -286,10 +286,7 @@ export class ServerDatabase {
     return this.levelRoleRewards.GetLevelRoleRewards(guild_id);
   }
 
-  GetLevelRoleReward(
-    guild_id: string,
-    level: number,
-  ): LevelRoleReward | null {
+  GetLevelRoleReward(guild_id: string, level: number): LevelRoleReward | null {
     return this.levelRoleRewards.GetLevelRoleReward(guild_id, level);
   }
 

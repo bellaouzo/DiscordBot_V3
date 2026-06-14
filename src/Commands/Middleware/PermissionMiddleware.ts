@@ -8,10 +8,7 @@ import type { CommandMiddleware, MiddlewareContext } from "./index";
 import type { ResponderSet } from "@responders";
 import { CreateErrorMessage } from "@responders/MessageFactory";
 import { CreateGuildResourceLocator } from "@utilities/GuildResourceLocator";
-import {
-  HasConfiguredAdminRole,
-  HasConfiguredModRole,
-} from "@utilities/StaffPermissions";
+import { IsAdmin, IsModerator } from "@utilities/StaffPermissions";
 import { ResolveInteractionMember } from "@utilities/GuildMemberResolver";
 import type { CommandConfig } from "@commands/Middleware/CommandConfig";
 import type { Logger } from "@shared/Logger";
@@ -151,45 +148,45 @@ async function CheckAdminRolePermission(context: {
     context.interaction.guild.id,
   );
 
-  if (!guildSettings || !guildSettings.admin_role_ids.length) {
+  if (IsAdmin(context.member, guildSettings)) {
+    return true;
+  }
+
+  if (!guildSettings?.admin_role_ids.length) {
     await SendPermissionError(
       context.responders,
       context.interaction,
-      "Admin Role Not Configured",
-      "No admin roles have been configured for this server. Please use the setup command to configure admin roles.",
+      "Setup Required",
+      "This server has not been set up yet. Ask someone with **Administrator** permission to run `/setup` first.",
     );
     return false;
   }
 
-  if (!HasConfiguredAdminRole(context.member, guildSettings)) {
-    const locator = CreateGuildResourceLocator({
-      guild: context.interaction.guild,
-      logger: context.logger,
-    });
+  const locator = CreateGuildResourceLocator({
+    guild: context.interaction.guild,
+    logger: context.logger,
+  });
 
-    const adminRoleNames: string[] = [];
-    for (const roleId of guildSettings.admin_role_ids) {
-      const role = await locator.GetRole(roleId);
-      if (role) {
-        adminRoleNames.push(role.name);
-      }
+  const adminRoleNames: string[] = [];
+  for (const roleId of guildSettings.admin_role_ids) {
+    const role = await locator.GetRole(roleId);
+    if (role) {
+      adminRoleNames.push(role.name);
     }
-
-    const roleList =
-      adminRoleNames.length > 0
-        ? adminRoleNames.join(", ")
-        : "a configured admin role";
-
-    await SendPermissionError(
-      context.responders,
-      context.interaction,
-      "Missing Admin Role",
-      `You need one of the following admin roles to use this command: **${roleList}**`,
-    );
-    return false;
   }
 
-  return true;
+  const roleList =
+    adminRoleNames.length > 0
+      ? adminRoleNames.join(", ")
+      : "a configured admin role";
+
+  await SendPermissionError(
+    context.responders,
+    context.interaction,
+    "Missing Admin Role",
+    `You need one of the following admin roles to use this command: **${roleList}**`,
+  );
+  return false;
 }
 
 async function CheckModRolePermission(context: {
@@ -216,45 +213,43 @@ async function CheckModRolePermission(context: {
     context.interaction.guild.id,
   );
 
-  if (!guildSettings || !guildSettings.mod_role_ids.length) {
+  if (IsModerator(context.member, guildSettings)) {
+    return true;
+  }
+
+  if (!guildSettings?.mod_role_ids.length) {
     await SendPermissionError(
       context.responders,
       context.interaction,
-      "Mod Role Not Configured",
-      "No mod roles have been configured for this server. Please use the setup command to configure mod roles.",
+      "Setup Required",
+      "This server has not been set up yet. Ask someone with **Administrator** permission to run `/setup` first.",
     );
     return false;
   }
 
-  if (!HasConfiguredModRole(context.member, guildSettings)) {
-    const locator = CreateGuildResourceLocator({
-      guild: context.interaction.guild,
-      logger: context.logger,
-    });
+  const locator = CreateGuildResourceLocator({
+    guild: context.interaction.guild,
+    logger: context.logger,
+  });
 
-    const modRoleNames: string[] = [];
-    for (const roleId of guildSettings.mod_role_ids) {
-      const role = await locator.GetRole(roleId);
-      if (role) {
-        modRoleNames.push(role.name);
-      }
+  const modRoleNames: string[] = [];
+  for (const roleId of guildSettings.mod_role_ids) {
+    const role = await locator.GetRole(roleId);
+    if (role) {
+      modRoleNames.push(role.name);
     }
-
-    const roleList =
-      modRoleNames.length > 0
-        ? modRoleNames.join(", ")
-        : "a configured mod role";
-
-    await SendPermissionError(
-      context.responders,
-      context.interaction,
-      "Missing Mod Role",
-      `You need one of the following mod roles to use this command: **${roleList}**`,
-    );
-    return false;
   }
 
-  return true;
+  const roleList =
+    modRoleNames.length > 0 ? modRoleNames.join(", ") : "a configured mod role";
+
+  await SendPermissionError(
+    context.responders,
+    context.interaction,
+    "Missing Mod Role",
+    `You need one of the following mod roles to use this command: **${roleList}**`,
+  );
+  return false;
 }
 
 async function CheckDiscordPermissions(context: {

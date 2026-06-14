@@ -4,7 +4,9 @@ export const TicketMessageHandler: MessageCreateHandler = {
   name: "ticket-message",
 
   async execute(context, msg) {
-    const ticket = context.databases.ticketDb.GetTicketByChannel(msg.channel.id);
+    const ticket = context.databases.ticketDb.GetTicketByChannel(
+      msg.channel.id,
+    );
     if (!ticket) {
       return "continue";
     }

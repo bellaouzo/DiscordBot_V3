@@ -25,9 +25,7 @@ export async function GetAllCommandsCached(
   }));
 
   if (guildId && isCommandDisabled) {
-    commands = commands.filter(
-      (cmd) => !isCommandDisabled(guildId, cmd.name),
-    );
+    commands = commands.filter((cmd) => !isCommandDisabled(guildId, cmd.name));
   }
 
   commandCache.set(cacheKey, { data: commands, timestamp: Date.now() });

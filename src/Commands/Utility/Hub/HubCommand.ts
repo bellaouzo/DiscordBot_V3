@@ -51,9 +51,7 @@ export const HubCommand = CreateCommand({
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>
-        sub
-          .setName("open")
-          .setDescription("Open the quick-action dashboard"),
+        sub.setName("open").setDescription("Open the quick-action dashboard"),
       )
       .addSubcommand((sub) =>
         sub
