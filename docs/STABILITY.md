@@ -2,6 +2,13 @@
 
 Discord Bot V3 follows [semantic versioning](https://semver.org/) for the bot framework surface documented in this repository.
 
+## Table of contents
+
+- [Stable (semver guarantees)](#stable-semver-guarantees)
+- [Experimental](#experimental-may-change-without-a-major-bump)
+- [Deprecation process](#deprecation-process)
+- [Version alignment](#version-alignment)
+
 ## Stable (semver guarantees)
 
 These areas are intended to remain backward compatible within a major version:
@@ -34,3 +41,8 @@ Experimental modules may gain tests and coverage gates without a stability promi
 - `package.json` `version` is the shipped framework version.
 - Run `npm run version:check` before tagging a release to confirm `CHANGELOG.md` includes a matching `## [x.y.z]` section.
 - Tag releases as `vMAJOR.MINOR.PATCH` to trigger [.github/workflows/release.yml](../.github/workflows/release.yml).
+
+## See also
+
+- [CHANGELOG](../CHANGELOG.md) — release history
+- [Documentation hub](README.md)

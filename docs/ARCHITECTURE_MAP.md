@@ -1,6 +1,32 @@
 # Architecture Map
 
-This document is the quick map for core runtime boundaries and request flow. See also [MODULE_OWNERSHIP.md](./MODULE_OWNERSHIP.md) and [TESTING_STRATEGY.md](./TESTING_STRATEGY.md).
+This document is the quick map for core runtime boundaries and request flow.
+
+## Where to look
+
+| If you need… | Start at… |
+|--------------|-----------|
+| Setup wizard code | [Setup wizard](#setup-wizard-srcsystemssetup) under Utility Domain Map |
+| Permission / middleware flow | [Request Flow](#request-flow) + [Writing Commands](WRITING_COMMANDS.md) |
+| DB schema changes | [Database migrations](#database-migrations-srcdatabasemigrations) + [Contributing migrations](CONTRIBUTING.md#database-migrations) |
+| Message event handlers | [MessageCreate handlers](#messagecreate-handlers-srceventsmessagecreate) |
+| Who owns a feature | [MODULE_OWNERSHIP.md](./MODULE_OWNERSHIP.md) |
+
+## Table of contents
+
+- [Runtime Boundaries](#runtime-boundaries)
+- [Moderation Domain Map](#moderation-domain-map)
+- [Utility Domain Map](#utility-domain-map)
+- [Economy Game Pattern](#economy-game-pattern)
+- [Cooldown Persistence](#cooldown-persistence)
+- [Database migrations](#database-migrations-srcdatabasemigrations)
+- [Roblox Bridge](#roblox-bridge-srcsystemsroblox)
+- [Request Flow](#request-flow)
+- [Bootstrap system registration](#bootstrap-system-registration)
+- [Database and Scaling Notes](#database-and-scaling-notes)
+- [Configuration Flow](#configuration-flow)
+
+See also [MODULE_OWNERSHIP.md](./MODULE_OWNERSHIP.md) and [TESTING_STRATEGY.md](./TESTING_STRATEGY.md).
 
 ## Runtime Boundaries
 
@@ -214,3 +240,9 @@ For a single-guild or small multi-guild deployment, the current facade + store p
 2. `LoadApiConfig()` resolves optional third-party API endpoints and credentials.
 3. `ListMissingRequiredFeatureApiKeys()` logs missing optional feature credentials at startup.
 4. Commands call config guards before external API requests and fail safely for end users.
+
+## See also
+
+- [Writing Commands](WRITING_COMMANDS.md) — middleware and responders
+- [Environment Variables](ENVIRONMENT.md) — startup config
+- [Documentation hub](README.md)

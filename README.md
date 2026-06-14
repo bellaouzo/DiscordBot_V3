@@ -13,9 +13,11 @@ A modular Discord bot framework built with TypeScript and Discord.js v14 — sla
 
 | I want to… | Start here |
 |------------|------------|
-| **Run the bot** | [Quick Start](#quick-start) |
-| **Configure features** | [Configuration at a glance](#configuration-at-a-glance) → [docs/CONFIGURATION.md](docs/CONFIGURATION.md) |
-| **Build or contribute** | [Development](#development) → [docs/WRITING_COMMANDS.md](docs/WRITING_COMMANDS.md) |
+| **Configure my Discord server** | [Server Setup Guide](docs/SERVER_SETUP.md) · [Commands](docs/COMMANDS.md) |
+| **Run or deploy the bot** | [Quick Start](#quick-start) → [Developer Setup](docs/DEVELOPER_SETUP.md) |
+| **Build or contribute code** | [Documentation hub](docs/README.md) → [Writing Commands](docs/WRITING_COMMANDS.md) |
+
+Full index: [docs/README.md](docs/README.md)
 
 ## Quick Start
 
@@ -28,9 +30,9 @@ A modular Discord bot framework built with TypeScript and Discord.js v14 — sla
 2. **Create `.env`** — copy [.env.example](.env.example) and set `DISCORD_TOKEN` and `CLIENT_ID`.
 3. **Run locally** — `npm run dev:watch` runs TypeScript directly with hot reload (no build step). Use `npm run dev:watch:dist` to test the compiled `dist/` output, or `npm start` for production.
 4. **Invite the bot** — use the OAuth2 URL generator in the [Discord Developer Portal](https://discord.com/developers/applications) with `applications.commands` and required intents.
-5. **Configure the server** — run `/setup` in your guild to set staff roles and log channels.
+5. **Configure the server** — run `/setup` in your guild. See [Server Setup Guide](docs/SERVER_SETUP.md).
 
-**Docs:** [Developer Setup](docs/DEVELOPER_SETUP.md) · [Configuration](docs/CONFIGURATION.md) · [Contributing](docs/CONTRIBUTING.md) · [Stability](docs/STABILITY.md)
+**Docs:** [Documentation hub](docs/README.md) · [Developer Setup](docs/DEVELOPER_SETUP.md) · [Server Setup](docs/SERVER_SETUP.md) · [Contributing](docs/CONTRIBUTING.md)
 
 ## What you get
 
@@ -56,7 +58,7 @@ A modular Discord bot framework built with TypeScript and Discord.js v14 — sla
 | `ROBLOX_BRIDGE_API_URL` | No | Roblox bridge base URL |
 | `DATA_DIR` | No | Override SQLite data directory |
 
-Full list: [.env.example](.env.example) · [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
+Full list: [.env.example](.env.example) · [Environment Variables](docs/ENVIRONMENT.md) · [Guild settings](docs/CONFIGURATION.md)
 
 ## Architecture (short)
 
@@ -77,7 +79,7 @@ npm run format        # Prettier
 
 `npm install` registers a **pre-push** git hook (Husky) that runs `npm run lint` before every push.
 
-Before opening a PR: lint, format check, test, and coverage must pass. CI also runs `npm audit --audit-level=high` (fails on high/critical advisories).
+Before opening a PR, see [Quality Checklist](docs/QUALITY_CHECKLIST.md). CI also runs `npm audit --audit-level=high` (fails on high/critical advisories).
 
 - [Writing Commands](docs/WRITING_COMMANDS.md) — `CreateCommand`, `Config` (auto middleware), responders
 - [Contributing](docs/CONTRIBUTING.md) — standards, audit policy, PR process
@@ -111,15 +113,15 @@ Production-style start (pull, build, PM2):
 npm run vps:start
 ```
 
-See [docs/DEVELOPER_SETUP.md](docs/DEVELOPER_SETUP.md) for run modes and environment notes.
+See [docs/DEVELOPER_SETUP.md](docs/DEVELOPER_SETUP.md) for run modes. Environment variables: [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md).
 
 ## Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
-| Commands not appearing | Run `npm run dev` to redeploy; for faster local iteration set `COMMAND_DEPLOY_SCOPE=guild` and `GUILD_ID` |
+| Commands not appearing | Run `npm run dev:watch` to redeploy; for faster local iteration set `COMMAND_DEPLOY_SCOPE=guild` and `GUILD_ID` |
 | Bot not responding | Verify `DISCORD_TOKEN`; check intents in Developer Portal |
-| Permission errors | Before setup: use a role with **Administrator** permission to run `/setup`. After setup: assign admin/mod roles in the wizard |
+| Permission errors (in Discord) | See [Server Setup Guide](docs/SERVER_SETUP.md#troubleshooting) |
 | SQLite errors | Ensure `DATA_DIR` is writable |
 | CI audit failure | Run `npm audit`; upgrade or patch vulnerable dependencies |
 | Coverage gate failure | Run `npm run test:coverage` locally; add behavior tests for uncovered flows |

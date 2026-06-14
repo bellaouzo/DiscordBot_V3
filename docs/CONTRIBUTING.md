@@ -4,14 +4,9 @@ Guidelines for contributing to Discord Bot V3: coding standards, scripts, and wh
 
 ## Before you submit
 
-1. **Lint:** `npm run lint` must pass (TypeScript check + ESLint). A Husky **pre-push** hook runs this automatically on `git push`.
-2. **Examples:** `npm run lint:examples` must pass (`tsc --noEmit -p examples/tsconfig.json` + ESLint).
-3. **Format:** `npm run format:check` must pass (CI enforces Prettier on `src/` and `tests/`).
-4. **Test:** `npm run test` must pass.
-5. **Coverage:** `npm run test:coverage` must pass (global floors: 65% lines / 55% branches).
-6. **Style:** Code should follow project conventions. Run `npm run format` to apply Prettier to `src/` and `tests/`.
+See [QUALITY_CHECKLIST.md](QUALITY_CHECKLIST.md) for the full list of commands and coverage floors.
 
-CI runs `npm audit --audit-level=high`, `npm run lint`, `npm run lint:examples`, `npm run check:commands`, `npm run test`, `npm run test:coverage`, and a [Gitleaks](https://github.com/gitleaks/gitleaks) scan on push and pull requests to `main`/`master`. Workflow: [.github/workflows/ci.yml](../.github/workflows/ci.yml). Tagged `v*` releases run [.github/workflows/release.yml](../.github/workflows/release.yml).
+CI runs `npm audit --audit-level=high`, `npm run lint`, `npm run lint:examples`, `npm run format:check`, `npm run build`, `npm run check:commands`, `npm run test`, `npm run test:coverage`, and a [Gitleaks](https://github.com/gitleaks/gitleaks) scan on push and pull requests to `main`/`master`. Workflow: [.github/workflows/ci.yml](../.github/workflows/ci.yml). Tagged `v*` releases run [.github/workflows/release.yml](../.github/workflows/release.yml).
 
 ### Dependency updates
 
@@ -61,7 +56,8 @@ Do not import from `@commands/CommandFactory` or use relative `../Commands/` pat
 - Ownership and feature responsibility: [MODULE_OWNERSHIP.md](./MODULE_OWNERSHIP.md)
 - Test strategy and coverage expectations: [TESTING_STRATEGY.md](./TESTING_STRATEGY.md)
 - API stability and semver policy: [STABILITY.md](./STABILITY.md)
-- Configuration and secret handling: [CONFIGURATION.md](./CONFIGURATION.md)
+- Configuration and secret handling: [ENVIRONMENT.md](./ENVIRONMENT.md)
+- Guild settings from `/setup`: [CONFIGURATION.md](./CONFIGURATION.md)
 
 ## Database migrations
 
@@ -92,7 +88,13 @@ Add a new migration whenever you **ALTER an existing table** (new column, index 
 
 - Keep commits focused; PRs should be scoped to a clear change or feature.
 - PR description should summarize what changed and why; reference issues if applicable.
+- When adding or renaming user-visible slash commands, update [COMMANDS.md](COMMANDS.md).
 
 ## Questions
 
 Open an issue for bugs, feature ideas, or documentation gaps.
+
+## See also
+
+- [Quality Checklist](QUALITY_CHECKLIST.md) — pre-PR requirements
+- [Documentation hub](README.md)

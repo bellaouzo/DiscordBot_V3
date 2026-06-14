@@ -2,6 +2,16 @@
 
 Guide to command structure, middleware, responders, and utilities in the Discord Bot V3 framework.
 
+> **Read this first:** [Basic Command Structure](#basic-command-structure) → [Config presets](#basic-command-structure) → [Middleware System](#middleware-system) → [Command File Naming](#command-file-naming) → [Reference — Responder System](#reference--responder-system) (lookup when needed)
+
+## Table of contents
+
+- [Basic Command Structure](#basic-command-structure)
+- [Middleware System](#middleware-system)
+- [Command File Naming](#command-file-naming)
+- [Utilities](#utilities)
+- [Reference — Responder System](#reference--responder-system)
+
 ## Basic Command Structure
 
 Use `CreateCommand` with `Config` from `@middleware`; middleware is applied automatically via `AutoMiddleware(options.config)`. Override with `options.middleware` if needed.
@@ -172,7 +182,26 @@ The `MiddlewareContext` object provides access to:
 - `responders` - Response handling utilities
 - `config` - Command-specific configuration
 
-## Responder System
+## Command File Naming
+
+The command loader in `src/Bot/CreateCommandLoader.ts` recursively loads files matching `*Command.ts`. Follow these rules:
+
+| Loadable | Not loadable |
+|----------|--------------|
+| `src/Commands/Fun/*Command.ts` | `*Flow.ts`, `*Shared.ts`, middleware files |
+| `src/Commands/Moderation/*Command.ts` | Re-export-only barrels (`export { X } from "..."`) |
+| `src/Commands/Utility/*Command.ts` | `CommandFactory.ts`, `registry.ts`, `index.ts` |
+| Nested implementations (e.g. `Utility/Help/HelpCommand.ts`) | Files without a local `CreateCommand(` call |
+
+Split complex commands into flow modules under subfolders (e.g. `Appeal/`, `Giveaway/`). Only the top-level or nested `*Command.ts` file that calls `CreateCommand` is registered.
+
+## Utilities
+
+- **`EmbedFactory.CreateSuccess()`** - Create success embeds
+- **`ComponentFactory.CreateButton()`** - Create interactive buttons
+- **`CreateGuildResourceLocator()`** - Easy guild data access
+
+## Reference — Responder System
 
 The responder system provides a comprehensive set of utilities for handling Discord interactions and responses.
 
@@ -321,21 +350,9 @@ await interactionResponder.WithAction({
 });
 ```
 
-## Command File Naming
+## See also
 
-The command loader in `src/Bot/CreateCommandLoader.ts` recursively loads files matching `*Command.ts`. Follow these rules:
-
-| Loadable | Not loadable |
-|----------|--------------|
-| `src/Commands/Fun/*Command.ts` | `*Flow.ts`, `*Shared.ts`, middleware files |
-| `src/Commands/Moderation/*Command.ts` | Re-export-only barrels (`export { X } from "..."`) |
-| `src/Commands/Utility/*Command.ts` | `CommandFactory.ts`, `registry.ts`, `index.ts` |
-| Nested implementations (e.g. `Utility/Help/HelpCommand.ts`) | Files without a local `CreateCommand(` call |
-
-Split complex commands into flow modules under subfolders (e.g. `Appeal/`, `Giveaway/`). Only the top-level or nested `*Command.ts` file that calls `CreateCommand` is registered.
-
-## Utilities
-
-- **`EmbedFactory.CreateSuccess()`** - Create success embeds
-- **`ComponentFactory.CreateButton()`** - Create interactive buttons
-- **`CreateGuildResourceLocator()`** - Easy guild data access
+- [Examples](../examples/) — copy-paste command templates
+- [Architecture Map](ARCHITECTURE_MAP.md) — request flow and domain boundaries
+- [Quality Checklist](QUALITY_CHECKLIST.md) — pre-PR requirements
+- [Documentation hub](README.md)

@@ -1,37 +1,37 @@
-# 📚 Code Examples
+# Code Examples
 
-This folder contains practical examples of how to use the Discord Bot V3 framework.
+Practical examples for the Discord Bot V3 framework. Full documentation: [docs/README.md](../docs/README.md).
 
-## 🚀 Quick Start
+## Quick Start
 
 **New to the framework?** Start here:
 
-1. **[Starter Template](basic/starter-template.ts)** - 🟢 **Beginner** - Complete working command you can copy and run immediately
+1. **[Starter Template](basic/starter-template.ts)** — Beginner — complete working command you can copy and run
 2. Copy it to `src/Commands/Utility/your-command.ts`
 3. Modify the name, description, and logic
-4. Run `npm run dev:watch` and test it!
+4. Run `npm run dev:watch` and test it
 
-## 📁 Available Examples
+## Available Examples
 
-### 🟢 Beginner Level
+### Beginner
 
-- **[Starter Template](basic/starter-template.ts)** - Complete working command template
-- **[Ping Command](basic/ping-command.ts)** - Simple command with action responder
-- **[Hello Command](basic/hello-command.ts)** - Basic reply command
-- **[Ready Event](events/ready-event.ts)** - Bot startup event
+- **[Starter Template](basic/starter-template.ts)** — Complete working command template
+- **[Ping Command](basic/ping-command.ts)** — Simple command with action responder
+- **[Hello Command](basic/hello-command.ts)** — Basic reply command
+- **[Ready Event](events/ready-event.ts)** — Bot startup event
 
-### 🟡 Intermediate Level
+### Intermediate
 
-- **[Kick Command](advanced/kick-command.ts)** - Moderation command with options and permissions
-- **[Embed Factory](utilities/embed-examples.ts)** - Creating rich embeds
-- **[Component Factory](utilities/component-examples.ts)** - Building interactive components
-- **[Guild Resource Locator](utilities/guild-resource-examples.ts)** - Fetching guild channels, roles, and members
+- **[Kick Command](advanced/kick-command.ts)** — Moderation command with options and permissions
+- **[Embed Factory](utilities/embed-examples.ts)** — Creating rich embeds
+- **[Component Factory](utilities/component-examples.ts)** — Building interactive components
+- **[Guild Resource Locator](utilities/guild-resource-examples.ts)** — Fetching guild channels, roles, and members
 
-### 🔴 Advanced Level
+### Advanced
 
-- **[Help Command](advanced/help-command.ts)** - Interactive command with pagination and buttons
+- **[Help Command](advanced/help-command.ts)** — Interactive command with pagination and buttons
 
-## 🎯 What Each Example Teaches
+## What Each Example Teaches
 
 | Example | Teaches | Key Features |
 |---------|---------|--------------|
@@ -45,62 +45,41 @@ This folder contains practical examples of how to use the Discord Bot V3 framewo
 | **Component Factory** | Interactive UI | Buttons, action rows, pagination controls |
 | **Guild Resources** | Server data access | Channel/role/member fetching, caching |
 
-## 📝 How to Use Examples
+## How to Use Examples
 
-### Copy-Paste Instructions
-
-1. **Choose an example** that matches what you want to build
-2. **Copy the entire file** to your `src/Commands/` directory
-3. **Update the command name** and description
-4. **Modify the logic** to fit your needs
-5. **Run `npm run dev:watch`** to test your command
-
-### Example Workflow
+1. Choose an example that matches what you want to build
+2. Copy the entire file to your `src/Commands/` directory
+3. Update the command name and description
+4. Modify the logic to fit your needs
+5. Run `npm run dev:watch` to test
 
 ```bash
-# 1. Copy starter template
+# macOS / Linux
 cp examples/basic/starter-template.ts src/Commands/Utility/my-command.ts
 
-# 2. Edit the file
-# - Change name from "starter-template" to "my-command"
-# - Update description
-# - Modify the execute function
-
-# 3. Test it
-npm run dev:watch
+# Windows (Command Prompt)
+copy examples\basic\starter-template.ts src\Commands\Utility\my-command.ts
 ```
 
-## 🔧 Troubleshooting Examples
+## Troubleshooting
 
 **Import errors:**
-- Make sure you're copying to the correct directory structure
-- Inside `src/Commands/`, use path aliases (`@commands`, `@middleware`, `@utilities`) instead of relative `../../src/` paths
+- Copy to the correct directory under `src/Commands/`
+- Inside `src/Commands/`, use path aliases (`@commands`, `@middleware`, `@utilities`)
 
 **Command not working:**
-- Verify the command name is unique
+- Verify the command name is unique (`npm run check:commands`)
 - Check that `config` matches your intent (`Config.mod()`, `Config.utility()`, etc.)
-- Look at console logs for error messages
+- Check console logs for errors
 
 **TypeScript errors:**
-- Ensure you're using the correct API methods
-- Check the main README for API reference
-- Compare with working examples
+- Compare with working examples and [Writing Commands](../docs/WRITING_COMMANDS.md)
 
-## 💡 Tips for Learning
-
-1. **Start with the Starter Template** - it has everything you need
-2. **Read the comments** - each example is heavily documented
-3. **Try uncommenting code** - many examples have commented sections to explore
-4. **Modify gradually** - change one thing at a time to understand what breaks
-5. **Check the main README** - it has the complete API reference
-
-## 🎨 Customizing Examples
-
-All examples follow the same patterns:
+## Customizing Examples
 
 ```typescript
-import { CommandContext, CreateCommand } from "../../src/Commands";
-import { Config } from "../../src/Commands/Middleware/CommandConfig";
+import { CommandContext, CreateCommand } from "@commands";
+import { Config } from "@middleware";
 
 async function ExecuteMyCommand(interaction, context) {
   const { interactionResponder } = context.responders;
@@ -116,19 +95,11 @@ export const MyCommand = CreateCommand({
 });
 ```
 
-Inside `src/Commands/`, prefer path aliases (`@commands`, `@middleware`) instead of relative `../../src/` imports.
+`config` drives middleware automatically. See [Writing Commands](../docs/WRITING_COMMANDS.md) for middleware and responders.
 
-`config` drives middleware automatically (logging, guild-only, permissions, cooldowns, error handling). You only pass an explicit `middleware` object when you need a custom chain.
+## Next Steps
 
-## 📚 Next Steps
-
-After trying the examples:
-
-1. **Read the main README** for complete documentation
-2. **Check the API Reference** for all available methods
-3. **Explore the source code** in `src/` to understand the framework
-4. **Join the community** for help and sharing your creations!
-
----
-
-**Happy coding!** 🚀
+- [Writing Commands](../docs/WRITING_COMMANDS.md) — full command authoring guide
+- [Developer Setup](../docs/DEVELOPER_SETUP.md) — install and run locally
+- [Quality Checklist](../docs/QUALITY_CHECKLIST.md) — before opening a PR
+- [Project README](../README.md) — overview and architecture

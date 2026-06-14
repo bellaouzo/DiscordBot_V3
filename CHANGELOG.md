@@ -46,6 +46,7 @@ All notable changes to this project are documented in this file.
 
 ### Documentation
 
+- Documentation UX overhaul: [docs/README.md](docs/README.md) hub, [SERVER_SETUP.md](docs/SERVER_SETUP.md) admin guide, [ENVIRONMENT.md](docs/ENVIRONMENT.md) split from guild config, [QUALITY_CHECKLIST.md](docs/QUALITY_CHECKLIST.md), [COMMANDS.md](docs/COMMANDS.md) reference, TOCs in long docs.
 - Updated architecture, configuration, contributing, developer setup, and writing commands docs for migrations, setup wizard, git hooks, and permission bootstrap behavior.
 - Command file naming rules in `docs/WRITING_COMMANDS.md`.
 - SQLite scaling notes in `docs/ARCHITECTURE_MAP.md`.

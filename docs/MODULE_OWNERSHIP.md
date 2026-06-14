@@ -42,4 +42,9 @@ Ownership in this repository is feature-based. If a change spans multiple areas,
 - Keep persistence changes aligned with the owning database facade and its related tests.
 - Any new external API feature must update both:
   - `src/Config/ApiConfig.ts`
-  - `docs/CONFIGURATION.md` and `.env.example`
+  - `docs/ENVIRONMENT.md` and `.env.example`
+
+## See also
+
+- [Documentation hub](README.md)
+- [Environment Variables](ENVIRONMENT.md)

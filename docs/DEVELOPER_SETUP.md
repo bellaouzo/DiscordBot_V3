@@ -2,9 +2,12 @@
 
 Step-by-step guide to get the Discord Bot V3 codebase running locally for development.
 
+For Discord server configuration inside Discord, see [Server Setup Guide](SERVER_SETUP.md).  
+For `.env` variables, see [Environment Variables](ENVIRONMENT.md).
+
 ## Prerequisites
 
-- **Node.js** 20 or higher
+- **Node.js** 20 or higher (matches CI)
 - **npm** (comes with Node.js)
 
 Check versions:
@@ -27,7 +30,11 @@ npm install
 Copy the example environment file and set your values:
 
 ```bash
+# macOS / Linux
 cp .env.example .env
+
+# Windows (Command Prompt)
+copy .env.example .env
 ```
 
 Edit `.env` and set the **required** variables:
@@ -39,7 +46,7 @@ Optional for faster local command deploy:
 
 - `COMMAND_DEPLOY_SCOPE=guild` and `GUILD_ID` – deploy slash commands instantly to one test server (enable Developer Mode in Discord, then right-click the server and copy ID)
 
-Optional variables and defaults are documented in [CONFIGURATION.md](CONFIGURATION.md).
+All variables and defaults: [ENVIRONMENT.md](ENVIRONMENT.md).
 
 ## 3. Run the bot
 
@@ -75,27 +82,11 @@ If hooks are missing after clone, run:
 npm run prepare
 ```
 
-## 5. Run lint and tests
+## 5. Quality checks
 
-Before committing, run:
+Before opening a PR, run the full checklist in [QUALITY_CHECKLIST.md](QUALITY_CHECKLIST.md).
 
-```bash
-npm run lint
-npm run lint:examples
-npm run format:check
-npm run test
-npm run test:coverage
-npm run check:commands
-```
-
-- **Lint:** Runs `tsc --noEmit` and ESLint on `src/` and `tests/`.
-- **Examples lint:** TypeScript + ESLint on `examples/` reference files.
-- **Format check:** Verifies Prettier formatting without writing files.
-- **Test:** Runs the Vitest test suite.
-- **Coverage:** Runs tests with coverage gates (global floors: 65% lines / 55% branches).
-- **Command check:** Verifies no duplicate top-level slash command names.
-
-CI runs these on push/PR to `main`/`master`; see [.github/workflows/ci.yml](../.github/workflows/ci.yml).
+CI runs the same gates on push/PR; see [.github/workflows/ci.yml](../.github/workflows/ci.yml).
 
 ## Run modes
 
@@ -113,7 +104,8 @@ CI runs these on push/PR to `main`/`master`; see [.github/workflows/ci.yml](../.
 
 ## Next steps
 
-- [Configuration reference](CONFIGURATION.md) – All env vars and defaults
-- [Writing commands](WRITING_COMMANDS.md) – Command structure, middleware, responders
+- [Environment Variables](ENVIRONMENT.md) – All env vars and defaults
+- [Writing Commands](WRITING_COMMANDS.md) – Command structure, middleware, responders
 - [Contributing](CONTRIBUTING.md) – Coding standards and PR process
+- [Documentation hub](README.md) – Full doc index
 - [README](../README.md) – Architecture, examples, and quick start

@@ -2,6 +2,18 @@
 
 This repository favors fast unit and focused integration-style tests around command and event behavior.
 
+## Table of contents
+
+- [What to Unit Test](#what-to-unit-test)
+- [What to Test as Integration-Style](#what-to-test-as-integration-style)
+- [Recommended Test Layout](#recommended-test-layout)
+- [Reliability Expectations](#reliability-expectations)
+- [Infrastructure Tests](#infrastructure-tests)
+- [Coverage Expectations](#coverage-expectations)
+- [Adding New Features Checklist](#adding-new-features-checklist)
+
+Pre-PR commands and CI gates: [QUALITY_CHECKLIST.md](QUALITY_CHECKLIST.md).
+
 ## What to Unit Test
 
 - Pure helpers and formatters (`src/Utilities`, command formatter helpers).
@@ -66,9 +78,10 @@ Reference files under `examples/` are typechecked and linted via `npm run lint:e
 1. Add/extend tests in at least one behavior path and one failure path.
 2. If persistence changes, add or update database tests with meaningful assertions.
 3. If interaction flow is multi-step, include a lifecycle test that executes registered callbacks.
-4. Run:
-   - `npm run lint`
-   - `npm run lint:examples`
-   - `npm test`
-   - `npm run test:coverage`
-   - `npm run check:commands`
+4. Run the commands in [QUALITY_CHECKLIST.md](QUALITY_CHECKLIST.md).
+
+## See also
+
+- [Quality Checklist](QUALITY_CHECKLIST.md) — pre-PR requirements
+- [Contributing](CONTRIBUTING.md) — coding standards
+- [Documentation hub](README.md)
