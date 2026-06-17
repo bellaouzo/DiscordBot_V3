@@ -1,9 +1,9 @@
 import { readdirSync } from "fs";
 import { join } from "path";
-import { pathToFileURL } from "url";
 import type { EventDefinition } from "@events";
 import type { Logger } from "@shared/Logger";
 import type { LoadError } from "./CreateCommandLoader";
+import { LoadModule, ResolveModulePath } from "./LoadModule";
 
 export type EventLoader = () => Promise<EventDefinition[]>;
 
@@ -40,8 +40,8 @@ export function CreateEventLoader(logger: Logger): EventLoader {
 
     for (const file of eventFiles) {
       try {
-        const modulePath = join(eventsPath, file as string);
-        const module = await import(pathToFileURL(modulePath).href);
+        const modulePath = ResolveModulePath(eventsPath, file as string);
+        const module = await LoadModule(modulePath);
 
         const eventExports = Object.values(module).filter(
           (exp) =>

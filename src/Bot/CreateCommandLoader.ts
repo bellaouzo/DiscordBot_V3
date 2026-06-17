@@ -1,9 +1,9 @@
 import type { SlashCommandBuilder } from "discord.js";
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
-import { pathToFileURL } from "url";
 import type { CommandDefinition } from "@commands";
 import type { Logger } from "@shared/Logger";
+import { LoadModule, ResolveModulePath } from "./LoadModule";
 
 export interface LoadError {
   readonly file: string;
@@ -37,7 +37,7 @@ function isCommandFile(file: string, commandsPath: string): boolean {
     return false;
   }
 
-  const filePath = join(commandsPath, file);
+  const filePath = ResolveModulePath(commandsPath, file);
   if (isReExportOnlyBarrel(filePath)) {
     return false;
   }
@@ -90,10 +90,10 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
     );
 
     for (const file of files) {
-      const filePath = join(commandsPath, file as string);
+      const filePath = ResolveModulePath(commandsPath, file as string);
       const fileLabel = String(file);
       try {
-        const module = await import(pathToFileURL(filePath).href);
+        const module = await LoadModule(filePath);
 
         const commandExports = Object.values(module).filter(
           (exp) =>
