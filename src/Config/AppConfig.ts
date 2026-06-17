@@ -30,12 +30,21 @@ export interface ApiKeysConfig {
   readonly openWeatherMapApiKey: string | null;
 }
 
-/** Root app config: discord, deployment, logging, apiKeys. */
+/** Web Server configuration for Dashboard & OAuth. */
+export interface WebConfig {
+  readonly port: number;
+  readonly sessionSecret: string;
+  readonly clientSecret: string;
+  readonly oauthRedirectUri: string;
+}
+
+/** Root app config: discord, deployment, logging, apiKeys, web. */
 export interface AppConfig {
   readonly discord: DiscordConfig;
   readonly deployment: DeploymentConfig;
   readonly logging: LoggingConfig;
   readonly apiKeys: ApiKeysConfig;
+  readonly web: WebConfig;
 }
 
 const ENVIRONMENT_PATHS = [
@@ -139,6 +148,12 @@ export function LoadAppConfig(): AppConfig {
     },
     apiKeys: {
       openWeatherMapApiKey: process.env.OPENWEATHER_API_KEY || null,
+    },
+    web: {
+      port: parseInt(process.env.WEB_PORT || "3000", 10),
+      sessionSecret: RequireEnv("SESSION_SECRET"),
+      clientSecret: RequireEnv("CLIENT_SECRET"),
+      oauthRedirectUri: RequireEnv("OAUTH_REDIRECT_URI"),
     },
   };
 }

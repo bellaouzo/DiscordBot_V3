@@ -56,9 +56,7 @@ describe("Setup formatters", () => {
     expect(FormatCategory("missing", guild, "Tickets")).toBe(
       "Category ID: missing",
     );
-    expect(FormatCategory("cat-1", guild, "Tickets")).toBe(
-      "Support (cat-1)",
-    );
+    expect(FormatCategory("cat-1", guild, "Tickets")).toBe("Support (cat-1)");
 
     expect(FormatChannel(null, guild, "Logs")).toBe("Auto-manage **Logs**");
     expect(FormatChannel("missing", guild, "Logs")).toBe("Channel ID: missing");

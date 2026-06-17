@@ -31,6 +31,7 @@ import { GiveawayScheduler } from "@systems/Giveaway/GiveawayScheduler";
 import { EventScheduler } from "@systems/Event/EventScheduler";
 import { LotteryScheduler } from "@systems/Economy/LotteryScheduler";
 import { RegisterAllSystems } from "./Bootstrap/SystemRegistry";
+import { WebServer } from "./Web/WebServer";
 import type { Client } from "discord.js";
 
 export interface AppResources {
@@ -41,6 +42,7 @@ export interface AppResources {
   giveawayScheduler: GiveawayScheduler;
   eventScheduler: EventScheduler;
   lotteryScheduler: LotteryScheduler;
+  webServer: WebServer;
 }
 
 export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
@@ -129,6 +131,12 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     databases.serverDb,
     logger.Child({ phase: "lottery" }),
   );
+  const webServer = new WebServer(
+    bot.client,
+    config,
+    databases,
+    logger.Child({ phase: "web" }),
+  );
 
   const loadedCommands = await loadCommands();
   ReplaceCommands(loadedCommands.definitions);
@@ -166,6 +174,7 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
   giveawayScheduler.Start();
   eventScheduler.Start();
   lotteryScheduler.Start();
+  webServer.Start();
 
   return {
     client: bot.client,
@@ -175,6 +184,7 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     giveawayScheduler,
     eventScheduler,
     lotteryScheduler,
+    webServer,
   };
 }
 
@@ -198,6 +208,7 @@ export function SetupGracefulShutdown(
       resources.giveawayScheduler.Stop();
       resources.eventScheduler.Stop();
       resources.lotteryScheduler.Stop();
+      resources.webServer.Stop();
       resources.databases.userDb.Close();
       resources.databases.moderationDb.Close();
       resources.databases.serverDb.Close();

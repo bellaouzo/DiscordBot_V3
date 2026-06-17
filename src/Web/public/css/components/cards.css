@@ -1,0 +1,138 @@
+/* ============================================================
+   components/cards.css — Data cards, small cards, list
+   filters, filter tabs, pagination, search bar,
+   close info banner.
+   ============================================================ */
+
+/* ── Data Container ───────────────────────────────────────── */
+.data-container { min-height: 200px; }
+
+.data-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Data Card ────────────────────────────────────────────── */
+.data-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: border-color 0.2s ease;
+}
+
+.data-card:hover { border-color: rgba(255, 255, 255, 0.15); }
+
+.data-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.data-title { font-size: 1.1rem; font-weight: 600; }
+.data-meta  { font-size: 0.85rem; color: var(--text-secondary); }
+
+.data-desc {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+/* ── Small Card ───────────────────────────────────────────── */
+.sm-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 0.75rem;
+  border: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.sm-card.clickable:hover { border-color: var(--accent-color); }
+
+/* ── List Filters + Filter Tabs ───────────────────────────── */
+.list-filters {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-tab {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.filter-tab.active {
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-hover);
+  box-shadow: 0 4px 12px rgba(88, 101, 242, 0.2);
+}
+
+/* ── Pagination ───────────────────────────────────────────── */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--glass-border);
+}
+
+.pagination-info {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* ── Search Bar ───────────────────────────────────────────── */
+.search-bar-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.search-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+/* ── Close Info Banner (ticket panel) ─────────────────────── */
+.close-info-banner {
+  background: rgba(237, 66, 69, 0.08);
+  border: 1px solid rgba(237, 66, 69, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.close-info-banner strong { color: #ED4245; }
+.close-info-banner em     { font-style: italic; color: var(--text-secondary); }

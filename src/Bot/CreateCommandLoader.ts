@@ -1,6 +1,7 @@
 import type { SlashCommandBuilder } from "discord.js";
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
+import { pathToFileURL } from "url";
 import type { CommandDefinition } from "@commands";
 import type { Logger } from "@shared/Logger";
 
@@ -92,7 +93,7 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
       const filePath = join(commandsPath, file as string);
       const fileLabel = String(file);
       try {
-        const module = await import(filePath);
+        const module = await import(pathToFileURL(filePath).href);
 
         const commandExports = Object.values(module).filter(
           (exp) =>

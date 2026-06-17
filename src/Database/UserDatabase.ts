@@ -59,6 +59,10 @@ export class UserDatabase {
     this.lotteries = new LotteryStore(this.db);
   }
 
+  public get Db(): Database.Database {
+    return this.db;
+  }
+
   private InitializeDatabase(): Database.Database {
     const dataDir = ResolveDataDir();
     const dbPath = join(dataDir, "users.db");

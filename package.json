@@ -36,15 +36,24 @@
   "license": "MIT",
   "dependencies": {
     "better-sqlite3": "^12.5.0",
+    "better-sqlite3-session-store": "^0.1.0",
     "discord.js": "^14.25.1",
     "dotenv": "^16.3.1",
-    "module-alias": "^2.2.3"
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "module-alias": "^2.2.3",
+    "passport": "^0.7.0",
+    "passport-discord": "^0.1.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^5.0.6",
+    "@types/express-session": "^1.19.0",
     "@types/module-alias": "^2.0.4",
     "@types/node": "^20.10.0",
+    "@types/passport": "^1.0.17",
+    "@types/passport-discord": "^0.1.15",
     "@vitest/coverage-v8": "^4.0.18",
     "baseline-browser-mapping": "^2.10.35",
     "concurrently": "^10.0.3",

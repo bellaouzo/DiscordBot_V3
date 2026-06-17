@@ -16,4 +16,16 @@ export const TicketMigrations: readonly Migration[] = [
       `);
     },
   },
+  {
+    version: 2,
+    name: "add_close_reason_to_tickets",
+    up(db) {
+      if (HasTableColumn(db, "tickets", "close_reason")) {
+        return;
+      }
+      db.exec(`
+        ALTER TABLE tickets ADD COLUMN close_reason TEXT;
+      `);
+    },
+  },
 ];

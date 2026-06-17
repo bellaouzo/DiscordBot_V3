@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { ButtonStyle } from "discord.js";
-import { BuildHubPayload, BuildHubStatsEmbed } from "@commands/Utility/Hub/HubComponents";
+import {
+  BuildHubPayload,
+  BuildHubStatsEmbed,
+} from "@commands/Utility/Hub/HubComponents";
 import type { HubContext } from "@commands/Utility/Hub/HubComponents";
 import { createMockContext } from "../../helpers";
 function CreateHubContext(overrides: Partial<HubContext> = {}): HubContext {

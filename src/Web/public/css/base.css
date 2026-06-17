@@ -1,0 +1,111 @@
+/* ============================================================
+   base.css — Design tokens, resets, typography, animations
+   ============================================================ */
+
+:root {
+  --bg-primary: #0A0A0B;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A1A1AA;
+  --accent-color: #5865F2; /* Discord Blurple */
+  --accent-hover: #4752C4;
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ── Background Effects ───────────────────────────────────── */
+.background-effects {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.4;
+  animation: float 10s ease-in-out infinite alternate;
+}
+
+.orb-1 {
+  width: 500px;
+  height: 500px;
+  background: rgba(88, 101, 242, 0.3);
+  top: -10%;
+  left: -10%;
+}
+
+.orb-2 {
+  width: 400px;
+  height: 400px;
+  background: rgba(235, 69, 158, 0.2);
+  bottom: 10%;
+  right: -5%;
+  animation-delay: -5s;
+}
+
+/* ── Keyframes ────────────────────────────────────────────── */
+@keyframes float {
+  0%   { transform: translate(0, 0); }
+  100% { transform: translate(30px, 50px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-4px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Utility ──────────────────────────────────────────────── */
+.mt-2   { margin-top: 0.5rem; }
+.mb-1   { margin-bottom: 0.25rem; }
+.hidden { display: none !important; }
+.error-text { color: #ED4245; font-weight: 600; }
+
+
+/* ── Loader ───────────────────────────────────────────────── */
+.loader {
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid var(--accent-color);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+.loader-sm { width: 16px; height: 16px; border-width: 2px; }

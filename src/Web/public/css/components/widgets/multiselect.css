@@ -1,0 +1,157 @@
+/* ============================================================
+   components/widgets/multiselect.css — CustomMultiSelect widget:
+   trigger, tags/pills, dropdown, search input, checkbox items.
+   ============================================================ */
+
+.custom-multiselect { position: relative; width: 100%; }
+
+/* ── Trigger (the visible "button" bar) ───────────────────── */
+.multiselect-trigger {
+  min-height: 42px;
+  padding: 0.5rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.2s ease;
+}
+
+.multiselect-trigger:hover { border-color: rgba(255, 255, 255, 0.15); }
+
+/* ── Tag Container ────────────────────────────────────────── */
+.multiselect-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.multiselect-tags .placeholder { color: var(--text-secondary); font-size: 0.9rem; }
+
+/* ── Selected Pills ───────────────────────────────────────── */
+.multiselect-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--accent-color);
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  line-height: 1.2;
+  box-shadow: 0 2px 6px rgba(88, 101, 242, 0.25);
+  animation: scaleIn 0.15s ease-out;
+}
+
+.multiselect-pill .remove-btn {
+  cursor: pointer;
+  opacity: 0.75;
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 1;
+  transition: opacity 0.15s;
+}
+
+.multiselect-pill .remove-btn:hover { opacity: 1; }
+
+/* ── Caret Arrow ──────────────────────────────────────────── */
+.multiselect-arrow {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-left: 0.75rem;
+  pointer-events: none;
+}
+
+/* ── Dropdown Panel ───────────────────────────────────────── */
+.multiselect-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #141416;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  z-index: 200;
+  padding: 0.75rem;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 280px;
+  backdrop-filter: blur(15px);
+  animation: slideDown 0.2s ease-out;
+}
+
+.multiselect-dropdown.select-hide { display: none; }
+
+/* ── Search Input ─────────────────────────────────────────── */
+.multiselect-search {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s ease;
+}
+
+.multiselect-search:focus { border-color: var(--accent-color); }
+
+/* ── Options List ─────────────────────────────────────────── */
+.multiselect-options {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex-grow: 1;
+  padding-right: 0.25rem;
+}
+
+.multiselect-options::-webkit-scrollbar       { width: 6px; }
+.multiselect-options::-webkit-scrollbar-track { background: transparent; }
+.multiselect-options::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 3px;
+}
+.multiselect-options::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ── Checkbox Items ───────────────────────────────────────── */
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+.checkbox-item:hover { background: rgba(255, 255, 255, 0.03); }
+
+.checkbox-item input[type="checkbox"] {
+  accent-color: var(--accent-color);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkbox-item label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  width: 100%;
+}

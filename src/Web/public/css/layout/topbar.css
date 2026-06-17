@@ -1,0 +1,292 @@
+/* ============================================================
+   layout/topbar.css — Dashboard sticky top context bar:
+   server picker chip+dropdown, admin mode button, topbar nav,
+   user avatar chip. All styles scoped to the dashboard topbar.
+   ============================================================ */
+
+/* ── Dashboard Shell ──────────────────────────────────────── */
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 80px);
+}
+
+/* ── Top Context Bar ──────────────────────────────────────── */
+.dashboard-topbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 2rem;
+  background: rgba(10, 10, 11, 0.85);
+  border-bottom: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 80px;
+  z-index: 90;
+  flex-wrap: wrap;
+}
+
+/* ── Server Picker Wrapper ────────────────────────────────── */
+/* position:relative so the dropdown anchors to this element */
+.server-picker-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* ── Server Picker Chip ───────────────────────────────────── */
+.server-picker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.85rem 0.45rem 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  user-select: none;
+  min-width: 170px;
+  width: 100%;
+}
+
+.server-picker-chip:hover,
+.server-picker-chip.open {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.chip-server-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: none;
+}
+
+.chip-server-avatar.visible { display: block; }
+
+.chip-placeholder-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.server-picker-chip .chip-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.server-picker-chip .chip-caret {
+  color: var(--text-secondary);
+  font-size: 0.6rem;
+  margin-left: 0.1rem;
+  transition: transform 0.2s ease;
+}
+
+.server-picker-chip.open .chip-caret { transform: rotate(180deg); }
+
+/* ── Server Dropdown ──────────────────────────────────────── */
+.server-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 220px;
+  background: rgba(14, 14, 17, 0.97);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px);
+  z-index: 200;
+  padding: 0.5rem;
+  display: none;
+  animation: slideDown 0.18s ease-out;
+}
+
+.server-dropdown.open { display: block; }
+
+.server-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.server-dropdown-item:hover { background: rgba(255, 255, 255, 0.06); }
+
+.server-dropdown-item.active {
+  background: rgba(88, 101, 242, 0.18);
+  color: var(--accent-color);
+}
+
+.server-dropdown-item .server-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(88, 101, 242, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.server-dropdown-item .server-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.server-dropdown-empty {
+  padding: 0.75rem 0.9rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* ── Topbar Navigation ────────────────────────────────────── */
+.topbar-nav {
+  display: flex;
+  gap: 0.35rem;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  text-align: left;
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.nav-btn.active {
+  background: rgba(88, 101, 242, 0.15);
+  color: var(--accent-color);
+}
+
+/* ── Admin Mode Button ────────────────────────────────────── */
+.admin-mode-btn {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+
+.admin-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+}
+
+.admin-mode-btn.active {
+  background: #ED4245;
+  color: #fff;
+  border-color: #ED4245;
+  box-shadow: 0 4px 14px rgba(237, 66, 69, 0.35);
+  font-weight: 700;
+}
+
+.admin-mode-btn.active:hover {
+  background: #c9363a;
+  border-color: #c9363a;
+}
+
+.admin-mode-btn .admin-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.admin-mode-btn.active .admin-dot {
+  opacity: 1;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+.admin-mode-btn .admin-lock {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.admin-mode-btn.active .admin-lock { display: none; }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.45; transform: scale(0.65); }
+}
+
+/* ── Topbar User Chip ─────────────────────────────────────── */
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.topbar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-color);
+  object-fit: cover;
+}
+
+.topbar-username { font-size: 0.9rem; font-weight: 600; }
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .dashboard-topbar { padding: 0.6rem 1rem; top: 0; }
+  .topbar-username  { display: none; }
+}

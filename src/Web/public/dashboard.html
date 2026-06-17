@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - DiscordBot V3</title>
+  <link rel="stylesheet" href="/css/index.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="background-effects">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+  </div>
+
+  <nav class="navbar">
+    <div class="logo">DiscordBot V3</div>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/auth/logout" style="color: #ED4245;">Logout</a>
+    </div>
+  </nav>
+
+  <div class="dashboard-layout">
+    <!-- Top Context Bar: server picker + page nav + admin mode -->
+    <div class="dashboard-topbar" id="dashboard-topbar">
+      <!-- Server Picker Chip + Dropdown (wrapper provides positioning context) -->
+      <div class="server-picker-wrapper">
+        <div class="server-picker-chip" id="server-picker-chip" title="Select a server">
+          <!-- Avatar shown after a guild is selected -->
+          <img src="" alt="" id="chip-server-avatar" class="chip-server-avatar" />
+          <!-- Placeholder icon shown before any guild is selected -->
+          <span class="chip-placeholder-icon" id="chip-placeholder-icon">☰</span>
+          <span class="chip-name" id="chip-server-name">Choose a server…</span>
+          <span class="chip-caret">▼</span>
+        </div>
+
+        <!-- Server Dropdown (anchored to wrapper above) -->
+        <div class="server-dropdown" id="server-dropdown">
+          <!-- Items injected by JS -->
+        </div>
+      </div>
+
+      <!-- Page Navigation -->
+      <nav class="topbar-nav" id="topbar-nav">
+        <button class="nav-btn active" data-view="overview">Overview</button>
+        <button class="nav-btn" data-view="tickets" id="nav-tickets">My Tickets</button>
+        <button class="nav-btn" data-view="infractions" id="nav-infractions">Infractions</button>
+        <button class="nav-btn" data-view="lookup" id="nav-lookup" style="display:none;">User Lookup</button>
+        <button class="nav-btn" data-view="settings" id="nav-settings" style="display:none;">Server Settings</button>
+      </nav>
+
+      <!-- Admin Mode Button -->
+      <button class="admin-mode-btn" id="admin-mode-btn" title="Enter Admin Mode">
+        <span class="admin-lock">🔒</span>
+        <span class="admin-dot"></span>
+        <span id="admin-mode-label">Admin Mode</span>
+      </button>
+
+      <!-- User Avatar / Name -->
+      <div class="topbar-user">
+        <img src="" alt="Avatar" id="topbar-avatar" class="topbar-avatar" />
+        <span id="topbar-username" class="topbar-username">Loading…</span>
+      </div>
+    </div>
+
+
+    <!-- Main Content Area -->
+    <main class="dashboard-content">
+      <!-- Overview View -->
+      <section id="view-overview" class="view-section active">
+        <div class="dashboard-container">
+          <div class="avatar-wrapper">
+            <img src="" alt="Discord Avatar" id="overview-avatar" class="avatar" />
+          </div>
+          <h2 id="overview-name">Welcome!</h2>
+          <p>Select a server from the top bar to view your tickets and infractions.</p>
+        </div>
+      </section>
+
+      <!-- Tickets View -->
+      <section id="view-tickets" class="view-section">
+        <div class="content-header">
+          <h2 id="tickets-title">My Tickets</h2>
+          <p id="tickets-desc">View your active and closed tickets for this server.</p>
+        </div>
+        <div class="data-container" id="tickets-container">
+          <p>Please select a server first.</p>
+        </div>
+      </section>
+
+      <!-- Infractions View -->
+      <section id="view-infractions" class="view-section">
+        <div class="content-header">
+          <h2 id="infractions-title">My Infractions</h2>
+          <p id="infractions-desc">View your kicks, bans, and mutes for this server.</p>
+        </div>
+        <div class="data-container" id="infractions-container">
+          <p>Please select a server first.</p>
+        </div>
+      </section>
+
+      <!-- User Lookup View -->
+      <section id="view-lookup" class="view-section">
+        <div class="content-header">
+          <h2>User Lookup</h2>
+          <p>Search and investigate a member's moderation and ticket history.</p>
+        </div>
+
+        <div class="search-bar-container">
+          <input type="text" id="user-search-input" placeholder="Search by Username or User ID…" class="search-input" />
+          <button id="user-search-btn" class="btn btn-primary">Search</button>
+        </div>
+
+        <!-- Member list -->
+        <div class="data-container" id="lookup-list-container">
+          <p class="text-muted">Enter a search term or click Search to load recent members.</p>
+        </div>
+
+        <!-- Detailed Profile (hidden by default) -->
+        <div class="user-profile-panel" id="lookup-profile-panel" style="display: none;">
+          <div style="margin-bottom: 1.5rem;">
+            <button class="btn btn-secondary btn-sm" onclick="closeUserProfile()">&larr; Back to List</button>
+          </div>
+
+          <div class="profile-header-container">
+            <div class="profile-header">
+              <img src="" id="profile-avatar" class="profile-avatar-lg" />
+              <div class="profile-info">
+                <h3 id="profile-username">Loading...</h3>
+                <span class="user-id-badge" id="profile-id"></span>
+              </div>
+            </div>
+
+            <div class="profile-meta-strip" id="profile-meta-strip">
+              <!-- JS will inject nickname, joinedAt, createdAt -->
+            </div>
+
+            <div class="profile-roles-container" id="profile-roles-container">
+              <!-- JS will inject roles -->
+            </div>
+          </div>
+
+          <div class="profile-tabs">
+            <button class="profile-tab-btn active" onclick="switchProfileTab('warnings')">Warnings</button>
+            <button class="profile-tab-btn" onclick="switchProfileTab('infractions')">Infractions</button>
+            <button class="profile-tab-btn" onclick="switchProfileTab('tickets')">Tickets</button>
+          </div>
+
+          <div class="profile-tab-contents">
+            <div id="tab-warnings" class="profile-tab-content active">
+              <div id="profile-warnings" class="profile-data-list">Loading...</div>
+            </div>
+            <div id="tab-infractions" class="profile-tab-content">
+              <div id="profile-infractions" class="profile-data-list">Loading...</div>
+            </div>
+            <div id="tab-tickets" class="profile-tab-content">
+              <div id="profile-tickets" class="profile-data-list">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Server Settings View -->
+      <section id="view-settings" class="view-section">
+        <div class="content-header">
+          <h2>Server Settings</h2>
+          <p>Configure bot behaviors, logging channels, staff roles, and toggles.</p>
+        </div>
+
+        <form id="settings-form" onsubmit="saveSettings(event)" class="settings-form">
+          <div class="settings-layout-container">
+            <!-- Left Sub-menu Sidebar -->
+            <aside class="settings-sub-sidebar">
+              <button type="button" class="settings-nav-btn active" data-stab="general" onclick="switchSettingsTab('general')">General &amp; Roles</button>
+              <button type="button" class="settings-nav-btn" data-stab="tickets" onclick="switchSettingsTab('tickets')">Ticket System</button>
+              <button type="button" class="settings-nav-btn" data-stab="logging" onclick="switchSettingsTab('logging')">System Logging</button>
+              <button type="button" class="settings-nav-btn" data-stab="verification" onclick="switchSettingsTab('verification')">Verification System</button>
+              <button type="button" class="settings-nav-btn" data-stab="features" onclick="switchSettingsTab('features')">Starboard &amp; Features</button>
+            </aside>
+
+            <!-- Right Content Panels -->
+            <div class="settings-content-pane">
+              <!-- General & Roles Tab -->
+              <div class="settings-tab-panel active" id="spanel-general">
+                <div class="settings-card">
+                  <h3>Roles &amp; Permissions</h3>
+                  <p class="card-desc">Configure who can manage the bot and access admin views.</p>
+
+                  <div class="form-group">
+                    <label>Admin Roles (Select all that apply)</label>
+                    <div class="custom-multiselect" id="settings-admin-roles"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Moderator Roles (Select all that apply)</label>
+                    <div class="custom-multiselect" id="settings-mod-roles"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Auto-assigned Role (Autorole)</label>
+                    <select name="autorole_id" id="settings-autorole" class="form-control">
+                      <option value="">None (Disabled)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ticket System Tab -->
+              <div class="settings-tab-panel" id="spanel-tickets">
+                <div class="settings-card">
+                  <h3>Ticket System</h3>
+                  <p class="card-desc">Setup where user support tickets are created and logged.</p>
+
+                  <div class="form-group">
+                    <label>Ticket Parent Category</label>
+                    <select name="ticket_category_id" id="settings-ticket-category" class="form-control">
+                      <option value="">Create automatically (Support Tickets)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Ticket Log Channel</label>
+                    <select name="ticket_log_channel_id" id="settings-ticket-log" class="form-control">
+                      <option value="">Disabled</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Appeal Review Category</label>
+                    <select name="appeal_review_category_id" id="settings-appeal-category" class="form-control">
+                      <option value="">Disabled</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- System Logging Tab -->
+              <div class="settings-tab-panel" id="spanel-logging">
+                <div class="settings-card">
+                  <h3>System Logging</h3>
+                  <p class="card-desc">Route bot activities and notifications to channels.</p>
+
+                  <div class="form-group">
+                    <label>Command Log Channel</label>
+                    <select name="command_log_channel_id" id="settings-command-log" class="form-control">
+                      <option value="">Disabled</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Message Deletion Log</label>
+                    <select name="delete_log_channel_id" id="settings-delete-log" class="form-control">
+                      <option value="">Disabled</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Production Activity Log</label>
+                    <select name="production_log_channel_id" id="settings-production-log" class="form-control">
+                      <option value="">Disabled</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Welcomes Channel</label>
+                    <select name="welcome_channel_id" id="settings-welcome-channel" class="form-control">
+                      <option value="">Disabled</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Announcements Channel</label>
+                    <select name="announcement_channel_id" id="settings-announcement-channel" class="form-control">
+                      <option value="">Disabled</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Verification System Tab -->
+              <div class="settings-tab-panel" id="spanel-verification">
+                <div class="settings-card">
+                  <h3>Verification System</h3>
+                  <p class="card-desc">Force new members to verify before they gain access.</p>
+
+                  <div class="form-group toggle-group">
+                    <label class="toggle-switch">
+                      <input type="checkbox" name="verification_enabled" id="settings-verify-enabled">
+                      <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Enable Verification</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Verification Channel</label>
+                    <select name="verification_channel_id" id="settings-verify-channel" class="form-control">
+                      <option value="">Disabled</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Unverified Role</label>
+                    <select name="unverified_role_id" id="settings-unverified-role" class="form-control">
+                      <option value="">None</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Verified Role</label>
+                    <select name="verified_role_id" id="settings-verified-role" class="form-control">
+                      <option value="">None</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Minimum Account Age (Days)</label>
+                    <input type="number" name="verification_min_account_age_days" id="settings-verify-age" class="form-input" min="0" value="0" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Starboard & Features Tab -->
+              <div class="settings-tab-panel" id="spanel-features">
+                <div class="settings-card">
+                  <h3>Starboard &amp; Features</h3>
+                  <p class="card-desc">Toggle economy, giveaways, and starboard configurations.</p>
+
+                  <div class="form-group">
+                    <label>Starboard Channel</label>
+                    <select name="starboard_channel_id" id="settings-starboard-channel" class="form-control">
+                      <option value="">Disabled</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Starboard Emoji</label>
+                    <div class="emoji-picker-wrapper">
+                      <input type="text" name="starboard_emoji" id="settings-starboard-emoji" class="form-input" placeholder="⭐" readonly style="cursor: pointer;" />
+                      <button type="button" class="btn btn-secondary emoji-picker-btn" id="btn-emoji-picker">Choose</button>
+
+                      <!-- Emoji Picker Dropdown -->
+                      <div class="emoji-picker-dropdown select-hide" id="emoji-picker-dropdown">
+                        <!-- JS will inject emoji grid -->
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Starboard Reaction Threshold</label>
+                    <input type="number" name="starboard_threshold" id="settings-starboard-threshold" class="form-input" min="1" placeholder="3" />
+                  </div>
+
+                  <div class="form-group toggle-group mt-2">
+                    <label class="toggle-switch">
+                      <input type="checkbox" name="economy_enabled" id="settings-economy-enabled">
+                      <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Enable Economy Features</span>
+                  </div>
+
+                  <div class="form-group toggle-group">
+                    <label class="toggle-switch">
+                      <input type="checkbox" name="giveaways_enabled" id="settings-giveaways-enabled">
+                      <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Enable Giveaways</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Floating Save / Reset happens via floating banner below -->
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <!-- Ticket Slide-Out Viewer -->
+  <div class="ticket-slide-panel" id="ticket-slide-panel">
+    <div class="panel-header">
+      <div>
+        <h3 id="ticket-panel-title">Ticket #...</h3>
+        <p class="panel-subtitle" id="ticket-panel-subtitle">Loading...</p>
+      </div>
+      <div style="display:flex; gap: 0.5rem; align-items:center;">
+        <button id="ticket-panel-close-btn" class="btn btn-danger btn-sm" style="display:none;" onclick="closeCurrentTicket()">Close Ticket</button>
+        <button class="btn-icon" onclick="closeTicketViewer()">&times;</button>
+      </div>
+    </div>
+    <div class="panel-body" id="ticket-panel-messages">
+      <p>Loading messages...</p>
+    </div>
+  </div>
+  <div class="panel-overlay" id="panel-overlay" onclick="closeTicketViewer()"></div>
+
+  <!-- Floating Save Status Toast -->
+  <div id="save-status-toast" class="save-status-toast">Settings saved successfully!</div>
+
+  <!-- Floating Unsaved Changes Banner -->
+  <div class="unsaved-changes-banner" id="unsaved-changes-banner">
+    <span class="banner-text">Careful — you have unsaved changes!</span>
+    <div class="banner-actions">
+      <button type="button" class="btn btn-secondary btn-sm" id="btn-undo-settings" onclick="undoSettingsChanges()">Reset</button>
+      <button type="button" class="btn btn-primary btn-sm btn-save-changes" id="btn-save-settings" onclick="triggerSaveSettings()">Save Changes</button>
+    </div>
+  </div>
+
+  <script type="module" src="/js/dashboard/core/main.js" defer></script>
+</body>
+</html>

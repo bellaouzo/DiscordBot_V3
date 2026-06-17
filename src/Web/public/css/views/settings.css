@@ -1,0 +1,110 @@
+/* ============================================================
+   views/settings.css — Server settings: split-pane layout,
+                        sub-navigation, settings cards & grids.
+   ============================================================ */
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ── Split-Pane Layout ────────────────────────────────────── */
+.settings-layout-container {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 992px) {
+  .settings-layout-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .settings-sub-sidebar {
+    width: 100% !important;
+    flex-direction: row !important;
+    overflow-x: auto;
+  }
+}
+
+/* ── Settings Sub-Sidebar ─────────────────────────────────── */
+.settings-sub-sidebar {
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 0.6rem;
+  flex-shrink: 0;
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: calc(80px + 55px + 1.5rem); /* navbar + topbar + gap */
+}
+
+.settings-nav-btn {
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1.1rem;
+  text-align: left;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.settings-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+}
+
+.settings-nav-btn.active {
+  background: var(--accent-color);
+  color: #FFFFFF;
+  box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
+}
+
+/* ── Settings Content Pane ────────────────────────────────── */
+.settings-content-pane { flex-grow: 1; min-width: 0; }
+
+.settings-tab-panel { display: none; }
+
+.settings-tab-panel.active {
+  display: block;
+  animation: fadeIn 0.35s ease;
+}
+
+.settings-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.settings-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.card-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-top: -0.75rem;
+}

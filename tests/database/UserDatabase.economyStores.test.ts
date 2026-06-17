@@ -95,9 +95,9 @@ describe("UserDatabase economy stores", () => {
       entry_cost: 10,
       ends_at: Date.now() - 1_000,
     });
-    expect(db.GetEndedLotteriesToProcess().some((l) => l.id === expired.id)).toBe(
-      true,
-    );
+    expect(
+      db.GetEndedLotteriesToProcess().some((l) => l.id === expired.id),
+    ).toBe(true);
 
     const duel = db.CreateDuel({
       guild_id: "guild-1",

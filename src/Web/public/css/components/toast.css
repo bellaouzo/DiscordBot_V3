@@ -1,0 +1,108 @@
+/* ============================================================
+   components/toast.css — Save status toast, floating unsaved
+   changes banner, field-level undo button.
+   ============================================================ */
+
+/* ── Field Undo Button (per-label) ───────────────────────── */
+.field-undo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--accent-color);
+  font-size: 0.95rem;
+  margin-left: 0.5rem;
+  transition: all 0.2s ease;
+  font-weight: normal;
+  font-family: inherit;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.field-undo-btn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+  transform: rotate(-90deg);
+}
+
+/* ── Save Status Toast ────────────────────────────────────── */
+.save-status-toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translate(-50%, -50px);
+  background: rgba(20, 20, 22, 0.95);
+  border: 1px solid #43B581;
+  border-radius: 12px;
+  padding: 0.85rem 1.5rem;
+  color: #FFF;
+  font-weight: 600;
+  font-size: 0.9rem;
+  z-index: 1010;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  pointer-events: none;
+  backdrop-filter: blur(15px);
+}
+
+.save-status-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.save-status-toast.error {
+  border-color: #ED4245;
+  color: #ED4245;
+}
+
+.toast-icon {
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.save-status-toast.error .toast-icon { color: #ED4245; }
+
+/* ── Floating Unsaved Changes Banner ─────────────────────── */
+.unsaved-changes-banner {
+  position: fixed;
+  bottom: -100px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  width: calc(100% - 48px);
+  max-width: 800px;
+  background: rgba(20, 20, 22, 0.95);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 900;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(15px);
+  transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.unsaved-changes-banner.show { bottom: 24px; }
+
+.banner-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.banner-actions { display: flex; gap: 0.75rem; }
+
+.btn-save-changes {
+  background: var(--accent-color) !important;
+  color: #FFF !important;
+}
+
+.btn-save-changes:hover { background: var(--accent-hover) !important; }

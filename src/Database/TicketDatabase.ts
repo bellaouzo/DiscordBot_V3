@@ -74,7 +74,8 @@ export class TicketDatabase {
         status TEXT DEFAULT 'open',
         claimed_by TEXT,
         created_at INTEGER NOT NULL,
-        closed_at INTEGER
+        closed_at INTEGER,
+        close_reason TEXT
       );
 
       CREATE TABLE IF NOT EXISTS ticket_messages (
@@ -192,8 +193,8 @@ export class TicketDatabase {
     return this.tickets.UpdateTicketChannelId(id, channel_id);
   }
 
-  CloseTicket(id: number, claimed_by?: string | null): boolean {
-    return this.tickets.CloseTicket(id, claimed_by);
+  CloseTicket(id: number, claimed_by?: string | null, close_reason?: string | null): boolean {
+    return this.tickets.CloseTicket(id, claimed_by, close_reason);
   }
 
   AddMessage(

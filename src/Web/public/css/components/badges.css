@@ -1,0 +1,53 @@
+/* ============================================================
+   components/badges.css — Status pills, type colors,
+   user-id monospace badge, category tags, clickable helpers.
+   ============================================================ */
+
+/* ── Status Badges ────────────────────────────────────────── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.status-badge.open   { background: rgba(87, 242, 135, 0.2); color: #57F287; }
+.status-badge.closed { background: rgba(237, 66, 69, 0.2);  color: #ED4245; }
+
+/* ── Infraction Type Colors ───────────────────────────────── */
+.type-kick { color: #FEE75C; }
+.type-ban  { color: #ED4245; }
+.type-mute { color: #EB459E; }
+
+/* ── Category Tags ────────────────────────────────────────── */
+.tag-moderation { background: rgba(237, 66, 69, 0.2);  color: #ED4245; }
+.tag-fun        { background: rgba(235, 69, 158, 0.2); color: #EB459E; }
+.tag-utility    { background: rgba(87, 242, 135, 0.2); color: #57F287; }
+.tag-music      { background: rgba(254, 231, 92, 0.2); color: #FEE75C; }
+.tag-giveaway   { background: rgba(88, 101, 242, 0.2); color: #5865F2; }
+
+/* ── User ID Badge ────────────────────────────────────────── */
+.user-id-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+/* ── Clickable Helpers ────────────────────────────────────── */
+.clickable { cursor: pointer; }
+
+.clickable-badge { cursor: pointer; transition: color 0.2s ease; }
+.clickable-badge:hover { color: var(--accent-color); }

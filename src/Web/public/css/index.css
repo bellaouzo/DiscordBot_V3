@@ -1,0 +1,26 @@
+/* ============================================================
+   index.css — Entry point: imports all modular CSS files
+               in the correct cascade order.
+   ============================================================ */
+
+/* ── Base ─────────────────────────────────────────────────── */
+@import url('./base.css');
+
+/* ── Layout ───────────────────────────────────────────────── */
+@import url('./layout/navbar.css');
+@import url('./layout/topbar.css');
+@import url('./layout/content.css');
+
+/* ── Components ───────────────────────────────────────────── */
+@import url('./components/buttons.css');
+@import url('./components/badges.css');
+@import url('./components/cards.css');
+@import url('./components/forms.css');
+@import url('./components/toast.css');
+@import url('./components/widgets/multiselect.css');
+@import url('./components/widgets/emojipicker.css');
+
+/* ── Views ────────────────────────────────────────────────── */
+@import url('./views/landing.css');
+@import url('./views/profile.css');
+@import url('./views/settings.css');

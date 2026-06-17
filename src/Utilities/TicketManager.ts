@@ -205,6 +205,7 @@ export class TicketManager {
     ticketId: number,
     closerId?: string,
     sendMessageBeforeDelete?: boolean,
+    reason?: string | null,
   ): Promise<boolean> {
     const ticket = this.options.ticketDb.GetTicket(ticketId);
     if (!ticket) {
@@ -229,7 +230,7 @@ export class TicketManager {
       }
     }
 
-    const updated = this.options.ticketDb.CloseTicket(ticketId, closerId);
+    const updated = this.options.ticketDb.CloseTicket(ticketId, closerId, reason);
 
     if (updated && channel && sendMessageBeforeDelete) {
       try {

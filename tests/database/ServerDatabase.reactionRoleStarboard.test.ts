@@ -39,9 +39,9 @@ describe("ServerDatabase reaction role and starboard stores", () => {
     expect(db.GetReactionRolePanelById("guild-1", panel.id)?.message_id).toBe(
       "message-1",
     );
-    expect(
-      db.GetReactionRolePanelByMessage("guild-1", "message-1")?.id,
-    ).toBe(panel.id);
+    expect(db.GetReactionRolePanelByMessage("guild-1", "message-1")?.id).toBe(
+      panel.id,
+    );
 
     const mapping = db.AddReactionRoleMapping({
       panel_id: panel.id,
@@ -62,9 +62,9 @@ describe("ServerDatabase reaction role and starboard stores", () => {
     expect(allMappings[0].channel_id).toBe("channel-1");
 
     expect(db.ListReactionRolePanels("guild-1")).toHaveLength(1);
-    expect(db.ListReactionRolePanelsByChannel("guild-1", "channel-1")).toHaveLength(
-      1,
-    );
+    expect(
+      db.ListReactionRolePanelsByChannel("guild-1", "channel-1"),
+    ).toHaveLength(1);
 
     const removed = db.RemoveReactionRoleMappingByPanelAndEmoji(panel.id, "⭐");
     expect(removed?.role_id).toBe("role-1");
@@ -88,9 +88,9 @@ describe("ServerDatabase reaction role and starboard stores", () => {
       db.GetStarboardEntry("guild-1", "source-message")?.starboard_message_id,
     ).toBe("starboard-message");
 
-    expect(
-      db.UpdateStarboardEntryCount("guild-1", "source-message", 5),
-    ).toBe(true);
+    expect(db.UpdateStarboardEntryCount("guild-1", "source-message", 5)).toBe(
+      true,
+    );
     expect(db.GetStarboardEntry("guild-1", "source-message")?.star_count).toBe(
       5,
     );

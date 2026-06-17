@@ -14,6 +14,7 @@ export interface Ticket {
   claimed_by: string | null;
   created_at: number;
   closed_at: number | null;
+  close_reason: string | null;
 }
 
 export interface TicketReopenAudit {
