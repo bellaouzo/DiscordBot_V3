@@ -41,7 +41,7 @@
     "dotenv": "^16.3.1",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
-    "module-alias": "^2.2.3",
+    "module-alias": "^2.3.4",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4"
   },
