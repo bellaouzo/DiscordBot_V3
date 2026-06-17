@@ -112,12 +112,22 @@ export class TicketStore {
     return result.changes > 0;
   }
 
-  CloseTicket(id: number, claimed_by?: string | null, close_reason?: string | null): boolean {
+  CloseTicket(
+    id: number,
+    claimed_by?: string | null,
+    close_reason?: string | null,
+  ): boolean {
     const closed_at = Date.now();
     const stmt = this.db.prepare(
       "UPDATE tickets SET status = ?, claimed_by = ?, closed_at = ?, close_reason = ? WHERE id = ?",
     );
-    const result = stmt.run("closed", claimed_by ?? null, closed_at, close_reason ?? null, id);
+    const result = stmt.run(
+      "closed",
+      claimed_by ?? null,
+      closed_at,
+      close_reason ?? null,
+      id,
+    );
     return result.changes > 0;
   }
 

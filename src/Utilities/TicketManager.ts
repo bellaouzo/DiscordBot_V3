@@ -230,7 +230,11 @@ export class TicketManager {
       }
     }
 
-    const updated = this.options.ticketDb.CloseTicket(ticketId, closerId, reason);
+    const updated = this.options.ticketDb.CloseTicket(
+      ticketId,
+      closerId,
+      reason,
+    );
 
     if (updated && channel && sendMessageBeforeDelete) {
       try {

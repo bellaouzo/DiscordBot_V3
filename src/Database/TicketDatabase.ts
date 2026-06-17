@@ -193,7 +193,11 @@ export class TicketDatabase {
     return this.tickets.UpdateTicketChannelId(id, channel_id);
   }
 
-  CloseTicket(id: number, claimed_by?: string | null, close_reason?: string | null): boolean {
+  CloseTicket(
+    id: number,
+    claimed_by?: string | null,
+    close_reason?: string | null,
+  ): boolean {
     return this.tickets.CloseTicket(id, claimed_by, close_reason);
   }
 
