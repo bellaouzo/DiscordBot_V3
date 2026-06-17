@@ -255,11 +255,8 @@ export function createApiRouter(
       const ticketId = parseInt(req.params.ticketId as string);
       const reason = req.body?.reason || null;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const success = databases.ticketDb.CloseTicket(
-        ticketId,
-        (req.user as any).id,
-        reason,
-      );
+      const user = req.user as any;
+      const success = databases.ticketDb.CloseTicket(ticketId, user.id, reason);
       res.json({ success });
     },
   );
