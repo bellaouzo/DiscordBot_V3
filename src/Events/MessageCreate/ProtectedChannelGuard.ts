@@ -42,7 +42,8 @@ export function ResolveProtectedChannelMatch(options: {
     [
       {
         id: settings?.command_log_channel_id,
-        reason: "This is a staff command-log channel. Member chat is not allowed.",
+        reason:
+          "This is a staff command-log channel. Member chat is not allowed.",
       },
       {
         id: settings?.ticket_log_channel_id,
@@ -54,8 +55,7 @@ export function ResolveProtectedChannelMatch(options: {
       },
       {
         id: settings?.production_log_channel_id,
-        reason:
-          "This is a production-log channel. Member chat is not allowed.",
+        reason: "This is a production-log channel. Member chat is not allowed.",
       },
       {
         id: settings?.starboard_channel_id,
