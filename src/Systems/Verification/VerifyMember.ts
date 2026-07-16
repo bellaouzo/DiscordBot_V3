@@ -13,6 +13,7 @@ export interface VerificationEligibility {
   readonly minAccountAgeDays: number;
   readonly daysRemaining: number;
   readonly hasUnverifiedRole: boolean;
+  readonly hasVerifiedRole: boolean;
   readonly unverifiedRoleConfigured: boolean;
 }
 
@@ -32,10 +33,15 @@ export function BuildVerificationEligibility(
     settings.unverified_role_id &&
     member.roles.cache.has(settings.unverified_role_id),
   );
+  const hasVerifiedRole = Boolean(
+    settings.verified_role_id &&
+    member.roles.cache.has(settings.verified_role_id),
+  );
   const alreadyVerified =
     settings.verification_enabled &&
     unverifiedRoleConfigured &&
-    !hasUnverifiedRole;
+    (hasVerifiedRole ||
+      (!settings.verified_role_id && !hasUnverifiedRole));
   const daysRemaining = Math.max(0, minAccountAgeDays - accountAgeDays);
   const meetsAge =
     minAccountAgeDays <= 0 || accountAgeDays >= minAccountAgeDays;
@@ -50,6 +56,7 @@ export function BuildVerificationEligibility(
     minAccountAgeDays,
     daysRemaining,
     hasUnverifiedRole,
+    hasVerifiedRole,
     unverifiedRoleConfigured,
   };
 }
@@ -84,7 +91,18 @@ export async function VerifyGuildMember(options: {
   }
 
   if (!member.roles.cache.has(settings.unverified_role_id)) {
-    return { success: false, reason: "You are already verified." };
+    if (
+      settings.verified_role_id &&
+      member.roles.cache.has(settings.verified_role_id)
+    ) {
+      return { success: false, reason: "You are already verified." };
+    }
+
+    return {
+      success: false,
+      reason:
+        "You do not have the unverified role yet. Rejoin the server or ask staff to assign it, then try again.",
+    };
   }
 
   if (!skipAccountAgeCheck && settings.verification_min_account_age_days > 0) {
@@ -155,4 +173,23 @@ export async function AssignUnverifiedRole(
   if (!member.roles.cache.has(settings.unverified_role_id)) {
     await member.roles.add(settings.unverified_role_id, "Unverified on join");
   }
+}
+
+export async function EnsureUnverifiedRoleForMember(options: {
+  member: GuildMember;
+  settings: GuildSettings;
+}): Promise<GuildMember> {
+  const { member, settings } = options;
+  const eligibility = BuildVerificationEligibility(member, settings);
+
+  if (
+    !eligibility.unverifiedRoleConfigured ||
+    eligibility.alreadyVerified ||
+    eligibility.hasUnverifiedRole
+  ) {
+    return member;
+  }
+
+  await AssignUnverifiedRole(member, settings);
+  return member.fetch();
 }

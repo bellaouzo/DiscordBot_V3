@@ -69,7 +69,7 @@ describe("BuildVerificationEligibility", () => {
     expect(eligibility.daysRemaining).toBe(5);
   });
 
-  it("marks already verified members without unverified role", () => {
+  it("marks already verified members without unverified role when no verified role is configured", () => {
     const eligibility = BuildVerificationEligibility(
       CreateMember({ createdDaysAgo: 30, roleIds: ["member"] }),
       CreateSettings(),
@@ -78,6 +78,28 @@ describe("BuildVerificationEligibility", () => {
     expect(eligibility.eligible).toBe(false);
     expect(eligibility.alreadyVerified).toBe(true);
     expect(eligibility.unverifiedRoleConfigured).toBe(true);
+  });
+
+  it("does not treat roleless members as verified when a verified role is configured", () => {
+    const eligibility = BuildVerificationEligibility(
+      CreateMember({ createdDaysAgo: 30, roleIds: [] }),
+      CreateSettings({ verified_role_id: "verified" }),
+    );
+
+    expect(eligibility.eligible).toBe(false);
+    expect(eligibility.alreadyVerified).toBe(false);
+    expect(eligibility.hasVerifiedRole).toBe(false);
+    expect(eligibility.hasUnverifiedRole).toBe(false);
+  });
+
+  it("marks members with the verified role as already verified", () => {
+    const eligibility = BuildVerificationEligibility(
+      CreateMember({ createdDaysAgo: 30, roleIds: ["verified"] }),
+      CreateSettings({ verified_role_id: "verified" }),
+    );
+
+    expect(eligibility.alreadyVerified).toBe(true);
+    expect(eligibility.hasVerifiedRole).toBe(true);
   });
 
   it("does not treat members as verified when unverified role is not configured", () => {

@@ -15,6 +15,7 @@ import {
 } from "@utilities";
 import {
   BuildVerificationEligibility,
+  EnsureUnverifiedRoleForMember,
   VerifyGuildMember,
 } from "@systems/Verification/VerifyMember";
 import {
@@ -95,9 +96,29 @@ export function RegisterVerificationPanelButtons(
       }
 
       const member = await guild.members.fetch(buttonInteraction.user.id);
-      const eligibility = BuildVerificationEligibility(member, settings);
+      let resolvedMember = member;
+
+      try {
+        resolvedMember = await EnsureUnverifiedRoleForMember({
+          member,
+          settings,
+        });
+      } catch (error) {
+        context.logger.Warn(
+          "Failed to assign unverified role during eligibility check",
+          {
+            error,
+            extra: { guildId: guild.id, userId: member.id },
+          },
+        );
+      }
+
+      const eligibility = BuildVerificationEligibility(
+        resolvedMember,
+        settings,
+      );
       await buttonInteraction.editReply({
-        embeds: [BuildEligibilityEmbed(member, eligibility)],
+        embeds: [BuildEligibilityEmbed(resolvedMember, eligibility)],
       });
     },
   });
@@ -127,7 +148,27 @@ export function RegisterVerificationPanelButtons(
       }
 
       const member = await guild.members.fetch(buttonInteraction.user.id);
-      const eligibility = BuildVerificationEligibility(member, settings);
+      let resolvedMember = member;
+
+      try {
+        resolvedMember = await EnsureUnverifiedRoleForMember({
+          member,
+          settings,
+        });
+      } catch (error) {
+        context.logger.Warn(
+          "Failed to assign unverified role during verification begin",
+          {
+            error,
+            extra: { guildId: guild.id, userId: member.id },
+          },
+        );
+      }
+
+      const eligibility = BuildVerificationEligibility(
+        resolvedMember,
+        settings,
+      );
 
       if (
         eligibility.alreadyVerified ||
@@ -135,7 +176,7 @@ export function RegisterVerificationPanelButtons(
         !eligibility.hasUnverifiedRole
       ) {
         await buttonInteraction.editReply({
-          embeds: [BuildEligibilityEmbed(member, eligibility)],
+          embeds: [BuildEligibilityEmbed(resolvedMember, eligibility)],
         });
         return;
       }
@@ -204,7 +245,13 @@ export function RegisterVerificationPanelButtons(
       });
 
       await buttonInteraction.editReply({
-        embeds: [BuildVerificationConfirmEmbed(member, settings, eligibility)],
+        embeds: [
+          BuildVerificationConfirmEmbed(
+            resolvedMember,
+            settings,
+            eligibility,
+          ),
+        ],
         components: [ToActionRowData(confirmRow)],
       });
     },
