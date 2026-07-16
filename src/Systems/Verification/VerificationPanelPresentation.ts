@@ -30,10 +30,7 @@ export function FormatServerRulesReference(guild: Guild): string {
   return "the server rules";
 }
 
-function FormatRequirementLines(
-  guild: Guild,
-  settings: GuildSettings,
-): string {
+function FormatRequirementLines(guild: Guild, settings: GuildSettings): string {
   const rulesReference = FormatServerRulesReference(guild);
   const lines: string[] = [
     "• You must have the unverified member role",
