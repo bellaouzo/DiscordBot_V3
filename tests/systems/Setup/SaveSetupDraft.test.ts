@@ -40,6 +40,15 @@ describe("SaveSetupDraft", () => {
     expect(result.error).toContain("admin role");
   });
 
+  it("rejects save when verification is enabled without an unverified role", () => {
+    const draft = createFullDraft();
+    draft.verificationEnabled = true;
+    draft.unverifiedRoleId = null;
+
+    const result = ValidateSetupDraft(draft);
+    expect(result.error).toContain("unverified role");
+  });
+
   it("persists guild settings and xp settings", () => {
     const databases = createMockDatabaseSet();
     const draft = createFullDraft();

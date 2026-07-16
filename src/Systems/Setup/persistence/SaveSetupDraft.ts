@@ -17,15 +17,17 @@ export function ValidateSetupDraft(draft: SetupDraft): SetupValidationResult {
     };
   }
 
+  if (draft.verificationEnabled && !draft.unverifiedRoleId) {
+    return {
+      error:
+        "Verification requires an unverified role. Select the role new members get until they verify, or turn Verification off.",
+      warnings,
+    };
+  }
+
   if (draft.starboardEnabled && !draft.starboardChannelId) {
     warnings.push(
       "Starboard is enabled but no channel is selected — it will auto-manage a #starboard channel.",
-    );
-  }
-
-  if (draft.verificationEnabled && !draft.unverifiedRoleId) {
-    warnings.push(
-      "Verification is enabled but no unverified role is selected.",
     );
   }
 

@@ -140,7 +140,6 @@ export const communityStep: SetupStepDefinition = {
           fieldLabel: "Unverified role",
           roles: context.resources.roles,
           selectedId: draft.unverifiedRoleId,
-          allowNone: true,
         }),
         BuildSingleRoleSelectRow({
           customId: context.ids.verifiedRoleSelect,

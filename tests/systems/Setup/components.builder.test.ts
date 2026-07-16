@@ -30,12 +30,12 @@ describe("PromoteResourceItem", () => {
 });
 
 describe("Setup select builders", () => {
-  it("includes None for unverified-style single role selects", () => {
+  it("includes None for optional verified role selects", () => {
     const row = BuildSingleRoleSelectRow({
-      customId: "setup:unverified",
-      placeholder: "Unverified role — given on join (required)",
-      fieldLabel: "Unverified role",
-      roles: [{ id: "role-1", name: "Unverified" } as never],
+      customId: "setup:verified",
+      placeholder: "Verified role — granted after verifying (optional)",
+      fieldLabel: "Verified role",
+      roles: [{ id: "role-1", name: "Member" } as never],
       selectedId: "role-1",
       allowNone: true,
     });
@@ -51,7 +51,26 @@ describe("Setup select builders", () => {
 
     expect(values).toContain("none");
     expect(values).toContain("role-1");
-    expect(labels).toContain("Unverified role: Unverified");
+    expect(labels).toContain("Verified role: Member");
+  });
+
+  it("does not include None for required unverified role selects", () => {
+    const row = BuildSingleRoleSelectRow({
+      customId: "setup:unverified",
+      placeholder: "Unverified role — given on join (required)",
+      fieldLabel: "Unverified role",
+      roles: [{ id: "role-1", name: "Unverified" } as never],
+      selectedId: "role-1",
+    });
+    const menu = row.components[0];
+    const options =
+      "options" in menu && Array.isArray(menu.options) ? menu.options : [];
+    const values = options.map((option) =>
+      "value" in option ? option.value : "",
+    );
+
+    expect(values).not.toContain("none");
+    expect(values).toContain("role-1");
   });
 
   it("prefixes selected channel options with the field label", () => {
