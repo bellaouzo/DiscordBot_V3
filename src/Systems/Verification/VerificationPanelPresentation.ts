@@ -22,10 +22,22 @@ export function CollectVerificationGrantRoleIds(
   return roleIds;
 }
 
-function FormatRequirementLines(settings: GuildSettings): string {
+export function FormatServerRulesReference(guild: Guild): string {
+  if (guild.rulesChannelId) {
+    return `the server rules in <#${guild.rulesChannelId}>`;
+  }
+
+  return "the server rules";
+}
+
+function FormatRequirementLines(
+  guild: Guild,
+  settings: GuildSettings,
+): string {
+  const rulesReference = FormatServerRulesReference(guild);
   const lines: string[] = [
     "• You must have the unverified member role",
-    "• Click **Begin Verification** and confirm you agree to the rules",
+    `• Click **Begin Verification** and confirm you agree to ${rulesReference}`,
   ];
 
   if (settings.verification_min_account_age_days > 0) {
@@ -52,6 +64,7 @@ export function BuildVerificationPanelEmbed(
   guild: Guild,
   settings: GuildSettings,
 ): APIEmbed {
+  const rulesReference = FormatServerRulesReference(guild);
   const embed = EmbedFactory.Create({
     title: `Welcome to ${guild.name}`,
     description:
@@ -65,7 +78,7 @@ export function BuildVerificationPanelEmbed(
     {
       name: "📋 How to verify",
       value:
-        "**1.** Read the server rules\n" +
+        `**1.** Read ${rulesReference}\n` +
         "**2.** Click **Check Eligibility** to see if you qualify\n" +
         "**3.** Click **Begin Verification** and confirm you agree\n" +
         "**4.** Enjoy the community!",
@@ -73,7 +86,7 @@ export function BuildVerificationPanelEmbed(
     },
     {
       name: "✅ Requirements",
-      value: FormatRequirementLines(settings),
+      value: FormatRequirementLines(guild, settings),
       inline: true,
     },
     {
@@ -157,6 +170,7 @@ export function BuildVerificationConfirmEmbed(
   settings: GuildSettings,
   eligibility: VerificationEligibility,
 ): APIEmbed {
+  const rulesReference = FormatServerRulesReference(member.guild);
   const embed = EmbedFactory.Create({
     title: "Confirm verification",
     description: `Hey ${member}, please confirm you're ready to join **${member.guild.name}**.`,
@@ -169,7 +183,7 @@ export function BuildVerificationConfirmEmbed(
       name: "📜 Before you continue",
       value:
         "By verifying, you confirm that you:\n" +
-        "• Have read and will follow the server rules\n" +
+        `• Have read and will follow ${rulesReference}\n` +
         "• Understand this is a community server with active moderation\n" +
         "• Are not using an alt to evade a ban",
       inline: false,

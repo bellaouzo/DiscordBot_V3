@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   BuildVerificationPanelEmbed,
   CollectVerificationGrantRoleIds,
+  FormatServerRulesReference,
 } from "@systems/Verification/VerificationPanelPresentation";
 import type { GuildSettings } from "@database/Server/Types";
 
@@ -47,6 +48,7 @@ describe("VerificationPanelPresentation", () => {
       {
         name: "Test Guild",
         memberCount: 420,
+        rulesChannelId: null,
         iconURL: () => "https://example.com/icon.png",
       } as Parameters<typeof BuildVerificationPanelEmbed>[0],
       CreateSettings(),
@@ -60,5 +62,38 @@ describe("VerificationPanelPresentation", () => {
       true,
     );
     expect(embed.footer?.text).toContain("420");
+    expect(
+      embed.fields?.some((field) =>
+        field.value?.includes("Read the server rules"),
+      ),
+    ).toBe(true);
+  });
+
+  it("links rules mentions to the Discord rules channel when configured", () => {
+    expect(
+      FormatServerRulesReference({ rulesChannelId: "rules-1" } as never),
+    ).toBe("the server rules in <#rules-1>");
+
+    const embed = BuildVerificationPanelEmbed(
+      {
+        name: "Test Guild",
+        memberCount: 10,
+        rulesChannelId: "rules-1",
+        iconURL: () => null,
+      } as Parameters<typeof BuildVerificationPanelEmbed>[0],
+      CreateSettings(),
+    );
+
+    expect(
+      embed.fields?.some((field) =>
+        field.value?.includes("Read the server rules in <#rules-1>"),
+      ),
+    ).toBe(true);
+  });
+
+  it("falls back to plain server rules text without a rules channel", () => {
+    expect(FormatServerRulesReference({ rulesChannelId: null } as never)).toBe(
+      "the server rules",
+    );
   });
 });
