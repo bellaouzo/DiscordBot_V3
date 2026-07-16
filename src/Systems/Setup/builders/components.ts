@@ -236,8 +236,7 @@ export function BuildChannelSelectRow(options: {
 
   const allowCreate = !selectedId;
   const isNoneSelected = Boolean(options.allowNone && selectedId === null);
-  const reservedSlots =
-    1 + (allowCreate ? 1 : 0) + (options.allowNone ? 1 : 0);
+  const reservedSlots = 1 + (allowCreate ? 1 : 0) + (options.allowNone ? 1 : 0);
   const maxChannelOptions = Math.max(0, 25 - reservedSlots);
 
   menu.addOptions(
