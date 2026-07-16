@@ -246,11 +246,7 @@ export function RegisterVerificationPanelButtons(
 
       await buttonInteraction.editReply({
         embeds: [
-          BuildVerificationConfirmEmbed(
-            resolvedMember,
-            settings,
-            eligibility,
-          ),
+          BuildVerificationConfirmEmbed(resolvedMember, settings, eligibility),
         ],
         components: [ToActionRowData(confirmRow)],
       });

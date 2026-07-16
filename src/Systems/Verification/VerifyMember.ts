@@ -40,8 +40,7 @@ export function BuildVerificationEligibility(
   const alreadyVerified =
     settings.verification_enabled &&
     unverifiedRoleConfigured &&
-    (hasVerifiedRole ||
-      (!settings.verified_role_id && !hasUnverifiedRole));
+    (hasVerifiedRole || (!settings.verified_role_id && !hasUnverifiedRole));
   const daysRemaining = Math.max(0, minAccountAgeDays - accountAgeDays);
   const meetsAge =
     minAccountAgeDays <= 0 || accountAgeDays >= minAccountAgeDays;
