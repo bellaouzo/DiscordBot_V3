@@ -129,7 +129,8 @@ export const communityStep: SetupStepDefinition = {
           customId: context.ids.verificationChannelSelect,
           channels: context.resources.textChannels,
           selectedId: draft.verificationChannelId,
-          placeholder: "Verification channel — where the verify panel is posted",
+          placeholder:
+            "Verification channel — where the verify panel is posted",
           fieldLabel: "Verification channel",
           defaultName: "verification",
         }),

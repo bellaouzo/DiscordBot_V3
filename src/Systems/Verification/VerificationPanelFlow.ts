@@ -1,4 +1,8 @@
-import type { ChatInputCommandInteraction, Guild, TextChannel } from "discord.js";
+import type {
+  ChatInputCommandInteraction,
+  Guild,
+  TextChannel,
+} from "discord.js";
 import { ButtonStyle, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import type { GuildSettings } from "@database/Server/Types";

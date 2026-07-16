@@ -31,16 +31,19 @@ vi.mock("@systems/Setup/panels/RulesPanel", async (importOriginal) => {
   };
 });
 
-vi.mock("@systems/Verification/VerificationPanelFlow", async (importOriginal) => {
-  const actual =
-    await importOriginal<
-      typeof import("@systems/Verification/VerificationPanelFlow")
-    >();
-  return {
-    ...actual,
-    PostVerificationPanelToChannel: vi.fn().mockResolvedValue(undefined),
-  };
-});
+vi.mock(
+  "@systems/Verification/VerificationPanelFlow",
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import("@systems/Verification/VerificationPanelFlow")
+      >();
+    return {
+      ...actual,
+      PostVerificationPanelToChannel: vi.fn().mockResolvedValue(undefined),
+    };
+  },
+);
 
 vi.mock("@systems/Ticket/TicketPanelFlow", async (importOriginal) => {
   const actual =
@@ -51,20 +54,21 @@ vi.mock("@systems/Ticket/TicketPanelFlow", async (importOriginal) => {
   };
 });
 
-vi.mock("@commands/Moderation/Appeal/AppealPanelFlow", async (importOriginal) => {
-  const actual =
-    await importOriginal<
-      typeof import("@commands/Moderation/Appeal/AppealPanelFlow")
-    >();
-  return {
-    ...actual,
-    PostAppealPanelToChannel: vi.fn().mockResolvedValue(undefined),
-  };
-});
+vi.mock(
+  "@commands/Moderation/Appeal/AppealPanelFlow",
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import("@commands/Moderation/Appeal/AppealPanelFlow")
+      >();
+    return {
+      ...actual,
+      PostAppealPanelToChannel: vi.fn().mockResolvedValue(undefined),
+    };
+  },
+);
 
-function createSettings(
-  overrides: Partial<GuildSettings> = {},
-): GuildSettings {
+function createSettings(overrides: Partial<GuildSettings> = {}): GuildSettings {
   return {
     guild_id: "guild-1",
     admin_role_ids: ["admin"],

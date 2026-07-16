@@ -108,7 +108,9 @@ describe("ChannelHasEmbedFooterMarker", () => {
               {
                 embeds: [
                   {
-                    footer: { text: `${RULES_PANEL_FOOTER_MARKER} · 3 rule(s)` },
+                    footer: {
+                      text: `${RULES_PANEL_FOOTER_MARKER} · 3 rule(s)`,
+                    },
                   },
                 ],
               },

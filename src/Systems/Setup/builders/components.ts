@@ -95,9 +95,7 @@ export function BuildSingleRoleSelectRow(options: {
     const noneSelected = !selectedId;
     menu.addOptions(
       new StringSelectMenuOptionBuilder()
-        .setLabel(
-          FormatFieldOptionLabel(fieldLabel, "None", noneSelected),
-        )
+        .setLabel(FormatFieldOptionLabel(fieldLabel, "None", noneSelected))
         .setValue("none")
         .setDescription(`Do not set ${fieldLabel}`)
         .setDefault(noneSelected),
@@ -144,13 +142,8 @@ export function BuildCategorySelectRow(options: {
   fieldLabel: string;
   defaultCategoryName: string;
 }): ActionRowData<ActionRowComponentData> {
-  const {
-    customId,
-    categories,
-    placeholder,
-    fieldLabel,
-    defaultCategoryName,
-  } = options;
+  const { customId, categories, placeholder, fieldLabel, defaultCategoryName } =
+    options;
   const selectedId = options.selectedId ? String(options.selectedId) : null;
   const selectedCategory =
     selectedId &&
@@ -211,11 +204,7 @@ export function BuildCategorySelectRow(options: {
     menu.addOptions(
       new StringSelectMenuOptionBuilder()
         .setLabel(
-          FormatFieldOptionLabel(
-            fieldLabel,
-            selectedCategory.name,
-            true,
-          ),
+          FormatFieldOptionLabel(fieldLabel, selectedCategory.name, true),
         )
         .setValue(String(selectedCategory.id))
         .setDescription(`${fieldLabel} · use existing category`)
@@ -332,11 +321,7 @@ export function BuildChannelSelectRow(options: {
     menu.addOptions(
       new StringSelectMenuOptionBuilder()
         .setLabel(
-          FormatFieldOptionLabel(
-            fieldLabel,
-            `#${selectedChannel.name}`,
-            true,
-          ),
+          FormatFieldOptionLabel(fieldLabel, `#${selectedChannel.name}`, true),
         )
         .setValue(String(selectedChannel.id))
         .setDescription(`${fieldLabel} · use existing text channel`)
