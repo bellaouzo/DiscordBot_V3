@@ -2,17 +2,20 @@ export type { MessageCreateHandler, MessageCreateResult } from "./types";
 export { LinkFilterHandler } from "./LinkFilterHandler";
 export { ChatXpHandler } from "./ChatXpHandler";
 export { TicketMessageHandler } from "./TicketMessageHandler";
-export { VerificationChannelGuardHandler } from "./VerificationChannelGuardHandler";
+export {
+  ProtectedChannelGuardHandler,
+  VerificationChannelGuardHandler,
+} from "./ProtectedChannelGuardHandler";
 export { RunMessageCreateHandlers } from "./RunMessageCreateHandlers";
 
 import { ChatXpHandler } from "./ChatXpHandler";
 import { LinkFilterHandler } from "./LinkFilterHandler";
 import { TicketMessageHandler } from "./TicketMessageHandler";
-import { VerificationChannelGuardHandler } from "./VerificationChannelGuardHandler";
+import { ProtectedChannelGuardHandler } from "./ProtectedChannelGuardHandler";
 import type { MessageCreateHandler } from "./types";
 
 export const MESSAGE_CREATE_HANDLERS: readonly MessageCreateHandler[] = [
-  VerificationChannelGuardHandler,
+  ProtectedChannelGuardHandler,
   LinkFilterHandler,
   ChatXpHandler,
   TicketMessageHandler,
