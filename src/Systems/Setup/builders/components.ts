@@ -99,13 +99,15 @@ export function BuildSingleRoleSelectRow(options: {
   }
 
   if (!hasRoles) {
-    menu.addOptions(
-      new StringSelectMenuOptionBuilder()
-        .setLabel("No roles available")
-        .setValue("noop")
-        .setDescription("Create roles in Discord, then rerun /setup")
-        .setDefault(true),
-    );
+    if (!allowNone) {
+      menu.addOptions(
+        new StringSelectMenuOptionBuilder()
+          .setLabel("No roles available")
+          .setValue("noop")
+          .setDescription("Create roles in Discord, then rerun /setup")
+          .setDefault(true),
+      );
+    }
   } else {
     roles.slice(0, allowNone ? 24 : 25).forEach((role) => {
       const roleId = String(role.id);
@@ -134,8 +136,11 @@ export function BuildCategorySelectRow(options: {
   placeholder: string;
   defaultCategoryName: string;
 }): ActionRowData<ActionRowComponentData> {
-  const { customId, categories, selectedId, placeholder, defaultCategoryName } =
-    options;
+  const { customId, categories, placeholder, defaultCategoryName } = options;
+  const selectedId = options.selectedId ? String(options.selectedId) : null;
+  const selectedCategory =
+    selectedId &&
+    categories.find((category) => String(category.id) === selectedId);
   const menu = new StringSelectMenuBuilder()
     .setCustomId(customId)
     .setPlaceholder(placeholder)
@@ -143,6 +148,8 @@ export function BuildCategorySelectRow(options: {
     .setMaxValues(1);
 
   const allowCreate = !selectedId;
+  const reservedSlots = 1 + (allowCreate ? 1 : 0);
+  const maxCategoryOptions = Math.max(0, 25 - reservedSlots);
 
   menu.addOptions(
     new StringSelectMenuOptionBuilder()
@@ -161,18 +168,32 @@ export function BuildCategorySelectRow(options: {
     );
   }
 
-  categories.slice(0, 23).forEach((category) => {
+  const optionValues = new Set<string>();
+
+  categories.slice(0, maxCategoryOptions).forEach((category) => {
+    const categoryId = String(category.id);
     const option = new StringSelectMenuOptionBuilder()
       .setLabel(category.name.slice(0, 95))
-      .setValue(category.id)
+      .setValue(categoryId)
       .setDescription("Use existing category");
 
-    if (selectedId === category.id) {
+    if (selectedId === categoryId) {
       option.setDefault(true);
     }
 
+    optionValues.add(categoryId);
     menu.addOptions(option);
   });
+
+  if (selectedCategory && !optionValues.has(String(selectedCategory.id))) {
+    menu.addOptions(
+      new StringSelectMenuOptionBuilder()
+        .setLabel(selectedCategory.name.slice(0, 95))
+        .setValue(String(selectedCategory.id))
+        .setDescription("Use existing category")
+        .setDefault(true),
+    );
+  }
 
   return ToActionRowData<ActionRowComponentData>(
     ComponentFactory.CreateSelectMenuRow(menu),
@@ -202,9 +223,10 @@ export function BuildChannelSelectRow(options: {
   includeCategoryName?: string;
   allowNone?: boolean;
 }): ActionRowData<ActionRowComponentData> {
+  const selectedId = options.selectedId ? String(options.selectedId) : null;
   const selectedChannel =
-    options.selectedId &&
-    options.channels.find((channel) => channel.id === options.selectedId);
+    selectedId &&
+    options.channels.find((channel) => String(channel.id) === selectedId);
 
   const menu = new StringSelectMenuBuilder()
     .setCustomId(options.customId)
@@ -212,15 +234,18 @@ export function BuildChannelSelectRow(options: {
     .setMinValues(1)
     .setMaxValues(1);
 
-  const allowCreate = !options.selectedId;
-  const isNoneSelected = options.allowNone && options.selectedId === null;
+  const allowCreate = !selectedId;
+  const isNoneSelected = Boolean(options.allowNone && selectedId === null);
+  const reservedSlots =
+    1 + (allowCreate ? 1 : 0) + (options.allowNone ? 1 : 0);
+  const maxChannelOptions = Math.max(0, 25 - reservedSlots);
 
   menu.addOptions(
     new StringSelectMenuOptionBuilder()
       .setLabel(`Auto-manage "${options.defaultName}"`)
       .setValue("auto")
       .setDescription("Use defaults or create when needed")
-      .setDefault(!options.selectedId && !isNoneSelected),
+      .setDefault(!selectedId && !isNoneSelected),
   );
 
   if (allowCreate) {
@@ -239,7 +264,7 @@ export function BuildChannelSelectRow(options: {
   if (options.allowNone) {
     menu.addOptions(
       new StringSelectMenuOptionBuilder()
-        .setLabel("Production logs: disable (none)")
+        .setLabel("None")
         .setValue("none")
         .setDescription("Do not use a channel for this")
         .setDefault(isNoneSelected),
@@ -248,14 +273,14 @@ export function BuildChannelSelectRow(options: {
 
   const optionValues = new Set<string>();
 
-  options.channels.slice(0, 23).forEach((channel) => {
+  options.channels.slice(0, maxChannelOptions).forEach((channel) => {
     const channelId = String(channel.id);
     const option = new StringSelectMenuOptionBuilder()
       .setLabel(`#${channel.name}`.slice(0, 95))
       .setValue(channelId)
       .setDescription("Use existing text channel");
 
-    if (options.selectedId === channelId) {
+    if (selectedId === channelId) {
       option.setDefault(true);
     }
 

@@ -38,14 +38,12 @@ export function BuildNavigationRow(options: {
     customIds.push(ids.next);
   }
 
-  if (isFinalStep) {
-    buttons.push({
-      label: "Save & Finish",
-      style: ButtonStyle.Success,
-      emoji: "💾",
-    });
-    customIds.push(ids.saveAndQuit);
-  }
+  buttons.push({
+    label: isFinalStep ? "Save & Finish" : "Save",
+    style: ButtonStyle.Success,
+    emoji: "💾",
+  });
+  customIds.push(ids.saveAndQuit);
 
   buttons.push({
     label: "Cancel",

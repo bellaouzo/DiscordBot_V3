@@ -18,6 +18,7 @@ describe("Setup navigation builder", () => {
 
     expect(labels).toContain("Get Started");
     expect(labels).not.toContain("Back");
+    expect(labels).toContain("Save");
     expect(labels).toContain("Cancel");
   });
 
@@ -26,10 +27,15 @@ describe("Setup navigation builder", () => {
     const labels = row.components.map((component) =>
       "label" in component ? component.label : "",
     );
+    const styles = row.components.map((component) =>
+      "style" in component ? component.style : undefined,
+    );
 
     expect(labels).toContain("Back");
     expect(labels).toContain("Next");
+    expect(labels).toContain("Save");
     expect(labels).not.toContain("Save & Finish");
+    expect(styles).toContain(ButtonStyle.Success);
   });
 
   it("builds final step navigation", () => {
@@ -43,6 +49,7 @@ describe("Setup navigation builder", () => {
 
     expect(labels).toContain("Save & Finish");
     expect(labels).not.toContain("Next");
+    expect(labels).not.toContain("Save");
     expect(styles).toContain(ButtonStyle.Success);
   });
 });

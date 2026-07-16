@@ -134,9 +134,10 @@ export const communityStep: SetupStepDefinition = {
         }),
         BuildSingleRoleSelectRow({
           customId: context.ids.unverifiedRoleSelect,
-          placeholder: "Unverified role",
+          placeholder: "Unverified role (optional)",
           roles: context.resources.roles,
           selectedId: draft.unverifiedRoleId,
+          allowNone: true,
         }),
         BuildSingleRoleSelectRow({
           customId: context.ids.verifiedRoleSelect,

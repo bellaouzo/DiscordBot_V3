@@ -459,4 +459,62 @@ describe("Setup select handlers lifecycle", () => {
     expect(draft.appealReviewCategoryId).toBe("appeal-cat-new");
     expect(resources.categories[0]).toEqual(created);
   });
+
+  it("create promotes an existing channel to the front of resources", async () => {
+    const existing = { id: "welcome-1", name: "welcome" };
+    const other = { id: "other-1", name: "general" };
+    const logger = createMockLogger();
+    const selectMenuRouter = CreateSelectMenuRouter(logger);
+    const updateMessage = vi.fn().mockResolvedValue(undefined);
+    const interactionId = "welcome-promote-test";
+    const interaction = createMockInteraction({
+      id: interactionId,
+      user: { id: "setup-owner", username: "Owner" } as never,
+    });
+    const draft = createEmptyDraft();
+    const ids = createSetupIds(interactionId);
+    const resources = {
+      roles: [],
+      categories: [],
+      textChannels: [other as never, existing as never],
+    };
+    const channelManager = {
+      GetOrCreateCategory: vi.fn(),
+      GetOrCreateTextChannel: vi.fn().mockResolvedValue(existing),
+    };
+
+    RegisterSelectHandlers({
+      interaction,
+      draft,
+      resources,
+      ids,
+      loggingDefaults: createMockAppConfig().logging,
+      channelManager: channelManager as never,
+      selectMenuRouter,
+      updateMessage,
+    });
+
+    let selectDeferred = false;
+    const selectInteraction = {
+      customId: ids.welcomeSelect,
+      values: ["create"],
+      user: { id: "setup-owner" },
+      get deferred() {
+        return selectDeferred;
+      },
+      replied: false,
+      reply: vi.fn(),
+      followUp: vi.fn(),
+      deferUpdate: vi.fn(async () => {
+        selectDeferred = true;
+      }),
+    } as unknown as StringSelectMenuInteraction;
+
+    const handled = await selectMenuRouter.HandleSelectMenu(selectInteraction);
+
+    expect(handled).toBe(true);
+    expect(draft.welcomeChannelId).toBe("welcome-1");
+    expect(resources.textChannels[0]).toEqual(existing);
+    expect(resources.textChannels).toHaveLength(2);
+  });
 });

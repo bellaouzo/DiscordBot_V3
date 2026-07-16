@@ -33,3 +33,19 @@ export function CollectResources(
     textChannels: textChannels ?? [],
   };
 }
+
+export function PromoteResourceItem<T extends { id: string }>(
+  items: T[],
+  item: T,
+): void {
+  const itemId = String(item.id);
+  const existingIndex = items.findIndex(
+    (existing) => String(existing.id) === itemId,
+  );
+
+  if (existingIndex >= 0) {
+    items.splice(existingIndex, 1);
+  }
+
+  items.unshift(item);
+}

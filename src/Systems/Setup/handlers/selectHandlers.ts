@@ -16,6 +16,7 @@ import type {
   SetupDraft,
   SetupResources,
 } from "../../Setup/state";
+import { PromoteResourceItem } from "../resources";
 
 interface RegisterSelectHandlersOptions {
   interaction: ChatInputCommandInteraction;
@@ -87,11 +88,7 @@ export function RegisterSelectHandlers(
         );
         if (created) {
           draft.ticketCategoryId = created.id;
-          if (
-            !resources.categories.find((category) => category.id === created.id)
-          ) {
-            resources.categories.unshift(created);
-          }
+          PromoteResourceItem(resources.categories, created);
         } else {
           await selectInteraction.followUp({
             content:
@@ -123,11 +120,7 @@ export function RegisterSelectHandlers(
         );
         if (created) {
           draft.appealReviewCategoryId = created.id;
-          if (
-            !resources.categories.find((category) => category.id === created.id)
-          ) {
-            resources.categories.unshift(created);
-          }
+          PromoteResourceItem(resources.categories, created);
         } else {
           await selectInteraction.followUp({
             content:
@@ -160,11 +153,7 @@ export function RegisterSelectHandlers(
         );
         if (created) {
           draft.commandLogChannelId = created.id;
-          if (
-            !resources.textChannels.find((channel) => channel.id === created.id)
-          ) {
-            resources.textChannels.unshift(created);
-          }
+          PromoteResourceItem(resources.textChannels, created);
         } else {
           await selectInteraction.followUp({
             content:
@@ -195,11 +184,7 @@ export function RegisterSelectHandlers(
           await channelManager.GetOrCreateTextChannel("ticket-logs");
         if (created) {
           draft.ticketLogChannelId = created.id;
-          if (
-            !resources.textChannels.find((channel) => channel.id === created.id)
-          ) {
-            resources.textChannels.unshift(created);
-          }
+          PromoteResourceItem(resources.textChannels, created);
         } else {
           await selectInteraction.followUp({
             content:
@@ -232,11 +217,7 @@ export function RegisterSelectHandlers(
         );
         if (created) {
           draft.deleteLogChannelId = created.id;
-          if (
-            !resources.textChannels.find((channel) => channel.id === created.id)
-          ) {
-            resources.textChannels.unshift(created);
-          }
+          PromoteResourceItem(resources.textChannels, created);
         } else {
           await selectInteraction.followUp({
             content:
@@ -271,11 +252,7 @@ export function RegisterSelectHandlers(
         );
         if (created) {
           draft.productionLogChannelId = created.id;
-          if (
-            !resources.textChannels.find((channel) => channel.id === created.id)
-          ) {
-            resources.textChannels.unshift(created);
-          }
+          PromoteResourceItem(resources.textChannels, created);
         } else {
           await selectInteraction.followUp({
             content:
@@ -309,11 +286,7 @@ export function RegisterSelectHandlers(
         );
         if (created) {
           draft.announcementChannelId = created.id;
-          if (
-            !resources.textChannels.find((channel) => channel.id === created.id)
-          ) {
-            resources.textChannels.unshift(created);
-          }
+          PromoteResourceItem(resources.textChannels, created);
         } else {
           await selectInteraction.followUp({
             content:
@@ -343,11 +316,7 @@ export function RegisterSelectHandlers(
         const created = await channelManager.GetOrCreateTextChannel("welcome");
         if (created) {
           draft.welcomeChannelId = created.id;
-          if (
-            !resources.textChannels.find((channel) => channel.id === created.id)
-          ) {
-            resources.textChannels.unshift(created);
-          }
+          PromoteResourceItem(resources.textChannels, created);
         } else {
           await selectInteraction.followUp({
             content:
@@ -472,11 +441,7 @@ function registerOptionalChannelSelect(options: {
           await channelManager.GetOrCreateTextChannel(defaultName);
         if (created) {
           assign(created.id);
-          if (
-            !resources.textChannels.find((channel) => channel.id === created.id)
-          ) {
-            resources.textChannels.unshift(created);
-          }
+          PromoteResourceItem(resources.textChannels, created);
         } else {
           await selectInteraction.followUp({
             content: `Could not create #${defaultName}. Check bot permissions.`,
