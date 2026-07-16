@@ -12,6 +12,38 @@ import { BeginTicketCreation } from "@systems/Ticket/handlers/CreateHandler";
 
 export const PANEL_BUTTON_CUSTOM_ID = "ticket-panel:create";
 
+export async function PostTicketPanelToChannel(
+  channel: TextChannel,
+): Promise<void> {
+  const embed = EmbedFactory.Create({
+    title: "Support Tickets",
+    description:
+      "Need help? Open a private support ticket and our staff will assist you.\n\n" +
+      "1. Click **Open Ticket** below\n" +
+      "2. Choose a category for your issue\n" +
+      "3. Describe your problem in the ticket channel\n\n" +
+      "Use `/ticket list` to view your existing tickets.\n" +
+      "Manage open tickets with the buttons inside your ticket channel.",
+    color: 0x5865f2,
+  });
+
+  const row = ComponentFactory.CreateActionRow({
+    buttons: [
+      {
+        label: "Open Ticket",
+        style: ButtonStyle.Primary,
+        emoji: "🎫",
+      },
+    ],
+    customIds: [PANEL_BUTTON_CUSTOM_ID],
+  });
+
+  await channel.send({
+    embeds: [embed.toJSON()],
+    components: [ToActionRowData(row)],
+  });
+}
+
 export function RegisterTicketPanelButton(context: CommandContext): void {
   const { componentRouter, buttonResponder } = context.responders;
 
@@ -101,33 +133,7 @@ export async function HandleTicketPanel(
 
   RegisterTicketPanelButton(context);
 
-  const embed = EmbedFactory.Create({
-    title: "Support Tickets",
-    description:
-      "Need help? Open a private support ticket and our staff will assist you.\n\n" +
-      "1. Click **Open Ticket** below\n" +
-      "2. Choose a category for your issue\n" +
-      "3. Describe your problem in the ticket channel\n\n" +
-      "Use `/ticket list` to view your existing tickets.\n" +
-      "Manage open tickets with the buttons inside your ticket channel.",
-    color: 0x5865f2,
-  });
-
-  const row = ComponentFactory.CreateActionRow({
-    buttons: [
-      {
-        label: "Open Ticket",
-        style: ButtonStyle.Primary,
-        emoji: "🎫",
-      },
-    ],
-    customIds: [PANEL_BUTTON_CUSTOM_ID],
-  });
-
-  await (channel as TextChannel).send({
-    embeds: [embed.toJSON()],
-    components: [ToActionRowData(row)],
-  });
+  await PostTicketPanelToChannel(channel as TextChannel);
 
   const confirmEmbed = EmbedFactory.CreateSuccess({
     title: "Ticket Panel Posted",

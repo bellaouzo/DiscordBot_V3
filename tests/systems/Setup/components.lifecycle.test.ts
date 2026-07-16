@@ -11,6 +11,11 @@ import type {
 import { createMockLogger, createMockDatabaseSet } from "../../helpers";
 import { SETUP_STEP_COUNT } from "@systems/Setup/constants";
 
+vi.mock("@systems/Setup/panels/PostSetupPanels", () => ({
+  PostMissingSetupPanels: vi.fn().mockResolvedValue([]),
+  FormatSetupPanelResults: vi.fn().mockReturnValue([]),
+}));
+
 function createSetupIds(interactionId: string): NavigationIds {
   const prefix = `setup:${interactionId}`;
   return {
@@ -115,8 +120,14 @@ function registerSetupButtons(stepState: StepState, draft: SetupDraft) {
     componentRouter,
     buttonResponder,
     serverDb: databases.serverDb,
+    guild: { id: "guild-1" } as never,
     guildId: "guild-1",
     ownerId: "setup-owner",
+    channelManager: {
+      GetOrCreateCategory: vi.fn(),
+      GetOrCreateTextChannel: vi.fn(),
+    } as never,
+    logger,
     updateMessage,
   });
 

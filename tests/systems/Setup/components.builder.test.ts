@@ -33,7 +33,8 @@ describe("Setup select builders", () => {
   it("includes None for unverified-style single role selects", () => {
     const row = BuildSingleRoleSelectRow({
       customId: "setup:unverified",
-      placeholder: "Unverified role (optional)",
+      placeholder: "Unverified role — given on join (required)",
+      fieldLabel: "Unverified role",
       roles: [{ id: "role-1", name: "Unverified" } as never],
       selectedId: "role-1",
       allowNone: true,
@@ -44,17 +45,22 @@ describe("Setup select builders", () => {
     const values = options.map((option) =>
       "value" in option ? option.value : "",
     );
+    const labels = options.map((option) =>
+      "label" in option ? option.label : "",
+    );
 
     expect(values).toContain("none");
     expect(values).toContain("role-1");
+    expect(labels).toContain("Unverified role: Unverified");
   });
 
-  it("uses a generic None label for optional channel selects", () => {
+  it("prefixes selected channel options with the field label", () => {
     const row = BuildChannelSelectRow({
       customId: "setup:deletelog",
-      channels: [],
-      selectedId: null,
-      placeholder: "Choose a delete logs channel",
+      channels: [{ id: "chan-1", name: "mod-logs" } as never],
+      selectedId: "chan-1",
+      placeholder: "Delete logs channel — message deletion audit log",
+      fieldLabel: "Delete logs",
       defaultName: "delete-logs",
       allowNone: true,
     });
@@ -65,7 +71,7 @@ describe("Setup select builders", () => {
       "label" in option ? option.label : "",
     );
 
+    expect(labels).toContain("Delete logs: #mod-logs");
     expect(labels).toContain("None");
-    expect(labels).not.toContain("Production logs: disable (none)");
   });
 });

@@ -77,5 +77,18 @@ describe("BuildVerificationEligibility", () => {
 
     expect(eligibility.eligible).toBe(false);
     expect(eligibility.alreadyVerified).toBe(true);
+    expect(eligibility.unverifiedRoleConfigured).toBe(true);
+  });
+
+  it("does not treat members as verified when unverified role is not configured", () => {
+    const eligibility = BuildVerificationEligibility(
+      CreateMember({ createdDaysAgo: 30, roleIds: [] }),
+      CreateSettings({ unverified_role_id: null }),
+    );
+
+    expect(eligibility.eligible).toBe(false);
+    expect(eligibility.alreadyVerified).toBe(false);
+    expect(eligibility.unverifiedRoleConfigured).toBe(false);
+    expect(eligibility.hasUnverifiedRole).toBe(false);
   });
 });

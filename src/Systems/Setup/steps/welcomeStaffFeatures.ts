@@ -91,17 +91,17 @@ export const staffStep: SetupStepDefinition = {
     return [
       BuildRoleSelectRow(
         context.ids.adminSelect,
-        "Admin roles — full access",
+        "Admin roles — who can run /setup and admin commands",
         context.resources.roles,
         context.draft.adminRoleIds,
-        "Admin Roles",
+        "Admin roles",
       ),
       BuildRoleSelectRow(
         context.ids.modSelect,
-        "Mod roles — day-to-day moderation",
+        "Mod roles — who can moderate, tickets, and appeals",
         context.resources.roles,
         context.draft.modRoleIds,
-        "Mod Roles",
+        "Mod roles",
       ),
       BuildNavigationRow({ step: 2, ids: context.ids }),
     ];

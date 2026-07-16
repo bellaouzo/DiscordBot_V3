@@ -12,12 +12,24 @@ import {
 import { ComponentFactory, ToActionRowData } from "@utilities";
 import { DEFAULT_TICKET_CATEGORY } from "../constants";
 
+function FormatFieldOptionLabel(
+  fieldLabel: string,
+  valueLabel: string,
+  selected: boolean,
+): string {
+  if (!selected) {
+    return valueLabel.slice(0, 100);
+  }
+
+  return `${fieldLabel}: ${valueLabel}`.slice(0, 100);
+}
+
 export function BuildRoleSelectRow(
   customId: string,
   placeholder: string,
   roles: Role[],
   selectedIds: string[],
-  label?: string,
+  fieldLabel: string,
 ): ActionRowData<ActionRowComponentData> {
   const hasRoles = roles.length > 0;
   const menu = new StringSelectMenuBuilder()
@@ -37,12 +49,13 @@ export function BuildRoleSelectRow(
   } else {
     roles.slice(0, 25).forEach((role) => {
       const roleId = String(role.id);
+      const selected = selectedIds.includes(roleId);
       const option = new StringSelectMenuOptionBuilder()
-        .setLabel(role.name.slice(0, 95))
+        .setLabel(FormatFieldOptionLabel(fieldLabel, role.name, selected))
         .setValue(roleId)
-        .setDescription(`ID: ${roleId}`);
+        .setDescription(`${fieldLabel} · ID: ${roleId}`.slice(0, 100));
 
-      if (selectedIds.includes(roleId)) {
+      if (selected) {
         option.setDefault(true);
       }
 
@@ -50,26 +63,15 @@ export function BuildRoleSelectRow(
     });
   }
 
-  const row = ToActionRowData<ActionRowComponentData>(
+  return ToActionRowData<ActionRowComponentData>(
     ComponentFactory.CreateSelectMenuRow(menu),
   );
-
-  if (label) {
-    return {
-      ...row,
-      components: row.components.map((component) => ({
-        ...component,
-        placeholder: label,
-      })),
-    };
-  }
-
-  return row;
 }
 
 export function BuildSingleRoleSelectRow(options: {
   customId: string;
   placeholder: string;
+  fieldLabel: string;
   roles: Role[];
   selectedId: string | null;
   allowNone?: boolean;
@@ -77,6 +79,7 @@ export function BuildSingleRoleSelectRow(options: {
   const {
     customId,
     placeholder,
+    fieldLabel,
     roles,
     selectedId,
     allowNone = false,
@@ -89,12 +92,15 @@ export function BuildSingleRoleSelectRow(options: {
     .setMaxValues(1);
 
   if (allowNone) {
+    const noneSelected = !selectedId;
     menu.addOptions(
       new StringSelectMenuOptionBuilder()
-        .setLabel("None")
+        .setLabel(
+          FormatFieldOptionLabel(fieldLabel, "None", noneSelected),
+        )
         .setValue("none")
-        .setDescription("Do not assign this role")
-        .setDefault(!selectedId),
+        .setDescription(`Do not set ${fieldLabel}`)
+        .setDefault(noneSelected),
     );
   }
 
@@ -111,12 +117,13 @@ export function BuildSingleRoleSelectRow(options: {
   } else {
     roles.slice(0, allowNone ? 24 : 25).forEach((role) => {
       const roleId = String(role.id);
+      const selected = selectedId === roleId;
       const option = new StringSelectMenuOptionBuilder()
-        .setLabel(role.name.slice(0, 95))
+        .setLabel(FormatFieldOptionLabel(fieldLabel, role.name, selected))
         .setValue(roleId)
-        .setDescription(`ID: ${roleId}`);
+        .setDescription(`${fieldLabel} · ID: ${roleId}`.slice(0, 100));
 
-      if (selectedId === roleId) {
+      if (selected) {
         option.setDefault(true);
       }
 
@@ -134,9 +141,16 @@ export function BuildCategorySelectRow(options: {
   categories: CategoryChannel[];
   selectedId: string | null;
   placeholder: string;
+  fieldLabel: string;
   defaultCategoryName: string;
 }): ActionRowData<ActionRowComponentData> {
-  const { customId, categories, placeholder, defaultCategoryName } = options;
+  const {
+    customId,
+    categories,
+    placeholder,
+    fieldLabel,
+    defaultCategoryName,
+  } = options;
   const selectedId = options.selectedId ? String(options.selectedId) : null;
   const selectedCategory =
     selectedId &&
@@ -148,15 +162,22 @@ export function BuildCategorySelectRow(options: {
     .setMaxValues(1);
 
   const allowCreate = !selectedId;
+  const autoSelected = !selectedId;
   const reservedSlots = 1 + (allowCreate ? 1 : 0);
   const maxCategoryOptions = Math.max(0, 25 - reservedSlots);
 
   menu.addOptions(
     new StringSelectMenuOptionBuilder()
-      .setLabel(`Auto-manage "${defaultCategoryName}"`)
+      .setLabel(
+        FormatFieldOptionLabel(
+          fieldLabel,
+          `Auto-manage "${defaultCategoryName}"`,
+          autoSelected,
+        ),
+      )
       .setValue("auto")
-      .setDescription("Let the bot create or use the default category")
-      .setDefault(!selectedId),
+      .setDescription(`${fieldLabel} · create or use the default category`)
+      .setDefault(autoSelected),
   );
 
   if (allowCreate) {
@@ -164,7 +185,7 @@ export function BuildCategorySelectRow(options: {
       new StringSelectMenuOptionBuilder()
         .setLabel(`Create "${defaultCategoryName}" now`)
         .setValue("create")
-        .setDescription("Create the default category immediately"),
+        .setDescription(`${fieldLabel} · create immediately`),
     );
   }
 
@@ -172,12 +193,13 @@ export function BuildCategorySelectRow(options: {
 
   categories.slice(0, maxCategoryOptions).forEach((category) => {
     const categoryId = String(category.id);
+    const selected = selectedId === categoryId;
     const option = new StringSelectMenuOptionBuilder()
-      .setLabel(category.name.slice(0, 95))
+      .setLabel(FormatFieldOptionLabel(fieldLabel, category.name, selected))
       .setValue(categoryId)
-      .setDescription("Use existing category");
+      .setDescription(`${fieldLabel} · use existing category`);
 
-    if (selectedId === categoryId) {
+    if (selected) {
       option.setDefault(true);
     }
 
@@ -188,9 +210,15 @@ export function BuildCategorySelectRow(options: {
   if (selectedCategory && !optionValues.has(String(selectedCategory.id))) {
     menu.addOptions(
       new StringSelectMenuOptionBuilder()
-        .setLabel(selectedCategory.name.slice(0, 95))
+        .setLabel(
+          FormatFieldOptionLabel(
+            fieldLabel,
+            selectedCategory.name,
+            true,
+          ),
+        )
         .setValue(String(selectedCategory.id))
-        .setDescription("Use existing category")
+        .setDescription(`${fieldLabel} · use existing category`)
         .setDefault(true),
     );
   }
@@ -209,7 +237,8 @@ export function BuildTicketCategoryRow(
     customId,
     categories,
     selectedId,
-    placeholder: "Ticket category for new ticket channels",
+    placeholder: "Ticket category — where new ticket channels go",
+    fieldLabel: "Ticket category",
     defaultCategoryName: DEFAULT_TICKET_CATEGORY,
   });
 }
@@ -219,6 +248,7 @@ export function BuildChannelSelectRow(options: {
   channels: TextChannel[];
   selectedId: string | null;
   placeholder: string;
+  fieldLabel: string;
   defaultName: string;
   includeCategoryName?: string;
   allowNone?: boolean;
@@ -227,6 +257,7 @@ export function BuildChannelSelectRow(options: {
   const selectedChannel =
     selectedId &&
     options.channels.find((channel) => String(channel.id) === selectedId);
+  const { fieldLabel } = options;
 
   const menu = new StringSelectMenuBuilder()
     .setCustomId(options.customId)
@@ -236,15 +267,22 @@ export function BuildChannelSelectRow(options: {
 
   const allowCreate = !selectedId;
   const isNoneSelected = Boolean(options.allowNone && selectedId === null);
+  const autoSelected = !selectedId && !isNoneSelected;
   const reservedSlots = 1 + (allowCreate ? 1 : 0) + (options.allowNone ? 1 : 0);
   const maxChannelOptions = Math.max(0, 25 - reservedSlots);
 
   menu.addOptions(
     new StringSelectMenuOptionBuilder()
-      .setLabel(`Auto-manage "${options.defaultName}"`)
+      .setLabel(
+        FormatFieldOptionLabel(
+          fieldLabel,
+          `Auto-manage #${options.defaultName}`,
+          autoSelected,
+        ),
+      )
       .setValue("auto")
-      .setDescription("Use defaults or create when needed")
-      .setDefault(!selectedId && !isNoneSelected),
+      .setDescription(`${fieldLabel} · use defaults or create when needed`)
+      .setDefault(autoSelected),
   );
 
   if (allowCreate) {
@@ -254,8 +292,8 @@ export function BuildChannelSelectRow(options: {
         .setValue("create")
         .setDescription(
           options.includeCategoryName
-            ? `Create under ${options.includeCategoryName}`
-            : "Create this channel now",
+            ? `${fieldLabel} · create under ${options.includeCategoryName}`
+            : `${fieldLabel} · create this channel now`,
         ),
     );
   }
@@ -263,9 +301,9 @@ export function BuildChannelSelectRow(options: {
   if (options.allowNone) {
     menu.addOptions(
       new StringSelectMenuOptionBuilder()
-        .setLabel("None")
+        .setLabel(FormatFieldOptionLabel(fieldLabel, "None", isNoneSelected))
         .setValue("none")
-        .setDescription("Do not use a channel for this")
+        .setDescription(`Do not use a channel for ${fieldLabel}`)
         .setDefault(isNoneSelected),
     );
   }
@@ -274,12 +312,15 @@ export function BuildChannelSelectRow(options: {
 
   options.channels.slice(0, maxChannelOptions).forEach((channel) => {
     const channelId = String(channel.id);
+    const selected = selectedId === channelId;
     const option = new StringSelectMenuOptionBuilder()
-      .setLabel(`#${channel.name}`.slice(0, 95))
+      .setLabel(
+        FormatFieldOptionLabel(fieldLabel, `#${channel.name}`, selected),
+      )
       .setValue(channelId)
-      .setDescription("Use existing text channel");
+      .setDescription(`${fieldLabel} · use existing text channel`);
 
-    if (selectedId === channelId) {
+    if (selected) {
       option.setDefault(true);
     }
 
@@ -290,9 +331,15 @@ export function BuildChannelSelectRow(options: {
   if (selectedChannel && !optionValues.has(String(selectedChannel.id))) {
     menu.addOptions(
       new StringSelectMenuOptionBuilder()
-        .setLabel(`#${selectedChannel.name}`.slice(0, 95))
+        .setLabel(
+          FormatFieldOptionLabel(
+            fieldLabel,
+            `#${selectedChannel.name}`,
+            true,
+          ),
+        )
         .setValue(String(selectedChannel.id))
-        .setDescription("Use existing text channel")
+        .setDescription(`${fieldLabel} · use existing text channel`)
         .setDefault(true),
     );
   }

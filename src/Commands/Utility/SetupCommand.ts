@@ -123,8 +123,11 @@ async function ExecuteSetup(
     componentRouter,
     buttonResponder,
     serverDb: databases.serverDb,
+    guild,
     guildId: String(guild.id),
     ownerId: String(interaction.user.id),
+    channelManager,
+    logger,
     updateMessage: setupContext.updateMessage,
   });
 

@@ -1,6 +1,7 @@
-import type { ChatInputCommandInteraction, TextChannel } from "discord.js";
+import type { ChatInputCommandInteraction, Guild, TextChannel } from "discord.js";
 import { ButtonStyle, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
+import type { GuildSettings } from "@database/Server/Types";
 import {
   ComponentFactory,
   EmbedFactory,
@@ -25,6 +26,36 @@ export const VERIFICATION_PANEL_CONFIRM_CUSTOM_ID =
   "verification-panel:confirm";
 
 const CONFIRM_SESSION_MS = 1000 * 60 * 10;
+
+export async function PostVerificationPanelToChannel(options: {
+  channel: TextChannel;
+  guild: Guild;
+  settings: GuildSettings;
+}): Promise<void> {
+  const actionRow = ComponentFactory.CreateActionRow({
+    buttons: [
+      {
+        label: "Begin Verification",
+        style: ButtonStyle.Primary,
+        emoji: "🚀",
+      },
+      {
+        label: "Check Eligibility",
+        style: ButtonStyle.Secondary,
+        emoji: "🔍",
+      },
+    ],
+    customIds: [
+      VERIFICATION_PANEL_BEGIN_CUSTOM_ID,
+      VERIFICATION_PANEL_CHECK_CUSTOM_ID,
+    ],
+  });
+
+  await options.channel.send({
+    embeds: [BuildVerificationPanelEmbed(options.guild, options.settings)],
+    components: [ToActionRowData(actionRow)],
+  });
+}
 
 export function RegisterVerificationPanelButton(context: CommandContext): void {
   RegisterVerificationPanelButtons(context);
@@ -94,7 +125,11 @@ export function RegisterVerificationPanelButtons(
       const member = await guild.members.fetch(buttonInteraction.user.id);
       const eligibility = BuildVerificationEligibility(member, settings);
 
-      if (eligibility.alreadyVerified) {
+      if (
+        eligibility.alreadyVerified ||
+        !eligibility.unverifiedRoleConfigured ||
+        !eligibility.hasUnverifiedRole
+      ) {
         await buttonInteraction.editReply({
           embeds: [BuildEligibilityEmbed(member, eligibility)],
         });
@@ -241,28 +276,10 @@ export async function HandleVerificationPanel(
 
   RegisterVerificationPanelButtons(context);
 
-  const actionRow = ComponentFactory.CreateActionRow({
-    buttons: [
-      {
-        label: "Begin Verification",
-        style: ButtonStyle.Primary,
-        emoji: "🚀",
-      },
-      {
-        label: "Check Eligibility",
-        style: ButtonStyle.Secondary,
-        emoji: "🔍",
-      },
-    ],
-    customIds: [
-      VERIFICATION_PANEL_BEGIN_CUSTOM_ID,
-      VERIFICATION_PANEL_CHECK_CUSTOM_ID,
-    ],
-  });
-
-  await (channel as TextChannel).send({
-    embeds: [BuildVerificationPanelEmbed(interaction.guild, settings)],
-    components: [ToActionRowData(actionRow)],
+  await PostVerificationPanelToChannel({
+    channel: channel as TextChannel,
+    guild: interaction.guild,
+    settings,
   });
 
   context.databases.serverDb.UpsertGuildSettings({

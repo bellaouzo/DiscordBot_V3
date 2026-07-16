@@ -102,6 +102,16 @@ export function BuildEligibilityEmbed(
     return embed.toJSON();
   }
 
+  if (!eligibility.unverifiedRoleConfigured) {
+    const embed = EmbedFactory.CreateWarning({
+      title: "Verification Not Ready",
+      description:
+        "This server has verification enabled, but no **unverified role** is configured. " +
+        "Staff need to set that role in `/setup` (it is the role new members get until they verify).",
+    });
+    return embed.toJSON();
+  }
+
   const ageLine =
     eligibility.minAccountAgeDays > 0
       ? eligibility.eligible
@@ -111,7 +121,7 @@ export function BuildEligibilityEmbed(
 
   const roleLine = eligibility.hasUnverifiedRole
     ? "✅ Unverified role detected — you can complete verification"
-    : "❌ You do not have the unverified role. Contact staff if this is wrong.";
+    : "❌ You do not have the unverified role. Rejoin the server or ask staff to assign it.";
 
   const embed = EmbedFactory.Create({
     title: eligibility.eligible ? "You're eligible!" : "Not eligible yet",

@@ -10,8 +10,41 @@ import {
 import { BeginAppealSubmission } from "@commands/Moderation/Appeal/AppealSubmitFlow";
 import { IsAppealReviewer } from "@commands/Moderation/Appeal/AppealShared";
 
-const PANEL_BUTTON_CUSTOM_ID = "appeal-panel:submit";
+export const APPEAL_PANEL_BUTTON_CUSTOM_ID = "appeal-panel:submit";
+const PANEL_BUTTON_CUSTOM_ID = APPEAL_PANEL_BUTTON_CUSTOM_ID;
 const PANEL_BUTTON_EXPIRY_MS = 1000 * 60 * 60 * 24 * 30;
+
+export async function PostAppealPanelToChannel(
+  channel: TextChannel,
+): Promise<void> {
+  const embed = EmbedFactory.Create({
+    title: "Moderation Appeals",
+    description:
+      "If you believe a warning, mute, ban, or kick was issued in error, you can submit an appeal below.\n\n" +
+      "1. Click **Submit Appeal**\n" +
+      "2. Select the moderation action\n" +
+      "3. Explain your case and add evidence if you have any\n\n" +
+      "Staff will review your appeal in a private channel. Use `/appeal my` to check status.\n\n" +
+      "*If you were banned and cannot access this server, contact staff through your server's external support process.*",
+    color: 0x5865f2,
+  });
+
+  const row = ComponentFactory.CreateActionRow({
+    buttons: [
+      {
+        label: "Submit Appeal",
+        style: ButtonStyle.Primary,
+        emoji: "📋",
+      },
+    ],
+    customIds: [PANEL_BUTTON_CUSTOM_ID],
+  });
+
+  await channel.send({
+    embeds: [embed.toJSON()],
+    components: [ToActionRowData(row)],
+  });
+}
 
 export function RegisterAppealPanelButton(context: CommandContext): void {
   const { componentRouter } = context.responders;
@@ -100,33 +133,7 @@ export async function HandlePanel(
 
   RegisterAppealPanelButton(context);
 
-  const embed = EmbedFactory.Create({
-    title: "Moderation Appeals",
-    description:
-      "If you believe a warning, mute, ban, or kick was issued in error, you can submit an appeal below.\n\n" +
-      "1. Click **Submit Appeal**\n" +
-      "2. Select the moderation action\n" +
-      "3. Explain your case and add evidence if you have any\n\n" +
-      "Staff will review your appeal in a private channel. Use `/appeal my` to check status.\n\n" +
-      "*If you were banned and cannot access this server, contact staff through your server's external support process.*",
-    color: 0x5865f2,
-  });
-
-  const row = ComponentFactory.CreateActionRow({
-    buttons: [
-      {
-        label: "Submit Appeal",
-        style: ButtonStyle.Primary,
-        emoji: "📋",
-      },
-    ],
-    customIds: [PANEL_BUTTON_CUSTOM_ID],
-  });
-
-  await (channel as TextChannel).send({
-    embeds: [embed.toJSON()],
-    components: [ToActionRowData(row)],
-  });
+  await PostAppealPanelToChannel(channel as TextChannel);
 
   const confirmEmbed = EmbedFactory.CreateSuccess({
     title: "Appeal Panel Posted",
