@@ -2,6 +2,7 @@ import type {
   Guild,
   EmbedBuilder,
   ChatInputCommandInteraction,
+  TextChannel,
 } from "discord.js";
 import type { Logger } from "@shared/Logger";
 import type { CommandDefinition } from "@commands";
@@ -12,6 +13,7 @@ export interface DiscordLoggerOptions {
   readonly guild: Guild;
   readonly logger: Logger;
   readonly config: LoggingConfig;
+  readonly commandLogChannelId?: string | null;
 }
 
 export interface DiscordLogger {
@@ -34,11 +36,22 @@ export function CreateDiscordLogger(
       interaction: ChatInputCommandInteraction,
       command: CommandDefinition,
     ): Promise<void> => {
-      try {
-        const channel = await channelManager.GetOrCreateTextChannel(
-          options.config.commandLogChannelName,
-          options.config.commandLogCategoryName,
+      if (interaction.guildId && interaction.guildId !== options.guild.id) {
+        options.logger.Warn(
+          "Skipping command log for mismatched guild",
+          {
+            extra: {
+              interactionGuildId: interaction.guildId,
+              loggerGuildId: options.guild.id,
+              commandName: command.data.name,
+            },
+          },
         );
+        return;
+      }
+
+      try {
+        const channel = await ResolveCommandLogChannel(options, channelManager);
 
         if (!channel) {
           options.logger.Warn("Failed to get or create logging channel", {
@@ -46,6 +59,7 @@ export function CreateDiscordLogger(
               guildId: options.guild.id,
               channelName: options.config.commandLogChannelName,
               categoryName: options.config.commandLogCategoryName,
+              commandLogChannelId: options.commandLogChannelId ?? null,
             },
           });
           return;
@@ -66,6 +80,35 @@ export function CreateDiscordLogger(
       }
     },
   };
+}
+
+async function ResolveCommandLogChannel(
+  options: DiscordLoggerOptions,
+  channelManager: ReturnType<typeof CreateChannelManager>,
+): Promise<TextChannel | null> {
+  if (options.commandLogChannelId) {
+    try {
+      const configured = await options.guild.channels.fetch(
+        options.commandLogChannelId,
+      );
+      if (configured?.isTextBased()) {
+        return configured as TextChannel;
+      }
+    } catch (error) {
+      options.logger.Warn("Configured command log channel unavailable", {
+        error,
+        extra: {
+          guildId: options.guild.id,
+          commandLogChannelId: options.commandLogChannelId,
+        },
+      });
+    }
+  }
+
+  return channelManager.GetOrCreateTextChannel(
+    options.config.commandLogChannelName,
+    options.config.commandLogCategoryName,
+  );
 }
 
 function CreateCommandLogEmbed(
@@ -103,7 +146,6 @@ function CreateCommandLogEmbed(
     ]);
   } else {
     const first = options[0];
-    // Subcommand
     if (first.type === 1) {
       const subOptions =
         first.options?.map(
@@ -126,7 +168,6 @@ function CreateCommandLogEmbed(
         },
       ]);
     } else {
-      // Top-level options without subcommand
       const argLines = options.map(
         (opt) => `${opt.name}: ${FormatOptionValue(opt.value)}`,
       );

@@ -24,7 +24,7 @@ describe("CreateDiscordLogger", () => {
   it("warns when the logging channel cannot be created", async () => {
     getOrCreateTextChannelMock.mockResolvedValue(null);
     const logger = createMockLogger();
-    const guild = { id: "guild-1" } as never;
+    const guild = { id: "guild-1", channels: { fetch: vi.fn() } } as never;
 
     const discordLogger = CreateDiscordLogger({
       guild,
@@ -60,9 +60,88 @@ describe("CreateDiscordLogger", () => {
     expect(channelSendMock).not.toHaveBeenCalled();
   });
 
+  it("uses the configured command log channel when available", async () => {
+    const logger = createMockLogger();
+    const configuredSend = vi.fn().mockResolvedValue(undefined);
+    const guild = {
+      id: "guild-1",
+      channels: {
+        fetch: vi.fn().mockResolvedValue({
+          isTextBased: () => true,
+          send: configuredSend,
+        }),
+      },
+    } as never;
+
+    const discordLogger = CreateDiscordLogger({
+      guild,
+      logger,
+      config: {
+        commandLogChannelName: "command-logs",
+        commandLogCategoryName: "logging",
+      },
+      commandLogChannelId: "configured-log",
+    });
+
+    await discordLogger.LogCommandExecution(
+      {
+        user: { id: "user-1", toString: () => "<@user-1>" },
+        channel: { toString: () => "#general" },
+        options: { data: [] },
+        guildId: "guild-1",
+      } as never,
+      {
+        data: { name: "ping" },
+        group: "Utility",
+      } as never,
+    );
+
+    expect(getOrCreateTextChannelMock).not.toHaveBeenCalled();
+    expect(configuredSend).toHaveBeenCalledOnce();
+  });
+
+  it("skips logging when interaction guild does not match logger guild", async () => {
+    const logger = createMockLogger();
+    const guild = { id: "guild-1", channels: { fetch: vi.fn() } } as never;
+
+    const discordLogger = CreateDiscordLogger({
+      guild,
+      logger,
+      config: {
+        commandLogChannelName: "command-logs",
+        commandLogCategoryName: "logging",
+      },
+    });
+
+    await discordLogger.LogCommandExecution(
+      {
+        user: { id: "user-1", toString: () => "<@user-1>" },
+        channel: { toString: () => "#general" },
+        options: { data: [] },
+        guildId: "guild-2",
+      } as never,
+      {
+        data: { name: "ping" },
+        group: "Utility",
+      } as never,
+    );
+
+    expect(logger.Warn).toHaveBeenCalledWith(
+      "Skipping command log for mismatched guild",
+      expect.objectContaining({
+        extra: expect.objectContaining({
+          interactionGuildId: "guild-2",
+          loggerGuildId: "guild-1",
+        }),
+      }),
+    );
+    expect(getOrCreateTextChannelMock).not.toHaveBeenCalled();
+    expect(channelSendMock).not.toHaveBeenCalled();
+  });
+
   it("logs top-level slash options without a subcommand", async () => {
     const logger = createMockLogger();
-    const guild = { id: "guild-1" } as never;
+    const guild = { id: "guild-1", channels: { fetch: vi.fn() } } as never;
 
     const discordLogger = CreateDiscordLogger({
       guild,
@@ -98,7 +177,7 @@ describe("CreateDiscordLogger", () => {
 
   it("sends an embed with subcommand fields when logging succeeds", async () => {
     const logger = createMockLogger();
-    const guild = { id: "guild-1" } as never;
+    const guild = { id: "guild-1", channels: { fetch: vi.fn() } } as never;
 
     const discordLogger = CreateDiscordLogger({
       guild,
