@@ -271,7 +271,7 @@ describe("TicketManager lifecycle", () => {
 
       const closed = await manager.CloseTicket(4, staffId, true);
       expect(closed).toBe(true);
-      expect(ticketDb.CloseTicket).toHaveBeenCalledWith(4, staffId);
+      expect(ticketDb.CloseTicket).toHaveBeenCalledWith(4, staffId, undefined);
       expect(channelSend).toHaveBeenCalledWith(
         expect.objectContaining({ embeds: expect.any(Array) }),
       );

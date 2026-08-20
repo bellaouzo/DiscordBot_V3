@@ -1,7 +1,7 @@
 import express from "express";
 import session from "express-session";
 import passport from "passport";
-import { Strategy as DiscordStrategy } from "passport-discord";
+import { Strategy as DiscordStrategy, DiscordScope } from "discord-strategy";
 // @ts-expect-error No type definitions available for this module
 import SQLiteStoreFactory from "better-sqlite3-session-store";
 import { join } from "path";
@@ -69,10 +69,17 @@ export class WebServer {
           clientID: this.config.deployment.clientId,
           clientSecret: this.config.web.clientSecret,
           callbackURL: this.config.web.oauthRedirectUri,
-          scope: ["identify", "guilds"],
+          authorizationURL: "https://discord.com/api/oauth2/authorize",
+          tokenURL: "https://discord.com/api/oauth2/token",
+          scope: [DiscordScope.Identify, DiscordScope.Guilds],
         },
-        (_accessToken, _refreshToken, profile, done) => {
-          return done(null, profile);
+        async (_accessToken, _refreshToken, profile, done, consume) => {
+          try {
+            await consume.guilds();
+            done(null, profile);
+          } catch (error) {
+            done(error instanceof Error ? error : new Error(String(error)));
+          }
         },
       ),
     );

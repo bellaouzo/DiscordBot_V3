@@ -13,6 +13,7 @@ const {
   giveawaySchedulerStartMock,
   eventSchedulerStartMock,
   lotterySchedulerStartMock,
+  webServerStartMock,
   loadCommandsMock,
   loadEventsMock,
 } = vi.hoisted(() => {
@@ -35,6 +36,7 @@ const {
     giveawaySchedulerStartMock: vi.fn(),
     eventSchedulerStartMock: vi.fn(),
     lotterySchedulerStartMock: vi.fn(),
+    webServerStartMock: vi.fn(),
     loadCommandsMock: vi.fn().mockResolvedValue({
       definitions: [],
       slashData: [],
@@ -107,10 +109,27 @@ vi.mock("@systems/Economy/LotteryScheduler", () => ({
   },
 }));
 
+vi.mock("../src/Web/WebServer", () => ({
+  WebServer: class {
+    Start = webServerStartMock;
+    Stop = vi.fn();
+  },
+}));
+
 vi.mock("@database", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@database")>();
   class MockDatabase {
     Close = vi.fn();
+    get Db() {
+      return {
+        exec: vi.fn(),
+        prepare: vi.fn(() => ({
+          run: vi.fn(),
+          get: vi.fn(),
+          all: vi.fn(),
+        })),
+      };
+    }
   }
   return {
     ...actual,
@@ -175,6 +194,7 @@ describe("Bootstrap integration", () => {
     expect(giveawaySchedulerStartMock).toHaveBeenCalledOnce();
     expect(eventSchedulerStartMock).toHaveBeenCalledOnce();
     expect(lotterySchedulerStartMock).toHaveBeenCalledOnce();
+    expect(webServerStartMock).toHaveBeenCalledOnce();
     expect(resources.client).toBe(mockClient);
   });
 
