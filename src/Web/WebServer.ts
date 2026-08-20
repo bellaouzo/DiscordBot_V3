@@ -1,7 +1,13 @@
 import express from "express";
 import session from "express-session";
 import passport from "passport";
-import { Strategy as DiscordStrategy, DiscordScope } from "discord-strategy";
+import {
+  Strategy as DiscordStrategy,
+  DiscordScope,
+  type ConsumableAPI,
+  type DiscordProfile,
+  type VerifyCallback,
+} from "discord-strategy";
 // @ts-expect-error No type definitions available for this module
 import SQLiteStoreFactory from "better-sqlite3-session-store";
 import { join } from "path";
@@ -73,7 +79,13 @@ export class WebServer {
           tokenURL: "https://discord.com/api/oauth2/token",
           scope: [DiscordScope.Identify, DiscordScope.Guilds],
         },
-        async (_accessToken, _refreshToken, profile, done, consume) => {
+        async (
+          _accessToken: string,
+          _refreshToken: string,
+          profile: DiscordProfile,
+          done: VerifyCallback,
+          consume: ConsumableAPI,
+        ) => {
           try {
             await consume.guilds();
             done(null, profile);

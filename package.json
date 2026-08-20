@@ -53,6 +53,7 @@
     "@types/module-alias": "^2.0.4",
     "@types/node": "^20.10.0",
     "@types/passport": "^1.0.17",
+    "@types/passport-oauth2": "^1.8.0",
     "@vitest/coverage-v8": "^4.0.18",
     "baseline-browser-mapping": "^2.10.35",
     "concurrently": "^10.0.3",
