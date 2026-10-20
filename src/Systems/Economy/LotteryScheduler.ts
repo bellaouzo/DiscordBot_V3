@@ -3,7 +3,7 @@ import type { UserDatabase } from "@database";
 import type { ServerDatabase } from "@database/ServerDatabase";
 import type { Logger } from "@shared/Logger";
 import { PollingScheduler } from "@shared/PollingScheduler";
-import { IsEconomyEnabled } from "@shared/GuildFeatures";
+import { IsFeatureEnabled } from "@shared/Features";
 import { LotteryManager } from "@systems/Economy/LotteryManager";
 
 const POLL_INTERVAL_MS = 30_000;
@@ -27,7 +27,7 @@ export class LotteryScheduler extends PollingScheduler {
     const ended = this.userDb.GetEndedLotteriesToProcess();
 
     for (const lottery of ended) {
-      if (!IsEconomyEnabled(this.serverDb, lottery.guild_id)) {
+      if (!IsFeatureEnabled(this.serverDb, lottery.guild_id, "economy")) {
         continue;
       }
       await this.ProcessLottery(lottery.guild_id, lottery.message_id);

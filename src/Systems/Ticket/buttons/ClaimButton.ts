@@ -7,12 +7,10 @@ import {
   RequireGuildFromInteraction,
   ResolveInteractionMember,
 } from "@utilities";
-import {
-  HasStaffPermissions,
-  ParseTicketButtonCustomId,
-} from "@systems/Ticket/validation/TicketValidation";
+import { HasStaffPermissions } from "@systems/Ticket/validation/TicketValidation";
 import type { DatabaseSet } from "@database";
 import type { Logger } from "@shared/Logger";
+import { TicketButtonIds } from "@systems/Ticket/TicketCustomIds";
 
 export async function HandleClaimButton(
   buttonInteraction: ButtonInteraction,
@@ -23,8 +21,8 @@ export async function HandleClaimButton(
     databases: DatabaseSet;
   },
 ): Promise<void> {
-  const parsed = ParseTicketButtonCustomId(buttonInteraction.customId);
-  if (!parsed || parsed.action !== "claim") {
+  const parsed = TicketButtonIds.claim.Parse(buttonInteraction.customId);
+  if (!parsed) {
     return;
   }
 

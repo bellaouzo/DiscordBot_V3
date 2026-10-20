@@ -29,6 +29,7 @@ import {
   ShouldAutoCashOut,
 } from "@systems/Economy/utils/crashLogic";
 import { HasItem, PrepareWager } from "@systems/Economy/utils/Wager";
+import { InteractiveSession } from "@shared/InteractiveSession";
 
 interface CrashCustomIds {
   cashout: string;
@@ -58,28 +59,17 @@ export async function HandleCrash(
   const hasAutoCash = HasItem(inventory, autoCashItem);
   let autoCashUsed = false;
 
-  let resolved = false;
   let intervalHandle: NodeJS.Timeout | null = null;
-  let timeoutHandle: NodeJS.Timeout | null = null;
 
   const customIds: CrashCustomIds = {
     cashout: "",
     cancel: "",
   };
 
-  const registrations: Array<{ dispose: () => void }> = [];
-  const disposeAll = (): void => {
-    registrations.forEach((reg) => reg.dispose());
-  };
-
   const crashPoint = GenerateCrashPoint(Math.random());
   let multiplier = 1.0;
 
   const finalizeTimeout = async (): Promise<void> => {
-    if (resolved) return;
-    resolved = true;
-    disposeAll();
-
     if (bet > 0) {
       balance = manager.AdjustBalance(interaction.user.id, bet);
     }
@@ -102,15 +92,10 @@ export async function HandleCrash(
   };
 
   const finalizeCrash = async (crashAt: number): Promise<void> => {
-    if (resolved) return;
-    resolved = true;
+    if (!session.Resolve()) return;
     if (intervalHandle) {
       clearInterval(intervalHandle);
     }
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
-    disposeAll();
 
     let note: string | undefined;
     if (bet > 0 && parachute && hasParachute && !parachuteUsed) {
@@ -150,7 +135,7 @@ export async function HandleCrash(
     sourceInteraction?: ButtonInteraction,
     extraNote?: string,
   ): Promise<void> => {
-    if (resolved) {
+    if (!session.Resolve()) {
       if (sourceInteraction) {
         await buttonResponder.Reply(sourceInteraction, {
           content: "This game has already finished.",
@@ -160,14 +145,9 @@ export async function HandleCrash(
       return;
     }
 
-    resolved = true;
     if (intervalHandle) {
       clearInterval(intervalHandle);
     }
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
-    disposeAll();
 
     let payout = CalculateCrashPayout(bet, multiplier);
     const notes: string[] = [];
@@ -240,7 +220,7 @@ export async function HandleCrash(
   const handleCancel = async (
     buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
-    if (resolved) {
+    if (!session.Resolve()) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This game has already finished.",
         flags: MessageFlags.Ephemeral,
@@ -248,14 +228,9 @@ export async function HandleCrash(
       return;
     }
 
-    resolved = true;
     if (intervalHandle) {
       clearInterval(intervalHandle);
     }
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
-    disposeAll();
 
     if (bet > 0) {
       balance = manager.AdjustBalance(interaction.user.id, bet);
@@ -276,20 +251,14 @@ export async function HandleCrash(
     balance = manager.AdjustBalance(interaction.user.id, -bet, 0);
   }
 
-  const cashoutRegistration = componentRouter.RegisterButton({
+  const session = new InteractiveSession({
+    componentRouter,
     ownerId: interaction.user.id,
-    expiresInMs: CRASH_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleCashout(buttonInteraction),
+    timeoutMs: CRASH_TIMEOUT_MS,
+    onTimeout: finalizeTimeout,
   });
-  const cancelRegistration = componentRouter.RegisterButton({
-    ownerId: interaction.user.id,
-    expiresInMs: CRASH_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleCancel(buttonInteraction),
-  });
-
-  registrations.push(cashoutRegistration, cancelRegistration);
-  customIds.cashout = cashoutRegistration.customId;
-  customIds.cancel = cancelRegistration.customId;
+  customIds.cashout = session.RegisterButton(handleCashout);
+  customIds.cancel = session.RegisterButton(handleCancel);
 
   const promptEmbed = BuildCrashPromptEmbed({
     bet,
@@ -308,12 +277,12 @@ export async function HandleCrash(
     if (bet > 0) {
       manager.AdjustBalance(interaction.user.id, bet);
     }
-    disposeAll();
+    session.Resolve();
     return;
   }
 
   intervalHandle = setInterval(() => {
-    if (resolved) {
+    if (session.IsResolved) {
       return;
     }
 
@@ -321,7 +290,7 @@ export async function HandleCrash(
     const displayMultiplier = Number(multiplier.toFixed(2));
 
     if (
-      !resolved &&
+      !session.IsResolved &&
       autoCashItem &&
       ShouldAutoCashOut(displayMultiplier, bet, hasAutoCash, autoCashUsed)
     ) {
@@ -354,7 +323,5 @@ export async function HandleCrash(
       .catch(() => {});
   }, CRASH_TICK_MS);
 
-  timeoutHandle = setTimeout(() => {
-    void finalizeTimeout();
-  }, CRASH_TIMEOUT_MS);
+  session.Start();
 }

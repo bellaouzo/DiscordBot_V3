@@ -69,7 +69,7 @@ export const communityStep: SetupStepDefinition = {
       },
     ];
 
-    if (draft.starboardEnabled) {
+    if (draft.features.starboard) {
       fields.push({
         name: "Starboard Channel",
         value: FormatChannel(
@@ -81,7 +81,7 @@ export const communityStep: SetupStepDefinition = {
       });
     }
 
-    if (draft.levelingEnabled) {
+    if (draft.features.leveling) {
       fields.push({
         name: "Level-up Channel",
         value: FormatChannel(draft.levelUpChannelId, context.guild, "level-up"),
@@ -89,7 +89,7 @@ export const communityStep: SetupStepDefinition = {
       });
     }
 
-    if (draft.verificationEnabled) {
+    if (draft.features.verification) {
       fields.push(
         {
           name: "Verification Channel",
@@ -123,7 +123,7 @@ export const communityStep: SetupStepDefinition = {
     const { draft } = context;
     const contentRows: ActionRowData<ActionRowComponentData>[] = [];
 
-    if (draft.verificationEnabled) {
+    if (draft.features.verification) {
       contentRows.push(
         BuildChannelSelectRow({
           customId: context.ids.verificationChannelSelect,
@@ -193,7 +193,7 @@ export const communityStep: SetupStepDefinition = {
       }),
     ];
 
-    if (draft.starboardEnabled) {
+    if (draft.features.starboard) {
       optionalRows.push(
         BuildChannelSelectRow({
           customId: context.ids.starboardChannelSelect,
@@ -206,7 +206,7 @@ export const communityStep: SetupStepDefinition = {
       );
     }
 
-    if (draft.levelingEnabled) {
+    if (draft.features.leveling) {
       optionalRows.push(
         BuildChannelSelectRow({
           customId: context.ids.levelUpChannelSelect,

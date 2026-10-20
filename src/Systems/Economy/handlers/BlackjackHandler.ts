@@ -31,6 +31,7 @@ import {
   isBlackjack,
 } from "@systems/Economy/utils/blackjackLogic";
 import { HasItem, PrepareWager } from "@systems/Economy/utils/Wager";
+import { InteractiveSession } from "@shared/InteractiveSession";
 
 interface BlackjackCustomIds {
   hit: string;
@@ -65,16 +66,18 @@ export async function HandleBlackjack(
   const hasBoost = HasItem(inventory, boostItem);
   let boostUsed = false;
 
-  let resolved = false;
-  let timeoutHandle: NodeJS.Timeout | null = null;
+  const session = new InteractiveSession({
+    componentRouter,
+    ownerId: interaction.user.id,
+    timeoutMs: BJ_TIMEOUT_MS,
+    onTimeout: () => finalizeTimeout(),
+  });
   const customIds: BlackjackCustomIds = {
     hit: "",
     stand: "",
     double: "",
     cancel: "",
   };
-
-  const registrations: Array<{ dispose: () => void }> = [];
 
   if (bet > 0) {
     balance = manager.AdjustBalance(interaction.user.id, -bet, 0);
@@ -101,9 +104,7 @@ export async function HandleBlackjack(
     outcome: Outcome,
     sourceInteraction?: ButtonInteraction,
   ): Promise<void> => {
-    if (resolved) return;
-    resolved = true;
-    if (timeoutHandle) clearTimeout(timeoutHandle);
+    if (!session.Resolve()) return;
 
     let finalOutcome = outcome;
     const notes: string[] = [];
@@ -192,9 +193,6 @@ export async function HandleBlackjack(
   };
 
   const finalizeTimeout = async (): Promise<void> => {
-    if (resolved) return;
-    resolved = true;
-
     if (bet > 0) {
       balance = manager.AdjustBalance(interaction.user.id, wager);
     }
@@ -215,7 +213,7 @@ export async function HandleBlackjack(
   };
 
   const handleNatural = async (outcome: Outcome): Promise<void> => {
-    resolved = true;
+    session.Resolve();
     let payout = 0;
     if (bet > 0) {
       if (outcome === "blackjack") {
@@ -359,16 +357,13 @@ export async function HandleBlackjack(
   const handleCancel = async (
     buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
-    if (resolved) {
+    if (!session.Resolve()) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This game has already finished.",
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
-
-    resolved = true;
-    if (timeoutHandle) clearTimeout(timeoutHandle);
 
     if (bet > 0) {
       balance = manager.AdjustBalance(interaction.user.id, wager);
@@ -385,41 +380,16 @@ export async function HandleBlackjack(
     });
   };
 
-  const hitRegistration = componentRouter.RegisterButton({
-    ownerId: interaction.user.id,
-    expiresInMs: BJ_TIMEOUT_MS,
-    handler: (buttonInteraction) =>
-      handleHit(buttonInteraction).catch(() => {}),
-  });
-  const standRegistration = componentRouter.RegisterButton({
-    ownerId: interaction.user.id,
-    expiresInMs: BJ_TIMEOUT_MS,
-    handler: (buttonInteraction) =>
-      handleStand(buttonInteraction).catch(() => {}),
-  });
-  const doubleRegistration = componentRouter.RegisterButton({
-    ownerId: interaction.user.id,
-    expiresInMs: BJ_TIMEOUT_MS,
-    handler: (buttonInteraction) =>
-      handleDouble(buttonInteraction).catch(() => {}),
-  });
-  const cancelRegistration = componentRouter.RegisterButton({
-    ownerId: interaction.user.id,
-    expiresInMs: BJ_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleCancel(buttonInteraction),
-  });
-
-  registrations.push(
-    hitRegistration,
-    standRegistration,
-    doubleRegistration,
-    cancelRegistration,
+  customIds.hit = session.RegisterButton((buttonInteraction) =>
+    handleHit(buttonInteraction).catch(() => {}),
   );
-
-  customIds.hit = hitRegistration.customId;
-  customIds.stand = standRegistration.customId;
-  customIds.double = doubleRegistration.customId;
-  customIds.cancel = cancelRegistration.customId;
+  customIds.stand = session.RegisterButton((buttonInteraction) =>
+    handleStand(buttonInteraction).catch(() => {}),
+  );
+  customIds.double = session.RegisterButton((buttonInteraction) =>
+    handleDouble(buttonInteraction).catch(() => {}),
+  );
+  customIds.cancel = session.RegisterButton(handleCancel);
 
   // Natural blackjack check
   if (isBlackjack(player) || isBlackjack(dealer)) {
@@ -458,10 +428,9 @@ export async function HandleBlackjack(
     if (bet > 0) {
       manager.AdjustBalance(interaction.user.id, wager);
     }
+    session.Resolve();
     return;
   }
 
-  timeoutHandle = setTimeout(() => {
-    void finalizeTimeout();
-  }, BJ_TIMEOUT_MS);
+  session.Start();
 }

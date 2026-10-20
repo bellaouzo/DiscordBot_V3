@@ -5,6 +5,7 @@ import type { DatabaseSet, Warning } from "@database";
 import { AllCommands } from "@commands/registry";
 import { IsAdmin } from "@utilities/StaffPermissions";
 import { createVerifyAdmin } from "../middleware/auth";
+import { ParseGuildSettingsInput } from "@database/Server/GuildSettingsSchema";
 
 export function createApiRouter(
   client: Client,
@@ -397,50 +398,7 @@ export function createApiRouter(
     const guildId = req.params.guildId as string;
     const body = req.body;
 
-    const parseRoles = (val: unknown): string[] => {
-      if (Array.isArray(val)) return val.map(String);
-      if (typeof val === "string")
-        return val
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-      return [];
-    };
-
-    const settingsToSave = {
-      guild_id: guildId,
-      admin_role_ids: parseRoles(body.admin_role_ids),
-      mod_role_ids: parseRoles(body.mod_role_ids),
-      ticket_category_id: body.ticket_category_id || null,
-      appeal_review_category_id: body.appeal_review_category_id || null,
-      command_log_channel_id: body.command_log_channel_id || null,
-      ticket_log_channel_id: body.ticket_log_channel_id || null,
-      announcement_channel_id: body.announcement_channel_id || null,
-      delete_log_channel_id: body.delete_log_channel_id || null,
-      production_log_channel_id: body.production_log_channel_id || null,
-      welcome_channel_id: body.welcome_channel_id || null,
-      autorole_id: body.autorole_id || null,
-      starboard_channel_id: body.starboard_channel_id || null,
-      starboard_emoji: body.starboard_emoji || null,
-      starboard_threshold:
-        typeof body.starboard_threshold === "number"
-          ? body.starboard_threshold
-          : body.starboard_threshold
-            ? parseInt(String(body.starboard_threshold))
-            : null,
-      verification_enabled: Boolean(body.verification_enabled),
-      unverified_role_id: body.unverified_role_id || null,
-      verified_role_id: body.verified_role_id || null,
-      verification_min_account_age_days:
-        typeof body.verification_min_account_age_days === "number"
-          ? body.verification_min_account_age_days
-          : body.verification_min_account_age_days
-            ? parseInt(String(body.verification_min_account_age_days))
-            : 0,
-      verification_channel_id: body.verification_channel_id || null,
-      economy_enabled: Boolean(body.economy_enabled),
-      giveaways_enabled: Boolean(body.giveaways_enabled),
-    };
+    const settingsToSave = ParseGuildSettingsInput(guildId, body);
 
     try {
       databases.serverDb.UpsertGuildSettings(settingsToSave);

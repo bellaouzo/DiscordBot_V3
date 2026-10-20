@@ -116,7 +116,7 @@ export class TempActionStore {
     return row ? MapTempAction(row) : null;
   }
 
-  ListGuildTempActions(guild_id: string, limit: number): TempAction[] {
+  ListGuildTempActions(guild_id: string, limit = 100): TempAction[] {
     const rows = this.db
       .prepare(
         `

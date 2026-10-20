@@ -25,6 +25,7 @@
     "test:coverage": "vitest run --coverage",
     "check:commands": "npx ts-node scripts/check-duplicate-commands.ts",
     "version:check": "npx ts-node scripts/version-check.ts",
+    "new:command": "tsx scripts/new-command.ts",
     "prepare": "husky",
     "knip": "knip"
   },

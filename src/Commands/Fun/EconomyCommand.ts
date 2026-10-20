@@ -1,3 +1,4 @@
+import type { SlashCommandSubcommandBuilder } from "discord.js";
 import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
 import { MIN_BET, MAX_BET } from "@systems/Economy/constants";
@@ -32,160 +33,138 @@ import {
 } from "@systems/Economy/handlers/LotteryHandler";
 import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";
 
+/** The optional "bet" option shared by every single-player game. */
+function AddBetOption(sub: SlashCommandSubcommandBuilder): void {
+  sub.addIntegerOption((option) =>
+    option
+      .setName("bet")
+      .setDescription("Bet amount (1-1000)")
+      .setRequired(false)
+      .setMinValue(MIN_BET)
+      .setMaxValue(MAX_BET),
+  );
+}
+
+function AddMarketItemOptions(
+  sub: SlashCommandSubcommandBuilder,
+  verb: "buy" | "sell",
+): void {
+  sub
+    .addStringOption((option) =>
+      option
+        .setName("item")
+        .setDescription(`Item to ${verb}`)
+        .setRequired(true)
+        .setChoices(
+          ...ITEM_CATALOG.map((item) => ({ name: item.name, value: item.id })),
+        ),
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName("quantity")
+        .setDescription(`Quantity to ${verb}`)
+        .setMinValue(1)
+        .setMaxValue(50),
+    );
+}
+
 export const EconomyCommand = CreateCommand({
   name: "economy",
   description: "Check your coins and play economy games",
   group: "fun",
-  configure: (builder) => {
-    builder
-      .addSubcommand((sub) =>
+  config: Config.utilityWithFeature("economy", 5),
+  subcommands: [
+    {
+      name: "balance",
+      description: "Check your coin balance",
+      options: (sub) =>
+        sub.addUserOption((option) =>
+          option
+            .setName("user")
+            .setDescription("User to check (optional)")
+            .setRequired(false),
+        ),
+      execute: HandleBalance,
+    },
+    {
+      name: "daily",
+      description: "Claim your daily coins",
+      execute: HandleDaily,
+    },
+    {
+      name: "flip",
+      description: "Flip a coin and optionally bet coins",
+      options: AddBetOption,
+      execute: HandleFlip,
+    },
+    {
+      name: "dice",
+      description: "Roll a die, optionally bet and guess the number",
+      options: (sub) => {
+        sub.addIntegerOption((option) =>
+          option
+            .setName("guess")
+            .setDescription("Your guess (1-6)")
+            .setMinValue(1)
+            .setMaxValue(6)
+            .setRequired(false),
+        );
+        AddBetOption(sub);
+      },
+      execute: HandleDice,
+    },
+    {
+      name: "crash",
+      description: "Play Crash, cash out before it explodes",
+      options: AddBetOption,
+      execute: HandleCrash,
+    },
+    {
+      name: "horserace",
+      description: "Bet on a horse and watch the race",
+      options: AddBetOption,
+      execute: HandleHorseRace,
+    },
+    {
+      name: "scratch",
+      description: "Play an interactive scratch card",
+      options: AddBetOption,
+      execute: HandleScratch,
+    },
+    {
+      name: "slots",
+      description: "Spin the slots and test your luck",
+      options: AddBetOption,
+      execute: HandleSlots,
+    },
+    {
+      name: "wheel",
+      description: "Spin a prize wheel with multipliers",
+      options: AddBetOption,
+      execute: HandleWheel,
+    },
+    {
+      name: "blackjack",
+      description: "Play blackjack against the dealer",
+      options: AddBetOption,
+      execute: HandleBlackjack,
+    },
+    {
+      name: "rps",
+      description: "Play Rock Paper Scissors, optionally bet coins",
+      options: AddBetOption,
+      execute: HandleRps,
+    },
+    {
+      name: "leaderboard",
+      description: "View the top coin balances in this server",
+      execute: HandleLeaderboard,
+    },
+    {
+      name: "gift",
+      description: "Send coins to another user",
+      options: (sub) =>
         sub
-          .setName("balance")
-          .setDescription("Check your coin balance")
-          .addUserOption((option) =>
-            option
-              .setName("user")
-              .setDescription("User to check (optional)")
-              .setRequired(false),
-          ),
-      )
-      .addSubcommand((sub) =>
-        sub.setName("daily").setDescription("Claim your daily coins"),
-      )
-      .addSubcommand((sub) =>
-        sub
-          .setName("flip")
-          .setDescription("Flip a coin and optionally bet coins")
-          .addIntegerOption((option) =>
-            option
-              .setName("bet")
-              .setDescription("Bet amount (1-1000)")
-              .setRequired(false)
-              .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET),
-          ),
-      )
-      .addSubcommand((sub) =>
-        sub
-          .setName("dice")
-          .setDescription("Roll a die, optionally bet and guess the number")
-          .addIntegerOption((option) =>
-            option
-              .setName("guess")
-              .setDescription("Your guess (1-6)")
-              .setMinValue(1)
-              .setMaxValue(6)
-              .setRequired(false),
-          )
-          .addIntegerOption((option) =>
-            option
-              .setName("bet")
-              .setDescription("Bet amount (1-1000)")
-              .setRequired(false)
-              .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET),
-          ),
-      )
-      .addSubcommand((sub) =>
-        sub
-          .setName("crash")
-          .setDescription("Play Crash, cash out before it explodes")
-          .addIntegerOption((option) =>
-            option
-              .setName("bet")
-              .setDescription("Bet amount (1-1000)")
-              .setRequired(false)
-              .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET),
-          ),
-      )
-      .addSubcommand((sub) =>
-        sub
-          .setName("horserace")
-          .setDescription("Bet on a horse and watch the race")
-          .addIntegerOption((option) =>
-            option
-              .setName("bet")
-              .setDescription("Bet amount (1-1000)")
-              .setRequired(false)
-              .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET),
-          ),
-      )
-      .addSubcommand((sub) =>
-        sub
-          .setName("scratch")
-          .setDescription("Play an interactive scratch card")
-          .addIntegerOption((option) =>
-            option
-              .setName("bet")
-              .setDescription("Bet amount (1-1000)")
-              .setRequired(false)
-              .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET),
-          ),
-      )
-      .addSubcommand((sub) =>
-        sub
-          .setName("slots")
-          .setDescription("Spin the slots and test your luck")
-          .addIntegerOption((option) =>
-            option
-              .setName("bet")
-              .setDescription("Bet amount (1-1000)")
-              .setRequired(false)
-              .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET),
-          ),
-      )
-      .addSubcommand((sub) =>
-        sub
-          .setName("wheel")
-          .setDescription("Spin a prize wheel with multipliers")
-          .addIntegerOption((option) =>
-            option
-              .setName("bet")
-              .setDescription("Bet amount (1-1000)")
-              .setRequired(false)
-              .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET),
-          ),
-      )
-      .addSubcommand((sub) =>
-        sub
-          .setName("blackjack")
-          .setDescription("Play blackjack against the dealer")
-          .addIntegerOption((option) =>
-            option
-              .setName("bet")
-              .setDescription("Bet amount (1-1000)")
-              .setRequired(false)
-              .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET),
-          ),
-      )
-      .addSubcommand((sub) =>
-        sub
-          .setName("rps")
-          .setDescription("Play Rock Paper Scissors, optionally bet coins")
-          .addIntegerOption((option) =>
-            option
-              .setName("bet")
-              .setDescription("Bet amount (1-1000)")
-              .setRequired(false)
-              .setMinValue(MIN_BET)
-              .setMaxValue(MAX_BET),
-          ),
-      )
-      .addSubcommand((sub) =>
-        sub
-          .setName("leaderboard")
-          .setDescription("View the top coin balances in this server"),
-      )
-      .addSubcommand((sub) =>
-        sub
-          .setName("gift")
-          .setDescription("Send coins to another user")
           .addUserOption((option) =>
             option
               .setName("user")
@@ -200,79 +179,50 @@ export const EconomyCommand = CreateCommand({
               .setMinValue(1)
               .setMaxValue(100000),
           ),
-      )
-      .addSubcommandGroup((group) =>
-        group
-          .setName("market")
-          .setDescription("View and trade limited-time items")
-          .addSubcommand((sub) =>
+      execute: HandleGift,
+    },
+    {
+      name: "market",
+      description: "View and trade limited-time items",
+      subcommands: [
+        {
+          name: "view",
+          description: "View the current market rotation",
+          execute: HandleMarketView,
+        },
+        {
+          name: "refresh",
+          description: "Force refresh the current market rotation",
+          execute: HandleMarketRefresh,
+        },
+        {
+          name: "buy",
+          description: "Buy an item from the market",
+          options: (sub) => AddMarketItemOptions(sub, "buy"),
+          execute: HandleMarketBuy,
+        },
+        {
+          name: "sell",
+          description: "Sell an item from your inventory",
+          options: (sub) => AddMarketItemOptions(sub, "sell"),
+          execute: HandleMarketSell,
+        },
+      ],
+    },
+    {
+      name: "inventory",
+      description: "View your inventory items",
+      execute: HandleInventory,
+    },
+    {
+      name: "duel",
+      description: "Challenge another player to a coin duel",
+      subcommands: [
+        {
+          name: "challenge",
+          description: "Challenge a user to a duel",
+          options: (sub) =>
             sub
-              .setName("view")
-              .setDescription("View the current market rotation"),
-          )
-          .addSubcommand((sub) =>
-            sub
-              .setName("refresh")
-              .setDescription("Force refresh the current market rotation"),
-          )
-          .addSubcommand((sub) =>
-            sub
-              .setName("buy")
-              .setDescription("Buy an item from the market")
-              .addStringOption((option) => {
-                const choices = ITEM_CATALOG.map((item) => ({
-                  name: item.name,
-                  value: item.id,
-                }));
-                return option
-                  .setName("item")
-                  .setDescription("Item to buy")
-                  .setRequired(true)
-                  .setChoices(...choices);
-              })
-              .addIntegerOption((option) =>
-                option
-                  .setName("quantity")
-                  .setDescription("Quantity to buy")
-                  .setMinValue(1)
-                  .setMaxValue(50),
-              ),
-          )
-          .addSubcommand((sub) =>
-            sub
-              .setName("sell")
-              .setDescription("Sell an item from your inventory")
-              .addStringOption((option) => {
-                const choices = ITEM_CATALOG.map((item) => ({
-                  name: item.name,
-                  value: item.id,
-                }));
-                return option
-                  .setName("item")
-                  .setDescription("Item to sell")
-                  .setRequired(true)
-                  .setChoices(...choices);
-              })
-              .addIntegerOption((option) =>
-                option
-                  .setName("quantity")
-                  .setDescription("Quantity to sell")
-                  .setMinValue(1)
-                  .setMaxValue(50),
-              ),
-          ),
-      )
-      .addSubcommand((sub) =>
-        sub.setName("inventory").setDescription("View your inventory items"),
-      )
-      .addSubcommandGroup((group) =>
-        group
-          .setName("duel")
-          .setDescription("Challenge another player to a coin duel")
-          .addSubcommand((sub) =>
-            sub
-              .setName("challenge")
-              .setDescription("Challenge a user to a duel")
               .addUserOption((option) =>
                 option
                   .setName("user")
@@ -297,21 +247,24 @@ export const EconomyCommand = CreateCommand({
                     { name: "Rock Paper Scissors", value: "rps" },
                   ),
               ),
-          )
-          .addSubcommand((sub) =>
+          execute: HandleDuelChallenge,
+        },
+        {
+          name: "cancel",
+          description: "Cancel your oldest pending duel challenge",
+          execute: HandleDuelCancel,
+        },
+      ],
+    },
+    {
+      name: "lottery",
+      description: "Server coin lotteries",
+      subcommands: [
+        {
+          name: "create",
+          description: "Create a server lottery (moderator)",
+          options: (sub) =>
             sub
-              .setName("cancel")
-              .setDescription("Cancel your oldest pending duel challenge"),
-          ),
-      )
-      .addSubcommandGroup((group) =>
-        group
-          .setName("lottery")
-          .setDescription("Server coin lotteries")
-          .addSubcommand((sub) =>
-            sub
-              .setName("create")
-              .setDescription("Create a server lottery (moderator)")
               .addIntegerOption((option) =>
                 option
                   .setName("entry-cost")
@@ -326,131 +279,20 @@ export const EconomyCommand = CreateCommand({
                   .setDescription("How long entries stay open (e.g. 1h)")
                   .setRequired(true),
               ),
-          )
-          .addSubcommand((sub) =>
-            sub.setName("list").setDescription("List active lotteries"),
-          ),
-      )
-      .addSubcommand((sub) =>
-        sub
-          .setName("about")
-          .setDescription("Learn how the server economy works"),
-      );
-  },
-  config: Config.utilityWithFeature("economy", 5),
-  execute: async (interaction, context) => {
-    const subcommandGroup = interaction.options.getSubcommandGroup(false);
-    const subcommand = interaction.options.getSubcommand(true);
-
-    if (!subcommandGroup && subcommand === "balance") {
-      await HandleBalance(interaction, context);
-      return;
-    }
-
-    if (!subcommandGroup && subcommand === "daily") {
-      await HandleDaily(interaction, context);
-      return;
-    }
-
-    if (!subcommandGroup && subcommand === "flip") {
-      await HandleFlip(interaction, context);
-      return;
-    }
-
-    if (!subcommandGroup && subcommand === "dice") {
-      await HandleDice(interaction, context);
-      return;
-    }
-
-    if (!subcommandGroup && subcommand === "crash") {
-      await HandleCrash(interaction, context);
-      return;
-    }
-
-    if (!subcommandGroup && subcommand === "horserace") {
-      await HandleHorseRace(interaction, context);
-      return;
-    }
-
-    if (!subcommandGroup && subcommand === "scratch") {
-      await HandleScratch(interaction, context);
-      return;
-    }
-
-    if (!subcommandGroup && subcommand === "slots") {
-      await HandleSlots(interaction, context);
-      return;
-    }
-
-    if (!subcommandGroup && subcommand === "wheel") {
-      await HandleWheel(interaction, context);
-      return;
-    }
-
-    if (!subcommandGroup && subcommand === "blackjack") {
-      await HandleBlackjack(interaction, context);
-      return;
-    }
-
-    if (!subcommandGroup && subcommand === "rps") {
-      await HandleRps(interaction, context);
-      return;
-    }
-
-    if (!subcommandGroup && subcommand === "leaderboard") {
-      await HandleLeaderboard(interaction, context);
-      return;
-    }
-
-    if (!subcommandGroup && subcommand === "gift") {
-      await HandleGift(interaction, context);
-      return;
-    }
-
-    if (subcommandGroup === "market") {
-      if (subcommand === "view") {
-        await HandleMarketView(interaction, context);
-        return;
-      }
-      if (subcommand === "refresh") {
-        await HandleMarketRefresh(interaction, context);
-        return;
-      }
-      if (subcommand === "buy") {
-        await HandleMarketBuy(interaction, context);
-        return;
-      }
-      if (subcommand === "sell") {
-        await HandleMarketSell(interaction, context);
-        return;
-      }
-    }
-
-    if (!subcommandGroup && subcommand === "inventory") {
-      await HandleInventory(interaction, context);
-      return;
-    }
-
-    if (subcommandGroup === "duel") {
-      if (subcommand === "challenge") {
-        await HandleDuelChallenge(interaction, context);
-      } else if (subcommand === "cancel") {
-        await HandleDuelCancel(interaction, context);
-      }
-      return;
-    }
-
-    if (subcommandGroup === "lottery") {
-      if (subcommand === "create") {
-        await HandleLotteryCreate(interaction, context);
-      } else if (subcommand === "list") {
-        await HandleLotteryList(interaction, context);
-      }
-      return;
-    }
-
-    if (!subcommandGroup && subcommand === "about") {
-      await ReplyWithFeatureAbout(interaction, context, "economy");
-    }
-  },
+          execute: HandleLotteryCreate,
+        },
+        {
+          name: "list",
+          description: "List active lotteries",
+          execute: HandleLotteryList,
+        },
+      ],
+    },
+    {
+      name: "about",
+      description: "Learn how the server economy works",
+      execute: (interaction, context) =>
+        ReplyWithFeatureAbout(interaction, context, "economy"),
+    },
+  ],
 });

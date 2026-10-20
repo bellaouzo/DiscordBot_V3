@@ -61,10 +61,7 @@ export class ModerationEventStore {
     return rows.map((row) => MapModerationEvent(row));
   }
 
-  ListGuildModerationEvents(
-    guild_id: string,
-    limit: number,
-  ): ModerationEvent[] {
+  ListGuildModerationEvents(guild_id: string, limit = 100): ModerationEvent[] {
     const rows = this.db
       .prepare(
         `

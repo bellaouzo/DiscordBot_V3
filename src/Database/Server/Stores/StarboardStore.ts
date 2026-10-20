@@ -26,7 +26,10 @@ function MapEntry(row: StarboardRow): StarboardEntry {
 export class StarboardStore {
   constructor(private readonly db: Database.Database) {}
 
-  GetEntry(guild_id: string, source_message_id: string): StarboardEntry | null {
+  GetStarboardEntry(
+    guild_id: string,
+    source_message_id: string,
+  ): StarboardEntry | null {
     const row = this.db
       .prepare(
         "SELECT * FROM starboard_entries WHERE guild_id = ? AND source_message_id = ?",
@@ -36,7 +39,7 @@ export class StarboardStore {
     return row ? MapEntry(row) : null;
   }
 
-  CreateEntry(data: {
+  CreateStarboardEntry(data: {
     guild_id: string;
     source_channel_id: string;
     source_message_id: string;
@@ -71,7 +74,7 @@ export class StarboardStore {
     return MapEntry(row);
   }
 
-  UpdateStarCount(
+  UpdateStarboardEntryCount(
     guild_id: string,
     source_message_id: string,
     star_count: number,
@@ -85,7 +88,7 @@ export class StarboardStore {
     return result.changes > 0;
   }
 
-  DeleteEntry(guild_id: string, source_message_id: string): boolean {
+  DeleteStarboardEntry(guild_id: string, source_message_id: string): boolean {
     const result = this.db
       .prepare(
         "DELETE FROM starboard_entries WHERE guild_id = ? AND source_message_id = ?",

@@ -8,9 +8,9 @@ import { TranscriptGenerator } from "@systems/Ticket/TranscriptGenerator";
 import {
   CanUserCloseTicket,
   CreateTicketServices,
-  ParseTicketButtonCustomId,
 } from "@systems/Ticket/validation/TicketValidation";
 import type { CreateTicketLogService } from "@systems/Ticket/services/TicketLogService";
+import { TicketButtonIds } from "@systems/Ticket/TicketCustomIds";
 
 export async function HandleCloseButton(
   buttonInteraction: ButtonInteraction,
@@ -21,8 +21,8 @@ export async function HandleCloseButton(
     guild: Guild;
   },
 ): Promise<void> {
-  const parsed = ParseTicketButtonCustomId(buttonInteraction.customId);
-  if (!parsed || parsed.action !== "close") {
+  const parsed = TicketButtonIds.close.Parse(buttonInteraction.customId);
+  if (!parsed) {
     return;
   }
 

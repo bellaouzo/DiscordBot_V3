@@ -2,13 +2,6 @@ import Database from "better-sqlite3";
 import { join } from "path";
 import { ResolveDataDir } from "@config/DataConfig";
 import type { Logger } from "@shared/Logger";
-import type {
-  Ticket,
-  TicketCategoryConfig,
-  TicketMessage,
-  TicketParticipant,
-  TicketReopenAudit,
-} from "@database/Ticket/Types";
 import { TicketStore } from "@database/Ticket/Stores/TicketStore";
 import { TicketMessageStore } from "@database/Ticket/Stores/TicketMessageStore";
 import { TicketTagStore } from "@database/Ticket/Stores/TicketTagStore";
@@ -16,6 +9,8 @@ import { TicketParticipantStore } from "@database/Ticket/Stores/TicketParticipan
 import { TicketReopenAuditStore } from "@database/Ticket/Stores/TicketReopenAuditStore";
 import { TicketCategoryConfigStore } from "@database/Ticket/Stores/TicketCategoryConfigStore";
 import { RunMigrations } from "@database/Migrations";
+import type { StoreMethods } from "@database/StoreDelegation";
+import { DelegateStoreMethods } from "@database/StoreDelegation";
 import { TicketMigrations } from "@database/Migrations/ticket";
 
 export type {
@@ -31,6 +26,18 @@ export type {
 
 export { TICKET_CATEGORIES } from "@database/Ticket/Types";
 
+// Store methods are exposed on the facade by DelegateStoreMethods; this merge gives them types.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
+export interface TicketDatabase
+  extends
+    StoreMethods<TicketStore>,
+    StoreMethods<TicketMessageStore>,
+    StoreMethods<TicketTagStore>,
+    StoreMethods<TicketParticipantStore>,
+    StoreMethods<TicketReopenAuditStore>,
+    StoreMethods<TicketCategoryConfigStore> {}
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class TicketDatabase {
   private readonly db: Database.Database;
   private readonly tickets: TicketStore;
@@ -49,6 +56,14 @@ export class TicketDatabase {
     this.participants = new TicketParticipantStore(this.db);
     this.reopenAudits = new TicketReopenAuditStore(this.db);
     this.categoryConfigs = new TicketCategoryConfigStore(this.db);
+    DelegateStoreMethods(this, [
+      this.tickets,
+      this.messages,
+      this.tags,
+      this.participants,
+      this.reopenAudits,
+      this.categoryConfigs,
+    ]);
   }
 
   private InitializeDatabase(): Database.Database {
@@ -65,178 +80,6 @@ export class TicketDatabase {
 
   private CreateTables(): void {
     RunMigrations(this.db, TicketMigrations, this.logger);
-  }
-
-  CreateTicket(data: {
-    user_id: string;
-    guild_id: string;
-    channel_id: string | null;
-    category: string;
-  }): Ticket {
-    return this.tickets.CreateTicket(data);
-  }
-
-  GetTicket(id: number): Ticket | null {
-    return this.tickets.GetTicket(id);
-  }
-
-  GetTicketByChannel(channel_id: string): Ticket | null {
-    return this.tickets.GetTicketByChannel(channel_id);
-  }
-
-  GetUserTickets(user_id: string, guild_id: string, status?: string): Ticket[] {
-    return this.tickets.GetUserTickets(user_id, guild_id, status);
-  }
-
-  GetActiveUserTickets(user_id: string, guild_id: string): Ticket[] {
-    return this.tickets.GetActiveUserTickets(user_id, guild_id);
-  }
-
-  GetGuildTickets(guild_id: string, status?: string): Ticket[] {
-    return this.tickets.GetGuildTickets(guild_id, status);
-  }
-
-  GetActiveGuildTickets(guild_id: string): Ticket[] {
-    return this.tickets.GetActiveGuildTickets(guild_id);
-  }
-
-  UpdateTicketStatus(
-    id: number,
-    status: string,
-    claimed_by?: string | null,
-  ): boolean {
-    return this.tickets.UpdateTicketStatus(id, status, claimed_by);
-  }
-
-  UpdateTicketChannelId(id: number, channel_id: string): boolean {
-    return this.tickets.UpdateTicketChannelId(id, channel_id);
-  }
-
-  CloseTicket(
-    id: number,
-    claimed_by?: string | null,
-    close_reason?: string | null,
-  ): boolean {
-    return this.tickets.CloseTicket(id, claimed_by, close_reason);
-  }
-
-  AddMessage(
-    ticket_id: number,
-    user_id: string,
-    content: string,
-  ): TicketMessage {
-    return this.messages.AddMessage(ticket_id, user_id, content);
-  }
-
-  GetTicketMessages(ticket_id: number): TicketMessage[] {
-    return this.messages.GetTicketMessages(ticket_id);
-  }
-
-  DeleteTicket(id: number): boolean {
-    return this.tickets.DeleteTicket(id);
-  }
-
-  AddTicketTag(ticket_id: number, tag: string): boolean {
-    return this.tags.AddTicketTag(ticket_id, tag);
-  }
-
-  RemoveTicketTag(ticket_id: number, tag: string): boolean {
-    return this.tags.RemoveTicketTag(ticket_id, tag);
-  }
-
-  ListTicketTags(ticket_id: number): string[] {
-    return this.tags.ListTicketTags(ticket_id);
-  }
-
-  GetTagsForTickets(ticketIds: number[]): Record<number, string[]> {
-    return this.tags.GetTagsForTickets(ticketIds);
-  }
-
-  AddParticipant(
-    ticket_id: number,
-    user_id: string,
-    added_by: string,
-  ): TicketParticipant {
-    return this.participants.AddParticipant(ticket_id, user_id, added_by);
-  }
-
-  GetParticipants(ticket_id: number): TicketParticipant[] {
-    return this.participants.GetParticipants(ticket_id);
-  }
-
-  GetActiveParticipants(ticket_id: number): TicketParticipant[] {
-    return this.participants.GetActiveParticipants(ticket_id);
-  }
-
-  GetParticipantHistory(ticket_id: number): TicketParticipant[] {
-    return this.participants.GetParticipantHistory(ticket_id);
-  }
-
-  RemoveParticipant(
-    ticket_id: number,
-    user_id: string,
-    removed_by: string,
-  ): boolean {
-    return this.participants.RemoveParticipant(ticket_id, user_id, removed_by);
-  }
-
-  AddReopenAudit(data: {
-    prior_ticket_id: number;
-    new_ticket_id: number;
-    guild_id: string;
-    reopened_by: string;
-    reason?: string | null;
-    prior_status?: string | null;
-    transcript_url?: string | null;
-  }): TicketReopenAudit {
-    return this.reopenAudits.AddReopenAudit(data);
-  }
-
-  GetReopenAuditsForTicket(ticket_id: number): TicketReopenAudit[] {
-    return this.reopenAudits.GetReopenAuditsForTicket(ticket_id);
-  }
-
-  EnsureCategoryConfigs(guild_id: string): TicketCategoryConfig[] {
-    return this.categoryConfigs.EnsureCategoryConfigs(guild_id);
-  }
-
-  GetCategoryConfigs(guild_id: string): TicketCategoryConfig[] {
-    return this.categoryConfigs.GetCategoryConfigs(guild_id);
-  }
-
-  GetCategoryConfig(
-    guild_id: string,
-    value: string,
-  ): TicketCategoryConfig | null {
-    return this.categoryConfigs.GetCategoryConfig(guild_id, value);
-  }
-
-  AddCategoryConfig(data: {
-    guild_id: string;
-    value: string;
-    label: string;
-    description: string;
-    emoji: string;
-    sort_order?: number;
-  }): TicketCategoryConfig {
-    return this.categoryConfigs.AddCategoryConfig(data);
-  }
-
-  UpdateCategoryConfig(
-    guild_id: string,
-    value: string,
-    updates: {
-      label?: string;
-      description?: string;
-      emoji?: string;
-      sort_order?: number;
-    },
-  ): TicketCategoryConfig | null {
-    return this.categoryConfigs.UpdateCategoryConfig(guild_id, value, updates);
-  }
-
-  RemoveCategoryConfig(guild_id: string, value: string): boolean {
-    return this.categoryConfigs.RemoveCategoryConfig(guild_id, value);
   }
 
   Ping(): boolean {

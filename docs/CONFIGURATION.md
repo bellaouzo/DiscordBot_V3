@@ -45,13 +45,9 @@ Toggles from setup step 3. Stored per guild:
 
 ## Developer reference
 
-Commands gated by feature toggles use `Config.utilityWithFeature("economy" | "giveaways")`, which adds `FeatureEnabledMiddleware`. Permission logic lives in `src/Utilities/StaffPermissions.ts` and `PermissionMiddleware`.
+Features and their toggles are defined in `src/Shared/Features.ts`; any toggleable feature can gate commands with `Config.utilityWithFeature("<key>")`, which adds `FeatureEnabledMiddleware`. Guild settings are defined in `src/Database/Server/GuildSettingsSchema.ts`. Permission logic lives in `src/Utilities/StaffPermissions.ts` and `PermissionMiddleware`.
 
-When adding new guild settings:
-
-1. Add a migration in `src/Database/Migrations/server/index.ts`
-2. Update stores, types, and setup draft persistence
-3. Document the toggle here and in [SERVER_SETUP.md](SERVER_SETUP.md)
+To add a setting or a feature toggle, follow [EXTENDING.md](EXTENDING.md#a-guild-setting), then document it here and in [SERVER_SETUP.md](SERVER_SETUP.md).
 
 See [Contributing — Database migrations](CONTRIBUTING.md#database-migrations) for the full process.
 

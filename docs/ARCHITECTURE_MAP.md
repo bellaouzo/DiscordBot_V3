@@ -188,7 +188,7 @@ Each database facade calls `RunMigrations(...)` in its constructor. Migrations o
 3. Middleware chain runs (`AutoMiddleware` from command `config`: logging, guild-only, command enabled, optional feature gate, permissions, cooldowns, error handling).
 4. Command executes through responder utilities and database facade(s).
 5. Domain helpers in `Utilities` format embeds/components and enforce shared logic.
-6. Database facades delegate to domain stores and return typed records.
+6. Database facades expose their stores' methods directly (`DelegateStoreMethods`) and return typed records.
 7. Response is emitted via responder wrappers to prevent raw Discord API lifecycle mistakes.
 
 ### Multi-step interaction (select → modal → DB → edit)
@@ -215,13 +215,11 @@ Appeal submit, Setup wizard, Giveaway entry, Economy bet sessions, and Ticket op
 
 ## Bootstrap system registration
 
-Global button, select, and modal handlers that must exist before commands run are registered through [`SystemRegistry.ts`](../src/Bootstrap/SystemRegistry.ts).
+Global button, select, and modal handlers that must exist before commands run are registered by **registrars**: any file named `*Registrar.ts` under `src/Systems` or `src/Commands` that exports `DefineSystemRegistrar(name, register)`. [`SystemRegistry.ts`](../src/Bootstrap/SystemRegistry.ts) discovers and runs them at startup, the same way commands and events are discovered.
 
-1. Export a `RegisterXxx(context)` function from your system module.
-2. Append it to `SYSTEM_REGISTRARS` in `SystemRegistry.ts`.
-3. Keep command-scoped registrations (for example Setup wizard steps registered when `/setup` runs) inside the command — only **bootstrap-wide** handlers belong in the registry.
+Keep command-scoped registrations (for example Setup wizard steps registered when `/setup` runs) inside the command — only **bootstrap-wide** handlers need a registrar.
 
-Custom ID prefixes should stay namespaced (`ticket:`, `appeal:`, `verification-panel:`, `economy:`) to avoid router collisions.
+Persistent custom IDs are defined once with `DefineCustomId` (`@shared/CustomId`), which provides the router prefix, builder and parser. Keep namespaces unique (`ticket:`, `appeal:`, `verification-panel:`, `economy:`). See [EXTENDING.md](EXTENDING.md#a-persistent-button).
 
 ## Database and Scaling Notes
 

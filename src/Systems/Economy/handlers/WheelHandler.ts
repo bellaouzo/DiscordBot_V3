@@ -14,6 +14,7 @@ import { EmbedFactory } from "@utilities";
 import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 import { PrepareWager } from "@systems/Economy/utils/Wager";
+import { InteractiveSession } from "@shared/InteractiveSession";
 
 type WheelSegment = {
   label: string;
@@ -64,13 +65,6 @@ export async function HandleWheel(
   }
 
   const customIds = { spin: "" };
-  const registrations: Array<{ dispose: () => void }> = [];
-  let resolved = false;
-  let timeoutHandle: NodeJS.Timeout | null = null;
-
-  const disposeAll = (): void => {
-    registrations.forEach((reg) => reg.dispose());
-  };
 
   const buildWheelEmbed = (index: number, label: string) =>
     EmbedFactory.Create({
@@ -83,11 +77,6 @@ export async function HandleWheel(
     });
 
   const finalizeTimeout = async (): Promise<void> => {
-    if (resolved) return;
-    resolved = true;
-    disposeAll();
-    if (timeoutHandle) clearTimeout(timeoutHandle);
-
     if (bet > 0) {
       balance = manager.AdjustBalance(interaction.user.id, bet, 0);
     }
@@ -115,17 +104,13 @@ export async function HandleWheel(
   const handleSpin = async (
     buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
-    if (resolved) {
+    if (!session.Resolve()) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This wheel spin already finished.",
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
-
-    resolved = true;
-    if (timeoutHandle) clearTimeout(timeoutHandle);
-    disposeAll();
 
     // Animation frames
     const ticks: number[] = [];
@@ -192,14 +177,13 @@ export async function HandleWheel(
     });
   };
 
-  const spinRegistration = componentRouter.RegisterButton({
+  const session = new InteractiveSession({
+    componentRouter,
     ownerId: interaction.user.id,
-    expiresInMs: WHEEL_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleSpin(buttonInteraction),
+    timeoutMs: WHEEL_TIMEOUT_MS,
+    onTimeout: finalizeTimeout,
   });
-
-  registrations.push(spinRegistration);
-  customIds.spin = spinRegistration.customId;
+  customIds.spin = session.RegisterButton(handleSpin);
 
   const promptEmbed = buildWheelEmbed(0, "Press Spin to start the wheel.");
 
@@ -212,11 +196,9 @@ export async function HandleWheel(
     if (bet > 0) {
       manager.AdjustBalance(interaction.user.id, bet, 0);
     }
-    disposeAll();
+    session.Resolve();
     return;
   }
 
-  timeoutHandle = setTimeout(() => {
-    void finalizeTimeout();
-  }, WHEEL_TIMEOUT_MS);
+  session.Start();
 }

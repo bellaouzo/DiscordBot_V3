@@ -1,4 +1,5 @@
 import type { PermissionFlagsBits } from "discord.js";
+import type { ToggleableFeatureKey } from "@shared/Features";
 
 /**
  * Command configuration: guild-only, permissions, cooldown, role/mod/owner.
@@ -19,7 +20,7 @@ export interface CommandConfig {
   readonly modRole?: boolean;
   readonly adminRole?: boolean;
   readonly owner?: boolean;
-  readonly requiredFeature?: "economy" | "giveaways";
+  readonly requiredFeature?: ToggleableFeatureKey;
 }
 
 /**
@@ -102,7 +103,7 @@ export class CommandConfigBuilder {
     return this;
   }
 
-  requiredFeature(feature: "economy" | "giveaways"): this {
+  requiredFeature(feature: ToggleableFeatureKey): this {
     this.config = { ...this.config, requiredFeature: feature };
     return this;
   }
@@ -161,7 +162,7 @@ export const Config = {
       .cooldownSeconds(cooldownSeconds)
       .build(),
 
-  utilityWithFeature: (feature: "economy" | "giveaways", cooldownSeconds = 1) =>
+  utilityWithFeature: (feature: ToggleableFeatureKey, cooldownSeconds = 1) =>
     CommandConfigBuilder.create()
       .guildOnly()
       .cooldownSeconds(cooldownSeconds)

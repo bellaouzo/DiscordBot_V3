@@ -9,6 +9,7 @@ import { ButtonStyle } from "discord.js";
 import type { TicketDatabase, Ticket } from "@database";
 import type { Logger } from "@shared/Logger";
 import { EmbedFactory, ComponentFactory } from "@utilities";
+import { TicketButtonIds } from "@systems/Ticket/TicketCustomIds";
 
 export interface TicketPresentationOptions {
   readonly guild: Guild;
@@ -88,10 +89,10 @@ export class TicketPresentation {
         { label: "Close Ticket", style: ButtonStyle.Danger, emoji: "🔒" },
       ],
       customIds: [
-        `ticket:claim:${ticketId}`,
-        `ticket:add:${ticketId}`,
-        `ticket:remove:${ticketId}`,
-        `ticket:close:${ticketId}`,
+        TicketButtonIds.claim.Build({ ticketId }),
+        TicketButtonIds.add.Build({ ticketId }),
+        TicketButtonIds.remove.Build({ ticketId }),
+        TicketButtonIds.close.Build({ ticketId }),
       ],
     });
   }

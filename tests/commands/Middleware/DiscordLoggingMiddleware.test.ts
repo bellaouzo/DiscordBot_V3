@@ -28,9 +28,8 @@ function createMiddlewareContext(overrides: {
   guildId?: string | null;
   commandLogChannelId?: string | null;
 }): MiddlewareContext {
-  const guild = overrides.guild === undefined
-    ? { id: "guild-1" }
-    : overrides.guild;
+  const guild =
+    overrides.guild === undefined ? { id: "guild-1" } : overrides.guild;
   const interaction = createMockInteraction({
     guild,
     guildId: overrides.guildId ?? guild?.id ?? null,

@@ -18,11 +18,13 @@ function createFullDraft(): SetupDraft {
     deleteLogChannelId: null,
     productionLogChannelId: null,
     welcomeChannelId: null,
-    economyEnabled: true,
-    levelingEnabled: false,
-    starboardEnabled: false,
-    verificationEnabled: false,
-    giveawaysEnabled: true,
+    features: {
+      economy: true,
+      leveling: false,
+      starboard: false,
+      verification: false,
+      giveaways: true,
+    },
     starboardChannelId: null,
     levelUpChannelId: null,
     verificationChannelId: null,
@@ -42,7 +44,7 @@ describe("SaveSetupDraft", () => {
 
   it("rejects save when verification is enabled without an unverified role", () => {
     const draft = createFullDraft();
-    draft.verificationEnabled = true;
+    draft.features.verification = true;
     draft.unverifiedRoleId = null;
 
     const result = ValidateSetupDraft(draft);
@@ -52,8 +54,8 @@ describe("SaveSetupDraft", () => {
   it("persists guild settings and xp settings", () => {
     const databases = createMockDatabaseSet();
     const draft = createFullDraft();
-    draft.levelingEnabled = true;
-    draft.starboardEnabled = true;
+    draft.features.leveling = true;
+    draft.features.starboard = true;
     draft.starboardChannelId = "starboard-1";
 
     vi.mocked(databases.serverDb.UpsertGuildSettings).mockReturnValue({
@@ -110,7 +112,7 @@ describe("SaveSetupDraft", () => {
   it("clears starboard channel when starboard module is disabled", () => {
     const databases = createMockDatabaseSet();
     const draft = createFullDraft();
-    draft.starboardEnabled = false;
+    draft.features.starboard = false;
     draft.starboardChannelId = "starboard-1";
 
     vi.mocked(databases.serverDb.UpsertGuildSettings).mockReturnValue({

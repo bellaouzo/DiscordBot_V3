@@ -107,7 +107,11 @@ export class LotteryStore {
     return rows.map(MapLottery);
   }
 
-  AddEntry(lottery_id: number, user_id: string, entry_cost: number): boolean {
+  AddLotteryEntry(
+    lottery_id: number,
+    user_id: string,
+    entry_cost: number,
+  ): boolean {
     const now = Date.now();
     const transaction = this.db.transaction(() => {
       const insert = this.db.prepare(`
@@ -129,7 +133,7 @@ export class LotteryStore {
     }
   }
 
-  HasEntry(lottery_id: number, user_id: string): boolean {
+  HasLotteryEntry(lottery_id: number, user_id: string): boolean {
     const row = this.db
       .prepare(
         "SELECT 1 FROM economy_lottery_entries WHERE lottery_id = ? AND user_id = ?",
@@ -139,7 +143,7 @@ export class LotteryStore {
     return Boolean(row);
   }
 
-  GetEntries(lottery_id: number): string[] {
+  GetLotteryEntries(lottery_id: number): string[] {
     const rows = this.db
       .prepare(
         "SELECT user_id FROM economy_lottery_entries WHERE lottery_id = ?",

@@ -19,6 +19,8 @@ import { AutoMiddleware } from "@middleware";
 import type { CommandConfig } from "@middleware/CommandConfig";
 import type { ResponderSet } from "@responders";
 import type { Logger } from "@shared/Logger";
+import type { SubcommandEntry } from "./Subcommands";
+import { AddSubcommands, RouteSubcommands } from "./Subcommands";
 
 /**
  * Context passed to command execute functions: responders, logger, databases, app config.
@@ -49,18 +51,29 @@ export interface CommandDefinition {
   readonly config?: CommandConfig;
 }
 
-/**
- * Options for creating a command. Middleware defaults to AutoMiddleware(config) when omitted.
- */
-export interface CommandFactoryOptions {
+interface CommandFactoryBaseOptions {
   readonly name: string;
   readonly description: string;
   readonly group: string;
+  /** Extra builder setup (options, permissions). Runs after subcommands are added. */
   readonly configure?: (builder: SlashCommandBuilder) => void;
-  readonly execute: CommandExecutor;
   readonly middleware?: MiddlewareConfiguration;
   readonly config?: CommandConfig;
 }
+
+/**
+ * Options for creating a command. Pass either `execute`, or `subcommands` to have the slash
+ * definition and the dispatch generated from one table. Middleware defaults to
+ * AutoMiddleware(config) when omitted.
+ */
+export type CommandFactoryOptions = CommandFactoryBaseOptions &
+  (
+    | { readonly execute: CommandExecutor; readonly subcommands?: never }
+    | {
+        readonly subcommands: readonly SubcommandEntry[];
+        readonly execute?: never;
+      }
+  );
 
 /**
  * Creates a slash command definition. Uses AutoMiddleware(options.config) when middleware is not provided.
@@ -75,6 +88,10 @@ export function CreateCommand(
     .setName(options.name)
     .setDescription(options.description);
 
+  if (options.subcommands) {
+    AddSubcommands(data, options.subcommands);
+  }
+
   if (options.configure) {
     options.configure(data);
   }
@@ -84,7 +101,9 @@ export function CreateCommand(
   return {
     data,
     group: options.group,
-    execute: options.execute,
+    execute: options.subcommands
+      ? RouteSubcommands(options.subcommands)
+      : options.execute,
     middleware,
     config: options.config,
   };

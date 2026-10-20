@@ -14,6 +14,8 @@ Guide to command structure, middleware, responders, and utilities in the Discord
 
 ## Basic Command Structure
 
+The quickest start is `npm run new:command -- <Group> <Name>` (add `--subcommands` for a [subcommand table](EXTENDING.md#subcommands)), which creates the command and a test.
+
 Use `CreateCommand` with `Config` from `@middleware`; middleware is applied automatically via `AutoMiddleware(options.config)`. Override with `options.middleware` if needed.
 
 ```typescript
@@ -129,9 +131,9 @@ export const CustomMiddleware: CommandMiddleware = {
 
 **FeatureEnabledMiddleware**
 
-- Blocks commands when a per-guild feature is disabled (`economy` or `giveaways`)
+- Blocks commands when a per-guild feature is disabled (any toggleable feature in `@shared/Features`)
 - Applied automatically when using `Config.utilityWithFeature(...)` or `Config.create().requiredFeature(...).build()`
-- Reads toggles from `guild_settings` via `@shared/GuildFeatures`
+- Reads toggle state through `IsFeatureEnabled` in `@shared/Features`
 
 **CommandEnabledMiddleware**
 
@@ -352,6 +354,7 @@ await interactionResponder.WithAction({
 
 ## See also
 
+- [Extending the Bot](EXTENDING.md) — checklists for settings, features, buttons, jobs
 - [Examples](../examples/) — copy-paste command templates
 - [Architecture Map](ARCHITECTURE_MAP.md) — request flow and domain boundaries
 - [Quality Checklist](QUALITY_CHECKLIST.md) — pre-PR requirements

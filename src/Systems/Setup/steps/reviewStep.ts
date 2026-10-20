@@ -69,13 +69,13 @@ export const reviewStep: SetupStepDefinition = {
           `Announcements: ${FormatChannel(draft.announcementChannelId, guild, DEFAULT_ANNOUNCEMENT_CHANNEL)}`,
           `Welcome: ${FormatChannel(draft.welcomeChannelId, guild, "welcome")}`,
           `Production logs: ${FormatChannelAllowNone(draft.productionLogChannelId, guild, loggingDefaults.deployLogChannelName || DEFAULT_PRODUCTION_LOG_CHANNEL)}`,
-          draft.starboardEnabled
+          draft.features.starboard
             ? `Starboard: ${FormatChannel(draft.starboardChannelId, guild, "starboard")}`
             : "Starboard: disabled",
-          draft.levelingEnabled
+          draft.features.leveling
             ? `Level-up: ${FormatChannel(draft.levelUpChannelId, guild, "level-up")}`
             : "Level-up: disabled",
-          draft.verificationEnabled
+          draft.features.verification
             ? `Verification: ${FormatChannel(draft.verificationChannelId, guild, "verification")} · ${FormatSingleRole(draft.unverifiedRoleId, guild)}`
             : "Verification: disabled",
         ].join("\n"),

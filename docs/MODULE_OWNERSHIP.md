@@ -5,7 +5,7 @@ Ownership in this repository is feature-based. If a change spans multiple areas,
 ## Ownership Areas
 
 - **Core bootstrap and runtime wiring**
-  - Paths: `src/index.ts`, `src/Bootstrap.ts`, `src/Bootstrap/SystemRegistry.ts`, `src/Bot`, `src/Responders`
+  - Paths: `src/index.ts`, `src/Bootstrap.ts`, `src/Bootstrap/SystemRegistry.ts` (registrar discovery), `src/Bot`, `src/Responders`
   - Scope: startup, shutdown, command/event registration, global system handler registration, interaction lifecycle safety.
 
 - **Database and migrations**

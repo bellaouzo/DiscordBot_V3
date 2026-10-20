@@ -123,7 +123,7 @@ export class DuelStore {
     return result.changes > 0;
   }
 
-  ListPendingByChallenger(
+  ListPendingDuelsByChallenger(
     guild_id: string,
     challenger_id: string,
   ): EconomyDuel[] {

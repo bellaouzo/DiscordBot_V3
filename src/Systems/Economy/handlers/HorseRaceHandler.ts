@@ -26,6 +26,7 @@ import type { HorseId } from "@systems/Economy/types";
 import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 import { HasItem, PrepareWager } from "@systems/Economy/utils/Wager";
+import { InteractiveSession } from "@shared/InteractiveSession";
 
 interface HorseCustomIds {
   horses: string[];
@@ -59,26 +60,15 @@ export async function HandleHorseRace(
   let rocketConsumed = false;
   const notes: string[] = [];
 
-  let resolved = false;
   let selectedHorse: HorseId | null = null;
   let intervalHandle: NodeJS.Timeout | null = null;
-  let timeoutHandle: NodeJS.Timeout | null = null;
 
   const customIds: HorseCustomIds = {
     horses: ["", "", "", ""],
     cancel: "",
   };
 
-  const registrations: Array<{ dispose: () => void }> = [];
-  const disposeAll = (): void => {
-    registrations.forEach((reg) => reg.dispose());
-  };
-
   const finalizeTimeout = async (): Promise<void> => {
-    if (resolved) return;
-    resolved = true;
-    disposeAll();
-
     if (bet > 0) {
       balance = manager.AdjustBalance(interaction.user.id, bet);
     }
@@ -107,7 +97,7 @@ export async function HandleHorseRace(
   const handleCancel = async (
     buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
-    if (resolved) {
+    if (!session.Resolve()) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This race has already finished.",
         flags: MessageFlags.Ephemeral,
@@ -115,14 +105,9 @@ export async function HandleHorseRace(
       return;
     }
 
-    resolved = true;
     if (intervalHandle) {
       clearInterval(intervalHandle);
     }
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
-    disposeAll();
 
     if (bet > 0) {
       balance = manager.AdjustBalance(interaction.user.id, bet);
@@ -142,7 +127,7 @@ export async function HandleHorseRace(
   const startRace = async (
     buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
-    if (resolved) {
+    if (session.IsResolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This race has already finished.",
         flags: MessageFlags.Ephemeral,
@@ -150,9 +135,7 @@ export async function HandleHorseRace(
       return;
     }
 
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
+    session.StopTimer();
 
     if (selectedHorse === null) {
       return;
@@ -213,7 +196,7 @@ export async function HandleHorseRace(
     });
 
     intervalHandle = setInterval(() => {
-      if (resolved) {
+      if (session.IsResolved) {
         return;
       }
 
@@ -243,14 +226,10 @@ export async function HandleHorseRace(
         .catch(() => {});
 
       if (leading !== -1) {
-        resolved = true;
+        session.Resolve();
         if (intervalHandle) {
           clearInterval(intervalHandle);
         }
-        if (timeoutHandle) {
-          clearTimeout(timeoutHandle);
-        }
-        disposeAll();
 
         const winner = leading as HorseId;
         const playerHorse = selectedHorse ?? winner;
@@ -295,7 +274,7 @@ export async function HandleHorseRace(
     buttonInteraction: ButtonInteraction,
     horseIndex: HorseId,
   ): Promise<void> => {
-    if (resolved) {
+    if (session.IsResolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This race has already finished.",
         flags: MessageFlags.Ephemeral,
@@ -304,34 +283,24 @@ export async function HandleHorseRace(
     }
 
     selectedHorse = horseIndex;
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
+    session.StopTimer();
 
     // Keep bet locked; already deducted below
     await startRace(buttonInteraction);
   };
 
-  const horseRegistrations = HORSE_EMOJIS.map((_, index) =>
-    componentRouter.RegisterButton({
-      ownerId: interaction.user.id,
-      expiresInMs: HORSE_TIMEOUT_MS,
-      handler: (buttonInteraction) =>
-        handleSelectHorse(buttonInteraction, index as HorseId),
-    }),
-  );
-
-  const cancelRegistration = componentRouter.RegisterButton({
+  const session = new InteractiveSession({
+    componentRouter,
     ownerId: interaction.user.id,
-    expiresInMs: HORSE_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleCancel(buttonInteraction),
+    timeoutMs: HORSE_TIMEOUT_MS,
+    onTimeout: finalizeTimeout,
   });
-
-  registrations.push(...horseRegistrations, cancelRegistration);
-  horseRegistrations.forEach((reg, idx) => {
-    customIds.horses[idx] = reg.customId;
+  HORSE_EMOJIS.forEach((_, index) => {
+    customIds.horses[index] = session.RegisterButton((buttonInteraction) =>
+      handleSelectHorse(buttonInteraction, index as HorseId),
+    );
   });
-  customIds.cancel = cancelRegistration.customId;
+  customIds.cancel = session.RegisterButton(handleCancel);
 
   if (bet > 0) {
     balance = manager.AdjustBalance(interaction.user.id, -bet, 0);
@@ -352,11 +321,9 @@ export async function HandleHorseRace(
     if (bet > 0) {
       manager.AdjustBalance(interaction.user.id, bet);
     }
-    disposeAll();
+    session.Resolve();
     return;
   }
 
-  timeoutHandle = setTimeout(() => {
-    void finalizeTimeout();
-  }, HORSE_TIMEOUT_MS);
+  session.Start();
 }

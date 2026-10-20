@@ -90,7 +90,7 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
 
   const responders = CreateResponders({ logger });
 
-  RegisterAllSystems({
+  await RegisterAllSystems({
     responders,
     logger: logger.Child({ phase: "systems" }),
     databases,

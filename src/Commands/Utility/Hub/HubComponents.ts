@@ -8,7 +8,7 @@ import { ButtonStyle } from "discord.js";
 import type { CommandContext } from "@commands";
 import type { GuildSettings } from "@database/Server/Types";
 import { ComponentFactory, EmbedFactory, ToActionRowData } from "@utilities";
-import { IsEconomyEnabled } from "@shared/GuildFeatures";
+import { IsFeatureEnabled } from "@shared/Features";
 import { CreateHubActionCustomId } from "@commands/Utility/Hub/HubTypes";
 
 export interface HubContext {
@@ -180,7 +180,7 @@ export function BuildHubStatsEmbed(
       value: xp ? `**${xp.level}** (${xp.xp} XP)` : "No XP yet",
       inline: true,
     },
-    ...(IsEconomyEnabled(context.databases.serverDb, guildId)
+    ...(IsFeatureEnabled(context.databases.serverDb, guildId, "economy")
       ? [
           {
             name: "Coins",

@@ -1,7 +1,6 @@
 import { MessageFlags } from "discord.js";
 import type { CommandMiddleware } from "@middleware";
-import { IsGuildFeatureEnabled } from "@shared/GuildFeatures";
-import type { GuildFeatureKey } from "@shared/GuildFeatures";
+import { GetFeature, IsFeatureEnabled } from "@shared/Features";
 import { EmbedFactory } from "@utilities";
 
 export const FeatureEnabledMiddleware: CommandMiddleware = {
@@ -15,7 +14,7 @@ export const FeatureEnabledMiddleware: CommandMiddleware = {
       return;
     }
 
-    const enabled = IsGuildFeatureEnabled(
+    const enabled = IsFeatureEnabled(
       context.databases.serverDb,
       guild.id,
       requiredFeature,
@@ -26,8 +25,7 @@ export const FeatureEnabledMiddleware: CommandMiddleware = {
       return;
     }
 
-    const featureLabel =
-      requiredFeature === "economy" ? "Economy" : "Giveaways";
+    const featureLabel = GetFeature(requiredFeature).name;
 
     const embed = EmbedFactory.CreateWarning({
       title: `${featureLabel} Disabled`,
@@ -40,5 +38,3 @@ export const FeatureEnabledMiddleware: CommandMiddleware = {
     });
   },
 };
-
-export type { GuildFeatureKey };

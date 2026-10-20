@@ -33,6 +33,7 @@ import {
   WinStillPossible,
 } from "@systems/Economy/utils/scratchLogic";
 import { HasItem, PrepareWager } from "@systems/Economy/utils/Wager";
+import { InteractiveSession } from "@shared/InteractiveSession";
 
 interface ScratchCustomIds {
   slots: string[];
@@ -63,8 +64,6 @@ export async function HandleScratch(
     ? "Scratch Lens — extra reveal consumed."
     : undefined;
 
-  let resolved = false;
-  let timeoutHandle: NodeJS.Timeout | null = null;
   const reveals: Array<ScratchSymbol | null> = Array.from(
     { length: SCRATCH_SLOTS },
     () => null,
@@ -76,18 +75,9 @@ export async function HandleScratch(
     cancel: "",
   };
 
-  const registrations: Array<{ dispose: () => void }> = [];
-  const disposeAll = (): void => {
-    registrations.forEach((reg) => reg.dispose());
-  };
-
   const allRevealed = (): boolean => reveals.every((r) => r !== null);
 
   const finalizeTimeout = async (): Promise<void> => {
-    if (resolved) return;
-    resolved = true;
-    disposeAll();
-
     if (bet > 0) {
       balance = manager.AdjustBalance(interaction.user.id, bet);
     }
@@ -112,11 +102,7 @@ export async function HandleScratch(
   };
 
   const finishGame = async (): Promise<void> => {
-    resolved = true;
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
-    disposeAll();
+    session.Resolve();
 
     FillRemainingScratchReveals(
       reveals,
@@ -196,7 +182,7 @@ export async function HandleScratch(
     buttonInteraction: ButtonInteraction,
     index: number,
   ): Promise<void> => {
-    if (resolved) {
+    if (session.IsResolved) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This card has already finished.",
         flags: MessageFlags.Ephemeral,
@@ -247,19 +233,13 @@ export async function HandleScratch(
   const handleCancel = async (
     buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
-    if (resolved) {
+    if (!session.Resolve()) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This card has already finished.",
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
-
-    resolved = true;
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
-    disposeAll();
 
     if (bet > 0) {
       balance = manager.AdjustBalance(interaction.user.id, bet);
@@ -280,25 +260,18 @@ export async function HandleScratch(
     });
   };
 
-  const slotRegistrations = Array.from({ length: SCRATCH_SLOTS }, (_, idx) =>
-    componentRouter.RegisterButton({
-      ownerId: interaction.user.id,
-      expiresInMs: SCRATCH_TIMEOUT_MS,
-      handler: (buttonInteraction) => handleScratch(buttonInteraction, idx),
-    }),
-  );
-
-  const cancelRegistration = componentRouter.RegisterButton({
+  const session = new InteractiveSession({
+    componentRouter,
     ownerId: interaction.user.id,
-    expiresInMs: SCRATCH_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleCancel(buttonInteraction),
+    timeoutMs: SCRATCH_TIMEOUT_MS,
+    onTimeout: finalizeTimeout,
   });
-
-  registrations.push(...slotRegistrations, cancelRegistration);
-  slotRegistrations.forEach((reg, idx) => {
-    customIds.slots[idx] = reg.customId;
-  });
-  customIds.cancel = cancelRegistration.customId;
+  customIds.slots = Array.from({ length: SCRATCH_SLOTS }, (_, idx) =>
+    session.RegisterButton((buttonInteraction) =>
+      handleScratch(buttonInteraction, idx),
+    ),
+  );
+  customIds.cancel = session.RegisterButton(handleCancel);
 
   if (bet > 0) {
     balance = manager.AdjustBalance(interaction.user.id, -bet, 0);
@@ -335,11 +308,9 @@ export async function HandleScratch(
     if (bet > 0) {
       manager.AdjustBalance(interaction.user.id, bet);
     }
-    disposeAll();
+    session.Resolve();
     return;
   }
 
-  timeoutHandle = setTimeout(() => {
-    void finalizeTimeout();
-  }, SCRATCH_TIMEOUT_MS);
+  session.Start();
 }

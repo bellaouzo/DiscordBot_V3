@@ -8,6 +8,7 @@ import { ChannelType } from "discord.js";
 import type { GuildSettings } from "@database/ServerDatabase";
 import type { GuildXpSettings } from "@database/Server/Types";
 import type { FeatureModuleId } from "./features/FeatureModules";
+import { FEATURE_MODULES, ReadFeatureEnabled } from "./features/FeatureModules";
 
 export interface SetupDraft {
   adminRoleIds: string[];
@@ -20,11 +21,8 @@ export interface SetupDraft {
   deleteLogChannelId: string | null;
   productionLogChannelId: string | null;
   welcomeChannelId: string | null;
-  economyEnabled: boolean;
-  levelingEnabled: boolean;
-  starboardEnabled: boolean;
-  verificationEnabled: boolean;
-  giveawaysEnabled: boolean;
+  /** On/off state of each /setup feature toggle, keyed by feature. */
+  features: Record<FeatureModuleId, boolean>;
   starboardChannelId: string | null;
   levelUpChannelId: string | null;
   verificationChannelId: string | null;
@@ -83,13 +81,12 @@ export function CreateNavigationIds(interactionId: string): NavigationIds {
     verificationChannelSelect: `${prefix}:verifychannel`,
     unverifiedRoleSelect: `${prefix}:unverifiedrole`,
     verifiedRoleSelect: `${prefix}:verifiedrole`,
-    featureToggleIds: {
-      economy: `${prefix}:feat:economy`,
-      leveling: `${prefix}:feat:leveling`,
-      starboard: `${prefix}:feat:starboard`,
-      verification: `${prefix}:feat:verification`,
-      giveaways: `${prefix}:feat:giveaways`,
-    },
+    featureToggleIds: Object.fromEntries(
+      FEATURE_MODULES.map((module) => [
+        module.id,
+        `${prefix}:feat:${module.id}`,
+      ]),
+    ) as Record<FeatureModuleId, string>,
     next: `${prefix}:next`,
     back: `${prefix}:back`,
     saveAndQuit: `${prefix}:savequit`,
@@ -112,11 +109,12 @@ export function BuildDraftFromSettings(
     deleteLogChannelId: settings.delete_log_channel_id,
     productionLogChannelId: settings.production_log_channel_id,
     welcomeChannelId: settings.welcome_channel_id,
-    economyEnabled: settings.economy_enabled,
-    levelingEnabled: xpSettings.enabled,
-    starboardEnabled: settings.starboard_channel_id !== null,
-    verificationEnabled: settings.verification_enabled,
-    giveawaysEnabled: settings.giveaways_enabled,
+    features: Object.fromEntries(
+      FEATURE_MODULES.map((module) => [
+        module.id,
+        ReadFeatureEnabled(module.id, settings, xpSettings),
+      ]),
+    ) as Record<FeatureModuleId, boolean>,
     starboardChannelId: settings.starboard_channel_id,
     levelUpChannelId: xpSettings.level_up_channel_id,
     verificationChannelId: settings.verification_channel_id,

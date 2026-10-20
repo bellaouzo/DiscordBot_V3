@@ -74,7 +74,7 @@ function BuildSettingsEmbed(
     inline: true,
   });
 
-  AppendFeatureGuideHint(embed, "xpconfig");
+  AppendFeatureGuideHint(embed, "leveling");
 
   return embed;
 }
@@ -391,7 +391,7 @@ async function ExecuteView(
 }
 
 export const XpConfigCommand = CreateCommand({
-  name: "xpconfig",
+  name: "leveling",
   description: "Configure chat XP settings",
   group: "utility",
   config: Config.mod(3).build(),
@@ -551,7 +551,7 @@ export const XpConfigCommand = CreateCommand({
       return;
     }
     if (sub === "about") {
-      await ReplyWithFeatureAbout(interaction, context, "xpconfig");
+      await ReplyWithFeatureAbout(interaction, context, "leveling");
       return;
     }
     if (group === "exclude-channel") {

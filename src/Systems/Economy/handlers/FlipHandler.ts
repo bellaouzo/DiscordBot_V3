@@ -21,6 +21,7 @@ import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 import { FlipCoin } from "@systems/Economy/utils/flipLogic";
 import { HasItem, PrepareWager } from "@systems/Economy/utils/Wager";
+import { InteractiveSession } from "@shared/InteractiveSession";
 
 interface FlipCustomIds {
   heads: string;
@@ -56,25 +57,13 @@ export async function HandleFlip(
   const hasFlipCharm = HasItem(inventory, flipCharm);
   const hasCoinGuardian = HasItem(inventory, coinGuardian);
 
-  let resolved = false;
-  let timeoutHandle: NodeJS.Timeout | null = null;
-
   const customIds: FlipCustomIds = {
     heads: "",
     tails: "",
     cancel: "",
   };
 
-  const registrations: Array<{ dispose: () => void }> = [];
-  const disposeAll = (): void => {
-    registrations.forEach((reg) => reg.dispose());
-  };
-
   const finalizeTimeout = async (): Promise<void> => {
-    if (resolved) return;
-    resolved = true;
-    disposeAll();
-
     if (bet > 0) {
       balanceValue = manager.AdjustBalance(interaction.user.id, bet);
     }
@@ -98,19 +87,13 @@ export async function HandleFlip(
     buttonInteraction: ButtonInteraction,
     playerChoice: FlipChoice,
   ): Promise<void> => {
-    if (resolved) {
+    if (!session.Resolve()) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This flip has already finished.",
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
-
-    resolved = true;
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
-    disposeAll();
 
     let flipResult: FlipChoice = FlipCoin();
     let win = flipResult === playerChoice;
@@ -183,19 +166,13 @@ export async function HandleFlip(
   const handleCancel = async (
     buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
-    if (resolved) {
+    if (!session.Resolve()) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This flip has already finished.",
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
-
-    resolved = true;
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
-    disposeAll();
 
     if (bet > 0) {
       balanceValue = manager.AdjustBalance(interaction.user.id, bet);
@@ -217,26 +194,19 @@ export async function HandleFlip(
     balanceValue = manager.AdjustBalance(interaction.user.id, -bet, 0);
   }
 
-  const headsRegistration = componentRouter.RegisterButton({
+  const session = new InteractiveSession({
+    componentRouter,
     ownerId: interaction.user.id,
-    expiresInMs: FLIP_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleResult(buttonInteraction, "heads"),
+    timeoutMs: FLIP_TIMEOUT_MS,
+    onTimeout: finalizeTimeout,
   });
-  const tailsRegistration = componentRouter.RegisterButton({
-    ownerId: interaction.user.id,
-    expiresInMs: FLIP_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleResult(buttonInteraction, "tails"),
-  });
-  const cancelRegistration = componentRouter.RegisterButton({
-    ownerId: interaction.user.id,
-    expiresInMs: FLIP_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleCancel(buttonInteraction),
-  });
-
-  registrations.push(headsRegistration, tailsRegistration, cancelRegistration);
-  customIds.heads = headsRegistration.customId;
-  customIds.tails = tailsRegistration.customId;
-  customIds.cancel = cancelRegistration.customId;
+  customIds.heads = session.RegisterButton((buttonInteraction) =>
+    handleResult(buttonInteraction, "heads"),
+  );
+  customIds.tails = session.RegisterButton((buttonInteraction) =>
+    handleResult(buttonInteraction, "tails"),
+  );
+  customIds.cancel = session.RegisterButton(handleCancel);
 
   const promptEmbed = BuildFlipPromptEmbed({
     bet,
@@ -253,11 +223,9 @@ export async function HandleFlip(
     if (bet > 0) {
       manager.AdjustBalance(interaction.user.id, bet);
     }
-    disposeAll();
+    session.Resolve();
     return;
   }
 
-  timeoutHandle = setTimeout(() => {
-    void finalizeTimeout();
-  }, FLIP_TIMEOUT_MS);
+  session.Start();
 }

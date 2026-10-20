@@ -21,6 +21,7 @@ import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 import { DetermineRpsOutcome } from "@systems/Economy/utils/rpsLogic";
 import { HasItem, PrepareWager } from "@systems/Economy/utils/Wager";
+import { InteractiveSession } from "@shared/InteractiveSession";
 
 interface RpsCustomIds {
   rock: string;
@@ -53,9 +54,6 @@ export async function HandleRps(
   const hasEdge = HasItem(inventory, rpsEdge);
   let edgeAvailable = hasEdge;
 
-  let resolved = false;
-  let timeoutHandle: NodeJS.Timeout | null = null;
-
   const customIds: RpsCustomIds = {
     rock: "",
     paper: "",
@@ -63,16 +61,7 @@ export async function HandleRps(
     cancel: "",
   };
 
-  const registrations: Array<{ dispose: () => void }> = [];
-  const disposeAll = (): void => {
-    registrations.forEach((reg) => reg.dispose());
-  };
-
   const finalizeTimeout = async (): Promise<void> => {
-    if (resolved) return;
-    resolved = true;
-    disposeAll();
-
     if (bet > 0) {
       balanceValue = manager.AdjustBalance(interaction.user.id, bet);
     }
@@ -96,19 +85,13 @@ export async function HandleRps(
     buttonInteraction: ButtonInteraction,
     playerChoice: RpsChoice,
   ): Promise<void> => {
-    if (resolved) {
+    if (!session.Resolve()) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This game has already finished.",
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
-
-    resolved = true;
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
-    disposeAll();
 
     const rollBotChoice = (): RpsChoice =>
       ["rock", "paper", "scissors"][Math.floor(Math.random() * 3)] as RpsChoice;
@@ -188,19 +171,13 @@ export async function HandleRps(
   const handleCancel = async (
     buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
-    if (resolved) {
+    if (!session.Resolve()) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This game has already finished.",
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
-
-    resolved = true;
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
-    disposeAll();
 
     if (bet > 0) {
       balanceValue = manager.AdjustBalance(interaction.user.id, bet);
@@ -221,37 +198,22 @@ export async function HandleRps(
     balanceValue = manager.AdjustBalance(interaction.user.id, -bet, 0);
   }
 
-  const rockRegistration = componentRouter.RegisterButton({
+  const session = new InteractiveSession({
+    componentRouter,
     ownerId: interaction.user.id,
-    expiresInMs: RPS_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleResult(buttonInteraction, "rock"),
+    timeoutMs: RPS_TIMEOUT_MS,
+    onTimeout: finalizeTimeout,
   });
-  const paperRegistration = componentRouter.RegisterButton({
-    ownerId: interaction.user.id,
-    expiresInMs: RPS_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleResult(buttonInteraction, "paper"),
-  });
-  const scissorsRegistration = componentRouter.RegisterButton({
-    ownerId: interaction.user.id,
-    expiresInMs: RPS_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleResult(buttonInteraction, "scissors"),
-  });
-  const cancelRegistration = componentRouter.RegisterButton({
-    ownerId: interaction.user.id,
-    expiresInMs: RPS_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleCancel(buttonInteraction),
-  });
-
-  registrations.push(
-    rockRegistration,
-    paperRegistration,
-    scissorsRegistration,
-    cancelRegistration,
+  customIds.rock = session.RegisterButton((buttonInteraction) =>
+    handleResult(buttonInteraction, "rock"),
   );
-  customIds.rock = rockRegistration.customId;
-  customIds.paper = paperRegistration.customId;
-  customIds.scissors = scissorsRegistration.customId;
-  customIds.cancel = cancelRegistration.customId;
+  customIds.paper = session.RegisterButton((buttonInteraction) =>
+    handleResult(buttonInteraction, "paper"),
+  );
+  customIds.scissors = session.RegisterButton((buttonInteraction) =>
+    handleResult(buttonInteraction, "scissors"),
+  );
+  customIds.cancel = session.RegisterButton(handleCancel);
 
   const promptEmbed = BuildRpsPromptEmbed({
     bet,
@@ -267,11 +229,9 @@ export async function HandleRps(
     if (bet > 0) {
       manager.AdjustBalance(interaction.user.id, bet);
     }
-    disposeAll();
+    session.Resolve();
     return;
   }
 
-  timeoutHandle = setTimeout(() => {
-    void finalizeTimeout();
-  }, RPS_TIMEOUT_MS);
+  session.Start();
 }

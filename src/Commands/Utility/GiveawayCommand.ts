@@ -34,7 +34,7 @@ async function ExecuteGiveaway(
       await HandleList(interaction, context);
       break;
     case "about":
-      await ReplyWithFeatureAbout(interaction, context, "giveaway");
+      await ReplyWithFeatureAbout(interaction, context, "giveaways");
       break;
   }
 }

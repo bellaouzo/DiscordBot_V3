@@ -1,5 +1,6 @@
 import { SafeParseJson, isStringArray } from "@utilities/SafeJson";
 import type { Logger } from "@shared/Logger";
+import { ReadGuildSettingValues } from "@database/Server/GuildSettingsSchema";
 import type {
   EventRow,
   GuildSettings,
@@ -67,71 +68,7 @@ export function MapGuildSettings(
 ): GuildSettings {
   return {
     guild_id: String(row.guild_id),
-    admin_role_ids: ParseIdList(row.admin_role_ids, logger),
-    mod_role_ids: ParseIdList(row.mod_role_ids, logger),
-    ticket_category_id: row.ticket_category_id
-      ? String(row.ticket_category_id)
-      : null,
-    appeal_review_category_id: row.appeal_review_category_id
-      ? String(row.appeal_review_category_id)
-      : null,
-    command_log_channel_id: row.command_log_channel_id
-      ? String(row.command_log_channel_id)
-      : null,
-    ticket_log_channel_id: row.ticket_log_channel_id
-      ? String(row.ticket_log_channel_id)
-      : null,
-    announcement_channel_id: row.announcement_channel_id
-      ? String(row.announcement_channel_id)
-      : null,
-    delete_log_channel_id: row.delete_log_channel_id
-      ? String(row.delete_log_channel_id)
-      : null,
-    production_log_channel_id: row.production_log_channel_id
-      ? String(row.production_log_channel_id)
-      : null,
-    welcome_channel_id: row.welcome_channel_id
-      ? String(row.welcome_channel_id)
-      : null,
-    autorole_id: row.autorole_id ? String(row.autorole_id) : null,
-    starboard_channel_id: row.starboard_channel_id
-      ? String(row.starboard_channel_id)
-      : null,
-    starboard_emoji: row.starboard_emoji ? String(row.starboard_emoji) : "⭐",
-    starboard_threshold:
-      row.starboard_threshold !== null && row.starboard_threshold !== undefined
-        ? Number(row.starboard_threshold)
-        : 3,
-    roblox_linked_discord_user_id: row.roblox_linked_discord_user_id
-      ? String(row.roblox_linked_discord_user_id)
-      : null,
-    roblox_linked_at:
-      row.roblox_linked_at !== null && row.roblox_linked_at !== undefined
-        ? Number(row.roblox_linked_at)
-        : null,
-    verification_enabled: Boolean(row.verification_enabled),
-    unverified_role_id: row.unverified_role_id
-      ? String(row.unverified_role_id)
-      : null,
-    verified_role_id: row.verified_role_id
-      ? String(row.verified_role_id)
-      : null,
-    verification_min_account_age_days:
-      row.verification_min_account_age_days !== null &&
-      row.verification_min_account_age_days !== undefined
-        ? Number(row.verification_min_account_age_days)
-        : 0,
-    verification_channel_id: row.verification_channel_id
-      ? String(row.verification_channel_id)
-      : null,
-    economy_enabled:
-      row.economy_enabled !== null && row.economy_enabled !== undefined
-        ? Boolean(row.economy_enabled)
-        : true,
-    giveaways_enabled:
-      row.giveaways_enabled !== null && row.giveaways_enabled !== undefined
-        ? Boolean(row.giveaways_enabled)
-        : true,
+    ...ReadGuildSettingValues(row, logger),
     created_at: Number(row.created_at),
     updated_at: Number(row.updated_at),
   };

@@ -6,6 +6,7 @@ import { HandleClaimButton } from "@systems/Ticket/buttons/ClaimButton";
 import { HandleAddUserButton } from "@systems/Ticket/buttons/AddUserButton";
 import { HandleRemoveUserButton } from "@systems/Ticket/buttons/RemoveUserButton";
 import { HandleCloseButton } from "@systems/Ticket/buttons/CloseButton";
+import { TicketButtonIds } from "@systems/Ticket/TicketCustomIds";
 
 export interface TicketRegistryContext {
   readonly responders: ResponderSet;
@@ -13,20 +14,13 @@ export interface TicketRegistryContext {
   readonly databases: DatabaseSet;
 }
 
-const TICKET_BUTTON_PREFIXES = {
-  claim: "ticket:claim:",
-  add: "ticket:add:",
-  remove: "ticket:remove:",
-  close: "ticket:close:",
-} as const;
-
 export function RegisterTicketButtons(context: TicketRegistryContext): void {
   const { componentRouter, buttonResponder, userSelectMenuRouter } =
     context.responders;
 
   RegisterTicketButtonPrefix(
     componentRouter,
-    TICKET_BUTTON_PREFIXES.claim,
+    TicketButtonIds.claim.prefix,
     async (interaction) => {
       if (!interaction.guild) {
         return;
@@ -43,7 +37,7 @@ export function RegisterTicketButtons(context: TicketRegistryContext): void {
 
   RegisterTicketButtonPrefix(
     componentRouter,
-    TICKET_BUTTON_PREFIXES.add,
+    TicketButtonIds.add.prefix,
     async (interaction) => {
       if (!interaction.guild) {
         return;
@@ -61,7 +55,7 @@ export function RegisterTicketButtons(context: TicketRegistryContext): void {
 
   RegisterTicketButtonPrefix(
     componentRouter,
-    TICKET_BUTTON_PREFIXES.remove,
+    TicketButtonIds.remove.prefix,
     async (interaction) => {
       if (!interaction.guild) {
         return;
@@ -79,7 +73,7 @@ export function RegisterTicketButtons(context: TicketRegistryContext): void {
 
   RegisterTicketButtonPrefix(
     componentRouter,
-    TICKET_BUTTON_PREFIXES.close,
+    TicketButtonIds.close.prefix,
     async (interaction) => {
       if (!interaction.guild) {
         return;

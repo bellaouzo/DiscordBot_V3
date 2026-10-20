@@ -140,11 +140,13 @@ export const featuresStep: SetupStepDefinition = {
   },
   buildComponents(context) {
     const rows: ActionRowData<ActionRowComponentData>[] = [];
-    const togglePairs = [
-      FEATURE_MODULES.slice(0, 2),
-      FEATURE_MODULES.slice(2, 4),
-      FEATURE_MODULES.slice(4, 5),
-    ];
+    // Two toggles per row while they fit; widen rows rather than exceed Discord's 5-row limit
+    // (4 toggle rows + the navigation row).
+    const perRow = Math.max(2, Math.ceil(FEATURE_MODULES.length / 4));
+    const togglePairs = Array.from(
+      { length: Math.ceil(FEATURE_MODULES.length / perRow) },
+      (_, index) => FEATURE_MODULES.slice(index * perRow, (index + 1) * perRow),
+    );
 
     togglePairs.forEach((pair) => {
       const buttons = pair.map((module) => {

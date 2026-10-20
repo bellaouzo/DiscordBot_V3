@@ -1,6 +1,7 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
+import type { FeatureKey } from "@shared/Features";
 import {
   EmbedFactory,
   GetFeatureGuide,
@@ -10,7 +11,7 @@ import {
 export async function ReplyWithFeatureAbout(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  featureKey: string,
+  featureKey: FeatureKey,
 ): Promise<void> {
   const guide = GetFeatureGuide(featureKey);
 

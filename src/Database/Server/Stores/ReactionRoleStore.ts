@@ -43,7 +43,7 @@ function MapMapping(row: MappingRow): ReactionRoleMapping {
 export class ReactionRoleStore {
   constructor(private readonly db: Database.Database) {}
 
-  CreatePanel(data: {
+  CreateReactionRolePanel(data: {
     guild_id: string;
     channel_id: string;
     message_id: string;
@@ -69,7 +69,10 @@ export class ReactionRoleStore {
     return MapPanel(row);
   }
 
-  GetPanelById(guild_id: string, panel_id: number): ReactionRolePanel | null {
+  GetReactionRolePanelById(
+    guild_id: string,
+    panel_id: number,
+  ): ReactionRolePanel | null {
     const row = this.db
       .prepare(
         "SELECT * FROM reaction_role_panels WHERE guild_id = ? AND id = ?",
@@ -79,7 +82,7 @@ export class ReactionRoleStore {
     return row ? MapPanel(row) : null;
   }
 
-  GetPanelByMessage(
+  GetReactionRolePanelByMessage(
     guild_id: string,
     message_id: string,
   ): ReactionRolePanel | null {
@@ -92,7 +95,7 @@ export class ReactionRoleStore {
     return row ? MapPanel(row) : null;
   }
 
-  ListPanels(guild_id: string): ReactionRolePanel[] {
+  ListReactionRolePanels(guild_id: string): ReactionRolePanel[] {
     const rows = this.db
       .prepare(
         "SELECT * FROM reaction_role_panels WHERE guild_id = ? ORDER BY created_at DESC",
@@ -102,7 +105,7 @@ export class ReactionRoleStore {
     return rows.map(MapPanel);
   }
 
-  ListPanelsByChannel(
+  ListReactionRolePanelsByChannel(
     guild_id: string,
     channel_id: string,
   ): ReactionRolePanel[] {
@@ -115,7 +118,7 @@ export class ReactionRoleStore {
     return rows.map(MapPanel);
   }
 
-  DeletePanel(id: number): boolean {
+  DeleteReactionRolePanel(id: number): boolean {
     const result = this.db
       .prepare("DELETE FROM reaction_role_panels WHERE id = ?")
       .run(id);
@@ -123,7 +126,7 @@ export class ReactionRoleStore {
     return result.changes > 0;
   }
 
-  AddMapping(data: {
+  AddReactionRoleMapping(data: {
     panel_id: number;
     emoji: string;
     role_id: string;
@@ -142,7 +145,7 @@ export class ReactionRoleStore {
     return MapMapping(row);
   }
 
-  RemoveMapping(id: number): boolean {
+  RemoveReactionRoleMapping(id: number): boolean {
     const result = this.db
       .prepare("DELETE FROM reaction_role_mappings WHERE id = ?")
       .run(id);
@@ -150,7 +153,7 @@ export class ReactionRoleStore {
     return result.changes > 0;
   }
 
-  GetMappingByPanelAndEmoji(
+  GetReactionRoleMappingByPanelAndEmoji(
     panel_id: number,
     emoji: string,
   ): ReactionRoleMapping | null {
@@ -163,11 +166,11 @@ export class ReactionRoleStore {
     return row ? MapMapping(row) : null;
   }
 
-  RemoveMappingByPanelAndEmoji(
+  RemoveReactionRoleMappingByPanelAndEmoji(
     panel_id: number,
     emoji: string,
   ): ReactionRoleMapping | null {
-    const mapping = this.GetMappingByPanelAndEmoji(panel_id, emoji);
+    const mapping = this.GetReactionRoleMappingByPanelAndEmoji(panel_id, emoji);
     if (!mapping) {
       return null;
     }
@@ -179,7 +182,7 @@ export class ReactionRoleStore {
     return mapping;
   }
 
-  ListMappings(panel_id: number): ReactionRoleMapping[] {
+  ListReactionRoleMappings(panel_id: number): ReactionRoleMapping[] {
     const rows = this.db
       .prepare(
         "SELECT * FROM reaction_role_mappings WHERE panel_id = ? ORDER BY id ASC",
@@ -189,7 +192,7 @@ export class ReactionRoleStore {
     return rows.map(MapMapping);
   }
 
-  GetMappingByEmoji(
+  GetReactionRoleMappingByEmoji(
     guild_id: string,
     message_id: string,
     emoji: string,
@@ -208,7 +211,7 @@ export class ReactionRoleStore {
     return row ? MapMapping(row) : null;
   }
 
-  ListAllMappings(guild_id: string): Array<
+  ListAllReactionRoleMappings(guild_id: string): Array<
     ReactionRoleMapping & {
       message_id: string;
       channel_id: string;

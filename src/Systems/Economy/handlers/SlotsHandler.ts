@@ -14,6 +14,7 @@ import { EmbedFactory } from "@utilities";
 import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 import { PrepareWager } from "@systems/Economy/utils/Wager";
+import { InteractiveSession } from "@shared/InteractiveSession";
 
 type SlotSymbol = {
   icon: string;
@@ -123,13 +124,6 @@ export async function HandleSlots(
   }
 
   const customIds = { spin: "" };
-  const registrations: Array<{ dispose: () => void }> = [];
-  let resolved = false;
-  let timeoutHandle: NodeJS.Timeout | null = null;
-
-  const disposeAll = (): void => {
-    registrations.forEach((reg) => reg.dispose());
-  };
 
   const placeholder = Array(9).fill("❔");
 
@@ -157,13 +151,6 @@ export async function HandleSlots(
   };
 
   const finalizeTimeout = async (): Promise<void> => {
-    if (resolved) return;
-    resolved = true;
-    disposeAll();
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
-
     if (bet > 0) {
       balance = manager.AdjustBalance(interaction.user.id, bet, 0);
     }
@@ -191,19 +178,13 @@ export async function HandleSlots(
   const handleSpin = async (
     buttonInteraction: ButtonInteraction,
   ): Promise<void> => {
-    if (resolved) {
+    if (!session.Resolve()) {
       await buttonResponder.Reply(buttonInteraction, {
         content: "This spin is already finished.",
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
-
-    resolved = true;
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
-    disposeAll();
 
     const finalLeft = [spinReel(), spinReel(), spinReel()];
     const finalCenter = [spinReel(), spinReel(), spinReel()];
@@ -338,14 +319,13 @@ export async function HandleSlots(
     });
   };
 
-  const spinRegistration = componentRouter.RegisterButton({
+  const session = new InteractiveSession({
+    componentRouter,
     ownerId: interaction.user.id,
-    expiresInMs: SLOTS_TIMEOUT_MS,
-    handler: (buttonInteraction) => handleSpin(buttonInteraction),
+    timeoutMs: SLOTS_TIMEOUT_MS,
+    onTimeout: finalizeTimeout,
   });
-
-  registrations.push(spinRegistration);
-  customIds.spin = spinRegistration.customId;
+  customIds.spin = session.RegisterButton(handleSpin);
 
   const promptEmbed = buildSpinEmbed(
     placeholder,
@@ -361,11 +341,9 @@ export async function HandleSlots(
     if (bet > 0) {
       manager.AdjustBalance(interaction.user.id, bet, 0);
     }
-    disposeAll();
+    session.Resolve();
     return;
   }
 
-  timeoutHandle = setTimeout(() => {
-    void finalizeTimeout();
-  }, SLOTS_TIMEOUT_MS);
+  session.Start();
 }

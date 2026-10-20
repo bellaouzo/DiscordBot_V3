@@ -193,18 +193,3 @@ export async function GetTicketOrReply(
   }
   return ticket;
 }
-
-export function ParseTicketButtonCustomId(customId: string): {
-  action: "claim" | "close" | "add" | "remove";
-  ticketId: number;
-} | null {
-  const match = customId.match(/^ticket:(claim|close|add|remove):(\d+)$/);
-  if (!match) {
-    return null;
-  }
-
-  return {
-    action: match[1] as "claim" | "close" | "add" | "remove",
-    ticketId: Number.parseInt(match[2], 10),
-  };
-}

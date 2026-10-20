@@ -11,10 +11,10 @@ import { ComponentFactory, EmbedFactory, ToActionRowData } from "@utilities";
 import type { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
 import {
   CreateTicketServices,
-  ParseTicketButtonCustomId,
   CanUserRemoveParticipants,
 } from "@systems/Ticket/validation/TicketValidation";
 import { HandleUserRemoval } from "@systems/Ticket/components/UserSelectionMenu";
+import { TicketButtonIds } from "@systems/Ticket/TicketCustomIds";
 
 export async function HandleRemoveUserButton(
   buttonInteraction: ButtonInteraction,
@@ -26,8 +26,8 @@ export async function HandleRemoveUserButton(
     guild: Guild;
   },
 ): Promise<void> {
-  const parsed = ParseTicketButtonCustomId(buttonInteraction.customId);
-  if (!parsed || parsed.action !== "remove") {
+  const parsed = TicketButtonIds.remove.Parse(buttonInteraction.customId);
+  if (!parsed) {
     return;
   }
 

@@ -1,3 +1,5 @@
+import type { GuildSettingValues } from "@database/Server/GuildSettingsSchema";
+
 export interface ScheduledEvent {
   id: number;
   guild_id: string;
@@ -10,31 +12,9 @@ export interface ScheduledEvent {
   created_at: number;
 }
 
-export interface GuildSettings {
+/** Stored guild settings. Fields come from `GUILD_SETTING_FIELDS` in GuildSettingsSchema.ts. */
+export interface GuildSettings extends GuildSettingValues {
   guild_id: string;
-  admin_role_ids: string[];
-  mod_role_ids: string[];
-  ticket_category_id: string | null;
-  appeal_review_category_id: string | null;
-  command_log_channel_id: string | null;
-  ticket_log_channel_id: string | null;
-  announcement_channel_id: string | null;
-  delete_log_channel_id: string | null;
-  production_log_channel_id: string | null;
-  welcome_channel_id: string | null;
-  autorole_id: string | null;
-  starboard_channel_id: string | null;
-  starboard_emoji: string;
-  starboard_threshold: number;
-  roblox_linked_discord_user_id: string | null;
-  roblox_linked_at: number | null;
-  verification_enabled: boolean;
-  unverified_role_id: string | null;
-  verified_role_id: string | null;
-  verification_min_account_age_days: number;
-  verification_channel_id: string | null;
-  economy_enabled: boolean;
-  giveaways_enabled: boolean;
   created_at: number;
   updated_at: number;
 }
@@ -45,31 +25,8 @@ export interface LevelRoleReward {
   role_id: string;
 }
 
-export type GuildSettingsRow = {
+export type GuildSettingsRow = Record<string, unknown> & {
   guild_id: string;
-  admin_role_ids: string;
-  mod_role_ids: string;
-  ticket_category_id: string | null;
-  appeal_review_category_id?: string | null;
-  command_log_channel_id: string | null;
-  ticket_log_channel_id?: string | null;
-  announcement_channel_id: string | null;
-  delete_log_channel_id: string | null;
-  production_log_channel_id: string | null;
-  welcome_channel_id?: string | null;
-  autorole_id?: string | null;
-  starboard_channel_id?: string | null;
-  starboard_emoji?: string | null;
-  starboard_threshold?: number | null;
-  roblox_linked_discord_user_id?: string | null;
-  roblox_linked_at?: number | null;
-  verification_enabled?: number | null;
-  unverified_role_id?: string | null;
-  verified_role_id?: string | null;
-  verification_min_account_age_days?: number | null;
-  verification_channel_id?: string | null;
-  economy_enabled?: number | null;
-  giveaways_enabled?: number | null;
   created_at: number;
   updated_at: number;
 };

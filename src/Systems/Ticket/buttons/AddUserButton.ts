@@ -11,10 +11,10 @@ import { ComponentFactory, EmbedFactory, ToActionRowData } from "@utilities";
 import type { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
 import {
   CreateTicketServices,
-  ParseTicketButtonCustomId,
   CanUserAddParticipants,
 } from "@systems/Ticket/validation/TicketValidation";
 import { HandleUserSelection } from "@systems/Ticket/components/UserSelectionMenu";
+import { TicketButtonIds } from "@systems/Ticket/TicketCustomIds";
 
 export async function HandleAddUserButton(
   buttonInteraction: ButtonInteraction,
@@ -26,8 +26,8 @@ export async function HandleAddUserButton(
     guild: Guild;
   },
 ): Promise<void> {
-  const parsed = ParseTicketButtonCustomId(buttonInteraction.customId);
-  if (!parsed || parsed.action !== "add") {
+  const parsed = TicketButtonIds.add.Parse(buttonInteraction.customId);
+  if (!parsed) {
     return;
   }
 
