@@ -4,7 +4,6 @@ import type {
 } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import { EconomyManager } from "@systems/Economy/EconomyManager";
 import {
   BuildDisabledRpsButtons,
   BuildRpsButtons,
@@ -15,13 +14,13 @@ import {
   BuildRpsPromptEmbed,
   BuildRpsResultEmbed,
 } from "@systems/Economy/utils/Embeds";
-import { MAX_BET, MIN_BET, RPS_TIMEOUT_MS } from "@systems/Economy/constants";
+import { RPS_TIMEOUT_MS } from "@systems/Economy/constants";
 import type { RpsChoice } from "@systems/Economy/types";
 import { ITEM_MAP } from "@systems/Economy/items";
-import { RequireGuild, EmbedFactory } from "@utilities";
 import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 import { DetermineRpsOutcome } from "@systems/Economy/utils/rpsLogic";
+import { HasItem, PrepareWager } from "@systems/Economy/utils/Wager";
 
 interface RpsCustomIds {
   rock: string;
@@ -37,59 +36,22 @@ export async function HandleRps(
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
 
-  const bet = interaction.options.getInteger("bet") ?? 0;
-
-  if (bet !== 0 && (bet < MIN_BET || bet > MAX_BET)) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Invalid Bet",
-      description: `Bet must be between ${MIN_BET} and ${MAX_BET}.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
+  const prepared = await PrepareWager(interaction, context);
+  if (!prepared) {
     return;
   }
+  const { bet, manager, inventory } = prepared;
+  let balanceValue = prepared.balance;
 
-  const manager = new EconomyManager(
-    RequireGuild(interaction).id,
-    context.databases.userDb,
-  );
-  let balanceValue = manager.EnsureBalance(interaction.user.id);
-  const inventory = manager.GetInventory(interaction.user.id);
   const rerollItem = ITEM_MAP["reroll-token"];
-  const hasReroll =
-    rerollItem &&
-    inventory.some(
-      (entry) => entry.itemId === rerollItem.id && entry.quantity > 0,
-    );
+  const hasReroll = HasItem(inventory, rerollItem);
   let rerollAvailable = hasReroll;
   const rpsShield = ITEM_MAP["rps-shield"];
-  const hasShield =
-    rpsShield &&
-    inventory.some(
-      (entry) => entry.itemId === rpsShield.id && entry.quantity > 0,
-    );
+  const hasShield = HasItem(inventory, rpsShield);
   let shieldAvailable = hasShield;
   const rpsEdge = ITEM_MAP["rps-edge"];
-  const hasEdge =
-    rpsEdge &&
-    inventory.some(
-      (entry) => entry.itemId === rpsEdge.id && entry.quantity > 0,
-    );
+  const hasEdge = HasItem(inventory, rpsEdge);
   let edgeAvailable = hasEdge;
-
-  if (bet > balanceValue) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Not Enough Coins",
-      description: `You only have **${balanceValue}** coins.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
 
   let resolved = false;
   let timeoutHandle: NodeJS.Timeout | null = null;

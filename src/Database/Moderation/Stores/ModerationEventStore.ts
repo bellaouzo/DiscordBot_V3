@@ -61,6 +61,25 @@ export class ModerationEventStore {
     return rows.map((row) => MapModerationEvent(row));
   }
 
+  ListGuildModerationEvents(
+    guild_id: string,
+    limit: number,
+  ): ModerationEvent[] {
+    const rows = this.db
+      .prepare(
+        `
+      SELECT id, guild_id, user_id, moderator_id, action, reason, duration_ms, created_at
+      FROM moderation_events
+      WHERE guild_id = ?
+      ORDER BY created_at DESC
+      LIMIT ?
+    `,
+      )
+      .all(guild_id, limit) as Record<string, unknown>[];
+
+    return rows.map((row) => MapModerationEvent(row));
+  }
+
   CountModerationEvents(options: {
     guild_id: string;
     user_id: string;

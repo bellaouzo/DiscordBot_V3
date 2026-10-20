@@ -24,12 +24,14 @@ describe("Bootstrap shutdown helpers", () => {
       .mockImplementation((() => undefined) as never);
 
     const resources = {
-      tempScheduler: { Stop: tempStop },
-      raidScheduler: { Stop: raidStop },
-      giveawayScheduler: { Stop: giveawayStop },
-      eventScheduler: { Stop: eventStop },
-      lotteryScheduler: { Stop: lotteryStop },
-      webServer: { Stop: webServerStop },
+      services: [
+        { Stop: tempStop },
+        { Stop: raidStop },
+        { Stop: giveawayStop },
+        { Stop: eventStop },
+        { Stop: lotteryStop },
+        { Stop: webServerStop },
+      ],
       databases: {
         userDb: { Close: close },
         moderationDb: { Close: close },

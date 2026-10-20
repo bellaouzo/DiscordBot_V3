@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3";
-import type { MarketRotation } from "@systems/Economy/types";
+import type { MarketRotation } from "@database/User/Types";
 import { isStringArray, SafeParseJson } from "@utilities/SafeJson";
 
 export class MarketRotationStore {

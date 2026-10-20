@@ -68,20 +68,7 @@ export interface EconomyItem {
   maxStack?: number;
 }
 
-export interface InventoryEntry {
-  userId: string;
-  guildId: string;
-  itemId: string;
-  quantity: number;
-  updatedAt: number;
-}
-
-export interface MarketRotation {
-  guildId: string;
-  items: string[];
-  generatedAt: number;
-  expiresAt: number;
-}
+export type { InventoryEntry, MarketRotation } from "@database/User/Types";
 
 export interface MarketOffer {
   item: EconomyItem;

@@ -51,3 +51,18 @@ export interface GiveawayEntry {
   user_id: string;
   entered_at: number;
 }
+
+export interface InventoryEntry {
+  userId: string;
+  guildId: string;
+  itemId: string;
+  quantity: number;
+  updatedAt: number;
+}
+
+export interface MarketRotation {
+  guildId: string;
+  items: string[];
+  generatedAt: number;
+  expiresAt: number;
+}

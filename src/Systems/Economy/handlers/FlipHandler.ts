@@ -1,11 +1,9 @@
-import { RequireGuild } from "@utilities";
 import type {
   ButtonInteraction,
   ChatInputCommandInteraction,
 } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { ITEM_MAP } from "@systems/Economy/items";
 import {
   BuildDisabledFlipButtons,
@@ -17,11 +15,12 @@ import {
   BuildFlipPromptEmbed,
   BuildFlipResultEmbed,
 } from "@systems/Economy/utils/Embeds";
-import { FLIP_TIMEOUT_MS, MAX_BET, MIN_BET } from "@systems/Economy/constants";
+import { FLIP_TIMEOUT_MS } from "@systems/Economy/constants";
 import type { FlipChoice } from "@systems/Economy/types";
 import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 import { FlipCoin } from "@systems/Economy/utils/flipLogic";
+import { HasItem, PrepareWager } from "@systems/Economy/utils/Wager";
 
 interface FlipCustomIds {
   heads: string;
@@ -36,63 +35,26 @@ export async function HandleFlip(
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
 
-  const bet = interaction.options.getInteger("bet") ?? 0;
-
-  if (bet !== 0 && (bet < MIN_BET || bet > MAX_BET)) {
-    const embed = BuildFlipPromptEmbed({ bet: 0, balanceAfterBet: 0 });
-    await interactionResponder.Reply(interaction, {
-      embeds: [
-        embed
-          .setTitle("Invalid Bet")
-          .setDescription(`Bet must be between ${MIN_BET} and ${MAX_BET}.`)
-          .toJSON(),
-      ],
-      flags: MessageFlags.Ephemeral,
-    });
+  const prepared = await PrepareWager(
+    interaction,
+    context,
+    (title, description, balance) =>
+      BuildFlipPromptEmbed({ bet: 0, balanceAfterBet: balance })
+        .setTitle(title)
+        .setDescription(description),
+  );
+  if (!prepared) {
     return;
   }
+  const { bet, manager, inventory } = prepared;
+  let balanceValue = prepared.balance;
 
-  const manager = new EconomyManager(
-    RequireGuild(interaction).id,
-    context.databases.userDb,
-  );
-  let balanceValue = manager.EnsureBalance(interaction.user.id);
-  const inventory = manager.GetInventory(interaction.user.id);
   const luckyCoin = ITEM_MAP["lucky-coin"];
   const flipCharm = ITEM_MAP["flip-charm"];
   const coinGuardian = ITEM_MAP["coin-guardian"];
-  const hasLuckyCoin =
-    luckyCoin &&
-    inventory.some(
-      (entry) => entry.itemId === luckyCoin.id && entry.quantity > 0,
-    );
-  const hasFlipCharm =
-    flipCharm &&
-    inventory.some(
-      (entry) => entry.itemId === flipCharm.id && entry.quantity > 0,
-    );
-  const hasCoinGuardian =
-    coinGuardian &&
-    inventory.some(
-      (entry) => entry.itemId === coinGuardian.id && entry.quantity > 0,
-    );
-
-  if (bet > balanceValue) {
-    const embed = BuildFlipPromptEmbed({
-      bet: 0,
-      balanceAfterBet: balanceValue,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [
-        embed
-          .setTitle("Not Enough Coins")
-          .setDescription(`You only have **${balanceValue}** coins.`)
-          .toJSON(),
-      ],
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
+  const hasLuckyCoin = HasItem(inventory, luckyCoin);
+  const hasFlipCharm = HasItem(inventory, flipCharm);
+  const hasCoinGuardian = HasItem(inventory, coinGuardian);
 
   let resolved = false;
   let timeoutHandle: NodeJS.Timeout | null = null;

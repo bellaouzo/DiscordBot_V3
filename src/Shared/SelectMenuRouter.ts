@@ -1,130 +1,30 @@
-import { randomUUID } from "crypto";
-import type {
-  StringSelectMenuInteraction,
-  InteractionReplyOptions,
-} from "discord.js";
-import { MessageFlags } from "discord.js";
+import type { StringSelectMenuInteraction } from "discord.js";
 import type { Logger } from "./Logger";
+import type {
+  InteractionHandler,
+  RegisterInteractionOptions,
+  RegisteredInteraction,
+} from "./InteractionRouter";
+import { InteractionRouter } from "./InteractionRouter";
 
-export type SelectMenuHandler = (
-  interaction: StringSelectMenuInteraction,
-) => Promise<void> | void;
+export type SelectMenuHandler = InteractionHandler<StringSelectMenuInteraction>;
 
-export interface RegisterSelectMenuOptions {
-  readonly customId?: string;
-  readonly handler: SelectMenuHandler;
-  readonly ownerId?: string;
-  readonly expiresInMs?: number;
-  readonly singleUse?: boolean;
-  readonly onExpire?: () => void;
-}
+export type RegisterSelectMenuOptions =
+  RegisterInteractionOptions<StringSelectMenuInteraction>;
 
-interface SelectMenuRegistration {
-  readonly handler: SelectMenuHandler;
-  readonly ownerId?: string;
-  readonly expiresAt?: number;
-  readonly singleUse: boolean;
-  readonly onExpire?: () => void;
-}
+export type RegisteredSelectMenu = RegisteredInteraction;
 
-export interface RegisteredSelectMenu {
-  readonly customId: string;
-  readonly dispose: () => void;
-}
-
-export class SelectMenuRouter {
-  private readonly menus = new Map<string, SelectMenuRegistration>();
-
-  constructor(private readonly logger: Logger) {}
+export class SelectMenuRouter extends InteractionRouter<StringSelectMenuInteraction> {
+  constructor(logger: Logger) {
+    super(logger, "Select menu");
+  }
 
   RegisterSelectMenu(options: RegisterSelectMenuOptions): RegisteredSelectMenu {
-    const customId = options.customId ?? randomUUID();
-    const expiresAt = options.expiresInMs
-      ? Date.now() + options.expiresInMs
-      : undefined;
-
-    this.menus.set(customId, {
-      handler: options.handler,
-      ownerId: options.ownerId,
-      expiresAt,
-      singleUse: options.singleUse ?? false,
-      onExpire: options.onExpire,
-    });
-
-    return {
-      customId,
-      dispose: () => {
-        const registration = this.menus.get(customId);
-        if (!registration) {
-          return;
-        }
-        this.menus.delete(customId);
-        registration.onExpire?.();
-      },
-    };
+    return this.Register(options);
   }
 
-  async HandleSelectMenu(
-    interaction: StringSelectMenuInteraction,
-  ): Promise<boolean> {
-    const registration = this.menus.get(interaction.customId);
-
-    if (!registration) {
-      return false;
-    }
-
-    const now = Date.now();
-    if (registration.expiresAt && now > registration.expiresAt) {
-      this.menus.delete(interaction.customId);
-      registration.onExpire?.();
-      await this.ReplyIfNeeded(interaction, {
-        content: "This interaction has expired.",
-        flags: MessageFlags.Ephemeral,
-      });
-      return true;
-    }
-
-    if (registration.ownerId && registration.ownerId !== interaction.user.id) {
-      await this.ReplyIfNeeded(interaction, {
-        content: "You cannot use this interaction.",
-        flags: MessageFlags.Ephemeral,
-      });
-      return true;
-    }
-
-    try {
-      await registration.handler(interaction);
-    } catch (error) {
-      this.logger.Error("Select menu handler failed", {
-        extra: {
-          customId: interaction.customId,
-        },
-        error,
-      });
-
-      await this.ReplyIfNeeded(interaction, {
-        content: "Something went wrong while handling that interaction.",
-        flags: MessageFlags.Ephemeral,
-      });
-    }
-
-    if (registration.singleUse) {
-      this.menus.delete(interaction.customId);
-      registration.onExpire?.();
-    }
-
-    return true;
-  }
-
-  private async ReplyIfNeeded(
-    interaction: StringSelectMenuInteraction,
-    options: InteractionReplyOptions,
-  ): Promise<void> {
-    if (interaction.deferred || interaction.replied) {
-      return;
-    }
-
-    await interaction.reply(options);
+  HandleSelectMenu(interaction: StringSelectMenuInteraction): Promise<boolean> {
+    return this.Handle(interaction);
   }
 }
 

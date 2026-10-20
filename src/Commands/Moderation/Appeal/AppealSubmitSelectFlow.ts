@@ -11,7 +11,7 @@ import {
   TextInputStyle,
 } from "discord.js";
 import type { CommandContext } from "@commands";
-import type { AppealableActionOption } from "@utilities";
+import type { AppealableActionOption } from "@systems/Moderation/AppealManager";
 import { EmbedFactory } from "@utilities";
 import { ParseActionOptionValue } from "@commands/Moderation/Appeal/AppealShared";
 import { ProcessAppealSubmission } from "@commands/Moderation/Appeal/AppealSubmitModalFlow";

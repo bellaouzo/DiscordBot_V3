@@ -9,7 +9,7 @@ import {
   CHAT_XP_DEFAULT_DAILY_CAP,
   CHAT_XP_DEFAULT_MIN_MESSAGE_LENGTH,
   CHAT_XP_DEFAULT_PER_MESSAGE,
-} from "@systems/Leveling/constants";
+} from "@database/Server/Types";
 
 function MapGuildXpSettings(row: GuildXpSettingsRow): GuildXpSettings {
   return {

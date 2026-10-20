@@ -1,6 +1,7 @@
 import type { Client } from "discord.js";
 import type { ModerationDatabase, TempAction } from "@database";
 import type { Logger } from "@shared/Logger";
+import { PollingScheduler } from "@shared/PollingScheduler";
 
 const SWEEP_INTERVAL_MS = 30_000;
 
@@ -10,50 +11,25 @@ export interface TempActionSchedulerOptions {
   readonly logger: Logger;
 }
 
-export class TempActionScheduler {
-  private interval: NodeJS.Timeout | null = null;
-  private isRunning = false;
-
-  constructor(private readonly options: TempActionSchedulerOptions) {}
-
-  Start(): void {
-    if (this.interval) {
-      return;
-    }
-
-    this.RunSweep();
-    this.interval = setInterval(() => this.RunSweep(), SWEEP_INTERVAL_MS);
+export class TempActionScheduler extends PollingScheduler {
+  constructor(private readonly options: TempActionSchedulerOptions) {
+    super({
+      name: "TempActionScheduler",
+      intervalMs: SWEEP_INTERVAL_MS,
+      logger: options.logger,
+      failureMessage: "Failed to process temp actions",
+    });
   }
 
-  Stop(): void {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
-    }
-  }
+  protected async Poll(): Promise<void> {
+    const { db } = this.options;
+    const pending = db.GetPendingTempActions({ before: Date.now() });
 
-  private async RunSweep(): Promise<void> {
-    if (this.isRunning) {
-      return;
-    }
-
-    this.isRunning = true;
-    const { logger, db } = this.options;
-
-    try {
-      const now = Date.now();
-      const pending = db.GetPendingTempActions({ before: now });
-
-      for (const action of pending) {
-        const processed = await this.ProcessAction(action);
-        if (processed) {
-          db.MarkTempActionProcessed(action.id);
-        }
+    for (const action of pending) {
+      const processed = await this.ProcessAction(action);
+      if (processed) {
+        db.MarkTempActionProcessed(action.id);
       }
-    } catch (error) {
-      logger.Error("Failed to process temp actions", { error });
-    } finally {
-      this.isRunning = false;
     }
   }
 

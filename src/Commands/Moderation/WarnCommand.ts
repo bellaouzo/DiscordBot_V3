@@ -3,7 +3,8 @@ import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { RequireGuild, EmbedFactory, CreateWarnManager } from "@utilities";
+import { RequireGuild, EmbedFactory } from "@utilities";
+import { CreateWarnManager } from "@systems/Moderation/WarnManager";
 import type { PaginationPage } from "@shared/Paginator";
 
 const WARN_LIST_PAGE_SIZE = 6;

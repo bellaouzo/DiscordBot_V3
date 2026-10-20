@@ -74,14 +74,14 @@ vi.mock("../src/interaction-handlers", () => ({
   RegisterCommandHandler: registerCommandHandlerMock,
 }));
 
-vi.mock("../src/Moderation/TempActionScheduler", () => ({
+vi.mock("@systems/Moderation/TempActionScheduler", () => ({
   TempActionScheduler: class {
     Start = tempSchedulerStartMock;
     Stop = vi.fn();
   },
 }));
 
-vi.mock("../src/Moderation/RaidModeScheduler", () => ({
+vi.mock("@systems/Moderation/RaidModeScheduler", () => ({
   RaidModeScheduler: class {
     Start = raidSchedulerStartMock;
     Stop = vi.fn();
@@ -146,6 +146,9 @@ describe("Bootstrap integration", () => {
   const previousEnv = {
     DISCORD_TOKEN: process.env.DISCORD_TOKEN,
     CLIENT_ID: process.env.CLIENT_ID,
+    SESSION_SECRET: process.env.SESSION_SECRET,
+    CLIENT_SECRET: process.env.CLIENT_SECRET,
+    OAUTH_REDIRECT_URI: process.env.OAUTH_REDIRECT_URI,
     COMMAND_DEPLOY_SCOPE: process.env.COMMAND_DEPLOY_SCOPE,
     GUILD_ID: process.env.GUILD_ID,
     BOT_STRICT_FEATURE_KEYS: process.env.BOT_STRICT_FEATURE_KEYS,
@@ -160,6 +163,9 @@ describe("Bootstrap integration", () => {
     vi.clearAllMocks();
     process.env.DISCORD_TOKEN = "test-discord-token";
     process.env.CLIENT_ID = "123456789012345678";
+    process.env.SESSION_SECRET = "test-session-secret";
+    process.env.CLIENT_SECRET = "test-client-secret";
+    process.env.OAUTH_REDIRECT_URI = "http://localhost/callback";
     delete process.env.COMMAND_DEPLOY_SCOPE;
     delete process.env.GUILD_ID;
     delete process.env.BOT_STRICT_FEATURE_KEYS;

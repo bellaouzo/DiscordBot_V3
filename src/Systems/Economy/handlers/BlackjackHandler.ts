@@ -4,7 +4,6 @@ import type {
 } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { ITEM_MAP } from "@systems/Economy/items";
 import {
   BuildBlackjackButtons,
@@ -21,11 +20,8 @@ import {
   BJ_BLACKJACK_PAYOUT,
   BJ_DEALER_STAND,
   BJ_TIMEOUT_MS,
-  MAX_BET,
-  MIN_BET,
 } from "@systems/Economy/constants";
 import type { CardValue } from "@systems/Economy/types";
-import { RequireGuild, EmbedFactory } from "@utilities";
 import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 import {
@@ -34,6 +30,7 @@ import {
   handValue,
   isBlackjack,
 } from "@systems/Economy/utils/blackjackLogic";
+import { HasItem, PrepareWager } from "@systems/Economy/utils/Wager";
 
 interface BlackjackCustomIds {
   hit: string;
@@ -51,57 +48,22 @@ export async function HandleBlackjack(
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
 
-  const bet = interaction.options.getInteger("bet") ?? 0;
-
-  if (bet !== 0 && (bet < MIN_BET || bet > MAX_BET)) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Invalid Bet",
-      description: `Bet must be between ${MIN_BET} and ${MAX_BET}.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
+  const prepared = await PrepareWager(interaction, context);
+  if (!prepared) {
     return;
   }
+  const { bet, manager, inventory } = prepared;
+  let balance = prepared.balance;
 
-  const manager = new EconomyManager(
-    RequireGuild(interaction).id,
-    context.databases.userDb,
-  );
-  let balance = manager.EnsureBalance(interaction.user.id);
-  const inventory = manager.GetInventory(interaction.user.id);
   const charm = ITEM_MAP["dealer-charm"];
-  const hasCharm =
-    charm &&
-    inventory.some((entry) => entry.itemId === charm.id && entry.quantity > 0);
+  const hasCharm = HasItem(inventory, charm);
   let charmUsed = false;
   const peekItem = ITEM_MAP["bj-peek"];
-  const hasPeek =
-    peekItem &&
-    inventory.some(
-      (entry) => entry.itemId === peekItem.id && entry.quantity > 0,
-    );
+  const hasPeek = HasItem(inventory, peekItem);
   let peekUsed = false;
   const boostItem = ITEM_MAP["bj-boost"];
-  const hasBoost =
-    boostItem &&
-    inventory.some(
-      (entry) => entry.itemId === boostItem.id && entry.quantity > 0,
-    );
+  const hasBoost = HasItem(inventory, boostItem);
   let boostUsed = false;
-
-  if (bet > balance) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Not Enough Coins",
-      description: `You only have **${balance}** coins.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
 
   let resolved = false;
   let timeoutHandle: NodeJS.Timeout | null = null;

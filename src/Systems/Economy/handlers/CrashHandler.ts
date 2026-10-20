@@ -4,7 +4,6 @@ import type {
 } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { ITEM_MAP } from "@systems/Economy/items";
 import {
   BuildCrashButtons,
@@ -18,13 +17,7 @@ import {
   BuildCrashProgressEmbed,
   BuildCrashPromptEmbed,
 } from "@systems/Economy/utils/Embeds";
-import {
-  CRASH_TICK_MS,
-  CRASH_TIMEOUT_MS,
-  MAX_BET,
-  MIN_BET,
-} from "@systems/Economy/constants";
-import { RequireGuild, EmbedFactory } from "@utilities";
+import { CRASH_TICK_MS, CRASH_TIMEOUT_MS } from "@systems/Economy/constants";
 import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 import {
@@ -35,6 +28,7 @@ import {
   HasReachedCrashPoint,
   ShouldAutoCashOut,
 } from "@systems/Economy/utils/crashLogic";
+import { HasItem, PrepareWager } from "@systems/Economy/utils/Wager";
 
 interface CrashCustomIds {
   cashout: string;
@@ -48,58 +42,21 @@ export async function HandleCrash(
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
 
-  const bet = interaction.options.getInteger("bet") ?? 0;
-
-  if (bet !== 0 && (bet < MIN_BET || bet > MAX_BET)) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Invalid Bet",
-      description: `Bet must be between ${MIN_BET} and ${MAX_BET}.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
+  const prepared = await PrepareWager(interaction, context);
+  if (!prepared) {
     return;
   }
+  const { bet, manager, inventory } = prepared;
+  let balance = prepared.balance;
 
-  const manager = new EconomyManager(
-    RequireGuild(interaction).id,
-    context.databases.userDb,
-  );
-  let balance = manager.EnsureBalance(interaction.user.id);
-  const inventory = manager.GetInventory(interaction.user.id);
   const parachute = ITEM_MAP["parachute"];
-  const hasParachute =
-    parachute &&
-    inventory.some(
-      (entry) => entry.itemId === parachute.id && entry.quantity > 0,
-    );
+  const hasParachute = HasItem(inventory, parachute);
   let parachuteUsed = false;
   const crashBooster = ITEM_MAP["crash-booster"];
-  const hasBooster =
-    crashBooster &&
-    inventory.some(
-      (entry) => entry.itemId === crashBooster.id && entry.quantity > 0,
-    );
+  const hasBooster = HasItem(inventory, crashBooster);
   const autoCashItem = ITEM_MAP["crash-autocash"];
-  const hasAutoCash =
-    autoCashItem &&
-    inventory.some(
-      (entry) => entry.itemId === autoCashItem.id && entry.quantity > 0,
-    );
+  const hasAutoCash = HasItem(inventory, autoCashItem);
   let autoCashUsed = false;
-
-  if (bet > balance) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Not Enough Coins",
-      description: `You only have **${balance}** coins.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
 
   let resolved = false;
   let intervalHandle: NodeJS.Timeout | null = null;

@@ -1,55 +1,30 @@
 import type { Client, TextChannel } from "discord.js";
 import type { UserDatabase } from "@database";
 import type { Logger } from "@shared/Logger";
+import { PollingScheduler } from "@shared/PollingScheduler";
 import { GiveawayManager } from "./GiveawayManager";
 
 const POLL_INTERVAL_MS = 30_000; // Check every 30 seconds
 
-export class GiveawayScheduler {
-  private intervalId: NodeJS.Timeout | null = null;
-  private isProcessing = false;
-
+export class GiveawayScheduler extends PollingScheduler {
   constructor(
     private readonly client: Client,
     private readonly userDb: UserDatabase,
     private readonly logger: Logger,
-  ) {}
-
-  Start(): void {
-    if (this.intervalId) {
-      this.logger.Warn("GiveawayScheduler already running");
-      return;
-    }
-
-    this.intervalId = setInterval(() => {
-      void this.ProcessEndedGiveaways();
-    }, POLL_INTERVAL_MS);
-
-    // Run immediately on start
-    void this.ProcessEndedGiveaways();
+  ) {
+    super({
+      name: "GiveawayScheduler",
+      intervalMs: POLL_INTERVAL_MS,
+      logger,
+      failureMessage: "Error processing ended giveaways",
+    });
   }
 
-  Stop(): void {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-  }
+  protected async Poll(): Promise<void> {
+    const endedGiveaways = this.userDb.GetEndedGiveawaysToProcess();
 
-  private async ProcessEndedGiveaways(): Promise<void> {
-    if (this.isProcessing) return;
-    this.isProcessing = true;
-
-    try {
-      const endedGiveaways = this.userDb.GetEndedGiveawaysToProcess();
-
-      for (const giveaway of endedGiveaways) {
-        await this.ProcessGiveaway(giveaway.message_id, giveaway.guild_id);
-      }
-    } catch (error) {
-      this.logger.Error("Error processing ended giveaways", { error });
-    } finally {
-      this.isProcessing = false;
+    for (const giveaway of endedGiveaways) {
+      await this.ProcessGiveaway(giveaway.message_id, giveaway.guild_id);
     }
   }
 

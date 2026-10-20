@@ -8,11 +8,11 @@ import {
 import type { CommandContext } from "@commands";
 import {
   RequireGuild,
-  CreateNoteManager,
-  CreateWarnManager,
   EmbedFactory,
   CreateGuildResourceLocator,
 } from "@utilities";
+import { CreateNoteManager } from "@systems/Moderation/NoteManager";
+import { CreateWarnManager } from "@systems/Moderation/WarnManager";
 import {
   buildEventPages,
   buildMutePages,

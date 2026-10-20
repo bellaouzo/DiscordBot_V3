@@ -13,7 +13,7 @@ Ownership in this repository is feature-based. If a change spans multiple areas,
   - Scope: SQLite facades, stores, schema migrations, and migration tests.
 
 - **Moderation and safety systems**
-  - Paths: `src/Commands/Moderation`, `src/Database/Moderation*`, `src/Moderation`
+  - Paths: `src/Commands/Moderation`, `src/Database/Moderation*`, `src/Systems/Moderation`
   - Scope: warns/notes/actions, appeals, temp actions, link filtering, raid mode.
 
 - **Fun command integrations**

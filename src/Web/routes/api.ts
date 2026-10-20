@@ -37,16 +37,14 @@ export function createApiRouter(
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = req.user as any;
+    const user = req.user as Express.User;
     if (!user.guilds) {
       res.json([]);
       return;
     }
 
     const botGuilds = client.guilds.cache;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mutualGuildsRaw = user.guilds.filter((g: any) => botGuilds.has(g.id));
+    const mutualGuildsRaw = user.guilds.filter((g) => botGuilds.has(g.id));
 
     const mutualGuilds = [];
     for (const g of mutualGuildsRaw) {
@@ -97,8 +95,7 @@ export function createApiRouter(
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = req.user as any;
+    const user = req.user as Express.User;
     const guildId = req.params.guildId as string;
     const tickets = databases.ticketDb.GetUserTickets(user.id, guildId);
     res.json(tickets);
@@ -109,8 +106,7 @@ export function createApiRouter(
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = req.user as any;
+    const user = req.user as Express.User;
     const guildId = req.params.guildId as string;
     const ticketId = parseInt(req.params.ticketId as string);
 
@@ -191,8 +187,7 @@ export function createApiRouter(
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = req.user as any;
+    const user = req.user as Express.User;
     const guildId = req.params.guildId as string;
 
     const kicks = databases.moderationDb.ListModerationEvents({
@@ -229,19 +224,9 @@ export function createApiRouter(
 
   router.get("/admin/infractions/:guildId", verifyAdmin, (req, res) => {
     const guildId = req.params.guildId as string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = (databases.moderationDb as any).db;
     try {
-      const events = db
-        .prepare(
-          "SELECT * FROM moderation_events WHERE guild_id = ? ORDER BY created_at DESC LIMIT 100",
-        )
-        .all(guildId);
-      const tempActions = db
-        .prepare(
-          "SELECT * FROM temp_actions WHERE guild_id = ? ORDER BY created_at DESC LIMIT 100",
-        )
-        .all(guildId);
+      const events = databases.moderationDb.ListGuildModerationEvents(guildId);
+      const tempActions = databases.moderationDb.ListGuildTempActions(guildId);
       res.json({ events, tempActions });
     } catch {
       res.json({ events: [], tempActions: [] });
@@ -254,8 +239,7 @@ export function createApiRouter(
     (req, res) => {
       const ticketId = parseInt(req.params.ticketId as string);
       const reason = req.body?.reason || null;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const user = req.user as any;
+      const user = req.user as Express.User;
       const success = databases.ticketDb.CloseTicket(ticketId, user.id, reason);
       res.json({ success });
     },

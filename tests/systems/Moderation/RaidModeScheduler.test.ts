@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { RaidModeScheduler } from "../../src/Moderation/RaidModeScheduler";
-import { createMockLogger } from "../helpers";
+import { RaidModeScheduler } from "@systems/Moderation/RaidModeScheduler";
+import { createMockLogger } from "../../helpers";
 
 describe("RaidModeScheduler", () => {
   beforeEach(() => {

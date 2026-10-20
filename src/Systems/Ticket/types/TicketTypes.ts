@@ -7,7 +7,7 @@ import type {
   TextChannel,
 } from "discord.js";
 import type { TicketDatabase, Ticket } from "@database";
-import type { CreateTicketManager } from "@utilities/TicketManager";
+import type { CreateTicketManager } from "@systems/Ticket/TicketManager";
 
 export const BUTTON_EXPIRATION_MS = 1000 * 60 * 60 * 24;
 

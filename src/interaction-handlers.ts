@@ -1,11 +1,7 @@
 import type {
-  ButtonInteraction,
   ChatInputCommandInteraction,
   Client,
   Interaction,
-  ModalSubmitInteraction,
-  StringSelectMenuInteraction,
-  UserSelectMenuInteraction,
 } from "discord.js";
 import { DiscordAPIError, Events, MessageFlags } from "discord.js";
 import type { Logger } from "@shared/Logger";
@@ -13,6 +9,7 @@ import type { ComponentRouter } from "@shared/ComponentRouter";
 import type { SelectMenuRouter } from "@shared/SelectMenuRouter";
 import type { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
 import type { ModalRouter } from "@shared/ModalRouter";
+import type { RoutableInteraction } from "@shared/InteractionRouter";
 import type { CommandDefinition } from "@commands";
 import { ResolveCommand } from "@commands";
 import type { ResponderSet } from "@responders";
@@ -34,112 +31,73 @@ export function RegisterInteractionHandlers(
   });
 }
 
+interface InteractionRoute {
+  readonly interaction: RoutableInteraction;
+  readonly kind: string;
+  readonly handle: () => Promise<boolean>;
+}
+
+function ResolveInteractionRoute(
+  interaction: Interaction,
+  dependencies: InteractionHandlerDependencies,
+): InteractionRoute | null {
+  if (interaction.isButton()) {
+    return {
+      interaction,
+      kind: "button",
+      handle: () => dependencies.componentRouter.HandleButton(interaction),
+    };
+  }
+
+  if (interaction.isStringSelectMenu()) {
+    return {
+      interaction,
+      kind: "select menu",
+      handle: () => dependencies.selectMenuRouter.HandleSelectMenu(interaction),
+    };
+  }
+
+  if (interaction.isUserSelectMenu()) {
+    return {
+      interaction,
+      kind: "user select menu",
+      handle: () =>
+        dependencies.userSelectMenuRouter.HandleUserSelectMenu(interaction),
+    };
+  }
+
+  if (interaction.isModalSubmit()) {
+    return {
+      interaction,
+      kind: "modal",
+      handle: () => dependencies.modalRouter.HandleModal(interaction),
+    };
+  }
+
+  return null;
+}
+
 async function DispatchComponentInteraction(
   interaction: Interaction,
   dependencies: InteractionHandlerDependencies,
 ): Promise<void> {
-  if (interaction.isButton()) {
-    await HandleButtonInteraction(
-      interaction,
-      dependencies.componentRouter,
-      dependencies.logger,
-    );
+  const route = ResolveInteractionRoute(interaction, dependencies);
+  if (!route) {
     return;
   }
 
-  if (interaction.isStringSelectMenu()) {
-    await HandleSelectMenuInteraction(
-      interaction,
-      dependencies.selectMenuRouter,
+  const handled = await route.handle();
+  if (!handled) {
+    await ReplyToUnhandledInteraction(
+      route.interaction,
       dependencies.logger,
-    );
-    return;
-  }
-
-  if (interaction.isUserSelectMenu()) {
-    await HandleUserSelectMenuInteraction(
-      interaction,
-      dependencies.userSelectMenuRouter,
-      dependencies.logger,
-    );
-    return;
-  }
-
-  if (interaction.isModalSubmit()) {
-    await HandleModalInteraction(
-      interaction,
-      dependencies.modalRouter,
-      dependencies.logger,
-    );
-  }
-}
-
-async function HandleButtonInteraction(
-  interaction: ButtonInteraction,
-  router: ComponentRouter,
-  logger: Logger,
-): Promise<void> {
-  const handled = await router.HandleButton(interaction);
-  if (!handled) {
-    await ReplyToUnhandledInteraction(
-      interaction,
-      logger,
-      "Unhandled button interaction",
-    );
-  }
-}
-
-async function HandleSelectMenuInteraction(
-  interaction: StringSelectMenuInteraction,
-  router: SelectMenuRouter,
-  logger: Logger,
-): Promise<void> {
-  const handled = await router.HandleSelectMenu(interaction);
-  if (!handled) {
-    await ReplyToUnhandledInteraction(
-      interaction,
-      logger,
-      "Unhandled select menu interaction",
-    );
-  }
-}
-
-async function HandleUserSelectMenuInteraction(
-  interaction: UserSelectMenuInteraction,
-  router: UserSelectMenuRouter,
-  logger: Logger,
-): Promise<void> {
-  const handled = await router.HandleUserSelectMenu(interaction);
-  if (!handled) {
-    await ReplyToUnhandledInteraction(
-      interaction,
-      logger,
-      "Unhandled user select menu interaction",
-    );
-  }
-}
-
-async function HandleModalInteraction(
-  interaction: ModalSubmitInteraction,
-  router: ModalRouter,
-  logger: Logger,
-): Promise<void> {
-  const handled = await router.HandleModal(interaction);
-  if (!handled) {
-    await ReplyToUnhandledInteraction(
-      interaction,
-      logger,
-      "Unhandled modal interaction",
+      `Unhandled ${route.kind} interaction`,
     );
   }
 }
 
 async function ReplyToUnhandledInteraction(
-  interaction:
-    | ButtonInteraction
-    | StringSelectMenuInteraction
-    | UserSelectMenuInteraction
-    | ModalSubmitInteraction,
+  interaction: RoutableInteraction,
   logger: Logger,
   logMessage: string,
 ): Promise<void> {

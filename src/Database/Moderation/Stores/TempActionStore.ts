@@ -116,6 +116,22 @@ export class TempActionStore {
     return row ? MapTempAction(row) : null;
   }
 
+  ListGuildTempActions(guild_id: string, limit: number): TempAction[] {
+    const rows = this.db
+      .prepare(
+        `
+      SELECT *
+      FROM temp_actions
+      WHERE guild_id = ?
+      ORDER BY created_at DESC
+      LIMIT ?
+    `,
+      )
+      .all(guild_id, limit) as Record<string, unknown>[];
+
+    return rows.map((row) => MapTempAction(row));
+  }
+
   ListUserTempActions(options: {
     guild_id: string;
     user_id: string;

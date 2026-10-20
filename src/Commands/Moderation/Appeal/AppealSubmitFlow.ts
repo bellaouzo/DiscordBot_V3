@@ -2,12 +2,8 @@ import type { ChatInputCommandInteraction, Guild } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import type { AppealActionType } from "@database";
-import {
-  ComponentFactory,
-  CreateAppealManager,
-  EmbedFactory,
-  ToActionRowData,
-} from "@utilities";
+import { ComponentFactory, EmbedFactory, ToActionRowData } from "@utilities";
+import { CreateAppealManager } from "@systems/Moderation/AppealManager";
 import { BuildActionSelectOptions } from "@commands/Moderation/Appeal/AppealShared";
 import type { AppealStartInteraction } from "@commands/Moderation/Appeal/AppealSubmitSelectFlow";
 import { RegisterAppealSelectFlow } from "@commands/Moderation/Appeal/AppealSubmitSelectFlow";

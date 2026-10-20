@@ -1,124 +1,40 @@
 import type { UserSelectMenuInteraction } from "discord.js";
-import { MessageFlags } from "discord.js";
 import type { Logger } from "./Logger";
-import { randomUUID } from "crypto";
+import type {
+  RegisterInteractionOptions,
+  RegisteredInteraction,
+} from "./InteractionRouter";
+import { InteractionRouter } from "./InteractionRouter";
 
-export interface RegisterUserSelectMenuOptions {
-  readonly customId?: string;
-  readonly handler: (interaction: UserSelectMenuInteraction) => Promise<void>;
+export interface RegisterUserSelectMenuOptions extends RegisterInteractionOptions<UserSelectMenuInteraction> {
   readonly ownerId: string;
-  readonly singleUse?: boolean;
-  readonly expiresInMs?: number;
-  readonly onExpire?: () => void;
 }
 
-export interface UserSelectMenuRegistration {
-  readonly handler: (interaction: UserSelectMenuInteraction) => Promise<void>;
-  readonly ownerId: string;
-  readonly expiresAt?: number;
-  readonly singleUse: boolean;
-  readonly onExpire?: () => void;
-}
+export type RegisteredUserSelectMenu = RegisteredInteraction;
 
-export interface RegisteredUserSelectMenu {
-  readonly customId: string;
-  readonly dispose: () => void;
-}
-
-export class UserSelectMenuRouter {
-  private readonly menus = new Map<string, UserSelectMenuRegistration>();
-
-  constructor(private readonly logger: Logger) {}
+export class UserSelectMenuRouter extends InteractionRouter<UserSelectMenuInteraction> {
+  constructor(logger: Logger) {
+    super(logger, "User select menu");
+  }
 
   RegisterUserSelectMenu(
     options: RegisterUserSelectMenuOptions,
   ): RegisteredUserSelectMenu {
-    const customId = options.customId ?? randomUUID();
-    const expiresAt = options.expiresInMs
-      ? Date.now() + options.expiresInMs
-      : undefined;
-
-    this.menus.set(customId, {
-      handler: options.handler,
-      ownerId: options.ownerId,
-      expiresAt,
-      singleUse: options.singleUse ?? false,
-      onExpire: options.onExpire,
-    });
-
-    return {
-      customId,
-      dispose: () => {
-        const registration = this.menus.get(customId);
-        if (!registration) {
-          return;
-        }
-        this.menus.delete(customId);
-        registration.onExpire?.();
-      },
-    };
+    return this.Register(options);
   }
 
-  async HandleUserSelectMenu(
+  HandleUserSelectMenu(
     interaction: UserSelectMenuInteraction,
   ): Promise<boolean> {
-    const registration = this.menus.get(interaction.customId);
-
-    if (!registration) {
-      return false;
-    }
-
-    if (registration.ownerId !== interaction.user.id) {
-      await interaction.reply({
-        content: "This interaction is not for you.",
-        flags: MessageFlags.Ephemeral,
-      });
-      return true;
-    }
-
-    if (registration.expiresAt && Date.now() > registration.expiresAt) {
-      this.menus.delete(interaction.customId);
-      registration.onExpire?.();
-      await interaction.reply({
-        content: "This interaction has expired.",
-        flags: MessageFlags.Ephemeral,
-      });
-      return true;
-    }
-
-    try {
-      await registration.handler(interaction);
-
-      if (registration.singleUse) {
-        this.menus.delete(interaction.customId);
-        registration.onExpire?.();
-      }
-
-      return true;
-    } catch (error) {
-      this.logger.Error("User select menu handler error", { error });
-      await interaction
-        .reply({
-          content: "An error occurred while processing your request.",
-          flags: MessageFlags.Ephemeral,
-        })
-        .catch(() => {});
-      return true;
-    }
+    return this.Handle(interaction);
   }
 
   CleanupExpiredMenus(): void {
-    const now = Date.now();
-    for (const [customId, registration] of this.menus.entries()) {
-      if (registration.expiresAt && now > registration.expiresAt) {
-        this.menus.delete(customId);
-        registration.onExpire?.();
-      }
-    }
+    this.CleanupExpired();
   }
 
   GetMenuCount(): number {
-    return this.menus.size;
+    return this.Size;
   }
 }
 

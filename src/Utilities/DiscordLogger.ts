@@ -7,7 +7,7 @@ import type {
 import type { Logger } from "@shared/Logger";
 import type { CommandDefinition } from "@commands";
 import { CreateChannelManager, EmbedFactory } from "./";
-import type { LoggingConfig } from "@config";
+import type { LoggingConfig } from "@config/AppConfig";
 
 export interface DiscordLoggerOptions {
   readonly guild: Guild;
@@ -37,16 +37,13 @@ export function CreateDiscordLogger(
       command: CommandDefinition,
     ): Promise<void> => {
       if (interaction.guildId && interaction.guildId !== options.guild.id) {
-        options.logger.Warn(
-          "Skipping command log for mismatched guild",
-          {
-            extra: {
-              interactionGuildId: interaction.guildId,
-              loggerGuildId: options.guild.id,
-              commandName: command.data.name,
-            },
+        options.logger.Warn("Skipping command log for mismatched guild", {
+          extra: {
+            interactionGuildId: interaction.guildId,
+            loggerGuildId: options.guild.id,
+            commandName: command.data.name,
           },
-        );
+        });
         return;
       }
 

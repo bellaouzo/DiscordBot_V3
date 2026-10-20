@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3";
-import type { InventoryEntry } from "@systems/Economy/types";
+import type { InventoryEntry } from "@database/User/Types";
 
 export class InventoryStore {
   constructor(private readonly db: Database.Database) {}

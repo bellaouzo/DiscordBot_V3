@@ -100,6 +100,12 @@ export interface StarboardEntry {
   created_at: number;
 }
 
+/** Chat XP settings applied when a guild has not configured its own. */
+export const CHAT_XP_DEFAULT_PER_MESSAGE = 15;
+export const CHAT_XP_DEFAULT_COOLDOWN_SECONDS = 60;
+export const CHAT_XP_DEFAULT_MIN_MESSAGE_LENGTH = 5;
+export const CHAT_XP_DEFAULT_DAILY_CAP = 500;
+
 export interface GuildXpSettings {
   guild_id: string;
   enabled: boolean;

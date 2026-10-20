@@ -21,11 +21,11 @@ import {
   EmbedFactory,
   RequireGuild,
   RequireGuildFromInteraction,
-  TranscriptGenerator,
   ComponentFactory,
   ToActionRowData,
   ResolveInteractionMember,
 } from "@utilities";
+import { TranscriptGenerator } from "@systems/Ticket/TranscriptGenerator";
 
 const REOPEN_SELECT_TIMEOUT_MS = 5 * 60 * 1000;
 

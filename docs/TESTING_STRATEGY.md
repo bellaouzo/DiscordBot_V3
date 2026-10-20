@@ -49,13 +49,14 @@ Pre-PR commands and CI gates: [QUALITY_CHECKLIST.md](QUALITY_CHECKLIST.md).
 - **Interaction routing:** `tests/bot/interaction-handlers.test.ts` covers component dispatch and slash command handler registration.
 - **Bot factory:** `tests/bot/CreateBot.test.ts` validates client intents and login wiring.
 - **Bootstrap:** `tests/bootstrap.smoke.test.ts`, `tests/bootstrap.integration.test.ts`, and `tests/bootstrap.shutdown.test.ts` cover startup, strict config keys, and graceful shutdown.
-- **Database migrations:** `tests/database/MigrationRunner.test.ts`, `tests/database/ServerMigrations.test.ts`.
+- **Database migrations:** `tests/database/MigrationRunner.test.ts`, `tests/database/ServerMigrations.test.ts`, `tests/database/InitialSchemaMigrations.test.ts`.
 - **MessageCreate handlers:** `tests/events/MessageCreate/RunMessageCreateHandlers.test.ts`.
 - **Middleware:** `tests/commands/Middleware/PermissionMiddleware.test.ts`, `tests/commands/Middleware/FeatureEnabledMiddleware.test.ts`.
 - **Deployer / logging:** `tests/bot/CreateCommandDeployer.test.ts`, `tests/utilities/DiscordLogger.test.ts`.
 - **Shared routers:** `tests/shared/ModalRouter.test.ts`, `tests/shared/ComponentRouter.test.ts`, `tests/shared/Paginator.test.ts`, `tests/responders/PaginatedResponder.test.ts`.
 - **HTTP client:** `tests/utilities/ApiClient.test.ts`.
-- **Schedulers:** `tests/systems/Giveaway/GiveawayScheduler.test.ts`, `tests/moderation/TempActionScheduler.test.ts`, and `tests/moderation/RaidModeScheduler.test.ts` use fake timers for sweep behavior.
+- **Path aliases:** `tests/config/PathAliases.test.ts` keeps `tsconfig.json` paths and `package.json` `_moduleAliases` in sync.
+- **Schedulers:** `tests/systems/Giveaway/GiveawayScheduler.test.ts`, `tests/systems/Moderation/TempActionScheduler.test.ts`, and `tests/systems/Moderation/RaidModeScheduler.test.ts` use fake timers for sweep behavior.
 - **Roblox bridge:** `tests/systems/Roblox/*` for connect/disconnect/status, kick, group audit/info, `bridgeApi`, `bridgeAccess`, and `bridgeSettings`.
 - **Branch gate suite:** `tests/coverage/branchGateBoost.test.ts` consolidates high-branch paths (permission middleware, guild feature gates, fun API commands).
 - **Bulk branch suite:** `tests/coverage/bulkBranchCoverage.test.ts` covers shared formatters, help catalog, poll/giveaway helpers, and cooldown state branches in one place.

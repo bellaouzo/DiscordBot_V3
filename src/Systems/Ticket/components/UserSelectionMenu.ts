@@ -1,7 +1,7 @@
 import type { UserSelectMenuInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { Ticket } from "@database";
-import type { CreateTicketManager } from "@utilities";
+import type { CreateTicketManager } from "@systems/Ticket/TicketManager";
 
 export async function HandleUserSelection(
   userSelectInteraction: UserSelectMenuInteraction,

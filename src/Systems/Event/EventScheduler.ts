@@ -1,54 +1,30 @@
 import type { Client, TextChannel } from "discord.js";
 import type { ServerDatabase } from "@database";
 import type { Logger } from "@shared/Logger";
+import { PollingScheduler } from "@shared/PollingScheduler";
 import { EmbedFactory } from "@utilities";
 
 const POLL_INTERVAL_MS = 30_000;
 
-export class EventScheduler {
-  private intervalId: NodeJS.Timeout | null = null;
-  private isProcessing = false;
-
+export class EventScheduler extends PollingScheduler {
   constructor(
     private readonly client: Client,
     private readonly serverDb: ServerDatabase,
     private readonly logger: Logger,
-  ) {}
-
-  Start(): void {
-    if (this.intervalId) {
-      this.logger.Warn("EventScheduler already running");
-      return;
-    }
-
-    this.intervalId = setInterval(() => {
-      void this.ProcessDueEvents();
-    }, POLL_INTERVAL_MS);
-
-    void this.ProcessDueEvents();
+  ) {
+    super({
+      name: "EventScheduler",
+      intervalMs: POLL_INTERVAL_MS,
+      logger,
+      failureMessage: "Error processing due events",
+    });
   }
 
-  Stop(): void {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-  }
+  protected async Poll(): Promise<void> {
+    const dueEvents = this.serverDb.ListEventsDueForNotification(Date.now());
 
-  private async ProcessDueEvents(): Promise<void> {
-    if (this.isProcessing) return;
-    this.isProcessing = true;
-
-    try {
-      const dueEvents = this.serverDb.ListEventsDueForNotification(Date.now());
-
-      for (const event of dueEvents) {
-        await this.NotifyEvent(event);
-      }
-    } catch (error) {
-      this.logger.Error("Error processing due events", { error });
-    } finally {
-      this.isProcessing = false;
+    for (const event of dueEvents) {
+      await this.NotifyEvent(event);
     }
   }
 

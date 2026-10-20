@@ -6,7 +6,7 @@ import type {
 } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import type { CreateTicketManager } from "@utilities";
+import type { CreateTicketManager } from "@systems/Ticket/TicketManager";
 import { EmbedFactory, ComponentFactory, ToActionRowData } from "@utilities";
 import { CreateTicketServices } from "@systems/Ticket/validation/TicketValidation";
 import type { CreateTicketPresentation } from "@systems/Ticket/TicketPresentation";

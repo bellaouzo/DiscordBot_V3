@@ -4,9 +4,9 @@ import type { CommandContext } from "@commands";
 import {
   RequireGuild,
   EmbedFactory,
-  TranscriptGenerator,
   ResolveInteractionMember,
 } from "@utilities";
+import { TranscriptGenerator } from "@systems/Ticket/TranscriptGenerator";
 import {
   CreateTicketServices,
   ValidateTicketChannelOrReply,

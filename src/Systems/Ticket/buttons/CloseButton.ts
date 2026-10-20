@@ -3,11 +3,8 @@ import { MessageFlags } from "discord.js";
 import type { ButtonResponder } from "@responders";
 import type { DatabaseSet } from "@database";
 import type { Logger } from "@shared/Logger";
-import {
-  EmbedFactory,
-  TranscriptGenerator,
-  ResolveInteractionMember,
-} from "@utilities";
+import { EmbedFactory, ResolveInteractionMember } from "@utilities";
+import { TranscriptGenerator } from "@systems/Ticket/TranscriptGenerator";
 import {
   CanUserCloseTicket,
   CreateTicketServices,

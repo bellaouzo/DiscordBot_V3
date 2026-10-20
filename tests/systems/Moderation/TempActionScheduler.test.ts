@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { TempActionScheduler } from "../../src/Moderation/TempActionScheduler";
-import { createMockLogger } from "../helpers";
+import { TempActionScheduler } from "@systems/Moderation/TempActionScheduler";
+import { createMockLogger } from "../../helpers";
 
 describe("TempActionScheduler", () => {
   beforeEach(() => {

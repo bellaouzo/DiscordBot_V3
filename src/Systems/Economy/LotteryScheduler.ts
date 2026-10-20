@@ -2,59 +2,35 @@ import type { Client, TextChannel } from "discord.js";
 import type { UserDatabase } from "@database";
 import type { ServerDatabase } from "@database/ServerDatabase";
 import type { Logger } from "@shared/Logger";
+import { PollingScheduler } from "@shared/PollingScheduler";
 import { IsEconomyEnabled } from "@shared/GuildFeatures";
 import { LotteryManager } from "@systems/Economy/LotteryManager";
 
 const POLL_INTERVAL_MS = 30_000;
 
-export class LotteryScheduler {
-  private intervalId: NodeJS.Timeout | null = null;
-  private isProcessing = false;
-
+export class LotteryScheduler extends PollingScheduler {
   constructor(
     private readonly client: Client,
     private readonly userDb: UserDatabase,
     private readonly serverDb: ServerDatabase,
     private readonly logger: Logger,
-  ) {}
-
-  Start(): void {
-    if (this.intervalId) {
-      this.logger.Warn("LotteryScheduler already running");
-      return;
-    }
-
-    this.intervalId = setInterval(() => {
-      void this.ProcessEndedLotteries();
-    }, POLL_INTERVAL_MS);
-
-    void this.ProcessEndedLotteries();
+  ) {
+    super({
+      name: "LotteryScheduler",
+      intervalMs: POLL_INTERVAL_MS,
+      logger,
+      failureMessage: "Error processing ended lotteries",
+    });
   }
 
-  Stop(): void {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-  }
+  protected async Poll(): Promise<void> {
+    const ended = this.userDb.GetEndedLotteriesToProcess();
 
-  private async ProcessEndedLotteries(): Promise<void> {
-    if (this.isProcessing) return;
-    this.isProcessing = true;
-
-    try {
-      const ended = this.userDb.GetEndedLotteriesToProcess();
-
-      for (const lottery of ended) {
-        if (!IsEconomyEnabled(this.serverDb, lottery.guild_id)) {
-          continue;
-        }
-        await this.ProcessLottery(lottery.guild_id, lottery.message_id);
+    for (const lottery of ended) {
+      if (!IsEconomyEnabled(this.serverDb, lottery.guild_id)) {
+        continue;
       }
-    } catch (error) {
-      this.logger.Error("Error processing ended lotteries", { error });
-    } finally {
-      this.isProcessing = false;
+      await this.ProcessLottery(lottery.guild_id, lottery.message_id);
     }
   }
 

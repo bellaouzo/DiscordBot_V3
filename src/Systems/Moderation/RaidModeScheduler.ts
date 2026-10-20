@@ -6,6 +6,7 @@ import type {
 } from "discord.js";
 import type { ModerationDatabase, RaidMode } from "@database";
 import type { Logger } from "@shared/Logger";
+import { PollingScheduler } from "@shared/PollingScheduler";
 import { SafeParseJson } from "@utilities/SafeJson";
 
 const RAID_SWEEP_INTERVAL_MS = 10_000;
@@ -49,45 +50,20 @@ interface RaidModeSchedulerOptions {
   readonly logger: Logger;
 }
 
-export class RaidModeScheduler {
-  private interval: NodeJS.Timeout | null = null;
-  private isRunning = false;
-
-  constructor(private readonly options: RaidModeSchedulerOptions) {}
-
-  Start(): void {
-    if (this.interval) {
-      return;
-    }
-
-    this.RunSweep();
-    this.interval = setInterval(() => this.RunSweep(), RAID_SWEEP_INTERVAL_MS);
+export class RaidModeScheduler extends PollingScheduler {
+  constructor(private readonly options: RaidModeSchedulerOptions) {
+    super({
+      name: "RaidModeScheduler",
+      intervalMs: RAID_SWEEP_INTERVAL_MS,
+      logger: options.logger,
+      failureMessage: "Failed to process raid modes",
+    });
   }
 
-  Stop(): void {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
-    }
-  }
-
-  private async RunSweep(): Promise<void> {
-    if (this.isRunning) {
-      return;
-    }
-    this.isRunning = true;
-
-    const { db, logger } = this.options;
-    try {
-      const now = Date.now();
-      const expired = db.ListExpiredRaidModes(now);
-      for (const raid of expired) {
-        await this.RestoreRaidMode(raid);
-      }
-    } catch (error) {
-      logger.Error("Failed to process raid modes", { error });
-    } finally {
-      this.isRunning = false;
+  protected async Poll(): Promise<void> {
+    const expired = this.options.db.ListExpiredRaidModes(Date.now());
+    for (const raid of expired) {
+      await this.RestoreRaidMode(raid);
     }
   }
 

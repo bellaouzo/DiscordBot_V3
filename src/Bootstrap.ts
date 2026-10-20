@@ -25,8 +25,8 @@ import {
   RegisterCommandHandler,
 } from "./interaction-handlers";
 import { ConfigureCooldownPersistence } from "@middleware/CooldownState";
-import { TempActionScheduler } from "./Moderation/TempActionScheduler";
-import { RaidModeScheduler } from "./Moderation/RaidModeScheduler";
+import { TempActionScheduler } from "@systems/Moderation/TempActionScheduler";
+import { RaidModeScheduler } from "@systems/Moderation/RaidModeScheduler";
 import { GiveawayScheduler } from "@systems/Giveaway/GiveawayScheduler";
 import { EventScheduler } from "@systems/Event/EventScheduler";
 import { LotteryScheduler } from "@systems/Economy/LotteryScheduler";
@@ -34,15 +34,19 @@ import { RegisterAllSystems } from "./Bootstrap/SystemRegistry";
 import { WebServer } from "./Web/WebServer";
 import type { Client } from "discord.js";
 
+/**
+ * A long-running component started after login and stopped on shutdown.
+ */
+export interface BackgroundService {
+  Start(): void;
+  Stop(): void;
+}
+
 export interface AppResources {
   client: Client;
   databases: DatabaseSet;
-  tempScheduler: TempActionScheduler;
-  raidScheduler: RaidModeScheduler;
-  giveawayScheduler: GiveawayScheduler;
-  eventScheduler: EventScheduler;
-  lotteryScheduler: LotteryScheduler;
-  webServer: WebServer;
+  /** Started in order after login; stopped in reverse order on shutdown. */
+  services: readonly BackgroundService[];
 }
 
 export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
@@ -105,38 +109,40 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     databases,
     appConfig: config,
   });
-  const tempScheduler = new TempActionScheduler({
-    client: bot.client,
-    db: databases.moderationDb,
-    logger: logger.Child({ phase: "temp-actions" }),
-  });
-  const raidScheduler = new RaidModeScheduler({
-    client: bot.client,
-    db: databases.moderationDb,
-    logger: logger.Child({ phase: "raid-mode" }),
-  });
-  const giveawayScheduler = new GiveawayScheduler(
-    bot.client,
-    databases.userDb,
-    logger.Child({ phase: "giveaways" }),
-  );
-  const eventScheduler = new EventScheduler(
-    bot.client,
-    databases.serverDb,
-    logger.Child({ phase: "events" }),
-  );
-  const lotteryScheduler = new LotteryScheduler(
-    bot.client,
-    databases.userDb,
-    databases.serverDb,
-    logger.Child({ phase: "lottery" }),
-  );
-  const webServer = new WebServer(
-    bot.client,
-    config,
-    databases,
-    logger.Child({ phase: "web" }),
-  );
+  const services: BackgroundService[] = [
+    new TempActionScheduler({
+      client: bot.client,
+      db: databases.moderationDb,
+      logger: logger.Child({ phase: "temp-actions" }),
+    }),
+    new RaidModeScheduler({
+      client: bot.client,
+      db: databases.moderationDb,
+      logger: logger.Child({ phase: "raid-mode" }),
+    }),
+    new GiveawayScheduler(
+      bot.client,
+      databases.userDb,
+      logger.Child({ phase: "giveaways" }),
+    ),
+    new EventScheduler(
+      bot.client,
+      databases.serverDb,
+      logger.Child({ phase: "events" }),
+    ),
+    new LotteryScheduler(
+      bot.client,
+      databases.userDb,
+      databases.serverDb,
+      logger.Child({ phase: "lottery" }),
+    ),
+    new WebServer(
+      bot.client,
+      config,
+      databases,
+      logger.Child({ phase: "web" }),
+    ),
+  ];
 
   const loadedCommands = await loadCommands();
   ReplaceCommands(loadedCommands.definitions);
@@ -169,22 +175,14 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
 
   await deployCommands(loadedCommands.slashData);
   await bot.Start(config.discord.token);
-  tempScheduler.Start();
-  raidScheduler.Start();
-  giveawayScheduler.Start();
-  eventScheduler.Start();
-  lotteryScheduler.Start();
-  webServer.Start();
+  for (const service of services) {
+    service.Start();
+  }
 
   return {
     client: bot.client,
     databases,
-    tempScheduler,
-    raidScheduler,
-    giveawayScheduler,
-    eventScheduler,
-    lotteryScheduler,
-    webServer,
+    services,
   };
 }
 
@@ -202,20 +200,21 @@ export function SetupGracefulShutdown(
       phase: "shutdown",
     });
 
-    try {
-      resources.tempScheduler.Stop();
-      resources.raidScheduler.Stop();
-      resources.giveawayScheduler.Stop();
-      resources.eventScheduler.Stop();
-      resources.lotteryScheduler.Stop();
-      resources.webServer.Stop();
-      resources.databases.userDb.Close();
-      resources.databases.moderationDb.Close();
-      resources.databases.serverDb.Close();
-      resources.databases.ticketDb.Close();
-      resources.client.destroy();
-    } catch (error) {
-      logger.Error("Error during shutdown", { error, phase: "shutdown" });
+    // Each step is isolated so one failure doesn't leave later resources open.
+    const steps: Array<() => unknown> = [
+      ...[...resources.services]
+        .reverse()
+        .map((service) => () => service.Stop()),
+      ...Object.values(resources.databases).map((db) => () => db.Close()),
+      () => resources.client.destroy(),
+    ];
+
+    for (const step of steps) {
+      try {
+        await step();
+      } catch (error) {
+        logger.Error("Error during shutdown", { error, phase: "shutdown" });
+      }
     }
 
     process.exit(0);

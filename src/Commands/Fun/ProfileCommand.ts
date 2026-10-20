@@ -3,12 +3,9 @@ import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import {
-  RequireGuild,
-  EmbedFactory,
-  CreateWarnManager,
-  CreateNoteManager,
-} from "@utilities";
+import { RequireGuild, EmbedFactory } from "@utilities";
+import { CreateWarnManager } from "@systems/Moderation/WarnManager";
+import { CreateNoteManager } from "@systems/Moderation/NoteManager";
 import { LevelManager } from "@systems/Leveling";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 

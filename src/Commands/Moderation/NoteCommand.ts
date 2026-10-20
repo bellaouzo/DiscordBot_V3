@@ -3,7 +3,8 @@ import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import { RequireGuild, EmbedFactory, CreateNoteManager } from "@utilities";
+import { RequireGuild, EmbedFactory } from "@utilities";
+import { CreateNoteManager } from "@systems/Moderation/NoteManager";
 import type { Note } from "@database";
 import type { PaginationPage } from "@shared/Paginator";
 

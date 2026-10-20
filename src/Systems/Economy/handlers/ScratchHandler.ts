@@ -4,7 +4,6 @@ import type {
 } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import { EconomyManager } from "@systems/Economy/EconomyManager";
 import {
   BuildScratchButtons,
   BuildDisabledScratchButtons,
@@ -16,14 +15,9 @@ import {
   BuildScratchPromptEmbed,
   BuildScratchResultEmbed,
 } from "@systems/Economy/utils/Embeds";
-import {
-  MAX_BET,
-  MIN_BET,
-  SCRATCH_TIMEOUT_MS,
-} from "@systems/Economy/constants";
+import { SCRATCH_TIMEOUT_MS } from "@systems/Economy/constants";
 import type { ScratchSymbol } from "@systems/Economy/types";
 import { ITEM_MAP } from "@systems/Economy/items";
-import { RequireGuild, EmbedFactory } from "@utilities";
 import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
 import {
@@ -38,6 +32,7 @@ import {
   SCRATCH_SLOTS,
   WinStillPossible,
 } from "@systems/Economy/utils/scratchLogic";
+import { HasItem, PrepareWager } from "@systems/Economy/utils/Wager";
 
 interface ScratchCustomIds {
   slots: string[];
@@ -51,56 +46,22 @@ export async function HandleScratch(
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
 
-  const bet = interaction.options.getInteger("bet") ?? 0;
-
-  if (bet !== 0 && (bet < MIN_BET || bet > MAX_BET)) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Invalid Bet",
-      description: `Bet must be between ${MIN_BET} and ${MAX_BET}.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
+  const prepared = await PrepareWager(interaction, context);
+  if (!prepared) {
     return;
   }
+  const { bet, manager, inventory } = prepared;
+  let balance = prepared.balance;
 
-  const manager = new EconomyManager(
-    RequireGuild(interaction).id,
-    context.databases.userDb,
-  );
-  let balance = manager.EnsureBalance(interaction.user.id);
-  const inventory = manager.GetInventory(interaction.user.id);
   const lensItem = ITEM_MAP["scratch-lens"];
-  const lensEntry = inventory.find((entry) => entry.itemId === lensItem?.id);
-  const hasLens = lensItem && lensEntry && lensEntry.quantity > 0;
+  const hasLens = HasItem(inventory, lensItem);
   const cloverItem = ITEM_MAP["scratch-clover"];
-  const hasClover =
-    cloverItem &&
-    inventory.some(
-      (entry) => entry.itemId === cloverItem.id && entry.quantity > 0,
-    );
+  const hasClover = HasItem(inventory, cloverItem);
   const bonusItem = ITEM_MAP["scratch-bonus"];
-  const hasBonus =
-    bonusItem &&
-    inventory.some(
-      (entry) => entry.itemId === bonusItem.id && entry.quantity > 0,
-    );
+  const hasBonus = HasItem(inventory, bonusItem);
   const lensNote = hasLens
     ? "Scratch Lens — extra reveal consumed."
     : undefined;
-
-  if (bet > balance) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Not Enough Coins",
-      description: `You only have **${balance}** coins.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
 
   let resolved = false;
   let timeoutHandle: NodeJS.Timeout | null = null;

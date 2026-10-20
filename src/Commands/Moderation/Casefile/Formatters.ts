@@ -1,4 +1,5 @@
-import type { CreateNoteManager, CreateWarnManager } from "@utilities";
+import type { CreateNoteManager } from "@systems/Moderation/NoteManager";
+import type { CreateWarnManager } from "@systems/Moderation/WarnManager";
 import { EmbedFactory } from "@utilities";
 import type { PaginationPage } from "@shared/Paginator";
 import type { ModerationDatabase } from "@database";

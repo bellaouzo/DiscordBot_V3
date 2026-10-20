@@ -3,12 +3,9 @@ import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
 import { Config } from "@middleware";
-import {
-  RequireGuild,
-  CreateAppealManager,
-  CreateWarnManager,
-  EmbedFactory,
-} from "@utilities";
+import { RequireGuild, EmbedFactory } from "@utilities";
+import { CreateAppealManager } from "@systems/Moderation/AppealManager";
+import { CreateWarnManager } from "@systems/Moderation/WarnManager";
 
 async function ExecuteModHistory(
   interaction: ChatInputCommandInteraction,

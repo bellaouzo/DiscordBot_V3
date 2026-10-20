@@ -4,16 +4,16 @@ import type {
 } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { BuildWheelResultEmbed } from "@systems/Economy/utils/Embeds";
 import {
   BuildDisabledWheelButtons,
   BuildWheelButtons,
 } from "@systems/Economy/utils/WheelComponents";
-import { MAX_BET, MIN_BET, WHEEL_TIMEOUT_MS } from "@systems/Economy/constants";
-import { RequireGuild, EmbedFactory } from "@utilities";
+import { WHEEL_TIMEOUT_MS } from "@systems/Economy/constants";
+import { EmbedFactory } from "@utilities";
 import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
+import { PrepareWager } from "@systems/Economy/utils/Wager";
 
 type WheelSegment = {
   label: string;
@@ -52,37 +52,12 @@ export async function HandleWheel(
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
 
-  const bet = interaction.options.getInteger("bet") ?? 0;
-
-  if (bet !== 0 && (bet < MIN_BET || bet > MAX_BET)) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Invalid Bet",
-      description: `Bet must be between ${MIN_BET} and ${MAX_BET}.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
+  const prepared = await PrepareWager(interaction, context);
+  if (!prepared) {
     return;
   }
-
-  const manager = new EconomyManager(
-    RequireGuild(interaction).id,
-    context.databases.userDb,
-  );
-  let balance = manager.EnsureBalance(interaction.user.id);
-
-  if (bet > balance) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Not Enough Coins",
-      description: `You only have **${balance}** coins.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
+  const { bet, manager } = prepared;
+  let balance = prepared.balance;
 
   if (bet > 0) {
     balance = manager.AdjustBalance(interaction.user.id, -bet, 0);

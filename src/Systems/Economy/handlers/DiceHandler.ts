@@ -1,13 +1,13 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { BuildDiceResultEmbed } from "@systems/Economy/utils/Embeds";
-import { DICE_PAYOUT_MULTIPLIER, MAX_BET, MIN_BET } from "../constants";
+import { DICE_PAYOUT_MULTIPLIER } from "../constants";
 import { ITEM_MAP } from "../items";
-import { RequireGuild, EmbedFactory } from "@utilities";
+import { EmbedFactory } from "@utilities";
 import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
+import { HasItem, PrepareWager } from "@systems/Economy/utils/Wager";
 
 export async function HandleDice(
   interaction: ChatInputCommandInteraction,
@@ -16,7 +16,6 @@ export async function HandleDice(
   const { interactionResponder } = context.responders;
 
   const guess = interaction.options.getInteger("guess");
-  const bet = interaction.options.getInteger("bet") ?? 0;
 
   if (guess !== null && guess !== undefined && (guess < 1 || guess > 6)) {
     const embed = EmbedFactory.CreateWarning({
@@ -30,54 +29,19 @@ export async function HandleDice(
     return;
   }
 
-  if (bet !== 0 && (bet < MIN_BET || bet > MAX_BET)) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Invalid Bet",
-      description: `Bet must be between ${MIN_BET} and ${MAX_BET}.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
+  const prepared = await PrepareWager(interaction, context);
+  if (!prepared) {
     return;
   }
+  const { bet, manager, inventory } = prepared;
+  let balance = prepared.balance;
 
-  const manager = new EconomyManager(
-    RequireGuild(interaction).id,
-    context.databases.userDb,
-  );
-  let balance = manager.EnsureBalance(interaction.user.id);
-  const inventory = manager.GetInventory(interaction.user.id);
   const loadedDie = ITEM_MAP["loaded-die"];
-  const hasLoadedDie =
-    loadedDie &&
-    inventory.some(
-      (entry) => entry.itemId === loadedDie.id && entry.quantity > 0,
-    );
+  const hasLoadedDie = HasItem(inventory, loadedDie);
   const diceNudgeItem = ITEM_MAP["dice-nudge"];
-  const hasDiceNudge =
-    diceNudgeItem &&
-    inventory.some(
-      (entry) => entry.itemId === diceNudgeItem.id && entry.quantity > 0,
-    );
+  const hasDiceNudge = HasItem(inventory, diceNudgeItem);
   const diceJackpot = ITEM_MAP["dice-jackpot"];
-  const hasJackpot =
-    diceJackpot &&
-    inventory.some(
-      (entry) => entry.itemId === diceJackpot.id && entry.quantity > 0,
-    );
-
-  if (bet > balance) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Not Enough Coins",
-      description: `You only have **${balance}** coins.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
+  const hasJackpot = HasItem(inventory, diceJackpot);
 
   const rollDie = (): number => Math.floor(Math.random() * 6) + 1;
   let rolled = rollDie();

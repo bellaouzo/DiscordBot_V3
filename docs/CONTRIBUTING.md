@@ -61,28 +61,30 @@ Do not import from `@commands/CommandFactory` or use relative `../Commands/` pat
 
 ## Database migrations
 
-Each SQLite database (`server.db`, `tickets.db`, `users.db`, `moderation.db`) runs pending migrations automatically on startup via `RunMigrations` in its database constructor.
+Each SQLite database (`server.db`, `tickets.db`, `users.db`, `moderation.db`) runs pending migrations automatically on startup via `RunMigrations` in its database constructor. Migrations are the only source of schema: version `0` (`initial_schema`) in each database's migration list is the frozen baseline, and every later change is a new version.
 
 ### When to add a migration
 
-Add a new migration whenever you **ALTER an existing table** (new column, index change, backfill). Updating TypeScript types or store SELECT statements alone is not enough.
+Add a new migration for **any** schema change: a new table, a new column, an index change, or a backfill. Updating TypeScript types or store SELECT statements alone is not enough.
 
 ### How to add a migration
 
-1. Add a new numbered entry in the migration array for that database:
+1. Add a new entry, with the next version number, to the migration array for that database:
    - `src/Database/Migrations/server/index.ts` for `server.db`
    - `src/Database/Migrations/ticket/index.ts` for `tickets.db`
-   - Create `src/Database/Migrations/user/index.ts` or `moderation/index.ts` when the first schema change is needed for those databases (they currently use `RunMigrations([])`).
-2. Use `AddTableColumnIfMissing` or `AddTableColumnsIfMissing` from `@database/Migrations` so the migration is idempotent.
+   - `src/Database/Migrations/user/index.ts` for `users.db`
+   - `src/Database/Migrations/moderation/index.ts` for `moderation.db`
+2. Make it idempotent: use `CREATE TABLE IF NOT EXISTS` / `CREATE INDEX IF NOT EXISTS`, or `AddTableColumnIfMissing` / `AddTableColumnsIfMissing` from `@database/Migrations`.
 3. Update the matching store, types, and mappers under `src/Database/`.
-4. Update the `CreateTables` baseline DDL in the database class so **fresh installs** get the full schema immediately (migrations remain no-ops for new databases).
-5. Add an integration test in `tests/database/` that simulates a database at the previous migration version, runs `RunMigrations`, and asserts the new schema works with the store.
+4. Add an integration test in `tests/database/` that simulates a database at the previous migration version, runs `RunMigrations`, and asserts the new schema works with the store.
+
+Fresh installs run every migration in order, so the new migration covers both new and existing databases.
 
 ### Anti-patterns
 
 - **Do not** add columns to `GUILD_SETTINGS_COLUMNS` in `server/index.ts` — that map is frozen at v1 and only runs once on existing databases.
-- **Do not** update TypeScript types or store queries without a matching migration and `CreateTables` baseline update.
-- **Do not** rely on editing `CREATE TABLE IF NOT EXISTS` alone — existing production databases will not pick up new columns without a migration.
+- **Do not** edit the version `0` `*_INITIAL_SCHEMA` SQL. It has already run on every existing database, so changes to it only reach fresh installs.
+- **Do not** update TypeScript types or store queries without a matching migration.
 
 ## Commits and PRs
 

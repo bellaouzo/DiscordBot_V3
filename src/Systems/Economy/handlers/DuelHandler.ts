@@ -11,12 +11,13 @@ import {
 } from "discord.js";
 import type { CommandContext } from "@commands";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
-import { DUEL_TIMEOUT_MS, MAX_BET, MIN_BET } from "@systems/Economy/constants";
+import { DUEL_TIMEOUT_MS } from "@systems/Economy/constants";
 import type { DuelGame } from "@database/User/Stores/DuelStore";
 import type { FlipChoice, RpsChoice } from "@systems/Economy/types";
 import { DetermineRpsOutcome } from "@systems/Economy/utils/rpsLogic";
 import { FlipCoin, OppositeFlipChoice } from "@systems/Economy/utils/flipLogic";
 import { EmbedFactory, RequireGuild } from "@utilities";
+import { BetRangeError } from "@systems/Economy/utils/Wager";
 
 const duelRpsChoices = new Map<
   number,
@@ -92,12 +93,13 @@ export async function HandleDuelChallenge(
     return;
   }
 
-  if (bet < MIN_BET || bet > MAX_BET) {
+  const betError = BetRangeError(bet, { allowFree: false });
+  if (betError) {
     await interactionResponder.Reply(interaction, {
       embeds: [
         EmbedFactory.CreateWarning({
           title: "Invalid Bet",
-          description: `Bet must be between ${MIN_BET} and ${MAX_BET}.`,
+          description: betError,
         }).toJSON(),
       ],
       flags: MessageFlags.Ephemeral,

@@ -7,11 +7,8 @@ import type {
 import { MessageFlags } from "discord.js";
 import type { TicketDatabase, Ticket } from "@database";
 import type { ServerDatabase } from "@database/ServerDatabase";
-import {
-  CreateTicketManager,
-  CreateGuildResourceLocator,
-  IsTicketStaff,
-} from "@utilities";
+import { CreateGuildResourceLocator, IsTicketStaff } from "@utilities";
+import { CreateTicketManager } from "@systems/Ticket/TicketManager";
 import type { Logger } from "@shared/Logger";
 import type { InteractionResponder } from "@responders";
 import { EmbedFactory } from "@utilities";

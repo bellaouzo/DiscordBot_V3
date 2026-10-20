@@ -7,9 +7,9 @@ import {
   type TextChannel,
 } from "discord.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { TicketManager } from "@utilities/TicketManager";
+import { TicketManager } from "@systems/Ticket/TicketManager";
 import type { Ticket } from "@database/Ticket/Types";
-import { createMockLogger } from "../helpers";
+import { createMockLogger } from "../../helpers";
 
 const mockGetOrCreateCategory = vi.fn();
 

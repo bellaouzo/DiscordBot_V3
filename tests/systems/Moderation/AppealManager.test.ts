@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { CreateAppealManager } from "@utilities/AppealManager";
-import { createMockDatabaseSet, createMockLogger } from "../helpers";
+import { CreateAppealManager } from "@systems/Moderation/AppealManager";
+import { createMockDatabaseSet, createMockLogger } from "../../helpers";
 
 describe("AppealManager", () => {
   function createManager() {

@@ -6,10 +6,12 @@
  * - ComponentRouter: Button interaction routing with expiration
  * - SelectMenuRouter: String select menu routing
  * - UserSelectMenuRouter: User select menu routing
+ * - InteractionRouter: Generic routing core shared by the routers above
  * - Paginator: Multi-page message navigation
  */
 
 export * from "./Logger";
+export * from "./InteractionRouter";
 export * from "./ComponentRouter";
 export * from "./SelectMenuRouter";
 export * from "./UserSelectMenuRouter";

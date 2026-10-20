@@ -1,11 +1,8 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import { ChannelType, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import {
-  CreateAppealManager,
-  EmbedFactory,
-  ResolveInteractionMember,
-} from "@utilities";
+import { EmbedFactory, ResolveInteractionMember } from "@utilities";
+import { CreateAppealManager } from "@systems/Moderation/AppealManager";
 import {
   IsAppealReviewer,
   NotifyAppealUser,

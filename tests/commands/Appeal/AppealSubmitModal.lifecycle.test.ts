@@ -21,7 +21,7 @@ const appealRecord = {
   resolved_at: null,
 };
 
-vi.mock("@utilities/AppealManager", () => ({
+vi.mock("@systems/Moderation/AppealManager", () => ({
   CreateAppealManager: vi.fn(() => ({
     ValidateTarget: vi.fn().mockReturnValue({
       success: true,

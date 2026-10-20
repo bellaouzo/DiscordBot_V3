@@ -2,7 +2,7 @@ import type { Client, Guild, TextChannel } from "discord.js";
 import { ButtonStyle, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import type { Appeal, AppealActionType, AppealStatus } from "@database";
-import type { AppealableActionOption } from "@utilities";
+import type { AppealableActionOption } from "@systems/Moderation/AppealManager";
 import {
   ComponentFactory,
   EmbedFactory,

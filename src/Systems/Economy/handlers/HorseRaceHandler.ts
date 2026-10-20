@@ -4,7 +4,6 @@ import type {
 } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { ITEM_MAP } from "@systems/Economy/items";
 import {
   BuildHorseButtons,
@@ -22,13 +21,11 @@ import {
   HORSE_TICK_MS,
   HORSE_TIMEOUT_MS,
   HORSE_TRACK_LENGTH,
-  MAX_BET,
-  MIN_BET,
 } from "@systems/Economy/constants";
 import type { HorseId } from "@systems/Economy/types";
-import { RequireGuild, EmbedFactory } from "@utilities";
 import type { EconomyOutcome } from "@systems/Economy/utils/EconomyXp";
 import { AwardEconomyXp } from "@systems/Economy/utils/EconomyXp";
+import { HasItem, PrepareWager } from "@systems/Economy/utils/Wager";
 
 interface HorseCustomIds {
   horses: string[];
@@ -44,60 +41,23 @@ export async function HandleHorseRace(
   const { interactionResponder, buttonResponder, componentRouter } =
     context.responders;
 
-  const bet = interaction.options.getInteger("bet") ?? 0;
-
-  if (bet !== 0 && (bet < MIN_BET || bet > MAX_BET)) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Invalid Bet",
-      description: `Bet must be between ${MIN_BET} and ${MAX_BET}.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
+  const prepared = await PrepareWager(interaction, context);
+  if (!prepared) {
     return;
   }
+  const { bet, manager, inventory } = prepared;
+  let balance = prepared.balance;
 
-  const manager = new EconomyManager(
-    RequireGuild(interaction).id,
-    context.databases.userDb,
-  );
-  let balance = manager.EnsureBalance(interaction.user.id);
-  const inventory = manager.GetInventory(interaction.user.id);
   const spurItem = ITEM_MAP["speed-spur"];
-  const hasSpur =
-    spurItem &&
-    inventory.some(
-      (entry) => entry.itemId === spurItem.id && entry.quantity > 0,
-    );
+  const hasSpur = HasItem(inventory, spurItem);
   const whistleItem = ITEM_MAP["horse-whistle"];
-  const hasWhistle =
-    whistleItem &&
-    inventory.some(
-      (entry) => entry.itemId === whistleItem.id && entry.quantity > 0,
-    );
+  const hasWhistle = HasItem(inventory, whistleItem);
   const rocketItem = ITEM_MAP["horse-rocket"];
-  const hasRocket =
-    rocketItem &&
-    inventory.some(
-      (entry) => entry.itemId === rocketItem.id && entry.quantity > 0,
-    );
+  const hasRocket = HasItem(inventory, rocketItem);
   let spurConsumed = false;
   let whistleConsumed = false;
   let rocketConsumed = false;
   const notes: string[] = [];
-
-  if (bet > balance) {
-    const embed = EmbedFactory.CreateWarning({
-      title: "Not Enough Coins",
-      description: `You only have **${balance}** coins.`,
-    });
-    await interactionResponder.Reply(interaction, {
-      embeds: [embed.toJSON()],
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
 
   let resolved = false;
   let selectedHorse: HorseId | null = null;

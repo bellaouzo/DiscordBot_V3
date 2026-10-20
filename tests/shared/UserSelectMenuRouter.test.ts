@@ -43,7 +43,7 @@ describe("UserSelectMenuRouter", () => {
 
     expect(handled).toBe(true);
     expect(interaction.reply).toHaveBeenCalledWith({
-      content: "This interaction is not for you.",
+      content: "You cannot use this interaction.",
       flags: MessageFlags.Ephemeral,
     });
   });
@@ -106,11 +106,11 @@ describe("UserSelectMenuRouter", () => {
 
     expect(handled).toBe(true);
     expect(logger.Error).toHaveBeenCalledWith(
-      "User select menu handler error",
+      "User select menu handler failed",
       expect.objectContaining({ error: expect.any(Error) }),
     );
     expect(interaction.reply).toHaveBeenCalledWith({
-      content: "An error occurred while processing your request.",
+      content: "Something went wrong while handling that interaction.",
       flags: MessageFlags.Ephemeral,
     });
   });

@@ -37,7 +37,7 @@ See also [MODULE_OWNERSHIP.md](./MODULE_OWNERSHIP.md) and [TESTING_STRATEGY.md](
 - `src/Responders` owns safe interaction response lifecycle (`reply`, `defer`, `edit`, component routing).
 - `src/Database` owns persistence adapters and query logic for each SQLite domain.
 - `src/Systems` owns larger workflows with independent domain logic (Economy, Ticket, Giveaway, Roblox, Setup).
-- `src/Utilities` owns shared formatting, API client, managers, and reusable command helpers.
+- `src/Utilities` owns shared formatting, API client, and reusable command helpers. Domain services (ticket, appeal, warning, note managers) live with their system under `src/Systems/`.
 
 ## Moderation Domain Map
 
@@ -158,14 +158,13 @@ Economy minigames follow a consistent shape:
 
 | Piece | Location |
 |-------|----------|
-| Runner | `MigrationRunner.ts` — tracks applied migrations in a `_migrations` table |
-| Server migrations | `Migrations/server/index.ts` — column backfills for `server.db` |
-| Ticket migrations | `Migrations/ticket/index.ts` — schema changes for `tickets.db` |
+| Runner | `MigrationRunner.ts` — tracks applied migrations in a `schema_migrations` table |
+| Per-database migrations | `Migrations/{user,moderation,server,ticket}/index.ts` |
 | Helpers | `AddTableColumnIfMissing`, `AddTableColumnsIfMissing` |
 
-Each database facade calls `RunMigrations(...)` in its constructor. Fresh installs get the full schema from `CreateTables`; migrations only alter existing databases.
+Each database facade calls `RunMigrations(...)` in its constructor. Migrations own the whole schema: version `0` (`initial_schema`) is the frozen baseline and is a no-op on databases created before migrations owned the schema. Fresh installs run every version in order.
 
-**Tests:** `tests/database/MigrationRunner.test.ts`, `tests/database/ServerMigrations.test.ts`
+**Tests:** `tests/database/MigrationRunner.test.ts`, `tests/database/ServerMigrations.test.ts`, `tests/database/InitialSchemaMigrations.test.ts`
 
 ## Roblox Bridge (`src/Systems/Roblox/`)
 
@@ -197,7 +196,7 @@ Each database facade calls `RunMigrations(...)` in its constructor. Fresh instal
 ```mermaid
 sequenceDiagram
   participant User
-  participant Router as ComponentRouter / SelectMenuRouter / ModalRouter
+  participant Router as InteractionRouter (Component / SelectMenu / Modal)
   participant Flow as Domain Flow Module
   participant DB as Database Facade
   participant Discord

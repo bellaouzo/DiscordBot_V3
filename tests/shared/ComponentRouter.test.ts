@@ -144,4 +144,43 @@ describe("ComponentRouter", () => {
       flags: MessageFlags.Ephemeral,
     });
   });
+
+  it("removes single-use prefix registrations after handling", async () => {
+    const router = new ComponentRouter(createMockLogger());
+    const handler = vi.fn();
+    const onExpire = vi.fn();
+    router.RegisterButtonPrefix("vote:", {
+      handler,
+      singleUse: true,
+      onExpire,
+    });
+
+    await router.HandleButton(
+      createButtonInteraction({ customId: "vote:1" }) as never,
+    );
+    const handledAgain = await router.HandleButton(
+      createButtonInteraction({ customId: "vote:2" }) as never,
+    );
+
+    expect(handler).toHaveBeenCalledOnce();
+    expect(onExpire).toHaveBeenCalledOnce();
+    expect(handledAgain).toBe(false);
+  });
+
+  it("removes expired prefix registrations", async () => {
+    const router = new ComponentRouter(createMockLogger());
+    const onExpire = vi.fn();
+    router.RegisterButtonPrefix("page:", {
+      handler: vi.fn(),
+      expiresInMs: -1,
+      onExpire,
+    });
+
+    await router.HandleButton(
+      createButtonInteraction({ customId: "page:1" }) as never,
+    );
+
+    expect(onExpire).toHaveBeenCalledOnce();
+    expect(router.Size).toBe(0);
+  });
 });

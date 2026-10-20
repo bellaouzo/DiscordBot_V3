@@ -2,13 +2,13 @@ import type { Guild, ModalSubmitInteraction, TextChannel } from "discord.js";
 import { ButtonStyle, ChannelType, PermissionFlagsBits } from "discord.js";
 import type { CommandContext } from "@commands";
 import type { Appeal } from "@database";
-import type { AppealableActionOption } from "@utilities";
+import type { AppealableActionOption } from "@systems/Moderation/AppealManager";
 import {
   ComponentFactory,
-  CreateAppealManager,
   CreateChannelManager,
   EmbedFactory,
 } from "@utilities";
+import { CreateAppealManager } from "@systems/Moderation/AppealManager";
 import { BuildAppealReviewEmbed } from "@commands/Moderation/Appeal/AppealFormatters";
 import { HandleAppealDecisionButton } from "@commands/Moderation/Appeal/AppealReviewResolveFlow";
 

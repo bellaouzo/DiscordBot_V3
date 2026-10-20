@@ -65,8 +65,7 @@ export class WebServer {
     });
 
     passport.deserializeUser((obj, done) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      done(null, obj as any);
+      done(null, obj as Express.User);
     });
 
     passport.use(

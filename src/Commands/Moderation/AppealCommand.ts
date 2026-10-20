@@ -6,7 +6,8 @@ import { CreateCommand } from "@commands";
 
 import { Config } from "@middleware";
 
-import { CreateAppealManager, EmbedFactory } from "@utilities";
+import { EmbedFactory } from "@utilities";
+import { CreateAppealManager } from "@systems/Moderation/AppealManager";
 
 import { HandleSubmit } from "@commands/Moderation/Appeal/AppealSubmitFlow";
 import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";

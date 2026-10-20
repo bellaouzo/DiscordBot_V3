@@ -17,8 +17,7 @@ export function createVerifyAdmin(
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = req.user as any;
+    const user = req.user as Express.User;
     const guildId = req.params.guildId as string;
     const guild = client.guilds.cache.get(guildId);
     if (!guild) {

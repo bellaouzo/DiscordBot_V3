@@ -1,6 +1,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import { defineConfig } from "vitest/config";
+import packageJson from "./package.json" with { type: "json" };
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -101,7 +102,7 @@ export default defineConfig({
           branches: 65,
           statements: 70,
         },
-        "src/Utilities/TicketManager.ts": {
+        "src/Systems/Ticket/TicketManager.ts": {
           lines: 50,
           functions: 50,
           branches: 40,
@@ -165,27 +166,12 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      "@commands": path.resolve(__dirname, "src/Commands"),
-      "@commands/*": path.resolve(__dirname, "src/Commands"),
-      "@systems": path.resolve(__dirname, "src/Systems"),
-      "@systems/*": path.resolve(__dirname, "src/Systems"),
-      "@middleware": path.resolve(__dirname, "src/Commands/Middleware"),
-      "@middleware/*": path.resolve(__dirname, "src/Commands/Middleware"),
-      "@bot": path.resolve(__dirname, "src/Bot"),
-      "@bot/*": path.resolve(__dirname, "src/Bot"),
-      "@database": path.resolve(__dirname, "src/Database"),
-      "@database/*": path.resolve(__dirname, "src/Database"),
-      "@utilities": path.resolve(__dirname, "src/Utilities"),
-      "@utilities/*": path.resolve(__dirname, "src/Utilities"),
-      "@shared": path.resolve(__dirname, "src/Shared"),
-      "@shared/*": path.resolve(__dirname, "src/Shared"),
-      "@responders": path.resolve(__dirname, "src/Responders"),
-      "@responders/*": path.resolve(__dirname, "src/Responders"),
-      "@events": path.resolve(__dirname, "src/Events"),
-      "@events/*": path.resolve(__dirname, "src/Events"),
-      "@config": path.resolve(__dirname, "src/Config"),
-      "@config/*": path.resolve(__dirname, "src/Config"),
-    },
+    // Same aliases the compiled bot uses at runtime, pointed at src instead of dist.
+    alias: Object.fromEntries(
+      Object.entries(packageJson._moduleAliases).map(([alias, target]) => [
+        alias,
+        path.resolve(__dirname, target.replace(/^dist\//, "src/")),
+      ]),
+    ),
   },
 });
