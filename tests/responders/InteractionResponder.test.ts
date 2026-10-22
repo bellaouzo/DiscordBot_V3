@@ -39,6 +39,21 @@ describe("InteractionResponder", () => {
     expect(interaction.reply).not.toHaveBeenCalled();
   });
 
+  it("fills in a deferred reply instead of replying again", async () => {
+    const responder = new InteractionResponder(createMockLogger());
+    const interaction = createInteraction({ deferred: true });
+
+    const result = await responder.Reply(interaction as never, {
+      content: "hello",
+    });
+
+    expect(result).toEqual({ success: true, message: "Reply edited" });
+    expect(interaction.editReply).toHaveBeenCalledWith(
+      expect.objectContaining({ content: "hello" }),
+    );
+    expect(interaction.reply).not.toHaveBeenCalled();
+  });
+
   it("returns failure when editing before a reply exists", async () => {
     const responder = new InteractionResponder(createMockLogger());
     const interaction = createInteraction();

@@ -200,7 +200,7 @@ export const NewsCommand = CreateCommand({
   name: "news",
   description: "Browse top headlines or search for news articles",
   group: "fun",
-  config: Config.utility(3),
+  config: Config.create().guildOnly().cooldownSeconds(3).autoDefer().build(),
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

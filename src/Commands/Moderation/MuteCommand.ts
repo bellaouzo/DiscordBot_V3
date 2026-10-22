@@ -225,7 +225,7 @@ export const MuteCommand = CreateCommand({
   name: "mute",
   description: "Mute a user or remove their mute",
   group: "moderation",
-  config: Config.mod(5).build(),
+  config: Config.mod(5).botPermissions("ModerateMembers").build(),
   execute: ExecuteMute,
   configure: (builder) => {
     builder

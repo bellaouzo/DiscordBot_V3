@@ -1,4 +1,5 @@
 import type {
+  AutocompleteInteraction,
   ChatInputCommandInteraction,
   Client,
   Interaction,
@@ -13,6 +14,8 @@ import type { RoutableInteraction } from "@shared/InteractionRouter";
 import type { CommandDefinition } from "@commands";
 import { ResolveCommand } from "@commands";
 import type { ResponderSet } from "@responders";
+import type { BlocklistMatch } from "@middleware/BlocklistMiddleware";
+import { CreateBlocklistReply } from "@middleware/BlocklistMiddleware";
 
 export interface InteractionHandlerDependencies {
   readonly client: Client;
@@ -21,7 +24,15 @@ export interface InteractionHandlerDependencies {
   readonly selectMenuRouter: SelectMenuRouter;
   readonly userSelectMenuRouter: UserSelectMenuRouter;
   readonly modalRouter: ModalRouter;
+  /** Global blocklist lookup; blocked users and guilds can't use buttons, menus or modals. */
+  readonly findBlocklistMatch?: (
+    userId: string,
+    guildId: string | null,
+  ) => BlocklistMatch | null;
 }
+
+/** Component handlers slower than this get a warning (Discord's response deadline is 3s). */
+const SLOW_COMPONENT_THRESHOLD_MS = 2500;
 
 export function RegisterInteractionHandlers(
   dependencies: InteractionHandlerDependencies,
@@ -86,13 +97,47 @@ async function DispatchComponentInteraction(
     return;
   }
 
-  const handled = await route.handle();
-  if (!handled) {
-    await ReplyToUnhandledInteraction(
-      route.interaction,
-      dependencies.logger,
-      `Unhandled ${route.kind} interaction`,
-    );
+  const blocked = dependencies.findBlocklistMatch?.(
+    route.interaction.user.id,
+    route.interaction.guildId,
+  );
+  if (blocked) {
+    dependencies.logger.Debug(`Blocked ${route.kind} interaction`, {
+      userId: route.interaction.user.id,
+      guildId: route.interaction.guildId ?? undefined,
+      extra: { customId: route.interaction.customId },
+    });
+    await route.interaction
+      .reply(CreateBlocklistReply(blocked))
+      .catch(() => undefined);
+    return;
+  }
+
+  const startedAt = Date.now();
+  try {
+    const handled = await route.handle();
+    if (!handled) {
+      await ReplyToUnhandledInteraction(
+        route.interaction,
+        dependencies.logger,
+        `Unhandled ${route.kind} interaction`,
+      );
+    }
+  } catch (error) {
+    // Routers catch handler errors themselves; this guards the dispatch around them.
+    dependencies.logger.Error(`Failed to dispatch ${route.kind} interaction`, {
+      userId: route.interaction.user.id,
+      guildId: route.interaction.guildId ?? undefined,
+      extra: { customId: route.interaction.customId },
+      error,
+    });
+  }
+
+  const durationMs = Date.now() - startedAt;
+  if (durationMs > SLOW_COMPONENT_THRESHOLD_MS) {
+    dependencies.logger.Warn(`Slow ${route.kind} interaction`, {
+      extra: { customId: route.interaction.customId, durationMs },
+    });
   }
 }
 
@@ -144,9 +189,17 @@ export type CommandExecutorFn = (
   commandLogger: Logger,
 ) => Promise<void>;
 
+export type AutocompleteExecutorFn = (
+  command: CommandDefinition,
+  interaction: AutocompleteInteraction,
+  responders: ResponderSet,
+  commandLogger: Logger,
+) => Promise<void>;
+
 export interface CommandHandlerDependencies {
   readonly client: Client;
   readonly executeCommand: CommandExecutorFn;
+  readonly executeAutocomplete?: AutocompleteExecutorFn;
   readonly responders: ResponderSet;
   readonly logger: Logger;
 }
@@ -155,6 +208,11 @@ export function RegisterCommandHandler(
   dependencies: CommandHandlerDependencies,
 ): void {
   dependencies.client.on(Events.InteractionCreate, async (interaction) => {
+    if (interaction.isAutocomplete()) {
+      await DispatchAutocomplete(interaction, dependencies);
+      return;
+    }
+
     if (!interaction.isChatInputCommand()) {
       return;
     }
@@ -171,11 +229,42 @@ export function RegisterCommandHandler(
       userId: interaction.user.id,
     });
 
-    await dependencies.executeCommand(
-      command,
-      interaction,
-      dependencies.responders,
-      commandLogger,
-    );
+    try {
+      await dependencies.executeCommand(
+        command,
+        interaction,
+        dependencies.responders,
+        commandLogger,
+      );
+    } catch (error) {
+      // ErrorMiddleware handles command failures; this only catches failures in the executor.
+      commandLogger.Error("Unhandled error while executing command", {
+        error,
+      });
+    }
   });
+}
+
+async function DispatchAutocomplete(
+  interaction: AutocompleteInteraction,
+  dependencies: CommandHandlerDependencies,
+): Promise<void> {
+  const command = ResolveCommand(interaction.commandName);
+  if (!command?.autocomplete || !dependencies.executeAutocomplete) {
+    return;
+  }
+
+  const commandLogger = dependencies.logger.Child({
+    command: command.data.name,
+    interactionId: interaction.id,
+    guildId: interaction.guildId ?? undefined,
+    userId: interaction.user.id,
+  });
+
+  await dependencies.executeAutocomplete(
+    command,
+    interaction,
+    dependencies.responders,
+    commandLogger,
+  );
 }

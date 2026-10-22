@@ -133,7 +133,7 @@ export const TriviaCommand = CreateCommand({
   name: "trivia",
   description: "Get a random multiple-choice trivia question",
   group: "fun",
-  config: Config.utility(5),
+  config: Config.create().guildOnly().cooldownSeconds(5).autoDefer().build(),
   configure: (builder) => {
     builder
       .addIntegerOption((option) =>

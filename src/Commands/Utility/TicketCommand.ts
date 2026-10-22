@@ -61,7 +61,22 @@ export const TicketCommand = CreateCommand({
   name: "ticket",
   description: "Create and manage support tickets",
   group: "utility",
-  config: Config.utility(3),
+  config: Config.create()
+    .guildOnly()
+    .cooldownSeconds(3)
+    .botPermissions("ManageChannels", "ManageRoles")
+    // Only opening and reopening create or change ticket channels.
+    .skipBotPermissionsFor(
+      "panel",
+      "list",
+      "transcript",
+      "tag",
+      "add",
+      "edit",
+      "remove",
+      "about",
+    )
+    .build(),
   configure: (builder: SlashCommandBuilder) => {
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand.setName("open").setDescription("Open a new support ticket"),

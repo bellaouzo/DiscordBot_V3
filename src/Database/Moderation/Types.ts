@@ -115,3 +115,42 @@ export interface Appeal {
   updated_at: number;
   resolved_at: number | null;
 }
+
+export type SpamStrikeAction = "warn" | "timeout";
+
+export function IsSpamStrikeAction(value: unknown): value is SpamStrikeAction {
+  return value === "warn" || value === "timeout";
+}
+
+export interface SpamStrike {
+  id: number;
+  guild_id: string;
+  user_id: string;
+  reason: string;
+  action: SpamStrikeAction;
+  duration_ms: number | null;
+  created_at: number;
+}
+
+export interface SpamFilterSettings {
+  guild_id: string;
+  /** Messages allowed per user within `window_seconds`. */
+  max_messages: number;
+  window_seconds: number;
+  /** Identical messages within the duplicate window that count as spam. */
+  duplicate_threshold: number;
+  /** User and role mentions allowed in a single message. */
+  mention_threshold: number;
+  /** Strikes older than this no longer count toward escalation. */
+  strike_decay_hours: number;
+  exempt_channel_ids: string[];
+}
+
+export const SPAM_FILTER_DEFAULTS: Omit<SpamFilterSettings, "guild_id"> = {
+  max_messages: 6,
+  window_seconds: 5,
+  duplicate_threshold: 3,
+  mention_threshold: 5,
+  strike_decay_hours: 24,
+  exempt_channel_ids: [],
+};

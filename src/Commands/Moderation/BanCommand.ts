@@ -181,7 +181,7 @@ export const BanCommand = CreateCommand({
   name: "ban",
   description: "Ban a user from the server",
   group: "moderation",
-  config: Config.mod().build(),
+  config: Config.mod().botPermissions("BanMembers").build(),
   execute: ExecuteBan,
   configure: (builder) => {
     builder

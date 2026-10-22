@@ -195,6 +195,6 @@ export const LeaderboardCommand = CreateCommand({
         ),
     );
   },
-  config: Config.utility(5),
+  config: Config.create().guildOnly().cooldownSeconds(5).autoDefer().build(),
   execute: ExecuteLeaderboard,
 });

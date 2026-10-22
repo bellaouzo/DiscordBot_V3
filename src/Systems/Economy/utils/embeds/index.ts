@@ -12,3 +12,4 @@ export * from "./wheel";
 export * from "./market";
 export * from "./leaderboard";
 export * from "./gift";
+export * from "./activities";

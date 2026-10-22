@@ -125,7 +125,7 @@ export const JokeCommand = CreateCommand({
   name: "joke",
   description: "Grab a random joke",
   group: "fun",
-  config: Config.utility(3),
+  config: Config.create().guildOnly().cooldownSeconds(3).autoDefer().build(),
   configure: (builder) => {
     builder.addStringOption((option) =>
       option

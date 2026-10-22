@@ -390,7 +390,10 @@ export const ReactionRoleCommand = CreateCommand({
   name: "reactionrole",
   description: "Manage reaction role panels",
   group: "utility",
-  config: Config.mod(3).build(),
+  config: Config.mod(3)
+    .botPermissions("ManageRoles", "AddReactions")
+    .skipBotPermissionsFor("list", "about", "remove")
+    .build(),
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

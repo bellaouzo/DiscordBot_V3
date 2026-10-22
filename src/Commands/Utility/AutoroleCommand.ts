@@ -90,7 +90,10 @@ export const AutoroleCommand = CreateCommand({
   name: "autorole",
   description: "Configure automatic role assignment for new members",
   group: "utility",
-  config: Config.mod(3).build(),
+  config: Config.mod(3)
+    .botPermissions("ManageRoles")
+    .skipBotPermissionsFor("clear", "view", "about")
+    .build(),
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

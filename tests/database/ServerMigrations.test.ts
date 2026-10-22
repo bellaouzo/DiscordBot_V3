@@ -76,7 +76,7 @@ describe("ServerMigrations", () => {
     const applied = db
       .prepare("SELECT version FROM schema_migrations ORDER BY version")
       .all() as Array<{ version: number }>;
-    expect(applied.map((row) => row.version)).toEqual([0, 1, 2, 3, 4]);
+    expect(applied.map((row) => row.version)).toEqual([0, 1, 2, 3, 4, 5, 6]);
   });
 
   it("allows GuildSettingsStore to read and write after v4 migration", () => {

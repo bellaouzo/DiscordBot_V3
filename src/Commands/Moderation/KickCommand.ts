@@ -83,7 +83,7 @@ export const KickCommand = CreateCommand({
   name: "kick",
   description: "Kick a user from the server",
   group: "moderation",
-  config: Config.mod().build(),
+  config: Config.mod().botPermissions("KickMembers").build(),
   execute: ExecuteKick,
   configure: (builder) => {
     builder

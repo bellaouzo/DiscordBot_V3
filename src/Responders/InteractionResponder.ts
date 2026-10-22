@@ -22,7 +22,9 @@ export class InteractionResponder {
   constructor(private readonly logger: Logger) {}
 
   /**
-   * Sends an initial reply. No-op if already replied or deferred.
+   * Sends an initial reply. If the interaction was deferred but not answered yet (e.g. by
+   * AutoDeferMiddleware), fills in the deferred reply instead; its visibility was fixed when it
+   * was deferred, so the ephemeral flag can't change it. No-op if already replied.
    *
    * @param interaction - Slash or button interaction
    * @param options - Content, embeds, components, flags, etc.
@@ -32,6 +34,10 @@ export class InteractionResponder {
     interaction: InteractionLike,
     options: ResponseOptions,
   ): Promise<ResponseResult> {
+    if (interaction.deferred && !interaction.replied) {
+      return this.Edit(interaction, options);
+    }
+
     if (interaction.replied || interaction.deferred) {
       return { success: false, message: "Already replied to this interaction" };
     }
@@ -43,6 +49,7 @@ export class InteractionResponder {
         components: options.components,
         embeds: options.embeds,
         files: options.files,
+        allowedMentions: options.allowedMentions,
       });
 
       return { success: true, message: "Reply sent" };

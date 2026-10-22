@@ -268,6 +268,7 @@ describe("RegisterCommandHandler", () => {
     });
 
     await client.emitInteraction({
+      isAutocomplete: () => false,
       isChatInputCommand: () => false,
     });
 
@@ -287,6 +288,7 @@ describe("RegisterCommandHandler", () => {
     });
 
     await client.emitInteraction({
+      isAutocomplete: () => false,
       isChatInputCommand: () => true,
       commandName: "missing",
     });
@@ -314,6 +316,7 @@ describe("RegisterCommandHandler", () => {
     });
 
     const interaction = {
+      isAutocomplete: () => false,
       isChatInputCommand: () => true,
       commandName: "ping",
       id: "interaction-1",
@@ -329,5 +332,70 @@ describe("RegisterCommandHandler", () => {
       expect.any(Object),
       expect.objectContaining({ Child: expect.any(Function) }),
     );
+  });
+
+  it("routes autocomplete to the command's autocomplete executor", async () => {
+    const client = createMockClient();
+    const executeCommand = vi.fn();
+    const executeAutocomplete = vi.fn().mockResolvedValue(undefined);
+    const command = {
+      data: { name: "tag", description: "Tags" },
+      group: "utility",
+      execute: vi.fn(),
+      autocomplete: vi.fn(),
+    };
+    resolveCommandMock.mockReturnValue(command);
+
+    RegisterCommandHandler({
+      client: client as never,
+      executeCommand,
+      executeAutocomplete,
+      responders: createMockResponderSet(),
+      logger: createMockLogger(),
+    });
+
+    const interaction = {
+      isAutocomplete: () => true,
+      isChatInputCommand: () => false,
+      commandName: "tag",
+      id: "interaction-2",
+      guildId: "guild-1",
+      user: { id: "user-1" },
+    };
+
+    await client.emitInteraction(interaction);
+
+    expect(executeAutocomplete).toHaveBeenCalledWith(
+      command,
+      interaction,
+      expect.any(Object),
+      expect.objectContaining({ Child: expect.any(Function) }),
+    );
+    expect(executeCommand).not.toHaveBeenCalled();
+  });
+
+  it("ignores autocomplete for commands without a handler", async () => {
+    const client = createMockClient();
+    const executeAutocomplete = vi.fn();
+    resolveCommandMock.mockReturnValue({
+      data: { name: "ping", description: "Ping" },
+      group: "utility",
+      execute: vi.fn(),
+    });
+
+    RegisterCommandHandler({
+      client: client as never,
+      executeCommand: vi.fn(),
+      executeAutocomplete,
+      responders: createMockResponderSet(),
+      logger: createMockLogger(),
+    });
+
+    await client.emitInteraction({
+      isAutocomplete: () => true,
+      commandName: "ping",
+    });
+
+    expect(executeAutocomplete).not.toHaveBeenCalled();
   });
 });

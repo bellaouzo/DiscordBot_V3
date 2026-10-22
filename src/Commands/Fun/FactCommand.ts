@@ -78,6 +78,6 @@ export const FactCommand = CreateCommand({
   name: "fact",
   description: "Get a random fact",
   group: "fun",
-  config: Config.utility(3),
+  config: Config.create().guildOnly().cooldownSeconds(3).autoDefer().build(),
   execute: ExecuteFact,
 });

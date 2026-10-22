@@ -8,6 +8,7 @@ import { AppealStore } from "@database/Moderation/Stores/AppealStore";
 import { LockdownStore } from "@database/Moderation/Stores/LockdownStore";
 import { LinkFilterStore } from "@database/Moderation/Stores/LinkFilterStore";
 import { RaidModeStore } from "@database/Moderation/Stores/RaidModeStore";
+import { SpamFilterStore } from "@database/Moderation/Stores/SpamFilterStore";
 import { RunMigrations } from "@database/Migrations";
 import type { StoreMethods } from "@database/StoreDelegation";
 import { DelegateStoreMethods } from "@database/StoreDelegation";
@@ -23,6 +24,9 @@ export type {
   LockdownScope,
   RaidMode,
   RaidModeChannelState,
+  SpamFilterSettings,
+  SpamStrike,
+  SpamStrikeAction,
   TempAction,
   TempActionType,
 } from "@database/Moderation/Types";
@@ -36,7 +40,8 @@ export interface ModerationDatabase
     StoreMethods<AppealStore>,
     StoreMethods<LockdownStore>,
     StoreMethods<LinkFilterStore>,
-    StoreMethods<RaidModeStore> {}
+    StoreMethods<RaidModeStore>,
+    StoreMethods<SpamFilterStore> {}
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class ModerationDatabase {
@@ -47,6 +52,7 @@ export class ModerationDatabase {
   private readonly lockdowns: LockdownStore;
   private readonly linkFilters: LinkFilterStore;
   private readonly raidModes: RaidModeStore;
+  private readonly spamFilter: SpamFilterStore;
 
   constructor(private readonly logger: Logger) {
     this.db = this.InitializeDatabase();
@@ -57,6 +63,7 @@ export class ModerationDatabase {
     this.lockdowns = new LockdownStore(this.db);
     this.linkFilters = new LinkFilterStore(this.db);
     this.raidModes = new RaidModeStore(this.db);
+    this.spamFilter = new SpamFilterStore(this.db);
     DelegateStoreMethods(this, [
       this.tempActions,
       this.moderationEvents,
@@ -64,6 +71,7 @@ export class ModerationDatabase {
       this.lockdowns,
       this.linkFilters,
       this.raidModes,
+      this.spamFilter,
     ]);
   }
 

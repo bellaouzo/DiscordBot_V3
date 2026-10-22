@@ -6,7 +6,8 @@ import type {
   GuildMember,
   CommandInteractionOptionResolver,
 } from "discord.js";
-import type { CommandContext } from "@commands";
+import type { CommandContext, CommandDefinition } from "@commands";
+import type { MiddlewareContext } from "@middleware";
 import type { ResponderSet } from "@responders";
 import type { DatabaseSet } from "@database";
 import type { Logger } from "@shared/Logger";
@@ -313,6 +314,9 @@ export function createMockDatabaseSet(): DatabaseSet {
     })),
     ListUpcomingEvents: vi.fn().mockReturnValue([]),
     CreateEvent: vi.fn().mockReturnValue(undefined),
+    IsCommandDisabled: vi.fn().mockReturnValue(false),
+    ListCommandChannels: vi.fn().mockReturnValue([]),
+    GetBlocklistEntry: vi.fn().mockReturnValue(null),
     Close: vi.fn(),
   };
   const ticketDbStubs: Record<string, ReturnType<typeof vi.fn>> = {
@@ -355,6 +359,31 @@ export function createMockAppConfig(): AppConfig {
       deployLogChannelName: "deploy",
     },
     apiKeys: { openWeatherMapApiKey: null },
+  };
+}
+
+/**
+ * Builds a MiddlewareContext for a fake `/test` command. Override any field, e.g. `config`.
+ */
+export function createMockMiddlewareContext(
+  overrides: Partial<MiddlewareContext> = {},
+): MiddlewareContext {
+  const base = createMockContext();
+  return {
+    interaction:
+      overrides.interaction ??
+      createMockInteraction({ user: { id: "user-1", username: "TestUser" } }),
+    command: overrides.command ?? {
+      data: { name: "test", description: "Test" } as CommandDefinition["data"],
+      group: "utility",
+      execute: vi.fn().mockResolvedValue(undefined),
+    },
+    logger: overrides.logger ?? createMockLogger(),
+    responders: overrides.responders ?? createMockResponderSet(),
+    config: overrides.config ?? {},
+    databases: overrides.databases ?? base.databases,
+    appConfig: overrides.appConfig ?? base.appConfig,
+    run: overrides.run ?? { startedAt: Date.now(), reachedHandler: false },
   };
 }
 

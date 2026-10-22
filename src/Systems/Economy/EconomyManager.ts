@@ -1,7 +1,12 @@
 import type { UserDatabase } from "@database";
 import { DAILY_COOLDOWN_MS, DAILY_REWARD, STARTING_BALANCE } from "./constants";
 import { ITEM_MAP } from "./items";
-import type { DailyClaimResult, InventoryEntry, MarketRotation } from "./types";
+import type {
+  DailyClaimResult,
+  EarningActivity,
+  InventoryEntry,
+  MarketRotation,
+} from "./types";
 
 export class EconomyManager {
   constructor(
@@ -84,6 +89,25 @@ export class EconomyManager {
       balance: result.balance.balance,
       nextAvailableAt: result.nextAvailableAt,
     };
+  }
+
+  /** Starts an earning activity if it is off cooldown. */
+  ClaimActivity(
+    userId: string,
+    activity: EarningActivity,
+    cooldownMs: number,
+  ): { success: true } | { success: false; nextAvailableAt: number } {
+    return this.userDb.ClaimActivity({
+      user_id: userId,
+      guild_id: this.guildId,
+      activity,
+      cooldownMs,
+    });
+  }
+
+  /** Puts an activity back off cooldown, e.g. when its prompt timed out unused. */
+  ReleaseActivity(userId: string, activity: EarningActivity): void {
+    this.userDb.ReleaseActivity(userId, this.guildId, activity);
   }
 
   GetInventory(userId: string): InventoryEntry[] {

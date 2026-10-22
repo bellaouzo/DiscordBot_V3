@@ -4,6 +4,8 @@ import { Config } from "@middleware";
 import { MIN_BET, MAX_BET } from "@systems/Economy/constants";
 import { HandleBalance } from "@systems/Economy/handlers/BalanceHandler";
 import { HandleDaily } from "@systems/Economy/handlers/DailyHandler";
+import { HandleWork } from "@systems/Economy/handlers/WorkHandler";
+import { HandleFish } from "@systems/Economy/handlers/FishHandler";
 import { HandleFlip } from "@systems/Economy/handlers/FlipHandler";
 import { HandleDice } from "@systems/Economy/handlers/DiceHandler";
 import { HandleRps } from "@systems/Economy/handlers/RpsHandler";
@@ -90,6 +92,18 @@ export const EconomyCommand = CreateCommand({
       name: "daily",
       description: "Claim your daily coins",
       execute: HandleDaily,
+    },
+    {
+      name: "work",
+      description:
+        "Work a quick shift: answer a task to earn coins (no betting)",
+      execute: HandleWork,
+    },
+    {
+      name: "fish",
+      description:
+        "Go fishing: reel in when you get a bite to earn coins (no betting)",
+      execute: HandleFish,
     },
     {
       name: "flip",

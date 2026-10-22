@@ -2,9 +2,11 @@ import { config as loadEnv } from "dotenv";
 import { existsSync } from "fs";
 import { resolve } from "path";
 
-/** Discord bot token (DISCORD_TOKEN). */
+/** Discord bot token (DISCORD_TOKEN) and bot owner user IDs (BOT_OWNER_IDS). */
 export interface DiscordConfig {
   readonly token: string;
+  /** Users allowed to run bot-owner commands such as /blocklist. Never blocklisted. */
+  readonly ownerIds?: readonly string[];
 }
 
 /** Where slash commands are registered on startup. */
@@ -86,6 +88,20 @@ function RequireEnv(variableName: string): string {
   return value;
 }
 
+function ParseIdList(raw: string | undefined): string[] {
+  return (raw ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter((id) => id.length > 0);
+}
+
+/**
+ * True when the user is listed in BOT_OWNER_IDS.
+ */
+export function IsBotOwner(userId: string, config: AppConfig): boolean {
+  return config.discord.ownerIds?.includes(userId) ?? false;
+}
+
 function LoadDeploymentConfig(): DeploymentConfig {
   const scopeRaw = (process.env.COMMAND_DEPLOY_SCOPE ?? "global")
     .trim()
@@ -134,6 +150,7 @@ export function LoadAppConfig(): AppConfig {
   return {
     discord: {
       token: RequireEnv("DISCORD_TOKEN"),
+      ownerIds: ParseIdList(process.env.BOT_OWNER_IDS),
     },
     deployment: LoadDeploymentConfig(),
     logging: {

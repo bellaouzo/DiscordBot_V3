@@ -37,7 +37,10 @@ export const RaidModeCommand = CreateCommand({
   name: "raidmode",
   description: "Enable or disable raid protection",
   group: "moderation",
-  config: Config.mod().build(),
+  config: Config.mod()
+    .botPermissions("ManageChannels", "ManageRoles")
+    .skipBotPermissionsFor("status", "about")
+    .build(),
   execute: ExecuteRaidMode,
   configure: (builder) => {
     builder

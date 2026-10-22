@@ -162,4 +162,19 @@ export const UserMigrations: readonly Migration[] = [
       db.exec(USER_INITIAL_SCHEMA);
     },
   },
+  {
+    version: 1,
+    name: "economy_activity_cooldowns",
+    up(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS economy_activity_cooldowns (
+          user_id TEXT NOT NULL,
+          guild_id TEXT NOT NULL,
+          activity TEXT NOT NULL,
+          last_used_at INTEGER NOT NULL,
+          PRIMARY KEY (user_id, guild_id, activity)
+        );
+      `);
+    },
+  },
 ];

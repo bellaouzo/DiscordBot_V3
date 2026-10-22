@@ -6,6 +6,7 @@ export const PROTECTED_COMMANDS = new Set([
   "debug",
   "health",
   "ping",
+  "blocklist",
 ]);
 
 export function IsProtectedCommand(commandName: string): boolean {

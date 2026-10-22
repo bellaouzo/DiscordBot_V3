@@ -1,5 +1,5 @@
 import type { ChatInputCommandInteraction } from "discord.js";
-import { MessageFlags } from "discord.js";
+import { ChannelType, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { AllCommands, CreateCommand } from "@commands";
 import { Config } from "@middleware";
@@ -115,6 +115,131 @@ async function ExecuteEnable(
   });
 }
 
+async function ReplyInvalidCommand(
+  interaction: ChatInputCommandInteraction,
+  context: CommandContext,
+  description: string,
+): Promise<void> {
+  const embed = EmbedFactory.CreateError({
+    title: "Invalid Command",
+    description,
+  });
+  await context.responders.interactionResponder.Reply(interaction, {
+    embeds: [embed.toJSON()],
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
+function FormatChannelList(channelIds: string[]): string {
+  return channelIds.map((id) => `<#${id}>`).join(", ");
+}
+
+async function ExecuteRestrict(
+  interaction: ChatInputCommandInteraction,
+  context: CommandContext,
+): Promise<void> {
+  const guild = RequireGuild(interaction);
+  const commandName = ResolveCommandName(interaction);
+  const validationError = ValidateCommandName(commandName);
+
+  if (validationError) {
+    await ReplyInvalidCommand(
+      interaction,
+      context,
+      validationError === "That command cannot be disabled."
+        ? "That command is protected and can't be restricted."
+        : validationError,
+    );
+    return;
+  }
+
+  const channel = interaction.options.getChannel("channel", true);
+  const added = context.databases.serverDb.AddCommandChannel(
+    guild.id,
+    commandName,
+    channel.id,
+  );
+  const allowed = context.databases.serverDb.ListCommandChannels(
+    guild.id,
+    commandName,
+  );
+
+  const embed = added
+    ? EmbedFactory.CreateSuccess({
+        title: "Channel Allowed",
+        description: `\`/${commandName}\` can now only be used in ${FormatChannelList(
+          allowed,
+        )}. Admins can still use it anywhere.`,
+      })
+    : EmbedFactory.CreateWarning({
+        title: "Already Allowed",
+        description: `<#${channel.id}> is already allowed for \`/${commandName}\`.`,
+      });
+
+  await context.responders.interactionResponder.Reply(interaction, {
+    embeds: [embed.toJSON()],
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
+async function ExecuteUnrestrict(
+  interaction: ChatInputCommandInteraction,
+  context: CommandContext,
+): Promise<void> {
+  const guild = RequireGuild(interaction);
+  const commandName = ResolveCommandName(interaction);
+  const exists = AllCommands().some((cmd) => cmd.data.name === commandName);
+
+  if (!exists) {
+    await ReplyInvalidCommand(
+      interaction,
+      context,
+      "That command does not exist.",
+    );
+    return;
+  }
+
+  const channel = interaction.options.getChannel("channel");
+  const removed = channel
+    ? context.databases.serverDb.RemoveCommandChannel(
+        guild.id,
+        commandName,
+        channel.id,
+      )
+    : context.databases.serverDb.ClearCommandChannels(guild.id, commandName) >
+      0;
+
+  if (!removed) {
+    const embed = EmbedFactory.CreateWarning({
+      title: "Not Restricted",
+      description: channel
+        ? `<#${channel.id}> is not in \`/${commandName}\`'s allowed channels.`
+        : `\`/${commandName}\` has no channel restrictions.`,
+    });
+    await context.responders.interactionResponder.Reply(interaction, {
+      embeds: [embed.toJSON()],
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const remaining = context.databases.serverDb.ListCommandChannels(
+    guild.id,
+    commandName,
+  );
+  const embed = EmbedFactory.CreateSuccess({
+    title: "Restriction Removed",
+    description:
+      remaining.length > 0
+        ? `\`/${commandName}\` can now be used in ${FormatChannelList(remaining)}.`
+        : `\`/${commandName}\` can now be used in any channel.`,
+  });
+  await context.responders.interactionResponder.Reply(interaction, {
+    embeds: [embed.toJSON()],
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
 function BuildDisabledCommandPages(commands: string[]): PaginationPage[] {
   if (commands.length === 0) {
     return [
@@ -196,10 +321,17 @@ async function ExecuteView(
     : isDisabled
       ? "Disabled"
       : "Enabled";
+  const allowedChannels = isProtected
+    ? []
+    : context.databases.serverDb.ListCommandChannels(guild.id, commandName);
+  const channelLine =
+    allowedChannels.length > 0
+      ? `\nChannels: ${FormatChannelList(allowedChannels)}`
+      : "\nChannels: Any";
 
   const embed = EmbedFactory.Create({
     title: `Command: /${commandName}`,
-    description: `Status: **${status}**`,
+    description: `Status: **${status}**${channelLine}`,
   });
 
   await context.responders.interactionResponder.Reply(interaction, {
@@ -210,7 +342,7 @@ async function ExecuteView(
 
 export const CommandCommand = CreateCommand({
   name: "command",
-  description: "Enable or disable slash commands in this server",
+  description: "Enable, disable, or restrict slash commands in this server",
   group: "utility",
   config: Config.admin(3),
   configure: (builder) => {
@@ -242,6 +374,49 @@ export const CommandCommand = CreateCommand({
       )
       .addSubcommand((sub) =>
         sub
+          .setName("restrict")
+          .setDescription(
+            "Only allow a command in certain channels (run again to add more)",
+          )
+          .addStringOption((option) =>
+            option
+              .setName("name")
+              .setDescription("Command name (without the slash)")
+              .setRequired(true),
+          )
+          .addChannelOption((option) =>
+            option
+              .setName("channel")
+              .setDescription("Channel to allow the command in")
+              .addChannelTypes(
+                ChannelType.GuildText,
+                ChannelType.GuildAnnouncement,
+                ChannelType.GuildVoice,
+                ChannelType.GuildForum,
+              )
+              .setRequired(true),
+          ),
+      )
+      .addSubcommand((sub) =>
+        sub
+          .setName("unrestrict")
+          .setDescription(
+            "Remove one allowed channel, or all restrictions if no channel is given",
+          )
+          .addStringOption((option) =>
+            option
+              .setName("name")
+              .setDescription("Command name (without the slash)")
+              .setRequired(true),
+          )
+          .addChannelOption((option) =>
+            option
+              .setName("channel")
+              .setDescription("Channel to remove (leave empty to clear all)"),
+          ),
+      )
+      .addSubcommand((sub) =>
+        sub
           .setName("view")
           .setDescription("Check if a command is enabled or disabled")
           .addStringOption((option) =>
@@ -269,6 +444,14 @@ export const CommandCommand = CreateCommand({
     }
     if (sub === "view") {
       await ExecuteView(interaction, context);
+      return;
+    }
+    if (sub === "restrict") {
+      await ExecuteRestrict(interaction, context);
+      return;
+    }
+    if (sub === "unrestrict") {
+      await ExecuteUnrestrict(interaction, context);
     }
   },
 });

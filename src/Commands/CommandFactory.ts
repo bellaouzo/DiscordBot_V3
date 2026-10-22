@@ -1,4 +1,7 @@
-import type { ChatInputCommandInteraction } from "discord.js";
+import type {
+  AutocompleteInteraction,
+  ChatInputCommandInteraction,
+} from "discord.js";
 import {
   SlashCommandBuilder,
   SlashCommandSubcommandBuilder,
@@ -41,12 +44,21 @@ export type CommandExecutor = (
 ) => Promise<void>;
 
 /**
+ * Answers autocomplete requests for options declared with `.setAutocomplete(true)`.
+ */
+export type CommandAutocompleteHandler = (
+  interaction: AutocompleteInteraction,
+  context: CommandContext,
+) => Promise<void>;
+
+/**
  * Registered command: slash builder data, group, execute function, and optional middleware/config.
  */
 export interface CommandDefinition {
   readonly data: SlashCommandBuilder;
   readonly group: string;
   readonly execute: CommandExecutor;
+  readonly autocomplete?: CommandAutocompleteHandler;
   readonly middleware?: MiddlewareConfiguration;
   readonly config?: CommandConfig;
 }
@@ -57,6 +69,7 @@ interface CommandFactoryBaseOptions {
   readonly group: string;
   /** Extra builder setup (options, permissions). Runs after subcommands are added. */
   readonly configure?: (builder: SlashCommandBuilder) => void;
+  readonly autocomplete?: CommandAutocompleteHandler;
   readonly middleware?: MiddlewareConfiguration;
   readonly config?: CommandConfig;
 }
@@ -104,6 +117,7 @@ export function CreateCommand(
     execute: options.subcommands
       ? RouteSubcommands(options.subcommands)
       : options.execute,
+    autocomplete: options.autocomplete,
     middleware,
     config: options.config,
   };

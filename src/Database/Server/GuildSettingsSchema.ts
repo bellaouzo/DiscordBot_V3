@@ -159,6 +159,8 @@ export const GUILD_SETTING_FIELDS = {
   verification_channel_id: Setting.id({ clearable: true }),
   economy_enabled: Setting.bool(true),
   giveaways_enabled: Setting.bool(true),
+  spam_filter_enabled: Setting.bool(false),
+  tag_prefix: Setting.text("!"),
 } as const;
 
 type Fields = typeof GUILD_SETTING_FIELDS;

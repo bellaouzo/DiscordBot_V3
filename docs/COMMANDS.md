@@ -30,6 +30,7 @@ Some commands require staff roles (configured in `/setup`) or enabled feature mo
 | `/tempactions` | View active temporary mutes and bans |
 | `/banlist` | List banned users |
 | `/linkfilter` | Configure allowed and blocked link patterns |
+| `/spamfilter` | Auto-remove floods, repeats and mass mentions; escalating strikes (warning → 10m → 1h → 24h timeout) |
 | `/appeal` | Submit or view ban/mute appeal history |
 | `/appeal-admin` | Staff tools to list and review appeals |
 | `/economyadmin` | Admin economy controls (balances, inventory) |
@@ -51,7 +52,9 @@ Some commands require staff roles (configured in `/setup`) or enabled feature mo
 | `/starboard` | Configure the starboard |
 | `/verify` | Verification panel and settings |
 | `/xpconfig` | Configure leveling and XP settings |
-| `/command` | Enable or disable commands for the server |
+| `/tag` | Post saved responses (`/tag show` or `!name` in chat); moderators create, edit and delete them |
+| `/command` | Enable, disable, or restrict commands to specific channels |
+| `/blocklist` | Block users or servers from the bot (bot owners only, `BOT_OWNER_IDS`) |
 | `/commandlogs` | Export command usage logs |
 | `/presence` | Set bot presence and activity |
 | `/ping` | Check bot latency |
@@ -65,7 +68,7 @@ Some commands require staff roles (configured in `/setup`) or enabled feature mo
 | `/profile` | View your or another member's profile |
 | `/rank` | View XP rank and progress |
 | `/leaderboard` | Server XP or coin leaderboard |
-| `/economy` | Coins, games, and shop (requires economy enabled in setup) |
+| `/economy` | Coins, games, and shop; `work` and `fish` earn coins without betting (requires economy enabled in setup) |
 | `/weather` | Weather lookup (requires host API key) |
 | `/news` | News headlines (requires host API key) |
 | `/apod` | NASA Astronomy Picture of the Day (requires host API key) |

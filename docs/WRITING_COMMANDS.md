@@ -64,6 +64,18 @@ config: Config.create()
   .permissions("ManageMessages", "KickMembers")
   .cooldownSeconds(10)
   .build();
+
+// The bot itself needs Manage Roles, except for the read-only `status` subcommand
+config: Config.mod()
+  .botPermissions("ManageChannels", "ManageRoles")
+  .skipBotPermissionsFor("status")
+  .build();
+
+// Calls a slow external API: defer automatically if no reply within ~2s
+config: Config.create().guildOnly().cooldownSeconds(3).autoDefer().build();
+
+// Only users listed in BOT_OWNER_IDS
+config: Config.create().botOwner().build();
 ```
 
 You do **not** list `LoggingMiddleware`, `CooldownMiddleware`, and similar imports on each command. `CreateCommand` calls `AutoMiddleware(config)` when `middleware` is omitted.
@@ -72,22 +84,34 @@ You do **not** list `LoggingMiddleware`, `CooldownMiddleware`, and similar impor
 
 Middleware runs as a chain around your `execute` function. In normal commands you configure behavior through `config`; the framework builds the chain for you.
 
+### Chain order
+
+Every command runs this chain (`BuildMiddlewareChain` in `src/Bot/ExecuteCommand.ts`):
+
+```
+Error → Blocklist → Logging → CommandEnabled → ChannelRestriction      (global, every command)
+  → Guild → Feature → Permission → BotPermission → Cooldown → AutoDefer (from config, via AutoMiddleware)
+  → DiscordLogging → execute                                             (global)
+```
+
+The global middleware is added by the executor, so it applies even to commands that pass their own `middleware`. `ErrorMiddleware` is outermost, so a throw anywhere in the chain is logged and answered.
+
 ### What `AutoMiddleware` adds
 
-From `src/Commands/Middleware/index.ts`, defaults are:
+| When `config` includes | Adds |
+|------------------------|------|
+| `guildOnly` | `GuildMiddleware` |
+| `requiredFeature` | `FeatureEnabledMiddleware` |
+| permissions / mod / admin / owner / botOwner / role | `PermissionMiddleware` |
+| `botPermissions` | `BotPermissionMiddleware` |
+| `cooldown` | `CooldownMiddleware` |
+| `autoDefer` | `AutoDeferMiddleware` |
 
-| Always | When `config` includes |
-|--------|-------------------------|
-| `LoggingMiddleware` (before) | `guildOnly` → `GuildMiddleware`, `CommandEnabledMiddleware` |
-| `ErrorMiddleware` (after) | `requiredFeature` → `FeatureEnabledMiddleware` |
-| | permissions / mod / admin / owner / role → `PermissionMiddleware` |
-| | `cooldown` → `CooldownMiddleware` |
-
-`Config.utility()`, `Config.mod()`, and `Config.admin()` already set `guildOnly` and cooldown, so logging, guild check, permission (where applicable), cooldown, and error handling are wired without extra code.
+`Config.utility()`, `Config.mod()`, and `Config.admin()` already set `guildOnly` and cooldown.
 
 ### Overriding the chain (advanced)
 
-Pass `middleware: { before: [...], after: [...] }` only when you need a non-standard chain. Most commands should omit `middleware` entirely.
+Pass `middleware: { before: [...], after: [...] }` only when you need a non-standard chain. It replaces the `AutoMiddleware` part only; the global middleware still runs. Most commands should omit `middleware` entirely.
 
 ### Custom middleware
 
@@ -112,8 +136,8 @@ export const CustomMiddleware: CommandMiddleware = {
 
 **LoggingMiddleware**
 
-- Logs command execution with user/guild context
-- Tracks command performance and usage patterns
+- Logs `Command started`, then the outcome: `Command completed` (with `durationMs`), `Command blocked` (with `blockedBy`, the middleware that stopped it), or `Command threw`
+- Warns with `Command slow` above 2.5s; such commands are candidates for `.autoDefer()`
 
 **ErrorMiddleware**
 
@@ -137,13 +161,39 @@ export const CustomMiddleware: CommandMiddleware = {
 
 **CommandEnabledMiddleware**
 
-- Blocks guild commands that an admin has disabled via the command management system
-- Applied automatically for guild-only commands (`Config.utility()`, `Config.mod()`, `Config.admin()`, etc.)
+- Blocks guild commands that an admin has disabled with `/command disable`
+- Runs for every command (skipped in DMs and for protected commands)
+
+**ChannelRestrictionMiddleware**
+
+- Enforces channel allow-lists set with `/command restrict <name> <channel>` (clear with `/command unrestrict`)
+- Threads count as their parent channel; admins and protected commands are exempt
+- Runs for every command
+
+**BlocklistMiddleware**
+
+- Rejects users and servers on the global blocklist (managed by bot owners with `/blocklist`)
+- Runs first for every command, and is also checked for buttons, select menus and modals
+- Users in `BOT_OWNER_IDS` are never blocked
+
+**BotPermissionMiddleware**
+
+- Checks the bot's own permissions in the current channel (`interaction.appPermissions`, no API call) and names what's missing
+- Use `.botPermissions(...)` on any command that bans, kicks, times out, deletes messages, edits channels or manages roles
+- `.skipBotPermissionsFor("status", ...)` exempts read-only subcommands
+
+**AutoDeferMiddleware**
+
+- Opt in with `.autoDefer()` (public) or `.autoDefer({ ephemeral: true })`
+- If the handler hasn't replied ~2s after the chain started, defers for it; `interactionResponder.Reply` then fills in the deferred reply
+- Do **not** use on commands that call `showModal()` or raw `interaction.reply()`: both fail once the interaction is deferred
+- The deferred reply's visibility is fixed at defer time, so an ephemeral error after a public auto-defer is shown publicly
 
 **CooldownMiddleware**
 
 - Rate limiting per user/command
 - Configurable durations (milliseconds, seconds, minutes)
+- The cooldown is reserved when the check passes, so repeated clicks while a command is still running are rejected; it is released if the command throws
 - Automatic cleanup of expired cooldowns
 
 **GuildMiddleware**

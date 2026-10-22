@@ -117,4 +117,34 @@ export const ModerationMigrations: readonly Migration[] = [
       db.exec(MODERATION_INITIAL_SCHEMA);
     },
   },
+  {
+    version: 1,
+    name: "spam_filter",
+    up(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS spam_filter_settings (
+          guild_id TEXT PRIMARY KEY,
+          max_messages INTEGER NOT NULL,
+          window_seconds INTEGER NOT NULL,
+          duplicate_threshold INTEGER NOT NULL,
+          mention_threshold INTEGER NOT NULL,
+          strike_decay_hours INTEGER NOT NULL,
+          exempt_channel_ids TEXT NOT NULL DEFAULT '[]',
+          updated_at INTEGER NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS spam_strikes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          guild_id TEXT NOT NULL,
+          user_id TEXT NOT NULL,
+          reason TEXT NOT NULL,
+          action TEXT NOT NULL,
+          duration_ms INTEGER,
+          created_at INTEGER NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_spam_strikes_user ON spam_strikes(guild_id, user_id, created_at);
+      `);
+    },
+  },
 ];

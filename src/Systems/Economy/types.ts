@@ -7,6 +7,9 @@ export type AllowedButtonStyle =
   | ButtonStyle.Danger
   | ButtonStyle.Premium;
 
+/** Non-gambling earning activities, each with its own cooldown. */
+export type EarningActivity = "work" | "fish";
+
 export type FlipChoice = "heads" | "tails";
 export type RpsChoice = "rock" | "paper" | "scissors";
 export type HorseId = 0 | 1 | 2 | 3;

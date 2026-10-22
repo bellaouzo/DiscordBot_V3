@@ -48,6 +48,7 @@ Global commands can take up to an hour to propagate. For local dev, use `guild` 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `COOLDOWN_PERSIST` | (unset) | Set `1` to persist command cooldowns in `server.db` across restarts |
+| `BOT_OWNER_IDS` | (none) | Comma-separated user IDs allowed to run `/blocklist`; they can never be blocklisted |
 | `DATA_DIR` | `<project>/data` | SQLite files: `server.db`, `users.db`, `moderation.db`, `tickets.db` |
 | `APP_ENV_PATH` | (none) | Absolute path to a `.env` file |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn`, or `error` |

@@ -57,6 +57,28 @@ export interface StarboardEntry {
   created_at: number;
 }
 
+export interface CustomTag {
+  id: number;
+  guild_id: string;
+  name: string;
+  content: string;
+  created_by: string;
+  uses: number;
+  created_at: number;
+  updated_at: number;
+}
+
+export type BlocklistTargetType = "user" | "guild";
+
+/** A user or guild the bot refuses to serve. */
+export interface BlocklistEntry {
+  target_type: BlocklistTargetType;
+  target_id: string;
+  reason: string | null;
+  created_by: string;
+  created_at: number;
+}
+
 /** Chat XP settings applied when a guild has not configured its own. */
 export const CHAT_XP_DEFAULT_PER_MESSAGE = 15;
 export const CHAT_XP_DEFAULT_COOLDOWN_SECONDS = 60;

@@ -133,7 +133,7 @@ export const BanListCommand = CreateCommand({
   name: "banlist",
   description: "View the server ban list or check a user's ban status",
   group: "moderation",
-  config: Config.mod().build(),
+  config: Config.mod().botPermissions("BanMembers").build(),
   execute: ExecuteBanList,
   configure: (builder) => {
     builder

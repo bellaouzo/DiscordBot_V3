@@ -23,15 +23,21 @@ export function BuildCooldownKey(userId: string, commandName: string): string {
   return `${userId}:${commandName}`;
 }
 
-export function RecordCooldown(context: MiddlewareContext): void {
+/**
+ * Starts the cooldown for this user and command now. Returns the key and the expiry that was
+ * set, or null when the command has no cooldown.
+ */
+export function RecordCooldown(
+  context: MiddlewareContext,
+): { key: string; expiresAt: number } | null {
   const cooldownConfig = context.config.cooldown;
   if (!cooldownConfig) {
-    return;
+    return null;
   }
 
   const cooldownMs = ResolveCooldownMs(cooldownConfig);
   if (cooldownMs === 0) {
-    return;
+    return null;
   }
 
   const key = BuildCooldownKey(
@@ -39,15 +45,21 @@ export function RecordCooldown(context: MiddlewareContext): void {
     context.command.data.name,
   );
   const now = Date.now();
+  const expiresAt = now + cooldownMs;
   const store = GetCooldownStateStore();
-  store.Set(key, now + cooldownMs);
+  store.Set(key, expiresAt);
   store.Prune(now);
+  return { key, expiresAt };
 }
 
 export function ResetCooldownsForTesting(): void {
   GetCooldownStateStore().Clear();
 }
 
+/**
+ * Rejects the command while the user's cooldown is active; otherwise reserves the cooldown and
+ * runs the rest of the chain, releasing the reservation if the command throws.
+ */
 export const CooldownMiddleware: CommandMiddleware = {
   name: "cooldown",
   execute: async (context, next) => {
@@ -87,6 +99,21 @@ export const CooldownMiddleware: CommandMiddleware = {
       return;
     }
 
-    await next();
+    // Reserve before running so concurrent invocations (spam-clicks) see the cooldown at once,
+    // instead of all passing the check while the first one is still executing.
+    const reservation = RecordCooldown(context);
+
+    try {
+      await next();
+    } catch (error) {
+      // A failed command shouldn't lock the user out. Only release our own reservation.
+      if (reservation) {
+        const store = GetCooldownStateStore();
+        if (store.Get(reservation.key) === reservation.expiresAt) {
+          store.Delete(reservation.key);
+        }
+      }
+      throw error;
+    }
   },
 };

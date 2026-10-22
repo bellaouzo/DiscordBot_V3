@@ -193,6 +193,6 @@ export const ProfileCommand = CreateCommand({
         .setRequired(false),
     );
   },
-  config: Config.utility(3),
+  config: Config.create().guildOnly().cooldownSeconds(3).autoDefer().build(),
   execute: ExecuteProfile,
 });

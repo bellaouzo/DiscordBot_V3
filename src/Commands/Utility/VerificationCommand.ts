@@ -273,7 +273,10 @@ export const VerificationCommand = CreateCommand({
   name: "verify",
   description: "Configure member verification for this server",
   group: "utility",
-  config: Config.mod(3).build(),
+  config: Config.mod(3)
+    .botPermissions("ManageRoles")
+    .skipBotPermissionsFor("disable", "clear")
+    .build(),
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

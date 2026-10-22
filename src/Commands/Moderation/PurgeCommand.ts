@@ -226,7 +226,9 @@ export const PurgeCommand = CreateCommand({
   name: "purge",
   description: "Delete messages in bulk with optional filters",
   group: "moderation",
-  config: Config.mod().build(),
+  config: Config.mod()
+    .botPermissions("ManageMessages", "ReadMessageHistory")
+    .build(),
   execute: ExecutePurge,
   configure: (builder) => {
     builder

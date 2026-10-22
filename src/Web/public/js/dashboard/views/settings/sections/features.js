@@ -42,6 +42,11 @@ export function setValues(settings) {
   if (giveawaysEnabledEl) {
     giveawaysEnabledEl.checked = settings.giveaways_enabled !== undefined ? !!settings.giveaways_enabled : true;
   }
+
+  const spamFilterEnabledEl = document.getElementById('settings-spam-filter-enabled');
+  if (spamFilterEnabledEl) {
+    spamFilterEnabledEl.checked = !!settings.spam_filter_enabled;
+  }
 }
 
 export function getValues() {
@@ -51,6 +56,7 @@ export function getValues() {
     starboard_threshold:  parseInt(document.getElementById('settings-starboard-threshold')?.value) || 3,
     economy_enabled:      document.getElementById('settings-economy-enabled')?.checked,
     giveaways_enabled:    document.getElementById('settings-giveaways-enabled')?.checked,
+    spam_filter_enabled:  document.getElementById('settings-spam-filter-enabled')?.checked,
   };
 }
 

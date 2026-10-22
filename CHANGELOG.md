@@ -6,6 +6,10 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Custom tags: `/tag` (show, list, info, create, edit, delete, prefix) with modal editing, name autocomplete, `{user}`/`{server}`/`{channel}`/`{membercount}` placeholders, and chat triggers (`!name`, configurable or `off`).
+- Non-gambling economy earning: `/economy work` (answer a quick job task, 1h cooldown) and `/economy fish` (reel in on the bite, 30m cooldown, perfect-reel bonus).
+- Spam filter (`/spamfilter`, `/setup` toggle): detects message floods, repeated messages and mass mentions; deletes them and escalates per active strike (warning, 10m, 1h, 24h timeout) with configurable thresholds, strike decay and exempt channels.
+- Slash command autocomplete support (`autocomplete` option on `CreateCommand`).
 - SQLite migration runner (`src/Database/Migrations/`) with server and ticket migration arrays; applied automatically on database startup.
 - Setup wizard refactor: step modules, feature toggle handlers, draft persistence (`SaveSetupDraft`, `SyncDraftFromSavedSettings`).
 - `FeatureEnabledMiddleware` and `@shared/GuildFeatures` for per-guild economy/giveaway gates.

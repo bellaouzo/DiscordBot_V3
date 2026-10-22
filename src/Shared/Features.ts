@@ -219,9 +219,9 @@ const FEATURE_LIST = [
     summary: "Server coin system with games, market, duels, and lotteries.",
     guide: {
       howItWorks:
-        "Members earn coins from dailies and mini-games, then spend them in the market or gift others. Staff can create server lotteries. Members can challenge each other to coin duels.",
+        "Members earn coins without betting from dailies, `/economy work` (answer a quick job task) and `/economy fish` (reel in when you get a bite), or risk coins in mini-games. Coins can be spent in the market or gifted. Staff can create server lotteries. Members can challenge each other to coin duels.",
       setup:
-        "`/economy daily` → `/economy market view` → `/economy lottery create` (staff)",
+        "`/economy daily` → `/economy work` → `/economy fish` → `/economy market view` → `/economy lottery create` (staff)",
       command: "/economy",
     },
     toggle: {
@@ -243,6 +243,40 @@ const FEATURE_LIST = [
       setup:
         "`/linkfilter block pattern:bad-site.com` or `/linkfilter allow pattern:trusted.com`",
       command: "/linkfilter",
+    },
+  },
+  {
+    key: "spamfilter",
+    name: "Spam Filter",
+    icon: "🚫",
+    summary:
+      "Removes message floods, repeats, and mass mentions, escalating repeat offenders.",
+    guide: {
+      howItWorks:
+        "Watches for members sending too many messages too quickly, repeating the same message, or mass-mentioning. Offending messages are deleted and the member gets a strike. Strikes escalate: 1st is a warning, 2nd a 10 minute timeout, 3rd a 1 hour timeout, 4th and later a 24 hour timeout. Strikes expire after the decay window (24h by default). Staff and exempt channels are never filtered.",
+      setup:
+        "`/spamfilter enable` → `/spamfilter config` → `/spamfilter exempt add` (optional)",
+      command: "/spamfilter",
+    },
+    toggle: {
+      order: 6,
+      label: "Spam Filter",
+      emoji: "🚫",
+      description: "Auto-remove spam and escalate repeat offenders",
+      setting: "spam_filter_enabled",
+    },
+  },
+  {
+    key: "tags",
+    name: "Custom Tags",
+    icon: "🏷️",
+    summary: "Server-specific canned responses members can call up anytime.",
+    guide: {
+      howItWorks:
+        "Staff save named responses (rules reminders, FAQs, links). Anyone can post one with `/tag show` or by typing the prefix and tag name in chat, e.g. `!rules`. Content can use `{user}`, `{server}`, `{channel}` and `{membercount}` placeholders.",
+      setup:
+        "`/tag create name:rules` → `/tag show name:rules` or type `!rules` → `/tag prefix` to change `!`",
+      command: "/tag",
     },
   },
   {

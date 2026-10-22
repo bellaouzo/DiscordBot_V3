@@ -13,6 +13,8 @@ import { ResolveInteractionMember } from "@utilities/GuildMemberResolver";
 import type { CommandConfig } from "@commands/Middleware/CommandConfig";
 import type { Logger } from "@shared/Logger";
 import type { DatabaseSet } from "@database";
+import type { AppConfig } from "@config/AppConfig";
+import { IsBotOwner } from "@config/AppConfig";
 
 async function SendPermissionError(
   responders: ResponderSet,
@@ -30,7 +32,7 @@ async function SendPermissionError(
   });
 }
 
-function FormatPermissionName(permission: string): string {
+export function FormatPermissionName(permission: string): string {
   return permission
     .replace(/([A-Z])/g, " $1")
     .replace(/^./, (str) => str.toUpperCase())
@@ -84,6 +86,27 @@ async function CheckOwnerPermission(context: {
     return false;
   }
   return true;
+}
+
+async function CheckBotOwnerPermission(context: {
+  interaction: ChatInputCommandInteraction;
+  config: CommandConfig;
+  responders: ResponderSet;
+  appConfig: AppConfig;
+}): Promise<boolean> {
+  if (!context.config.botOwner) return true;
+
+  if (IsBotOwner(context.interaction.user.id, context.appConfig)) {
+    return true;
+  }
+
+  await SendPermissionError(
+    context.responders,
+    context.interaction,
+    "Bot Owner Only",
+    "Only the bot's owners can use this command.",
+  );
+  return false;
 }
 
 async function CheckRolePermission(context: {
@@ -328,6 +351,7 @@ export const PermissionMiddleware: CommandMiddleware = {
     }
 
     const checks = [
+      () => CheckBotOwnerPermission(context),
       () => CheckOwnerPermission(context),
       () => CheckRolePermission({ ...context, member, logger: context.logger }),
       () =>

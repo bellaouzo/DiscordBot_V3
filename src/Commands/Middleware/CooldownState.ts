@@ -3,6 +3,7 @@ import type { ServerDatabase } from "@database/ServerDatabase";
 export interface CooldownStateStore {
   Get(key: string): number | undefined;
   Set(key: string, expiresAt: number): void;
+  Delete(key: string): void;
   Prune(now: number): void;
   Clear(): void;
 }
@@ -16,6 +17,10 @@ class InMemoryCooldownStateStore implements CooldownStateStore {
 
   Set(key: string, expiresAt: number): void {
     this.entries.set(key, expiresAt);
+  }
+
+  Delete(key: string): void {
+    this.entries.delete(key);
   }
 
   Prune(now: number): void {
@@ -52,6 +57,14 @@ class SqliteCooldownStateStore implements CooldownStateStore {
       return;
     }
     this.serverDb.SetCommandCooldownExpiry(userId, commandName, expiresAt);
+  }
+
+  Delete(key: string): void {
+    const [userId, commandName] = key.split(":");
+    if (!userId || !commandName) {
+      return;
+    }
+    this.serverDb.ClearCommandCooldown(userId, commandName);
   }
 
   Prune(now: number): void {

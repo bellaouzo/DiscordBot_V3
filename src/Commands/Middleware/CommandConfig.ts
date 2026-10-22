@@ -1,14 +1,16 @@
 import type { PermissionFlagsBits } from "discord.js";
 import type { ToggleableFeatureKey } from "@shared/Features";
 
+type PermissionName = keyof typeof PermissionFlagsBits;
+
 /**
- * Command configuration: guild-only, permissions, cooldown, role/mod/owner.
- * Used by AutoMiddleware to add GuildMiddleware, PermissionMiddleware, CooldownMiddleware.
+ * Command configuration: guild-only, permissions, cooldown, role/mod/owner, bot permissions, auto-defer.
+ * Used by AutoMiddleware to pick the per-command middleware.
  */
 export interface CommandConfig {
   readonly guildOnly?: boolean;
   readonly permissions?: {
-    readonly required?: (keyof typeof PermissionFlagsBits)[];
+    readonly required?: PermissionName[];
     readonly requireAny?: boolean;
   };
   readonly cooldown?: {
@@ -20,7 +22,19 @@ export interface CommandConfig {
   readonly modRole?: boolean;
   readonly adminRole?: boolean;
   readonly owner?: boolean;
+  /** Restricts the command to the user IDs in BOT_OWNER_IDS. */
+  readonly botOwner?: boolean;
   readonly requiredFeature?: ToggleableFeatureKey;
+  /** Permissions the bot itself needs in the channel the command is used in. */
+  readonly botPermissions?: {
+    readonly required: PermissionName[];
+    /** Subcommands that skip the check (read-only views such as `status`). */
+    readonly exemptSubcommands?: string[];
+  };
+  /** Defers the reply if the handler hasn't responded before Discord's 3s deadline. */
+  readonly autoDefer?: {
+    readonly ephemeral: boolean;
+  };
 }
 
 /**
@@ -39,7 +53,7 @@ export class CommandConfigBuilder {
     return this;
   }
 
-  permissions(...perms: (keyof typeof PermissionFlagsBits)[]): this {
+  permissions(...perms: PermissionName[]): this {
     this.config = {
       ...this.config,
       permissions: { ...this.config.permissions, required: perms },
@@ -47,7 +61,7 @@ export class CommandConfigBuilder {
     return this;
   }
 
-  anyPermission(...perms: (keyof typeof PermissionFlagsBits)[]): this {
+  anyPermission(...perms: PermissionName[]): this {
     this.config = {
       ...this.config,
       permissions: {
@@ -103,6 +117,40 @@ export class CommandConfigBuilder {
     return this;
   }
 
+  botOwner(): this {
+    this.config = { ...this.config, botOwner: true };
+    return this;
+  }
+
+  botPermissions(...perms: PermissionName[]): this {
+    this.config = {
+      ...this.config,
+      botPermissions: { ...this.config.botPermissions, required: perms },
+    };
+    return this;
+  }
+
+  /** Skips the bot permission check for these subcommands. Call after botPermissions(). */
+  skipBotPermissionsFor(...subcommands: string[]): this {
+    this.config = {
+      ...this.config,
+      botPermissions: {
+        required: this.config.botPermissions?.required ?? [],
+        exemptSubcommands: subcommands,
+      },
+    };
+    return this;
+  }
+
+  /** Defers slow handlers automatically. Public by default so the final reply stays visible. */
+  autoDefer(options: { ephemeral?: boolean } = {}): this {
+    this.config = {
+      ...this.config,
+      autoDefer: { ephemeral: options.ephemeral ?? false },
+    };
+    return this;
+  }
+
   requiredFeature(feature: ToggleableFeatureKey): this {
     this.config = { ...this.config, requiredFeature: feature };
     return this;
@@ -120,12 +168,12 @@ export class CommandConfigBuilder {
 export const Config = {
   create: () => CommandConfigBuilder.create(),
 
-  requirePermissions: (...perms: (keyof typeof PermissionFlagsBits)[]) =>
+  requirePermissions: (...perms: PermissionName[]) =>
     CommandConfigBuilder.create()
       .permissions(...perms)
       .build(),
 
-  requireAnyPermission: (...perms: (keyof typeof PermissionFlagsBits)[]) =>
+  requireAnyPermission: (...perms: PermissionName[]) =>
     CommandConfigBuilder.create()
       .anyPermission(...perms)
       .build(),

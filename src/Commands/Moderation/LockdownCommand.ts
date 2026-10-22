@@ -81,7 +81,10 @@ export const LockdownCommand = CreateCommand({
   name: "lockdown",
   description: "Lock or unlock channels and categories",
   group: "moderation",
-  config: Config.mod().build(),
+  config: Config.mod()
+    .botPermissions("ManageChannels", "ManageRoles")
+    .skipBotPermissionsFor("status")
+    .build(),
   execute: ExecuteLockdown,
   configure: (builder) => {
     builder

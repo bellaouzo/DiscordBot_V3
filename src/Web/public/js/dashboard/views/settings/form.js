@@ -28,6 +28,7 @@ const KEY_MAP = {
   starboard_threshold:               'settings-starboard-threshold',
   economy_enabled:                   'settings-economy-enabled',
   giveaways_enabled:                 'settings-giveaways-enabled',
+  spam_filter_enabled:               'settings-spam-filter-enabled',
 };
 
 // Section-by-field router for undo
@@ -53,6 +54,7 @@ const SECTION_MAP = {
   'settings-starboard-threshold':     features,
   'settings-economy-enabled':         features,
   'settings-giveaways-enabled':       features,
+  'settings-spam-filter-enabled':     features,
 };
 
 export function getFormState() {

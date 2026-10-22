@@ -11,7 +11,7 @@ import { CreateConsoleLogger } from "@shared/Logger";
 
 export type ResponderMessageOptions = Pick<
   MessageCreateOptions,
-  "content" | "embeds" | "files"
+  "content" | "embeds" | "files" | "allowedMentions"
 > & {
   readonly flags?: MessageFlags | MessageFlags[];
   readonly components?: ActionRowData<ActionRowComponentData>[];

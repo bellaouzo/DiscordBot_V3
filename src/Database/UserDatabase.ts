@@ -12,6 +12,7 @@ import { GiveawayStore } from "@database/User/Stores/GiveawayStore";
 import { ChatXpDailyStore } from "@database/User/Stores/ChatXpDailyStore";
 import { DuelStore } from "@database/User/Stores/DuelStore";
 import { LotteryStore } from "@database/User/Stores/LotteryStore";
+import { ActivityCooldownStore } from "@database/User/Stores/ActivityCooldownStore";
 import { RunMigrations } from "@database/Migrations";
 import type { StoreMethods } from "@database/StoreDelegation";
 import { DelegateStoreMethods } from "@database/StoreDelegation";
@@ -39,7 +40,8 @@ export interface UserDatabase
     StoreMethods<GiveawayStore>,
     StoreMethods<ChatXpDailyStore>,
     StoreMethods<DuelStore>,
-    StoreMethods<LotteryStore> {}
+    StoreMethods<LotteryStore>,
+    StoreMethods<ActivityCooldownStore> {}
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class UserDatabase {
@@ -54,6 +56,7 @@ export class UserDatabase {
   private readonly chatXpDaily: ChatXpDailyStore;
   private readonly duels: DuelStore;
   private readonly lotteries: LotteryStore;
+  private readonly activityCooldowns: ActivityCooldownStore;
 
   constructor(private readonly logger: Logger) {
     this.db = this.InitializeDatabase();
@@ -68,6 +71,7 @@ export class UserDatabase {
     this.chatXpDaily = new ChatXpDailyStore(this.db);
     this.duels = new DuelStore(this.db);
     this.lotteries = new LotteryStore(this.db);
+    this.activityCooldowns = new ActivityCooldownStore(this.db);
     DelegateStoreMethods(this, [
       this.notes,
       this.warnings,
@@ -79,6 +83,7 @@ export class UserDatabase {
       this.chatXpDaily,
       this.duels,
       this.lotteries,
+      this.activityCooldowns,
     ]);
   }
 

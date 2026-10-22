@@ -32,6 +32,14 @@ export class CommandCooldownStore {
       .run(userId, commandName, expiresAt);
   }
 
+  ClearCommandCooldown(userId: string, commandName: string): void {
+    this.db
+      .prepare(
+        "DELETE FROM command_cooldowns WHERE user_id = ? AND command_name = ?",
+      )
+      .run(userId, commandName);
+  }
+
   PruneExpiredCommandCooldowns(now: number): void {
     this.db
       .prepare("DELETE FROM command_cooldowns WHERE expires_at <= ?")

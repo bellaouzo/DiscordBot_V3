@@ -65,7 +65,7 @@ export const UnbanCommand = CreateCommand({
   name: "unban",
   description: "Unban a user from the server",
   group: "moderation",
-  config: Config.mod(5).build(),
+  config: Config.mod(5).botPermissions("BanMembers").build(),
   execute: ExecuteUnban,
   configure: (builder) => {
     builder

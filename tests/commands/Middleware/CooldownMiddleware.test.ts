@@ -48,6 +48,7 @@ function createMiddlewareContext(overrides?: {
     },
     databases: context.databases,
     appConfig: context.appConfig,
+    run: { startedAt: Date.now(), reachedHandler: false },
   } as unknown as MiddlewareContext;
 }
 
@@ -177,7 +178,7 @@ describe("CooldownMiddleware", () => {
       } as CommandDefinition["data"],
       group: "utility",
       config: { cooldown: { seconds: 30 } },
-      middleware: { after: [ErrorMiddleware] },
+      middleware: { before: [CooldownMiddleware] },
       execute: vi.fn().mockResolvedValue(undefined),
     };
 
@@ -188,7 +189,7 @@ describe("CooldownMiddleware", () => {
       } as CommandDefinition["data"],
       group: "utility",
       config: { cooldown: { seconds: 30 } },
-      middleware: { after: [ErrorMiddleware] },
+      middleware: { before: [CooldownMiddleware] },
       execute: vi.fn().mockRejectedValue(new Error("fail")),
     };
 
@@ -245,5 +246,36 @@ describe("CooldownMiddleware", () => {
       process.env.DATA_DIR = originalDataDir;
     }
     ResetCooldownStoreForTesting();
+  });
+
+  it("blocks a second invocation while the first is still running", async () => {
+    const context = createMiddlewareContext({ cooldownSeconds: 30 });
+    let finish: () => void = () => undefined;
+    const slowNext = vi.fn(
+      () => new Promise<void>((resolve) => (finish = resolve)),
+    );
+
+    const first = CooldownMiddleware.execute(context, slowNext);
+    const secondNext = vi.fn();
+    await CooldownMiddleware.execute(createMiddlewareContext(), secondNext);
+    finish();
+    await first;
+
+    expect(slowNext).toHaveBeenCalledOnce();
+    expect(secondNext).not.toHaveBeenCalled();
+  });
+
+  it("releases the reserved cooldown when the command throws", async () => {
+    const context = createMiddlewareContext({ cooldownSeconds: 30 });
+
+    await expect(
+      CooldownMiddleware.execute(context, async () => {
+        throw new Error("fail");
+      }),
+    ).rejects.toThrow("fail");
+
+    const next = vi.fn().mockResolvedValue(undefined);
+    await CooldownMiddleware.execute(createMiddlewareContext(), next);
+    expect(next).toHaveBeenCalledOnce();
   });
 });

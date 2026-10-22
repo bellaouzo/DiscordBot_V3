@@ -146,7 +146,7 @@ export const ApodCommand = CreateCommand({
   name: "apod",
   description: "Show NASA's Astronomy Picture of the Day",
   group: "fun",
-  config: Config.utility(3),
+  config: Config.create().guildOnly().cooldownSeconds(3).autoDefer().build(),
   configure: (builder) => {
     builder.addStringOption((option) =>
       option

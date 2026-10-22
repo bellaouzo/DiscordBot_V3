@@ -10,12 +10,18 @@ import { StarboardStore } from "@database/Server/Stores/StarboardStore";
 import { CommandCooldownStore } from "@database/Server/Stores/CommandCooldownStore";
 import { LevelRoleRewardStore } from "@database/Server/Stores/LevelRoleRewardStore";
 import { DisabledCommandStore } from "@database/Server/Stores/DisabledCommandStore";
+import { CustomTagStore } from "@database/Server/Stores/CustomTagStore";
+import { BlocklistStore } from "@database/Server/Stores/BlocklistStore";
+import { CommandChannelStore } from "@database/Server/Stores/CommandChannelStore";
 import { RunMigrations } from "@database/Migrations";
 import type { StoreMethods } from "@database/StoreDelegation";
 import { DelegateStoreMethods } from "@database/StoreDelegation";
 import { ServerMigrations } from "@database/Migrations/server";
 
 import type {
+  BlocklistEntry,
+  BlocklistTargetType,
+  CustomTag,
   GuildSettings,
   GuildXpSettings,
   LevelRoleReward,
@@ -26,6 +32,9 @@ import type {
 } from "@database/Server/Types";
 
 export type {
+  BlocklistEntry,
+  BlocklistTargetType,
+  CustomTag,
   GuildSettings,
   GuildXpSettings,
   LevelRoleReward,
@@ -46,7 +55,10 @@ export interface ServerDatabase
     StoreMethods<StarboardStore>,
     StoreMethods<CommandCooldownStore>,
     StoreMethods<LevelRoleRewardStore>,
-    StoreMethods<DisabledCommandStore> {}
+    StoreMethods<DisabledCommandStore>,
+    StoreMethods<CustomTagStore>,
+    StoreMethods<BlocklistStore>,
+    StoreMethods<CommandChannelStore> {}
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class ServerDatabase {
@@ -59,6 +71,9 @@ export class ServerDatabase {
   private readonly commandCooldowns: CommandCooldownStore;
   private readonly levelRoleRewards: LevelRoleRewardStore;
   private readonly disabledCommands: DisabledCommandStore;
+  private readonly customTags: CustomTagStore;
+  private readonly blocklist: BlocklistStore;
+  private readonly commandChannels: CommandChannelStore;
 
   constructor(private readonly logger: Logger) {
     this.db = this.InitializeDatabase();
@@ -71,6 +86,9 @@ export class ServerDatabase {
     this.commandCooldowns = new CommandCooldownStore(this.db);
     this.levelRoleRewards = new LevelRoleRewardStore(this.db);
     this.disabledCommands = new DisabledCommandStore(this.db);
+    this.customTags = new CustomTagStore(this.db);
+    this.blocklist = new BlocklistStore(this.db);
+    this.commandChannels = new CommandChannelStore(this.db);
     DelegateStoreMethods(this, [
       this.events,
       this.guildSettings,
@@ -80,6 +98,9 @@ export class ServerDatabase {
       this.commandCooldowns,
       this.levelRoleRewards,
       this.disabledCommands,
+      this.customTags,
+      this.blocklist,
+      this.commandChannels,
     ]);
   }
 

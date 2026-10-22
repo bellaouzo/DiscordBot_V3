@@ -1,7 +1,10 @@
 import { CreateBot } from "@bot/CreateBot";
 import { CreateCommandDeployer } from "@bot/CreateCommandDeployer";
 import { CreateCommandLoader } from "@bot/CreateCommandLoader";
-import { CreateCommandExecutor } from "@bot/ExecuteCommand";
+import {
+  CreateAutocompleteExecutor,
+  CreateCommandExecutor,
+} from "@bot/ExecuteCommand";
 import { CreateEventLoader } from "@bot/CreateEventLoader";
 import { RegisterEvents } from "@bot/RegisterEvents";
 import { ReplaceCommands } from "@commands";
@@ -25,6 +28,7 @@ import {
   RegisterCommandHandler,
 } from "./interaction-handlers";
 import { ConfigureCooldownPersistence } from "@middleware/CooldownState";
+import { FindBlocklistMatch } from "@middleware/BlocklistMiddleware";
 import { TempActionScheduler } from "@systems/Moderation/TempActionScheduler";
 import { RaidModeScheduler } from "@systems/Moderation/RaidModeScheduler";
 import { GiveawayScheduler } from "@systems/Giveaway/GiveawayScheduler";
@@ -109,6 +113,10 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     databases,
     appConfig: config,
   });
+  const executeAutocomplete = CreateAutocompleteExecutor({
+    databases,
+    appConfig: config,
+  });
   const services: BackgroundService[] = [
     new TempActionScheduler({
       client: bot.client,
@@ -164,11 +172,19 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     selectMenuRouter: responders.selectMenuRouter,
     userSelectMenuRouter: responders.userSelectMenuRouter,
     modalRouter: responders.modalRouter,
+    findBlocklistMatch: (userId, guildId) =>
+      FindBlocklistMatch({
+        userId,
+        guildId,
+        serverDb: databases.serverDb,
+        appConfig: config,
+      }),
   });
 
   RegisterCommandHandler({
     client: bot.client,
     executeCommand,
+    executeAutocomplete,
     responders,
     logger,
   });

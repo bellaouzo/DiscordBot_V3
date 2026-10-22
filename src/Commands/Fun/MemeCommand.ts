@@ -89,7 +89,7 @@ export const MemeCommand = CreateCommand({
   name: "meme",
   description: "Get a random meme (optionally from a subreddit)",
   group: "fun",
-  config: Config.utility(3),
+  config: Config.create().guildOnly().cooldownSeconds(3).autoDefer().build(),
   configure: (builder) => {
     builder.addStringOption((option) =>
       option

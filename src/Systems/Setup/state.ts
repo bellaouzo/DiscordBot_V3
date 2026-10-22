@@ -149,6 +149,8 @@ export function CreateEmptySettings(guild_id: string): GuildSettings {
     verification_channel_id: null,
     economy_enabled: true,
     giveaways_enabled: true,
+    spam_filter_enabled: false,
+    tag_prefix: "!",
     created_at: Date.now(),
     updated_at: Date.now(),
   };

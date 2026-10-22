@@ -5,16 +5,27 @@ import type { ResponderSet } from "@responders";
 import type { CommandConfig } from "@middleware/CommandConfig";
 import type { DatabaseSet } from "@database";
 import type { AppConfig } from "@config/AppConfig";
-import { LoggingMiddleware } from "@middleware/LoggingMiddleware";
 import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
-import { ErrorMiddleware } from "@middleware/ErrorMiddleware";
 import { CooldownMiddleware } from "@middleware/CooldownMiddleware";
 import { GuildMiddleware } from "@middleware/GuildMiddleware";
-import { CommandEnabledMiddleware } from "@middleware/CommandEnabledMiddleware";
 import { FeatureEnabledMiddleware } from "@middleware/FeatureEnabledMiddleware";
+import { BotPermissionMiddleware } from "@middleware/BotPermissionMiddleware";
+import { AutoDeferMiddleware } from "@middleware/AutoDeferMiddleware";
 
 /**
- * Context passed to middleware: interaction, command, logger, responders, config, databases, appConfig.
+ * Mutable bookkeeping for one command run, filled in by RunMiddlewareChain.
+ */
+export interface MiddlewareRunState {
+  /** Date.now() when the chain started; deadlines like auto-defer are measured from here. */
+  readonly startedAt: number;
+  /** True once every middleware called next() and the command handler started. */
+  reachedHandler: boolean;
+  /** Name of the middleware that stopped the chain without calling next(). */
+  blockedBy?: string;
+}
+
+/**
+ * Context passed to middleware: interaction, command, logger, responders, config, databases, appConfig, run state.
  */
 export interface MiddlewareContext {
   readonly interaction: ChatInputCommandInteraction;
@@ -24,6 +35,14 @@ export interface MiddlewareContext {
   readonly config: CommandConfig;
   readonly databases: DatabaseSet;
   readonly appConfig: AppConfig;
+  readonly run: MiddlewareRunState;
+}
+
+/**
+ * Creates fresh run state for one command invocation.
+ */
+export function CreateRunState(now = Date.now()): MiddlewareRunState {
+  return { startedAt: now, reachedHandler: false };
 }
 
 /**
@@ -68,11 +87,16 @@ export async function RunMiddlewareChain(
     const current = middleware[i];
 
     if (!current) {
+      context.run.reachedHandler = true;
       await finalHandler();
       return;
     }
 
     await current.execute(context, () => dispatch(i + 1));
+
+    if (index === i && !context.run.blockedBy) {
+      context.run.blockedBy = current.name;
+    }
   };
 
   await dispatch(0);
@@ -90,46 +114,63 @@ export {
   PROTECTED_COMMANDS,
 } from "@middleware/ProtectedCommands";
 export { DiscordLoggingMiddleware } from "@middleware/DiscordLoggingMiddleware";
+export { BlocklistMiddleware } from "@middleware/BlocklistMiddleware";
+export { ChannelRestrictionMiddleware } from "@middleware/ChannelRestrictionMiddleware";
+export { BotPermissionMiddleware } from "@middleware/BotPermissionMiddleware";
+export { AutoDeferMiddleware } from "@middleware/AutoDeferMiddleware";
 export * from "@middleware/CommandConfig";
 
 /**
- * Builds default before/after middleware from config: Logging, optional GuildOnly/Permission/Cooldown, Error.
- * Used by CreateCommand when command middleware is not provided.
+ * Builds the per-command middleware from config. Global middleware (error handling, blocklist,
+ * logging, command toggles, channel restrictions, Discord command logs) is added by the
+ * executor for every command, so it is not part of this list.
  *
- * @param config - Optional command config; guildOnly, permissions, modRole, owner, role, cooldown drive which middleware are added
+ * Order: GuildOnly, Feature, Permission, BotPermission, Cooldown, AutoDefer. Cheap rejections
+ * run first; the cooldown is reserved last so a blocked command doesn't use it up.
+ *
+ * @param config - Optional command config
  * @returns before and after middleware arrays
  */
 export function AutoMiddleware(
   config?: CommandConfig,
 ): MiddlewareConfiguration {
-  const before: CommandMiddleware[] = [LoggingMiddleware];
-  const after: CommandMiddleware[] = [ErrorMiddleware];
+  const before: CommandMiddleware[] = [];
 
-  if (config?.guildOnly) {
-    before.push(GuildMiddleware);
-    before.push(CommandEnabledMiddleware);
+  if (!config) {
+    return { before, after: [] };
   }
 
-  if (config?.requiredFeature) {
+  if (config.guildOnly) {
+    before.push(GuildMiddleware);
+  }
+
+  if (config.requiredFeature) {
     before.push(FeatureEnabledMiddleware);
   }
 
-  if (config) {
-    const needsPermissionCheck =
-      config.permissions?.required?.length ||
-      config.modRole ||
-      config.adminRole ||
-      config.owner ||
-      config.role;
+  const needsPermissionCheck =
+    config.permissions?.required?.length ||
+    config.modRole ||
+    config.adminRole ||
+    config.owner ||
+    config.botOwner ||
+    config.role;
 
-    if (needsPermissionCheck) {
-      before.push(PermissionMiddleware);
-    }
-
-    if (config.cooldown) {
-      before.push(CooldownMiddleware);
-    }
+  if (needsPermissionCheck) {
+    before.push(PermissionMiddleware);
   }
 
-  return { before, after };
+  if (config.botPermissions?.required.length) {
+    before.push(BotPermissionMiddleware);
+  }
+
+  if (config.cooldown) {
+    before.push(CooldownMiddleware);
+  }
+
+  if (config.autoDefer) {
+    before.push(AutoDeferMiddleware);
+  }
+
+  return { before, after: [] };
 }

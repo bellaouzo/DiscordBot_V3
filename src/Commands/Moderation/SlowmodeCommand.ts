@@ -79,7 +79,7 @@ export const SlowmodeCommand = CreateCommand({
   name: "slowmode",
   description: "Set or disable slowmode for a channel",
   group: "moderation",
-  config: Config.mod().build(),
+  config: Config.mod().botPermissions("ManageChannels").build(),
   execute: ExecuteSlowmode,
   configure: (builder) => {
     builder

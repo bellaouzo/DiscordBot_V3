@@ -63,7 +63,7 @@ export const InsultCommand = CreateCommand({
   name: "insult",
   description: "Get a random insult",
   group: "fun",
-  config: Config.utility(3),
+  config: Config.create().guildOnly().cooldownSeconds(3).autoDefer().build(),
   configure: (builder) => {
     builder.addUserOption((option) =>
       option.setName("user").setDescription("User to insult").setRequired(true),
