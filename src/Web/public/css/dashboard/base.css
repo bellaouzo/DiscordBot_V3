@@ -1,0 +1,122 @@
+/* ============================================================
+   base.css — Design tokens, reset, icons, and small utilities.
+   Re-theme the whole dashboard from the :root block.
+   ============================================================ */
+
+:root {
+  /* Surfaces */
+  --bg: #ecebe6;
+  --surface: #fbfaf7;
+  --surface-2: #f2f1ec;
+  --line: #dddbd3;
+
+  /* Text */
+  --ink: #1b1a17;
+  --ink-2: #4a4842;
+  --muted: #7d7a72;
+
+  /* Brand: one dark, one bright accent */
+  --dark: #1b1a17;
+  --dark-2: #33312c;
+  --accent: #f4c84a;
+  --accent-line: #e2b93c;
+  --accent-ink: #3a2e05;
+
+  /* Status */
+  --good: #2f7d4f;
+  --good-soft: #dcefe2;
+  --bad: #b5452c;
+  --bad-soft: #f6ded7;
+  --warn: #8a5a00;
+  --warn-soft: #fbeccd;
+  --info: #2c6a9e;
+  --info-soft: #dceaf6;
+
+  /* Shape */
+  --radius: 18px;
+  --radius-sm: 10px;
+  --gap: 12px;
+  --nav-w: 236px;
+  --nav-w-collapsed: 68px;
+
+  --font: "Bricolage Grotesque", system-ui, sans-serif;
+}
+
+/* ── Reset ────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; padding: 0; }
+img { display: block; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; }
+
+/* ── Icons ────────────────────────────────────────────────── */
+.i {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── Utilities (also used by JS-rendered markup) ──────────── */
+.text-muted { color: var(--muted); }
+.text-danger { color: var(--bad); }
+.text-center { text-align: center; }
+.error-text { color: var(--bad); }
+.mt-1 { margin-top: .25rem; }
+.mt-2 { margin-top: .5rem; }
+.mb-1 { margin-bottom: .25rem; }
+.empty-pad { padding: 2rem 0; }
+
+.clickable { cursor: pointer; }
+
+/* Infraction type colors */
+.type-warn,
+.type-warning { color: var(--warn); }
+.type-kick { color: #7a4fb0; }
+.type-ban { color: var(--bad); }
+.type-mute,
+.type-timeout { color: var(--info); }
+
+/* Loaders */
+.loader,
+.loader-sm {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--line);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  vertical-align: middle;
+}
+
+.loader-sm { width: 16px; height: 16px; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 50% { opacity: .35; } }
+@keyframes slide-up { from { opacity: 0; transform: translateY(8px); } }

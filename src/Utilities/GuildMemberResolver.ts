@@ -2,12 +2,18 @@ import type {
   APIInteractionGuildMember,
   ButtonInteraction,
   ChatInputCommandInteraction,
+  ContextMenuCommandInteraction,
   Message,
+  ModalSubmitInteraction,
   PartialGuildMember,
 } from "discord.js";
 import { GuildMember } from "discord.js";
 
-type InteractionWithMember = ChatInputCommandInteraction | ButtonInteraction;
+type InteractionWithMember =
+  | ChatInputCommandInteraction
+  | ContextMenuCommandInteraction
+  | ButtonInteraction
+  | ModalSubmitInteraction;
 
 export async function ResolveInteractionMember(
   interaction: InteractionWithMember,

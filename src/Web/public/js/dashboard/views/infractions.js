@@ -85,9 +85,9 @@ export function renderInfractions() {
   if (totalPages > 1) {
     html += `
       <div class="pagination-controls">
-        <button class="btn btn-secondary btn-sm" onclick="changeInfractionPage(-1)" ${state.infractionPage === 1 ? 'disabled style="opacity: 0.5; cursor: default;"' : ''}>Prev</button>
+        <button class="btn btn-secondary btn-sm" onclick="changeInfractionPage(-1)" ${state.infractionPage === 1 ? 'disabled' : ''}>Prev</button>
         <span class="pagination-info">Page ${state.infractionPage} of ${totalPages}</span>
-        <button class="btn btn-secondary btn-sm" onclick="changeInfractionPage(1)" ${state.infractionPage === totalPages ? 'disabled style="opacity: 0.5; cursor: default;"' : ''}>Next</button>
+        <button class="btn btn-secondary btn-sm" onclick="changeInfractionPage(1)" ${state.infractionPage === totalPages ? 'disabled' : ''}>Next</button>
       </div>
     `;
   }

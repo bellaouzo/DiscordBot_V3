@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction, User } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import type { DurationUnit } from "@utilities";
 import {
   RequireGuild,
@@ -181,7 +180,7 @@ export const BanCommand = CreateCommand({
   name: "ban",
   description: "Ban a user from the server",
   group: "moderation",
-  config: Config.mod().botPermissions("BanMembers").build(),
+  config: { access: "mod", cooldown: "5s", botPermissions: ["BanMembers"] },
   execute: ExecuteBan,
   configure: (builder) => {
     builder

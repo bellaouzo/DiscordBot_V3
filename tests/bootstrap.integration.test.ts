@@ -39,6 +39,7 @@ const {
     webServerStartMock: vi.fn(),
     loadCommandsMock: vi.fn().mockResolvedValue({
       definitions: [],
+      contextMenus: [],
       slashData: [],
       errors: [],
     }),

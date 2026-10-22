@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { RequireGuild, EmbedFactory } from "@utilities";
 import { CreateAppealManager } from "@systems/Moderation/AppealManager";
 import { CreateWarnManager } from "@systems/Moderation/WarnManager";
@@ -119,6 +118,6 @@ export const ModHistoryCommand = CreateCommand({
   name: "modhistory",
   description: "View your moderation history in this server",
   group: "utility",
-  config: Config.utility(3),
+  config: { cooldown: "3s" },
   execute: ExecuteModHistory,
 });

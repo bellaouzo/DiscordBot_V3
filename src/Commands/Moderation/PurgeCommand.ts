@@ -2,12 +2,16 @@ import type {
   ChatInputCommandInteraction,
   TextChannel,
   Message,
+  MessageContextMenuCommandInteraction,
 } from "discord.js";
-import { MessageFlags } from "discord.js";
+import { ButtonStyle, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
-import { EmbedFactory } from "@utilities";
+import { CreateCommand, CreateMessageMenu } from "@commands";
+import { ComponentFactory, EmbedFactory } from "@utilities";
+import { ToActionRowData } from "@utilities/ComponentBuilder";
+
+const BULK_DELETE_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
+const PURGE_CONFIRM_TIMEOUT_MS = 60 * 1000;
 
 function ValidatePurgeOptions(
   amount: number,
@@ -226,9 +230,11 @@ export const PurgeCommand = CreateCommand({
   name: "purge",
   description: "Delete messages in bulk with optional filters",
   group: "moderation",
-  config: Config.mod()
-    .botPermissions("ManageMessages", "ReadMessageHistory")
-    .build(),
+  config: {
+    access: "mod",
+    cooldown: "5s",
+    botPermissions: ["ManageMessages", "ReadMessageHistory"],
+  },
   execute: ExecutePurge,
   configure: (builder) => {
     builder
@@ -261,4 +267,136 @@ export const PurgeCommand = CreateCommand({
           .setMinValue(0),
       );
   },
+});
+
+/**
+ * The clicked message and everything after it, from the channel's latest 100 messages.
+ * Returns null when the message is further back than that.
+ */
+async function CollectMessagesFrom(
+  channel: TextChannel,
+  target: Message,
+): Promise<Message[] | null> {
+  const recent = await channel.messages.fetch({ limit: 100 });
+  if (!recent.has(target.id)) {
+    return null;
+  }
+  const targetId = BigInt(target.id);
+  return [...recent.values()].filter(
+    (message) => BigInt(message.id) >= targetId,
+  );
+}
+
+async function ExecutePurgeFromHere(
+  interaction: MessageContextMenuCommandInteraction,
+  context: CommandContext,
+): Promise<void> {
+  const { interactionResponder, componentRouter } = context.responders;
+  const channel = interaction.channel;
+
+  const replyError = (title: string, description: string) =>
+    interactionResponder.Reply(interaction, {
+      embeds: [EmbedFactory.CreateError({ title, description }).toJSON()],
+      flags: MessageFlags.Ephemeral,
+    });
+
+  if (!channel?.isTextBased() || channel.isDMBased()) {
+    await replyError(
+      "Invalid Channel",
+      "This only works in server text channels.",
+    );
+    return;
+  }
+
+  const messages = await CollectMessagesFrom(
+    channel as TextChannel,
+    interaction.targetMessage,
+  );
+  if (!messages) {
+    await replyError(
+      "Too Far Back",
+      "That message is more than 100 messages ago. Use `/purge` instead.",
+    );
+    return;
+  }
+
+  const deletable = messages.filter(
+    (message) => Date.now() - message.createdTimestamp < BULK_DELETE_MAX_AGE_MS,
+  );
+  if (deletable.length === 0) {
+    await replyError(
+      "Nothing To Delete",
+      "Those messages are older than 14 days, which Discord doesn't allow bulk deleting.",
+    );
+    return;
+  }
+
+  const plural = deletable.length !== 1 ? "s" : "";
+  const confirm = componentRouter.RegisterButton({
+    ownerId: interaction.user.id,
+    expiresInMs: PURGE_CONFIRM_TIMEOUT_MS,
+    singleUse: true,
+    handler: async (button) => {
+      const deleted = await (channel as TextChannel).bulkDelete(
+        deletable,
+        true,
+      );
+      await button.update({
+        embeds: [
+          EmbedFactory.CreateSuccess({
+            title: "✅ Messages Purged",
+            description: `Deleted ${deleted.size} message${deleted.size !== 1 ? "s" : ""}.`,
+          }).toJSON(),
+        ],
+        components: [],
+      });
+    },
+  });
+  const cancel = componentRouter.RegisterButton({
+    ownerId: interaction.user.id,
+    expiresInMs: PURGE_CONFIRM_TIMEOUT_MS,
+    singleUse: true,
+    handler: async (button) => {
+      await button.update({
+        embeds: [
+          EmbedFactory.Create({
+            title: "Purge Cancelled",
+            description: "No messages were deleted.",
+          }).toJSON(),
+        ],
+        components: [],
+      });
+    },
+  });
+
+  const skipped = messages.length - deletable.length;
+  await interactionResponder.Reply(interaction, {
+    embeds: [
+      EmbedFactory.CreateWarning({
+        title: "🗑️ Purge From Here?",
+        description: `This deletes the selected message and everything after it: **${deletable.length} message${plural}**.${
+          skipped > 0 ? `\n${skipped} older than 14 days will be skipped.` : ""
+        }`,
+      }).toJSON(),
+    ],
+    components: [
+      ToActionRowData(
+        ComponentFactory.CreateActionRow({
+          buttons: [
+            { label: `Delete ${deletable.length}`, style: ButtonStyle.Danger },
+            { label: "Cancel", style: ButtonStyle.Secondary },
+          ],
+          customIds: [confirm.customId, cancel.customId],
+        }),
+      ),
+    ],
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
+/** Right-click a message → Apps → Purge From Here: deletes it and everything after it. */
+export const PurgeMessageMenu = CreateMessageMenu({
+  name: "Purge From Here",
+  command: PurgeCommand,
+  execute: ExecutePurgeFromHere,
 });

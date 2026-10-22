@@ -1,27 +1,27 @@
 import type { ChatInputCommandInteraction } from "discord.js";
-import type { CommandContext} from "@commands";
+import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { CreateGuildResourceLocator, EmbedFactory } from "@utilities";
 
 /**
  * Advanced kick command with options and permissions
  * Demonstrates:
  * - Command options (user, string, boolean)
- * - Mod permissions via `Config.mod()`
+ * - Mod-only access and the bot permission it needs, via `config`
  * - Action responder with error handling
  * - DM notifications
  */
 async function ExecuteKick(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const { logger } = context;
 
   // Get command options
   const targetUser = interaction.options.getUser("user", true);
-  const reason = interaction.options.getString("reason") ?? "No reason provided";
+  const reason =
+    interaction.options.getString("reason") ?? "No reason provided";
   const notify = interaction.options.getBoolean("notify") ?? false;
 
   if (!interaction.guild) {
@@ -41,18 +41,18 @@ async function ExecuteKick(
         title: "User Kicked",
         description: `Successfully kicked **${targetUser.username}**`,
       });
-      
+
       if (reason !== "No reason provided") {
         embed.addFields([{ name: "Reason", value: reason, inline: false }]);
       }
-      
+
       return { embeds: [embed.toJSON()] };
     },
     action: async () => {
       const targetMember = await locator.GetMember(targetUser.id);
       if (!targetMember?.kickable) {
         throw new Error(
-          "I cannot kick this user. They may have higher permissions than me."
+          "I cannot kick this user. They may have higher permissions than me.",
         );
       }
 
@@ -64,7 +64,7 @@ async function ExecuteKick(
           targetUser,
           `You have been kicked from ${
             interaction.guild?.name ?? "this server"
-          } for: ${reason}`
+          } for: ${reason}`,
         );
       }
     },
@@ -81,18 +81,18 @@ export const KickCommand = CreateCommand({
         option
           .setName("user")
           .setDescription("The user to kick")
-          .setRequired(true)
+          .setRequired(true),
       )
       .addStringOption((option) =>
         option
           .setName("reason")
           .setDescription("Reason for kicking")
-          .setRequired(true)
+          .setRequired(true),
       )
       .addBooleanOption((option) =>
-        option.setName("notify").setDescription("Send DM notification to user")
+        option.setName("notify").setDescription("Send DM notification to user"),
       );
   },
-  config: Config.mod(5).build(),
+  config: { access: "mod", cooldown: "5s", botPermissions: ["KickMembers"] },
   execute: ExecuteKick,
 });

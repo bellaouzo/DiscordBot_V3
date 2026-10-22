@@ -9,7 +9,6 @@ import type {
   SlashCommandStringOption,
 } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware/CommandConfig";
 
 import { HandleTicketCreate } from "@systems/Ticket/handlers/CreateHandler";
 import { HandleTicketList } from "@systems/Ticket/handlers/ListHandler";
@@ -61,22 +60,11 @@ export const TicketCommand = CreateCommand({
   name: "ticket",
   description: "Create and manage support tickets",
   group: "utility",
-  config: Config.create()
-    .guildOnly()
-    .cooldownSeconds(3)
-    .botPermissions("ManageChannels", "ManageRoles")
-    // Only opening and reopening create or change ticket channels.
-    .skipBotPermissionsFor(
-      "panel",
-      "list",
-      "transcript",
-      "tag",
-      "add",
-      "edit",
-      "remove",
-      "about",
-    )
-    .build(),
+  config: { cooldown: "3s" },
+  subcommandConfig: {
+    open: { botPermissions: ["ManageChannels", "ManageRoles"] },
+    reopen: { botPermissions: ["ManageChannels", "ManageRoles"] },
+  },
   configure: (builder: SlashCommandBuilder) => {
     builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
       subcommand.setName("open").setDescription("Open a new support ticket"),

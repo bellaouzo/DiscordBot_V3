@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction, TextChannel } from "discord.js";
 import { ChannelType, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware/CommandConfig";
 import { EmbedFactory } from "@utilities";
 
 const MAX_SLOWMODE = 21600; // 6 hours
@@ -79,7 +78,7 @@ export const SlowmodeCommand = CreateCommand({
   name: "slowmode",
   description: "Set or disable slowmode for a channel",
   group: "moderation",
-  config: Config.mod().botPermissions("ManageChannels").build(),
+  config: { access: "mod", cooldown: "5s", botPermissions: ["ManageChannels"] },
   execute: ExecuteSlowmode,
   configure: (builder) => {
     builder

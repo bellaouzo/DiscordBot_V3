@@ -1,8 +1,7 @@
-import type { ChatInputCommandInteraction} from "discord.js";
+import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
-import type { CommandContext} from "@commands";
+import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import type { PaginationPage } from "@shared/Paginator";
 import { AllCommands } from "@commands";
 import { EmbedFactory } from "@utilities";
@@ -40,7 +39,7 @@ interface HelpSection {
 
 async function ExecuteHelp(
   interaction: ChatInputCommandInteraction,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const { paginatedResponder } = context.responders;
   const { logger } = context;
@@ -125,7 +124,7 @@ function CreateOptimizedPages(sections: HelpSection[]): PaginationPage[] {
       EmbedFactory.CreateHelpSection(
         section.name,
         section.description,
-        section.commands.length
+        section.commands.length,
       ).toJSON(),
     ],
   }));
@@ -137,6 +136,6 @@ export const HelpCommand = CreateCommand({
   name: "help",
   description: "📚 Browse all available bot commands with an interactive menu",
   group: "utility",
-  config: Config.utility(0),
+  config: {},
   execute: ExecuteHelp,
 });

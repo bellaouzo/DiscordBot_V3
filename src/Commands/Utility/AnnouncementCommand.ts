@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction, Role } from "discord.js";
 import { ChannelType, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { RequireGuild, EmbedFactory, CreateChannelManager } from "@utilities";
 
 type MentionType = "none" | "everyone" | "here" | "role";
@@ -183,6 +182,6 @@ export const AnnouncementCommand = CreateCommand({
           .setRequired(false),
       );
   },
-  config: Config.admin(),
+  config: { access: "admin", cooldown: "4s" },
   execute: ExecuteAnnouncement,
 });

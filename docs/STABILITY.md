@@ -13,7 +13,7 @@ Discord Bot V3 follows [semantic versioning](https://semver.org/) for the bot fr
 
 These areas are intended to remain backward compatible within a major version:
 
-- `CreateCommand` shape, `CommandConfig`, and `Config.*` middleware builders
+- `CreateCommand` / `CreateUserMenu` / `CreateMessageMenu` shapes and `CommandConfig`
 - Path aliases (`@commands`, `@middleware`, `@utilities`, `@shared`, `@database`, `@responders`, `@events`, `@config`, `@bot`, `@systems`)
 - Responder interfaces (`InteractionResponder`, `ButtonResponder`, routers, `PaginatedResponder`)
 - Database facade method signatures under `src/Database/`

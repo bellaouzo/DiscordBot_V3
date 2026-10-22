@@ -55,10 +55,10 @@ export function renderTickets() {
     ${pageTickets.map(t => `
       <div class="data-card clickable" onclick="openTicketViewer(${t.id})">
         <div class="data-header">
-          <span class="data-title">Ticket #${t.id} - ${t.category}</span>
+          <span class="data-title">Ticket #${t.id} - ${escapeHtml(t.category)}</span>
           <span class="status-badge ${t.status}">${t.status.toUpperCase()}</span>
         </div>
-        <p class="data-meta">Created: ${new Date(t.created_at).toLocaleDateString()} ${state.isAdminMode ? `by <span class="user-id-badge">${t.user_id}</span>` : ''}</p>
+        <p class="data-meta">Created: ${new Date(t.created_at).toLocaleDateString()} ${state.isAdminMode ? `by <span class="user-id-badge">${escapeHtml(t.user_id)}</span>` : ''}</p>
       </div>
     `).join('')}
   </div>`;
@@ -67,9 +67,9 @@ export function renderTickets() {
   if (totalPages > 1) {
     html += `
       <div class="pagination-controls">
-        <button class="btn btn-secondary btn-sm" onclick="changeTicketPage(-1)" ${state.ticketPage === 1 ? 'disabled style="opacity: 0.5; cursor: default;"' : ''}>Prev</button>
+        <button class="btn btn-secondary btn-sm" onclick="changeTicketPage(-1)" ${state.ticketPage === 1 ? 'disabled' : ''}>Prev</button>
         <span class="pagination-info">Page ${state.ticketPage} of ${totalPages}</span>
-        <button class="btn btn-secondary btn-sm" onclick="changeTicketPage(1)" ${state.ticketPage === totalPages ? 'disabled style="opacity: 0.5; cursor: default;"' : ''}>Next</button>
+        <button class="btn btn-secondary btn-sm" onclick="changeTicketPage(1)" ${state.ticketPage === totalPages ? 'disabled' : ''}>Next</button>
       </div>
     `;
   }
@@ -103,7 +103,8 @@ export async function openTicketViewer(ticketId) {
     const msgs = data.messages;
     
     document.getElementById('ticket-panel-title').textContent = `Ticket #${t.id} - ${t.category}`;
-    document.getElementById('ticket-panel-subtitle').innerHTML = `Created by <span class="user-id-badge">${t.creator_username ? `${t.creator_username} (${t.user_id})` : t.user_id}</span> | Status: <span class="status-badge ${t.status}">${t.status.toUpperCase()}</span>`;
+    const creator = t.creator_username ? `${t.creator_username} (${t.user_id})` : t.user_id;
+    document.getElementById('ticket-panel-subtitle').innerHTML = `Created by <span class="user-id-badge">${escapeHtml(creator)}</span> · <span class="status-badge ${t.status}">${t.status.toUpperCase()}</span>`;
     
     if (state.isAdminMode && t.status === 'open') {
       document.getElementById('ticket-panel-close-btn').style.display = 'inline-block';
@@ -117,14 +118,14 @@ export async function openTicketViewer(ticketId) {
       const closerName = t.closed_by_username ? `${t.closed_by_username} (${t.claimed_by})` : (t.claimed_by || 'Unknown');
       bodyHtml += `
         <div class="close-info-banner">
-          This ticket was closed by <strong>${closerName}</strong> on <strong>${closedDate}</strong>.
-          ${t.close_reason ? `<div class="mt-2"><strong>Reason:</strong> <em>${t.close_reason}</em></div>` : ''}
+          This ticket was closed by <strong>${escapeHtml(closerName)}</strong> on <strong>${closedDate}</strong>.
+          ${t.close_reason ? `<div class="mt-2"><strong>Reason:</strong> <em>${escapeHtml(t.close_reason)}</em></div>` : ''}
         </div>
       `;
     }
 
     if (msgs.length === 0) {
-      bodyHtml += '<p class="text-muted text-center" style="margin-top: 2rem;">No messages logged yet.</p>';
+      bodyHtml += '<p class="text-muted text-center empty-pad">No messages logged yet.</p>';
       document.getElementById('ticket-panel-messages').innerHTML = bodyHtml;
       return;
     }
@@ -132,10 +133,10 @@ export async function openTicketViewer(ticketId) {
     bodyHtml += msgs.map(m => `
       <div class="chat-message ${m.user_id === state.currentUser?.id ? 'self' : ''}">
         <div class="chat-header">
-          <span class="chat-author">${m.username ? `${m.username} (${m.user_id})` : m.user_id}</span>
+          <span class="chat-author">${escapeHtml(m.username || m.user_id)}</span>
           <span class="chat-time">${new Date(m.timestamp).toLocaleString()}</span>
         </div>
-        <div class="chat-bubble">${m.content}</div>
+        <div class="chat-bubble">${escapeHtml(m.content)}</div>
       </div>
     `).join('');
 
@@ -174,4 +175,14 @@ export async function closeCurrentTicket() {
   } catch (err) {
     alert("Failed to close ticket.");
   }
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }

@@ -17,7 +17,7 @@ describe("AutoDeferMiddleware", () => {
 
   it("defers when the handler is still running at the deadline", async () => {
     const context = createMockMiddlewareContext({
-      config: { autoDefer: { ephemeral: true } },
+      config: { autoDefer: "ephemeral" },
     });
     let finish: () => void = () => undefined;
     const next = vi.fn(
@@ -37,7 +37,7 @@ describe("AutoDeferMiddleware", () => {
 
   it("does not defer a handler that finishes in time", async () => {
     const context = createMockMiddlewareContext({
-      config: { autoDefer: { ephemeral: false } },
+      config: { autoDefer: true },
     });
     const next = vi.fn().mockResolvedValue(undefined);
 
@@ -51,7 +51,7 @@ describe("AutoDeferMiddleware", () => {
 
   it("does not defer once the handler has replied", async () => {
     const context = createMockMiddlewareContext({
-      config: { autoDefer: { ephemeral: false } },
+      config: { autoDefer: true },
     });
     let finish: () => void = () => undefined;
     const next = vi.fn(async () => {

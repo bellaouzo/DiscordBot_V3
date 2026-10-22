@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags, PermissionFlagsBits } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { IsBotOwner } from "@config/AppConfig";
 import type { BlocklistEntry, BlocklistTargetType } from "@database";
 import { EmbedFactory } from "@utilities";
@@ -183,7 +182,7 @@ export const BlocklistCommand = CreateCommand({
   name: "blocklist",
   description: "Block users or servers from using the bot (bot owners only)",
   group: "admin",
-  config: Config.create().botOwner().cooldownSeconds(2).build(),
+  config: { access: "botOwner", dms: true, cooldown: "2s" },
   configure: (builder) => {
     // Hidden from non-admins in servers; the bot-owner check is what actually gates it.
     builder.setDefaultMemberPermissions(PermissionFlagsBits.Administrator);

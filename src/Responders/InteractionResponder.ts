@@ -1,8 +1,4 @@
-import type {
-  ChatInputCommandInteraction,
-  User,
-  ButtonInteraction,
-} from "discord.js";
+import type { User } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { Logger } from "@shared/Logger";
 import type {
@@ -10,10 +6,11 @@ import type {
   ResponseResult,
   ResponseActionOptions,
   ResponderMessageOptions,
+  RepliableInteraction,
 } from "./ResponseTypes";
 import { ConvertToInteractionFlags } from "./ResponseTypes";
 
-type InteractionLike = ChatInputCommandInteraction | ButtonInteraction;
+type InteractionLike = RepliableInteraction;
 
 /**
  * Handles slash command and button interactions: reply, edit, defer, follow-up, and action wrappers.

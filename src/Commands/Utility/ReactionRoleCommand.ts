@@ -6,7 +6,6 @@ import type {
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import {
   RequireGuild,
   EmbedFactory,
@@ -390,10 +389,16 @@ export const ReactionRoleCommand = CreateCommand({
   name: "reactionrole",
   description: "Manage reaction role panels",
   group: "utility",
-  config: Config.mod(3)
-    .botPermissions("ManageRoles", "AddReactions")
-    .skipBotPermissionsFor("list", "about", "remove")
-    .build(),
+  config: {
+    access: "mod",
+    cooldown: "3s",
+    botPermissions: ["ManageRoles", "AddReactions"],
+  },
+  subcommandConfig: {
+    list: { botPermissions: [] },
+    about: { botPermissions: [] },
+    remove: { botPermissions: [] },
+  },
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

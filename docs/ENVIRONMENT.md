@@ -53,6 +53,19 @@ Global commands can take up to an hour to propagate. For local dev, use `guild` 
 | `APP_ENV_PATH` | (none) | Absolute path to a `.env` file |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn`, or `error` |
 
+## Web dashboard
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CLIENT_SECRET` | (required) | OAuth2 client secret from the Discord Developer Portal |
+| `OAUTH_REDIRECT_URI` | (required) | Must match a redirect in the portal, e.g. `https://dash.example.com/auth/discord/callback` |
+| `SESSION_SECRET` | (required) | Long random string used to sign login cookies |
+| `WEB_PORT` | `3000` | Port the dashboard listens on |
+| `WEB_HOST` | (all interfaces) | Set `127.0.0.1` when a reverse proxy sits in front |
+| `WEB_TRUST_PROXY` | `false` | Set `true` behind Caddy/nginx so cookies are marked secure over HTTPS |
+
+See [Dashboard Hosting](DASHBOARD_HOSTING.md) for the VPS setup.
+
 ## Optional — logging channel names
 
 Defaults used when setup creates or resolves log channels:

@@ -22,6 +22,7 @@ vi.mock("@utilities/CommandLogStore", () => ({
 }));
 
 import { DiscordLoggingMiddleware } from "@middleware/DiscordLoggingMiddleware";
+import { ResolveConfig } from "@middleware/CommandConfig";
 
 function createMiddlewareContext(overrides: {
   guild?: { id: string } | null;
@@ -50,10 +51,15 @@ function createMiddlewareContext(overrides: {
   };
   return {
     interaction,
-    command,
+    invocation: {
+      commandName: command.data.name,
+      group: command.group,
+      path: command.data.name,
+      cooldownKey: command.data.name,
+    },
     logger: createMockLogger(),
     responders: createMockResponderSet(),
-    config: {},
+    config: ResolveConfig(),
     databases: context.databases,
     appConfig: context.appConfig,
   } as unknown as MiddlewareContext;

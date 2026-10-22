@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { RequestJson } from "@utilities/ApiClient";
 import { LoadApiConfig } from "@config/ApiConfig";
@@ -63,7 +62,7 @@ export const InsultCommand = CreateCommand({
   name: "insult",
   description: "Get a random insult",
   group: "fun",
-  config: Config.create().guildOnly().cooldownSeconds(3).autoDefer().build(),
+  config: { cooldown: "3s", autoDefer: true },
   configure: (builder) => {
     builder.addUserOption((option) =>
       option.setName("user").setDescription("User to insult").setRequired(true),

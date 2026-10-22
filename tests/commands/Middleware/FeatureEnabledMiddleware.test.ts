@@ -9,6 +9,7 @@ import {
   createMockResponderSet,
 } from "../../helpers";
 import { EconomyCommand } from "@commands/Fun/EconomyCommand";
+import { ResolveConfig } from "@middleware/CommandConfig";
 
 describe("FeatureEnabledMiddleware", () => {
   beforeEach(() => {
@@ -29,10 +30,15 @@ describe("FeatureEnabledMiddleware", () => {
 
     const middlewareContext = {
       interaction,
-      command: EconomyCommand,
+      invocation: {
+        commandName: "economy",
+        group: "fun",
+        path: "economy",
+        cooldownKey: "economy",
+      },
       logger: createMockLogger(),
       responders,
-      config: EconomyCommand.config!,
+      config: ResolveConfig(EconomyCommand.config),
       databases: context.databases,
       appConfig: context.appConfig,
     } as unknown as MiddlewareContext;
@@ -63,10 +69,15 @@ describe("FeatureEnabledMiddleware", () => {
 
     const middlewareContext = {
       interaction,
-      command: EconomyCommand,
+      invocation: {
+        commandName: "economy",
+        group: "fun",
+        path: "economy",
+        cooldownKey: "economy",
+      },
       logger: createMockLogger(),
       responders,
-      config: EconomyCommand.config!,
+      config: ResolveConfig(EconomyCommand.config),
       databases: context.databases,
       appConfig: context.appConfig,
     } as unknown as MiddlewareContext;

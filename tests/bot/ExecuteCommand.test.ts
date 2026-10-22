@@ -2,19 +2,19 @@ import { describe, it, expect, vi } from "vitest";
 import {
   BuildMiddlewareChain,
   CreateCommandExecutor,
+  ResolveContextMenuInvocation,
+  ResolveInvocation,
 } from "@bot/ExecuteCommand";
-import {
-  AutoMiddleware,
-  ErrorMiddleware,
-  LoggingMiddleware,
-} from "@middleware";
-import type { CommandMiddleware } from "@middleware";
+import { CreateCommand, CreateUserMenu } from "@commands";
 import type { CommandDefinition } from "@commands";
+import { ErrorMiddleware, LoggingMiddleware, ResolveConfig } from "@middleware";
+import type { CommandMiddleware } from "@middleware";
 import {
   createMockContext,
   createMockInteraction,
   createMockLogger,
   createMockResponderSet,
+  stubInteractionOptions,
 } from "../helpers";
 
 function CreateTestCommand(
@@ -28,24 +28,41 @@ function CreateTestCommand(
   };
 }
 
+function InteractionFor(
+  subcommand: string | null,
+  group: string | null = null,
+) {
+  const interaction = createMockInteraction({ user: { id: "user-1" } });
+  stubInteractionOptions(interaction, {
+    getSubcommand: () => subcommand,
+    getSubcommandGroup: () => group,
+  });
+  return interaction;
+}
+
+const LockdownLike = CreateCommand({
+  name: "lockdown",
+  description: "Lock channels",
+  group: "moderation",
+  config: { access: "mod", cooldown: "5s", botPermissions: ["ManageRoles"] },
+  subcommandConfig: { status: { botPermissions: [], cooldown: "1s" } },
+  execute: vi.fn(),
+  configure: (builder) => {
+    builder
+      .addSubcommand((sub) => sub.setName("channel").setDescription("Lock"))
+      .addSubcommand((sub) => sub.setName("status").setDescription("Status"));
+  },
+});
+
 describe("BuildMiddlewareChain", () => {
-  it("wraps the command's middleware in the global middleware, error handler first", () => {
-    const command = CreateTestCommand({
-      config: {
-        guildOnly: true,
-        cooldown: { seconds: 3 },
-        botPermissions: { required: ["BanMembers"] },
-        autoDefer: { ephemeral: false },
-      },
-      middleware: AutoMiddleware({
-        guildOnly: true,
-        cooldown: { seconds: 3 },
-        botPermissions: { required: ["BanMembers"] },
-        autoDefer: { ephemeral: false },
-      }),
+  it("wraps the config-driven middleware in the global middleware, error handler first", () => {
+    const config = ResolveConfig({
+      cooldown: "3s",
+      botPermissions: ["BanMembers"],
+      autoDefer: true,
     });
 
-    expect(BuildMiddlewareChain(command).map((m) => m.name)).toEqual([
+    expect(BuildMiddlewareChain(config).map((m) => m.name)).toEqual([
       "error-handler",
       "blocklist",
       "logging",
@@ -59,15 +76,109 @@ describe("BuildMiddlewareChain", () => {
     ]);
   });
 
-  it("does not duplicate global middleware a command lists itself", () => {
-    const command = CreateTestCommand({
-      middleware: { before: [LoggingMiddleware], after: [ErrorMiddleware] },
-    });
+  it("adds the permission check for any non-everyone access", () => {
+    const names = BuildMiddlewareChain(ResolveConfig({ access: "mod" })).map(
+      (m) => m.name,
+    );
+    expect(names).toContain("permissions");
+  });
 
-    const names = BuildMiddlewareChain(command).map((m) => m.name);
+  it("skips guild-only for commands that allow DMs", () => {
+    const names = BuildMiddlewareChain(ResolveConfig({ dms: true })).map(
+      (m) => m.name,
+    );
+    expect(names).not.toContain("guild-only");
+  });
+
+  it("does not duplicate global middleware listed in custom middleware", () => {
+    const names = BuildMiddlewareChain(ResolveConfig(), {
+      before: [LoggingMiddleware],
+      after: [ErrorMiddleware],
+    }).map((m) => m.name);
 
     expect(names.filter((name) => name === "logging")).toHaveLength(1);
     expect(names.filter((name) => name === "error-handler")).toHaveLength(1);
+  });
+});
+
+describe("ResolveInvocation", () => {
+  it("applies the subcommand override and gives it its own cooldown key", () => {
+    const { invocation, config } = ResolveInvocation(
+      LockdownLike,
+      InteractionFor("status"),
+    );
+
+    expect(invocation).toEqual({
+      commandName: "lockdown",
+      group: "moderation",
+      path: "lockdown status",
+      cooldownKey: "lockdown status",
+    });
+    expect(config.access).toBe("mod");
+    expect(config.botPermissions).toEqual([]);
+    expect(config.cooldownMs).toBe(1000);
+  });
+
+  it("uses the command config and shared cooldown for other subcommands", () => {
+    const { invocation, config } = ResolveInvocation(
+      LockdownLike,
+      InteractionFor("channel"),
+    );
+
+    expect(invocation.cooldownKey).toBe("lockdown");
+    expect(config.botPermissions).toEqual(["ManageRoles"]);
+  });
+
+  it("includes the subcommand group in the path", () => {
+    const { invocation } = ResolveInvocation(
+      CreateTestCommand(),
+      InteractionFor("buy", "market"),
+    );
+    expect(invocation.path).toBe("test market buy");
+  });
+
+  it("resolves a shortcut alias to its command and subcommand", () => {
+    const parent = CreateCommand({
+      name: "economy",
+      description: "Economy",
+      group: "fun",
+      config: { feature: "economy", cooldown: "5s" },
+      subcommands: [
+        { name: "daily", description: "Daily", execute: vi.fn(), alias: true },
+      ],
+    });
+    const alias = parent.aliases![0];
+
+    const { invocation, config } = ResolveInvocation(
+      alias,
+      InteractionFor(null),
+    );
+
+    expect(invocation).toEqual({
+      commandName: "economy",
+      group: "fun",
+      path: "economy daily",
+      cooldownKey: "economy",
+    });
+    expect(config.feature).toBe("economy");
+  });
+});
+
+describe("ResolveContextMenuInvocation", () => {
+  it("shares the linked command's name and inherits its subcommand config", () => {
+    const menu = CreateUserMenu({
+      name: "Check Status",
+      command: LockdownLike,
+      subcommand: "status",
+      execute: vi.fn(),
+    });
+
+    const { invocation, config } = ResolveContextMenuInvocation(menu);
+
+    expect(invocation.commandName).toBe("lockdown");
+    expect(invocation.path).toBe("Check Status (user menu)");
+    expect(config.access).toBe("mod");
+    expect(config.botPermissions).toEqual([]);
   });
 });
 

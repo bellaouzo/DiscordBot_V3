@@ -35,7 +35,7 @@ Practical examples for the Discord Bot V3 framework. Full documentation: [docs/R
 
 | Example | Teaches | Key Features |
 |---------|---------|--------------|
-| **Starter Template** | Basic command structure | `CreateCommand`, `Config.utility()`, logging |
+| **Starter Template** | Basic command structure | `CreateCommand`, `config`, logging |
 | **Ping Command** | Action responders | `WithAction`, loading states, follow-ups |
 | **Hello Command** | Simple replies | `Reply`, basic logging, user interaction |
 | **Kick Command** | Command options | User/string/boolean options, permissions, DM sending |
@@ -69,7 +69,7 @@ copy examples\basic\starter-template.ts src\Commands\Utility\my-command.ts
 
 **Command not working:**
 - Verify the command name is unique (`npm run check:commands`)
-- Check that `config` matches your intent (`Config.mod()`, `Config.utility()`, etc.)
+- Check that `config` matches your intent (`{ access: "mod" }`, `{ cooldown: "3s" }`, etc.)
 - Check console logs for errors
 
 **TypeScript errors:**
@@ -79,7 +79,6 @@ copy examples\basic\starter-template.ts src\Commands\Utility\my-command.ts
 
 ```typescript
 import { CommandContext, CreateCommand } from "@commands";
-import { Config } from "@middleware";
 
 async function ExecuteMyCommand(interaction, context) {
   const { interactionResponder } = context.responders;
@@ -90,7 +89,7 @@ export const MyCommand = CreateCommand({
   name: "my-command",
   description: "My awesome command",
   group: "utility",
-  config: Config.utility(2),
+  config: { cooldown: "2s" },
   execute: ExecuteMyCommand,
 });
 ```

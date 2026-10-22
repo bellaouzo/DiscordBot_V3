@@ -6,7 +6,6 @@ import type {
 import { ChannelType, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import type { LockdownScope } from "@database";
 import {
@@ -81,10 +80,12 @@ export const LockdownCommand = CreateCommand({
   name: "lockdown",
   description: "Lock or unlock channels and categories",
   group: "moderation",
-  config: Config.mod()
-    .botPermissions("ManageChannels", "ManageRoles")
-    .skipBotPermissionsFor("status")
-    .build(),
+  config: {
+    access: "mod",
+    cooldown: "5s",
+    botPermissions: ["ManageChannels", "ManageRoles"],
+  },
+  subcommandConfig: { status: { botPermissions: [] } },
   execute: ExecuteLockdown,
   configure: (builder) => {
     builder

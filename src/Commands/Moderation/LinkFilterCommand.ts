@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { RequireGuild, EmbedFactory, AppendFeatureGuideHint } from "@utilities";
 import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";
 import type { LinkFilterType } from "@database";
@@ -269,7 +268,7 @@ export const LinkFilterCommand = CreateCommand({
   name: "linkfilter",
   description: "Manage link allow/block lists",
   group: "moderation",
-  config: Config.mod().build(),
+  config: { access: "mod", cooldown: "5s" },
   execute: ExecuteLinkFilter,
   configure: (builder) => {
     builder

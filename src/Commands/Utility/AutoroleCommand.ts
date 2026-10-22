@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import {
   RequireGuild,
   EmbedFactory,
@@ -90,10 +89,12 @@ export const AutoroleCommand = CreateCommand({
   name: "autorole",
   description: "Configure automatic role assignment for new members",
   group: "utility",
-  config: Config.mod(3)
-    .botPermissions("ManageRoles")
-    .skipBotPermissionsFor("clear", "view", "about")
-    .build(),
+  config: { access: "mod", cooldown: "3s", botPermissions: ["ManageRoles"] },
+  subcommandConfig: {
+    clear: { botPermissions: [] },
+    view: { botPermissions: [] },
+    about: { botPermissions: [] },
+  },
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

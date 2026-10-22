@@ -1,0 +1,59 @@
+/* ============================================================
+   buttons.css — .btn variants and icon buttons.
+   ============================================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background .15s, border-color .15s;
+}
+
+.btn:disabled { opacity: .45; cursor: default; }
+
+.btn-primary { background: var(--dark); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--dark-2); }
+
+.btn-secondary { background: var(--surface); border-color: var(--line); color: var(--ink); }
+.btn-secondary:hover:not(:disabled) { border-color: var(--ink-2); }
+
+.btn-accent { background: var(--accent); color: var(--accent-ink); }
+.btn-accent:hover:not(:disabled) { background: #f7d469; }
+
+.btn-ghost { color: inherit; border-color: rgba(255, 255, 255, .25); }
+.btn-ghost:hover:not(:disabled) { background: rgba(255, 255, 255, .08); }
+
+.btn-danger { background: var(--bad); color: #fff; }
+.btn-danger:hover:not(:disabled) { background: #9c3a24; }
+
+.btn-sm { height: 30px; padding: 0 12px; font-size: 13px; border-radius: 8px; }
+
+.btn-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  color: var(--muted);
+}
+
+.btn-icon:hover { background: var(--surface-2); color: var(--ink); }
+
+.link-btn {
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
+.link-btn:hover { text-decoration-color: currentColor; }
+.link-btn.tile-foot { align-self: flex-start; }

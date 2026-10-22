@@ -3,6 +3,16 @@ import { loadTickets } from '../views/tickets.js';
 import { loadInfractions } from '../views/infractions.js';
 import { loadUsers } from '../views/lookup.js';
 import { loadSettings } from '../views/settings/index.js';
+import { loadOverview } from '../views/overview.js';
+
+/* ── Breadcrumb: "Server / Page" ──────────────────────────── */
+export function updateCrumb() {
+  const crumb = document.getElementById('crumb');
+  if (!crumb) return;
+  const guild = state.mutualGuilds.find(g => g.id === state.selectedGuildId);
+  const page = document.querySelector('.nav-btn.active .nav-text')?.textContent || '';
+  crumb.textContent = guild ? `${guild.name} / ${page}` : 'Choose a server';
+}
 
 export function updateTitles() {
   const ticketsTitle = document.getElementById('tickets-title');
@@ -22,7 +32,14 @@ export function updateTitles() {
 
 export async function refreshCurrentView() {
   const activeView = document.querySelector('.nav-btn.active')?.getAttribute('data-view');
-  if (!state.selectedGuildId && activeView !== 'overview') {
+  updateCrumb();
+
+  if (activeView === 'overview') {
+    await loadOverview();
+    return;
+  }
+
+  if (!state.selectedGuildId) {
     const container = document.getElementById(`${activeView}-container`);
     if (container) {
       container.innerHTML = '<p class="error-text">Please select a server first.</p>';

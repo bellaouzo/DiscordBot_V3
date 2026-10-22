@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { RequireGuild, EmbedFactory } from "@utilities";
 import { CreateNoteManager } from "@systems/Moderation/NoteManager";
 import type { Note } from "@database";
@@ -209,7 +208,7 @@ export const NoteCommand = CreateCommand({
   name: "note",
   description: "Manage user notes",
   group: "moderation",
-  config: Config.mod(5).build(),
+  config: { access: "mod", cooldown: "5s" },
   execute: ExecuteNote,
   configure: (builder) => {
     builder

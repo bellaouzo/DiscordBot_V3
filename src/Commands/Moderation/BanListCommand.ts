@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction, GuildBan } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { RequireGuild, EmbedFactory } from "@utilities";
 import type { PaginationPage } from "@shared/Paginator";
 
@@ -133,7 +132,7 @@ export const BanListCommand = CreateCommand({
   name: "banlist",
   description: "View the server ban list or check a user's ban status",
   group: "moderation",
-  config: Config.mod().botPermissions("BanMembers").build(),
+  config: { access: "mod", cooldown: "5s", botPermissions: ["BanMembers"] },
   execute: ExecuteBanList,
   configure: (builder) => {
     builder

@@ -1,9 +1,12 @@
-import type { ChatInputCommandInteraction } from "discord.js";
+import type {
+  ChatInputCommandInteraction,
+  User,
+  UserContextMenuCommandInteraction,
+} from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
-import { RequireGuild, EmbedFactory } from "@utilities";
+import { CreateCommand, CreateUserMenu } from "@commands";
+import { RequireGuildFromInteraction, EmbedFactory } from "@utilities";
 import { CreateWarnManager } from "@systems/Moderation/WarnManager";
 import { CreateNoteManager } from "@systems/Moderation/NoteManager";
 import { LevelManager } from "@systems/Leveling";
@@ -51,11 +54,22 @@ async function ExecuteProfile(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
 ): Promise<void> {
+  await ShowProfile(interaction, context, interaction.options.getUser("user"));
+}
+
+/**
+ * Shows a member's profile: `requestedUser`, or the person asking when null. Shared by
+ * `/profile` and the View Profile right-click menu.
+ */
+async function ShowProfile(
+  interaction: ChatInputCommandInteraction | UserContextMenuCommandInteraction,
+  context: CommandContext,
+  requestedUser: User | null,
+): Promise<void> {
   const { interactionResponder } = context.responders;
 
-  const requestedUser = interaction.options.getUser("user");
   const targetUser = requestedUser ?? interaction.user;
-  const targetMember = await RequireGuild(interaction)
+  const targetMember = await RequireGuildFromInteraction(interaction)
     .members.fetch({ user: targetUser.id, withPresences: true })
     .catch(() => null);
 
@@ -72,20 +86,20 @@ async function ExecuteProfile(
   }
 
   const levelManager = new LevelManager(
-    RequireGuild(interaction).id,
+    RequireGuildFromInteraction(interaction).id,
     context.databases.userDb,
   );
   const economyManager = new EconomyManager(
-    RequireGuild(interaction).id,
+    RequireGuildFromInteraction(interaction).id,
     context.databases.userDb,
   );
   const warnManager = CreateWarnManager({
-    guildId: RequireGuild(interaction).id,
+    guildId: RequireGuildFromInteraction(interaction).id,
     userDb: context.databases.userDb,
     logger: context.logger,
   });
   const noteManager = CreateNoteManager({
-    guildId: RequireGuild(interaction).id,
+    guildId: RequireGuildFromInteraction(interaction).id,
     userDb: context.databases.userDb,
     logger: context.logger,
   });
@@ -193,6 +207,14 @@ export const ProfileCommand = CreateCommand({
         .setRequired(false),
     );
   },
-  config: Config.create().guildOnly().cooldownSeconds(3).autoDefer().build(),
+  config: { cooldown: "3s", autoDefer: true },
   execute: ExecuteProfile,
+});
+
+/** Right-click a user → Apps → View Profile. */
+export const ProfileUserMenu = CreateUserMenu({
+  name: "View Profile",
+  command: ProfileCommand,
+  execute: (interaction, context) =>
+    ShowProfile(interaction, context, interaction.targetUser),
 });

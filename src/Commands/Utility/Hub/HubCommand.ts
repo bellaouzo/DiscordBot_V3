@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { RequireGuild } from "@utilities";
 import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";
 import { BuildHubPayload } from "@commands/Utility/Hub/HubComponents";
@@ -47,7 +46,7 @@ export const HubCommand = CreateCommand({
   name: "hub",
   description: "Quick-action dashboard for tickets, help, stats, and more",
   group: "utility",
-  config: Config.utility(3),
+  config: { cooldown: "3s" },
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

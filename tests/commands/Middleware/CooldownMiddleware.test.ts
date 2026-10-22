@@ -4,7 +4,6 @@ import {
   CooldownMiddleware,
   RecordCooldown,
   ResetCooldownsForTesting,
-  ResolveCooldownMs,
 } from "@middleware/CooldownMiddleware";
 import {
   ConfigureCooldownPersistence,
@@ -25,46 +24,39 @@ import {
 } from "../../helpers";
 import type { MiddlewareContext } from "@middleware";
 import type { CommandDefinition } from "@commands";
+import { ResolveConfig } from "@middleware/CommandConfig";
 
 function createMiddlewareContext(overrides?: {
   cooldownSeconds?: number;
+  commandName?: string;
 }): MiddlewareContext {
   const interaction = createMockInteraction({
     user: { id: "user-1", username: "TestUser" },
   });
   const context = createMockContext();
   const command = {
-    data: { name: "test", description: "Test" },
+    data: { name: overrides?.commandName ?? "test", description: "Test" },
     group: "utility",
     execute: vi.fn().mockResolvedValue(undefined),
   };
   return {
     interaction,
-    command,
+    invocation: {
+      commandName: command.data.name,
+      group: command.group,
+      path: command.data.name,
+      cooldownKey: command.data.name,
+    },
     logger: createMockLogger(),
     responders: createMockResponderSet(),
-    config: {
-      cooldown: { seconds: overrides?.cooldownSeconds ?? 30 },
-    },
+    config: ResolveConfig({
+      cooldown: `${overrides?.cooldownSeconds ?? 30}s`,
+    }),
     databases: context.databases,
     appConfig: context.appConfig,
     run: { startedAt: Date.now(), reachedHandler: false },
   } as unknown as MiddlewareContext;
 }
-
-describe("ResolveCooldownMs", () => {
-  it("prefers milliseconds over seconds and minutes", () => {
-    expect(
-      ResolveCooldownMs({ milliseconds: 250, seconds: 10, minutes: 1 }),
-    ).toBe(250);
-  });
-
-  it("converts seconds and minutes to milliseconds", () => {
-    expect(ResolveCooldownMs({ seconds: 2 })).toBe(2000);
-    expect(ResolveCooldownMs({ minutes: 1 })).toBe(60_000);
-    expect(ResolveCooldownMs({})).toBe(0);
-  });
-});
 
 describe("CooldownMiddleware", () => {
   beforeEach(() => {
@@ -78,7 +70,7 @@ describe("CooldownMiddleware", () => {
 
   it("calls next when cooldown config is missing", async () => {
     const context = createMiddlewareContext();
-    context.config = {};
+    context.config = ResolveConfig();
     const next = vi.fn().mockResolvedValue(undefined);
 
     await CooldownMiddleware.execute(context, next);
@@ -88,7 +80,7 @@ describe("CooldownMiddleware", () => {
 
   it("calls next when resolved cooldown duration is zero", async () => {
     const context = createMiddlewareContext();
-    context.config = { cooldown: {} };
+    context.config = ResolveConfig({ cooldown: "0s" });
     const next = vi.fn().mockResolvedValue(undefined);
 
     await CooldownMiddleware.execute(context, next);
@@ -177,7 +169,7 @@ describe("CooldownMiddleware", () => {
         description: "Success",
       } as CommandDefinition["data"],
       group: "utility",
-      config: { cooldown: { seconds: 30 } },
+      config: { cooldown: "30s" },
       middleware: { before: [CooldownMiddleware] },
       execute: vi.fn().mockResolvedValue(undefined),
     };
@@ -188,7 +180,7 @@ describe("CooldownMiddleware", () => {
         description: "Fail",
       } as CommandDefinition["data"],
       group: "utility",
-      config: { cooldown: { seconds: 30 } },
+      config: { cooldown: "30s" },
       middleware: { before: [CooldownMiddleware] },
       execute: vi.fn().mockRejectedValue(new Error("fail")),
     };
@@ -200,10 +192,11 @@ describe("CooldownMiddleware", () => {
 
     await executor(successCommand, interaction, responders, logger);
 
-    const successContext = createMiddlewareContext({ cooldownSeconds: 30 });
+    const successContext = createMiddlewareContext({
+      cooldownSeconds: 30,
+      commandName: "success-cmd",
+    });
     successContext.interaction.user.id = "user-2";
-    (successContext.command as { data: { name: string } }).data.name =
-      "success-cmd";
 
     const blockNext = vi.fn();
     await CooldownMiddleware.execute(successContext, blockNext);
@@ -213,9 +206,11 @@ describe("CooldownMiddleware", () => {
 
     await executor(failCommand, interaction, responders, logger);
 
-    const failContext = createMiddlewareContext({ cooldownSeconds: 30 });
+    const failContext = createMiddlewareContext({
+      cooldownSeconds: 30,
+      commandName: "fail-cmd",
+    });
     failContext.interaction.user.id = "user-2";
-    (failContext.command as { data: { name: string } }).data.name = "fail-cmd";
 
     const allowNext = vi.fn();
     await CooldownMiddleware.execute(failContext, allowNext);

@@ -270,6 +270,7 @@ describe("RegisterCommandHandler", () => {
     await client.emitInteraction({
       isAutocomplete: () => false,
       isChatInputCommand: () => false,
+      isContextMenuCommand: () => false,
     });
 
     expect(executeCommand).not.toHaveBeenCalled();
@@ -290,6 +291,7 @@ describe("RegisterCommandHandler", () => {
     await client.emitInteraction({
       isAutocomplete: () => false,
       isChatInputCommand: () => true,
+      isContextMenuCommand: () => false,
       commandName: "missing",
     });
 
@@ -318,6 +320,7 @@ describe("RegisterCommandHandler", () => {
     const interaction = {
       isAutocomplete: () => false,
       isChatInputCommand: () => true,
+      isContextMenuCommand: () => false,
       commandName: "ping",
       id: "interaction-1",
       guildId: "guild-1",
@@ -357,6 +360,7 @@ describe("RegisterCommandHandler", () => {
     const interaction = {
       isAutocomplete: () => true,
       isChatInputCommand: () => false,
+      isContextMenuCommand: () => false,
       commandName: "tag",
       id: "interaction-2",
       guildId: "guild-1",

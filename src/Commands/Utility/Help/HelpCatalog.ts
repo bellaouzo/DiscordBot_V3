@@ -1,5 +1,5 @@
 import type { APIEmbed } from "discord.js";
-import { AllCommands } from "@commands/registry";
+import { PrimaryCommands } from "@commands/registry";
 import { EmbedFactory } from "@utilities";
 import type {
   CategoryView,
@@ -18,7 +18,7 @@ export async function GetAllCommandsCached(
     return cached.data;
   }
 
-  let commands = AllCommands().map((cmd) => ({
+  let commands = PrimaryCommands().map((cmd) => ({
     name: cmd.data.name,
     description: cmd.data.description,
     group: cmd.group,

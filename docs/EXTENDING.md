@@ -21,7 +21,7 @@ npm run new:command -- Utility Remind            # single command
 npm run new:command -- Utility Remind --subcommands
 ```
 
-This creates `src/Commands/Utility/RemindCommand.ts` and a passing test in `tests/commands/Utility/`. Files named `*Command.ts` are discovered at startup and deployed; there is no list to register in. Fill in the TODOs, pick a `Config` preset (`Config.utility()`, `Config.mod()`, `Config.admin()`, ...), and see [WRITING_COMMANDS.md](WRITING_COMMANDS.md) for responders and middleware.
+This creates `src/Commands/Utility/RemindCommand.ts` and a passing test in `tests/commands/Utility/`. Files named `*Command.ts` are discovered at startup and deployed; there is no list to register in. Fill in the TODOs, set `config` (e.g. `{ access: "mod", cooldown: "5s" }`), and see [WRITING_COMMANDS.md](WRITING_COMMANDS.md) for responders and middleware.
 
 ## Subcommands
 
@@ -32,7 +32,7 @@ export const RemindCommand = CreateCommand({
   name: "remind",
   description: "Set reminders",
   group: "utility",
-  config: Config.utility(3),
+  config: { cooldown: "3s" },
   subcommands: [
     { name: "list", description: "List your reminders", execute: HandleList },
     {
@@ -68,7 +68,7 @@ Add an entry to `FEATURE_LIST` in [Features.ts](../src/Shared/Features.ts). One 
 
 - **Help only:** `key`, `name`, `icon`, `summary`, and a `guide`. Show it from a command with `ReplyWithFeatureAbout(interaction, context, "your-key")`.
 - **Toggleable:** add `toggle: { order, label, emoji, description, setting: "your_feature_enabled" }`, after adding that boolean to the [settings schema](#a-guild-setting). `/setup` shows and saves it automatically.
-- **Gate commands on it:** `config: Config.utilityWithFeature("your-key")` or `.requiredFeature("your-key")`. Guilds with it off get a "<Name> Disabled" reply.
+- **Gate commands on it:** `config: { feature: "your-key" }`. Guilds with it off get a "<Name> Disabled" reply.
 
 A toggle whose state is derived from other settings (like starboard, which is "on" when a channel is set) uses `readEnabled` instead of `setting`, and needs explicit save logic in [SaveSetupDraft.ts](../src/Systems/Setup/persistence/SaveSetupDraft.ts).
 

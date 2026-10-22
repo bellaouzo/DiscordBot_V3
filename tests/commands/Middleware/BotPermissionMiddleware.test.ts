@@ -35,7 +35,7 @@ describe("BotPermissionMiddleware", () => {
   it("calls next when the bot has every required permission", async () => {
     const context = createContext({
       appPermissions: [PermissionFlagsBits.BanMembers],
-      config: { botPermissions: { required: ["BanMembers"] } },
+      config: { botPermissions: ["BanMembers"] },
     });
     const next = vi.fn().mockResolvedValue(undefined);
 
@@ -48,7 +48,7 @@ describe("BotPermissionMiddleware", () => {
     const context = createContext({
       appPermissions: [PermissionFlagsBits.ManageMessages],
       config: {
-        botPermissions: { required: ["ManageMessages", "ReadMessageHistory"] },
+        botPermissions: ["ManageMessages", "ReadMessageHistory"],
       },
     });
     const next = vi.fn();
@@ -69,16 +69,10 @@ describe("BotPermissionMiddleware", () => {
     );
   });
 
-  it("skips exempt subcommands", async () => {
+  it("calls next when a subcommand override clears the requirement", async () => {
     const context = createContext({
       appPermissions: [],
-      subcommand: "status",
-      config: {
-        botPermissions: {
-          required: ["ManageRoles"],
-          exemptSubcommands: ["status"],
-        },
-      },
+      config: { botPermissions: [] },
     });
     const next = vi.fn().mockResolvedValue(undefined);
 
@@ -90,7 +84,7 @@ describe("BotPermissionMiddleware", () => {
   it("calls next when Discord sent no app permissions", async () => {
     const context = createContext({
       appPermissions: null,
-      config: { botPermissions: { required: ["BanMembers"] } },
+      config: { botPermissions: ["BanMembers"] },
     });
     const next = vi.fn().mockResolvedValue(undefined);
 

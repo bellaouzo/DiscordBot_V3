@@ -8,6 +8,7 @@ import {
   createMockResponderSet,
 } from "../../helpers";
 import type { MiddlewareContext } from "@middleware";
+import { ResolveConfig } from "@middleware/CommandConfig";
 
 function createMiddlewareContext(): MiddlewareContext {
   const interaction = createMockInteraction({
@@ -22,10 +23,15 @@ function createMiddlewareContext(): MiddlewareContext {
 
   return {
     interaction,
-    command,
+    invocation: {
+      commandName: command.data.name,
+      group: command.group,
+      path: command.data.name,
+      cooldownKey: command.data.name,
+    },
     logger: createMockLogger(),
     responders: createMockResponderSet(),
-    config: {},
+    config: ResolveConfig(),
     databases: context.databases,
     appConfig: context.appConfig,
   } as unknown as MiddlewareContext;

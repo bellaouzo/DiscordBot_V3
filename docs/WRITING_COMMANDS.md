@@ -2,11 +2,13 @@
 
 Guide to command structure, middleware, responders, and utilities in the Discord Bot V3 framework.
 
-> **Read this first:** [Basic Command Structure](#basic-command-structure) → [Config presets](#basic-command-structure) → [Middleware System](#middleware-system) → [Command File Naming](#command-file-naming) → [Reference — Responder System](#reference--responder-system) (lookup when needed)
+> **Read this first:** [Basic Command Structure](#basic-command-structure) → [Config](#config) → [Subcommands, shortcuts and right-click menus](#subcommands-shortcuts-and-right-click-menus) → [Middleware System](#middleware-system) → [Reference — Responder System](#reference--responder-system) (lookup when needed)
 
 ## Table of contents
 
 - [Basic Command Structure](#basic-command-structure)
+- [Config](#config)
+- [Subcommands, shortcuts and right-click menus](#subcommands-shortcuts-and-right-click-menus)
 - [Middleware System](#middleware-system)
 - [Command File Naming](#command-file-naming)
 - [Utilities](#utilities)
@@ -16,20 +18,13 @@ Guide to command structure, middleware, responders, and utilities in the Discord
 
 The quickest start is `npm run new:command -- <Group> <Name>` (add `--subcommands` for a [subcommand table](EXTENDING.md#subcommands)), which creates the command and a test.
 
-Use `CreateCommand` with `Config` from `@middleware`; middleware is applied automatically via `AutoMiddleware(options.config)`. Override with `options.middleware` if needed.
-
 ```typescript
-import { CommandContext, CreateCommand } from "@commands";
-import { Config } from "@middleware";
+import { CreateCommand } from "@commands";
 
 async function ExecuteMyCommand(interaction, context) {
   const { interactionResponder } = context.responders;
-
-  await interactionResponder.Defer(interaction, true);
-
   const result = await doSomething();
-
-  await interactionResponder.Edit(interaction, {
+  await interactionResponder.Reply(interaction, {
     content: `Operation completed: ${result}`,
   });
 }
@@ -38,47 +33,87 @@ export const MyCommand = CreateCommand({
   name: "my-command",
   description: "My awesome command",
   group: "utility",
-  config: Config.utility(5),
+  config: { cooldown: "5s", autoDefer: true },
   execute: ExecuteMyCommand,
 });
 ```
 
-Use `Config` presets for common cases:
+## Config
 
-| Preset | What it enables |
-|--------|-----------------|
-| `Config.utility(seconds)` | Guild-only, cooldown, logging, error handling |
-| `Config.utilityWithFeature("economy" \| "giveaways", seconds)` | Guild-only, feature gate, cooldown, logging, error handling |
-| `Config.mod(seconds).build()` | Guild-only, mod role, cooldown, logging, error handling |
-| `Config.admin(seconds)` | Guild-only, admin role, cooldown, logging, error handling |
-| `Config.create()...build()` | Custom guild-only, Discord permissions, roles, cooldown |
+`config` is a plain object. Your editor autocompletes every option and its allowed values, and hovering an option shows its documentation (`CommandConfig` in `src/Commands/Middleware/CommandConfig.ts`). Everything is optional; the defaults are **server only, anyone can use it, no cooldown**.
 
-Examples:
+| Option | Values | What it does |
+|--------|--------|--------------|
+| `access` | `"everyone"` (default), `"mod"`, `"admin"`, `"serverOwner"`, `"botOwner"` | Who may run it. `mod`/`admin` use the roles set in `/setup`, with Discord permissions as a fallback |
+| `cooldown` | `"500ms"`, `"5s"`, `"2m"`, `"1h"`, or `false` | Per-user cooldown. `false` removes an inherited one |
+| `botPermissions` | e.g. `["BanMembers"]` | Permissions the **bot** needs in the channel; missing ones are named to the user |
+| `autoDefer` | `true` or `"ephemeral"` | Defers if the handler hasn't replied within ~2s (for slow APIs) |
+| `feature` | e.g. `"economy"` | A per-server feature toggle that must be on |
+| `userPermissions` | e.g. `["ManageGuild"]` | Discord permissions the **user** needs, on top of `access` |
+| `anyUserPermission` | `true` | With `userPermissions`, one of them is enough |
+| `role` | role ID | A role the user must have |
+| `dms` | `true` | Also allow the command in DMs |
 
 ```typescript
-config: Config.utility(5);
-config: Config.mod(5).build();
-config: Config.admin();
-config: Config.create()
-  .guildOnly()
-  .permissions("ManageMessages", "KickMembers")
-  .cooldownSeconds(10)
-  .build();
-
-// The bot itself needs Manage Roles, except for the read-only `status` subcommand
-config: Config.mod()
-  .botPermissions("ManageChannels", "ManageRoles")
-  .skipBotPermissionsFor("status")
-  .build();
-
-// Calls a slow external API: defer automatically if no reply within ~2s
-config: Config.create().guildOnly().cooldownSeconds(3).autoDefer().build();
-
-// Only users listed in BOT_OWNER_IDS
-config: Config.create().botOwner().build();
+config: { cooldown: "3s" }
+config: { access: "mod", cooldown: "5s", botPermissions: ["BanMembers"] }
+config: { feature: "economy", cooldown: "5s" }
+config: { access: "botOwner", dms: true }
 ```
 
-You do **not** list `LoggingMiddleware`, `CooldownMiddleware`, and similar imports on each command. `CreateCommand` calls `AutoMiddleware(config)` when `middleware` is omitted.
+Middleware is picked from the config automatically. You never list `CooldownMiddleware` or similar on a command.
+
+## Subcommands, shortcuts and right-click menus
+
+### Per-subcommand config
+
+A subcommand can override any config field for itself. Fields it sets replace the command's; everything else is inherited. Table-style subcommands put it on the entry:
+
+```typescript
+subcommands: [
+  { name: "open", description: "Open a ticket", execute: Open,
+    config: { botPermissions: ["ManageChannels"], cooldown: "30s" } },
+  { name: "list", description: "List tickets", execute: List },
+]
+```
+
+Commands that add subcommands in `configure` use `subcommandConfig`, keyed by path (`"status"`, `"config add"`):
+
+```typescript
+config: { access: "mod", botPermissions: ["ManageChannels", "ManageRoles"] },
+subcommandConfig: { status: { botPermissions: [] } },
+```
+
+A key that isn't a real subcommand throws at startup, so renaming a subcommand can't silently drop its override. A subcommand that sets its own `cooldown` gets its own cooldown; otherwise all subcommands share the command's.
+
+### Shortcut aliases
+
+Mark a table-style subcommand with `alias: true` to also register it as a top-level command with the same options, handler and config: `/economy daily` is also `/daily`. Use `alias: "name"` to pick a different name. Shortcuts share the parent's server toggle, channel restrictions and cooldown, and `/command disable daily` resolves to `/economy`. They don't appear separately in `/help`. The loader refuses to start if shortcuts push the total past Discord's 100-command limit.
+
+### Right-click menus
+
+`CreateUserMenu` / `CreateMessageMenu` add an entry to Discord's Apps menu. Export it from the linked command's file; the loader finds it. A menu inherits the linked command's config (plus a subcommand's override if you name one) and runs through the same middleware, so `/command disable warn` also disables the Warn menu.
+
+```typescript
+export const WarnUserMenu = CreateUserMenu({
+  name: "Warn",
+  command: WarnCommand,
+  subcommand: "add",
+  execute: async (interaction, context) => {
+    await PromptModal({
+      interaction,
+      modalRouter: context.responders.modalRouter,
+      title: `Warn ${interaction.targetUser.username}`,
+      fields: [{ id: "reason", label: "Reason", style: "paragraph", required: true }],
+      onSubmit: (submit, values) => WarnUser({ interaction: submit, context, ... }),
+    });
+  },
+});
+```
+
+Discord allows 5 user menus and 5 message menus; the loader checks this. Current menus: **Warn**, **Mute**, **Kick**, **Casefile** and **View Profile** on users, and **Purge From Here** on messages.
+
+`PromptModal` (`@shared/ModalPrompt`) shows a modal and hands you the trimmed values. A modal must be the interaction's first response, so don't set `autoDefer` on a menu that opens one.
 
 ## Middleware System
 
@@ -96,18 +131,18 @@ Error → Blocklist → Logging → CommandEnabled → ChannelRestriction      (
 
 The global middleware is added by the executor, so it applies even to commands that pass their own `middleware`. `ErrorMiddleware` is outermost, so a throw anywhere in the chain is logged and answered.
 
+Middleware reads `context.config` (the config with the subcommand override applied and defaults filled in) and `context.invocation` (`commandName`, `path` such as `"economy daily"`, and `cooldownKey`).
+
 ### What `AutoMiddleware` adds
 
-| When `config` includes | Adds |
-|------------------------|------|
-| `guildOnly` | `GuildMiddleware` |
-| `requiredFeature` | `FeatureEnabledMiddleware` |
-| permissions / mod / admin / owner / botOwner / role | `PermissionMiddleware` |
+| When the resolved config has | Adds |
+|------------------------------|------|
+| server only (no `dms: true`) | `GuildMiddleware` |
+| `feature` | `FeatureEnabledMiddleware` |
+| `access` other than `everyone`, `userPermissions` or `role` | `PermissionMiddleware` |
 | `botPermissions` | `BotPermissionMiddleware` |
 | `cooldown` | `CooldownMiddleware` |
 | `autoDefer` | `AutoDeferMiddleware` |
-
-`Config.utility()`, `Config.mod()`, and `Config.admin()` already set `guildOnly` and cooldown.
 
 ### Overriding the chain (advanced)
 
@@ -137,7 +172,7 @@ export const CustomMiddleware: CommandMiddleware = {
 **LoggingMiddleware**
 
 - Logs `Command started`, then the outcome: `Command completed` (with `durationMs`), `Command blocked` (with `blockedBy`, the middleware that stopped it), or `Command threw`
-- Warns with `Command slow` above 2.5s; such commands are candidates for `.autoDefer()`
+- Warns with `Command slow` above 2.5s; such commands are candidates for `autoDefer: true`
 
 **ErrorMiddleware**
 
@@ -150,13 +185,13 @@ export const CustomMiddleware: CommandMiddleware = {
 - Validates Discord permissions, configured staff roles, and owner-only commands
 - Before setup: allows Discord **Administrator** / **Manage Server** holders to run admin commands; others see **Setup Required**
 - After setup: checks configured admin/mod roles; Discord admins still bypass via `IsAdmin` / `IsModerator`
-- Supports `required` permissions (all or any), specific roles, and server ownership
+- Enforces `access`, `userPermissions` (all or any) and `role`
 - Provides clear permission error messages
 
 **FeatureEnabledMiddleware**
 
 - Blocks commands when a per-guild feature is disabled (any toggleable feature in `@shared/Features`)
-- Applied automatically when using `Config.utilityWithFeature(...)` or `Config.create().requiredFeature(...).build()`
+- Applied automatically when the config sets `feature`
 - Reads toggle state through `IsFeatureEnabled` in `@shared/Features`
 
 **CommandEnabledMiddleware**
@@ -179,12 +214,12 @@ export const CustomMiddleware: CommandMiddleware = {
 **BotPermissionMiddleware**
 
 - Checks the bot's own permissions in the current channel (`interaction.appPermissions`, no API call) and names what's missing
-- Use `.botPermissions(...)` on any command that bans, kicks, times out, deletes messages, edits channels or manages roles
-- `.skipBotPermissionsFor("status", ...)` exempts read-only subcommands
+- Set `botPermissions` on any command that bans, kicks, times out, deletes messages, edits channels or manages roles
+- Read-only subcommands opt out with a `botPermissions: []` override
 
 **AutoDeferMiddleware**
 
-- Opt in with `.autoDefer()` (public) or `.autoDefer({ ephemeral: true })`
+- Opt in with `autoDefer: true` (public) or `autoDefer: "ephemeral"`
 - If the handler hasn't replied ~2s after the chain started, defers for it; `interactionResponder.Reply` then fills in the deferred reply
 - Do **not** use on commands that call `showModal()` or raw `interaction.reply()`: both fail once the interaction is deferred
 - The deferred reply's visibility is fixed at defer time, so an ephemeral error after a public auto-defer is shown publicly
@@ -192,15 +227,14 @@ export const CustomMiddleware: CommandMiddleware = {
 **CooldownMiddleware**
 
 - Rate limiting per user/command
-- Configurable durations (milliseconds, seconds, minutes)
+- Durations like `"5s"`; subcommands with their own cooldown get their own key
 - The cooldown is reserved when the check passes, so repeated clicks while a command is still running are rejected; it is released if the command throws
 - Automatic cleanup of expired cooldowns
 
 **GuildMiddleware**
 
-- Ensures the command runs in a guild when `config.guildOnly` is true
+- Ensures the command runs in a server (the default; `dms: true` turns it off)
 - Replies with "Guild Only" and does not run the command when used in DMs
-- Applied automatically by `AutoMiddleware` when using `Config.mod()`, `Config.admin()`, or `Config.utility()`, or when `Config.create().guildOnly().build()` is used
 
 ### Creating Custom Middleware
 

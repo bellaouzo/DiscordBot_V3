@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ledger Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/reset.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ============ MASTHEAD ============ -->
+  <header class="masthead">
+    <div class="masthead-top">
+      <span>Thursday, October 22</span>
+      <span class="center">BotV3 · Server Ledger</span>
+      <span class="right">Signed in as <a href="#">bellaouzo</a></span>
+    </div>
+    <h1 class="title">Pixel Haven</h1>
+    <nav class="tabs">
+      <a class="active" href="#">Front page</a>
+      <a href="#">Moderation</a>
+      <a href="#">Community</a>
+      <a href="#">Economy</a>
+      <a href="#">Tickets</a>
+      <a href="#">Commands</a>
+      <a href="#">Settings</a>
+    </nav>
+  </header>
+
+  <main class="page">
+
+    <!-- ============ LEAD STORY ============ -->
+    <section class="lead">
+      <p class="kicker">Today's summary</p>
+      <h2>A quiet day: 1,297 commands, one ban and five open tickets.</h2>
+      <p class="standfirst">
+        Activity peaked at <mark>9 PM</mark> during the trivia event. The spam filter caught
+        <mark>14 messages</mark>, and leveling handed out <mark>38 level-ups</mark>.
+        Three appeals are waiting for a decision.
+      </p>
+      <div class="lead-actions">
+        <a class="btn" href="#">Review appeals</a>
+        <a class="btn outline" href="#">Read full log</a>
+      </div>
+    </section>
+
+    <!-- ============ THREE COLUMNS ============ -->
+    <div class="columns">
+
+      <!-- Left: module index -->
+      <section class="col">
+        <h3 class="col-head">Modules</h3>
+        <ol class="index">
+          <li><span>Moderation</span><i class="on">On</i></li>
+          <li><span>Appeals</span><i class="on">On</i></li>
+          <li><span>Spam filter</span><i class="on">On</i></li>
+          <li><span>Link filter</span><i class="on">On</i></li>
+          <li><span>Raid mode</span><i>Off</i></li>
+          <li><span>Leveling</span><i class="on">On</i></li>
+          <li><span>Economy</span><i class="on">On</i></li>
+          <li><span>Giveaways</span><i class="on">On</i></li>
+          <li><span>Starboard</span><i>Off</i></li>
+          <li><span>Verification</span><i class="on">On</i></li>
+          <li><span>Reaction roles</span><i class="on">On</i></li>
+          <li><span>Roblox link</span><i>Off</i></li>
+        </ol>
+        <a class="more" href="#">Configure modules →</a>
+      </section>
+
+      <!-- Center: moderation timeline -->
+      <section class="col wide">
+        <h3 class="col-head">From the mod desk</h3>
+        <ol class="timeline">
+          <li>
+            <time>9:42 PM</time>
+            <div>
+              <h4>quietfox warned for off-topic spam</h4>
+              <p>Case #214 by Mira. Second warning this month. One more triggers an automatic 1-hour mute.</p>
+            </div>
+          </li>
+          <li>
+            <time>8:15 PM</time>
+            <div>
+              <h4>spamlord99 banned by AutoMod</h4>
+              <p>Case #213. Posted 9 invite links in 20 seconds. Their appeal is open.</p>
+            </div>
+          </li>
+          <li>
+            <time>6:03 PM</time>
+            <div>
+              <h4>nightowl muted for one hour</h4>
+              <p>Case #212 by Theo. Repeatedly ignored staff in #general.</p>
+            </div>
+          </li>
+          <li>
+            <time>2:30 PM</time>
+            <div>
+              <h4>#announcements slowmode set to 30s</h4>
+              <p>Changed by Theo before the giveaway announcement.</p>
+            </div>
+          </li>
+        </ol>
+
+        <figure class="pullquote">
+          <blockquote>"Bring back the trivia nights, they're the best part of the week."</blockquote>
+          <figcaption>Most-starred message this week · 41 ⭐ in #general</figcaption>
+        </figure>
+      </section>
+
+      <!-- Right: numbers -->
+      <section class="col">
+        <h3 class="col-head">By the numbers</h3>
+        <dl class="figures">
+          <div><dt>Members</dt><dd>4,812</dd><small>+64 this week</small></div>
+          <div><dt>Coins in circulation</dt><dd>1.2M</dd><small>Top 1% hold 31%</small></div>
+          <div><dt>Open tickets</dt><dd>5</dd><small>Avg. first reply 14 min</small></div>
+          <div><dt>Giveaway entries</dt><dd>612</dd><small>"Nitro Classic" ends in 2d</small></div>
+        </dl>
+
+        <h3 class="col-head">Top talkers</h3>
+        <ol class="ranked">
+          <li><span>mossy</span><em>Lv 48</em></li>
+          <li><span>quill</span><em>Lv 45</em></li>
+          <li><span>junebug</span><em>Lv 41</em></li>
+          <li><span>orbit</span><em>Lv 39</em></li>
+          <li><span>tamarind</span><em>Lv 37</em></li>
+        </ol>
+      </section>
+    </div>
+  </main>
+
+  <footer class="colophon">
+    BotV3 · Uptime 12d 4h · Gateway 42 ms · Last restart Oct 10
+  </footer>
+</body>
+</html>

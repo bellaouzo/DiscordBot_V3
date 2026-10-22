@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard Mockups</title>
+  <link rel="stylesheet" href="shared/reset.css">
+  <style>
+    :root { --bg: #111; --card: #1b1b1b; --line: #2c2c2c; --text: #eee; --muted: #999; }
+    body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; padding: 48px 16px; }
+    main { max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 28px; margin-bottom: 6px; }
+    .sub { color: var(--muted); margin-bottom: 28px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+    a.card { display: block; padding: 20px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+    a.card:hover { border-color: var(--muted); }
+    .swatch { height: 70px; border-radius: 10px; margin-bottom: 14px; }
+    h2 { font-size: 18px; }
+    p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>BotV3 dashboard mockups</h1>
+    <p class="sub">Four directions with different layouts. Each folder has its own index.html + style.css.</p>
+    <div class="grid">
+      <a class="card" href="01-harbor/index.html">
+        <div class="swatch" style="background:linear-gradient(135deg,#0d1117 50%,#2dd4bf)"></div>
+        <h2>01 · Harbor</h2>
+        <p>Dark admin console. Fixed sidebar nav, stat cards, chart, cases table, module switches.</p>
+      </a>
+      <a class="card" href="02-ledger/index.html">
+        <div class="swatch" style="background:linear-gradient(135deg,#f6f1e7 50%,#b5361c)"></div>
+        <h2>02 · Ledger</h2>
+        <p>Light editorial newspaper. Masthead with top tabs, daily summary, ruled three-column layout.</p>
+      </a>
+      <a class="card" href="03-console/index.html">
+        <div class="swatch" style="background:linear-gradient(135deg,#0a0c0a 50%,#7cf29a)"></div>
+        <h2>03 · Console</h2>
+        <p>Terminal / tiling WM. Module tree, live log stream, meters, a command line and keyboard hints.</p>
+      </a>
+      <a class="card" href="04-bento/index.html">
+        <div class="swatch" style="background:linear-gradient(135deg,#ffd84d,#d9cdfc 50%,#b8f0d2)"></div>
+        <h2>04 · Bento</h2>
+        <p>Tile grid with a collapsible sidebar. Leaderboard, giveaway countdown, safety switches, poll, tickets.</p>
+      </a>
+    </div>
+  </main>
+</body>
+</html>

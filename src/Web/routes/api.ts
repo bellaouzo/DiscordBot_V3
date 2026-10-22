@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { ChannelType } from "discord.js";
-import type { Client } from "discord.js";
+import type { Client, Guild } from "discord.js";
 import type { DatabaseSet, Warning } from "@database";
-import { AllCommands } from "@commands/registry";
+import { PrimaryCommands } from "@commands/registry";
 import { IsAdmin } from "@utilities/StaffPermissions";
 import { createVerifyAdmin } from "../middleware/auth";
+import type { OAuthGuild } from "../types";
 import { ParseGuildSettingsInput } from "@database/Server/GuildSettingsSchema";
 
 export function createApiRouter(
@@ -13,6 +14,47 @@ export function createApiRouter(
 ): Router {
   const router = Router();
   const verifyAdmin = createVerifyAdmin(client, databases);
+
+  // Owner, Administrator/Manage Guild in OAuth perms, or a configured staff admin role
+  function IsGuildAdmin(
+    oauthGuild: OAuthGuild,
+    guild: Guild,
+    userId: string,
+  ): boolean {
+    if (oauthGuild.owner) return true;
+    if (oauthGuild.permissions) {
+      const perms = BigInt(oauthGuild.permissions);
+      const administrator = 8n;
+      const manageGuild = 32n;
+      if (
+        (perms & administrator) === administrator ||
+        (perms & manageGuild) === manageGuild
+      ) {
+        return true;
+      }
+    }
+    const member = guild.members.cache.get(userId);
+    if (!member) return false;
+    return IsAdmin(member, databases.serverDb.GetGuildSettings(guild.id));
+  }
+
+  async function ResolveUsernames(
+    ids: Iterable<string>,
+  ): Promise<Map<string, string>> {
+    const names = new Map<string, string>();
+    await Promise.all(
+      Array.from(new Set(ids)).map(async (uid) => {
+        try {
+          const user =
+            client.users.cache.get(uid) ?? (await client.users.fetch(uid));
+          names.set(uid, user.username);
+        } catch {
+          names.set(uid, "Unknown User");
+        }
+      }),
+    );
+    return names;
+  }
 
   // API to fetch current user
   router.get("/@me", (req, res) => {
@@ -24,7 +66,7 @@ export function createApiRouter(
   });
 
   router.get("/commands", (_req, res) => {
-    const commands = AllCommands().map((c) => ({
+    const commands = PrimaryCommands().map((c) => ({
       name: c.data.name,
       description: c.data.description,
       group: c.group,
@@ -52,30 +94,8 @@ export function createApiRouter(
       const guild = botGuilds.get(g.id);
       if (!guild) continue;
 
-      let isAdmin = false;
-
       try {
-        if (g.owner) {
-          isAdmin = true;
-        } else if (g.permissions) {
-          const perms = BigInt(g.permissions);
-          const administrator = 8n;
-          const manageGuild = 32n;
-          if (
-            (perms & administrator) === administrator ||
-            (perms & manageGuild) === manageGuild
-          ) {
-            isAdmin = true;
-          }
-        }
-
-        if (!isAdmin) {
-          const member = guild.members.cache.get(user.id);
-          if (member) {
-            const settings = databases.serverDb.GetGuildSettings(g.id);
-            isAdmin = IsAdmin(member, settings);
-          }
-        }
+        const isAdmin = IsGuildAdmin(g, guild, user.id);
 
         mutualGuilds.push({
           id: g.id,
@@ -208,6 +228,94 @@ export function createApiRouter(
     });
 
     res.json({ kicks, bans, mutes });
+  });
+
+  router.get("/overview/:guildId", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const user = req.user as Express.User;
+    const guildId = req.params.guildId as string;
+    const oauthGuild = user.guilds?.find((g) => g.id === guildId);
+    const guild = client.guilds.cache.get(guildId);
+    if (!oauthGuild || !guild) {
+      res.status(404).json({ error: "Guild not found" });
+      return;
+    }
+
+    const isAdmin = IsGuildAdmin(oauthGuild, guild, user.id);
+    const settings = databases.serverDb.GetGuildSettings(guildId);
+    const leaderboard = databases.userDb.GetXpLeaderboard(guildId, 6);
+    const richest = databases.userDb.GetTopBalances(guildId, 5);
+
+    let admin = null;
+    if (isAdmin) {
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const openTickets = databases.ticketDb
+        .GetGuildTickets(guildId, "open")
+        .sort((a, b) => b.created_at - a.created_at);
+      const cases = [
+        ...databases.moderationDb.ListGuildModerationEvents(guildId, 50),
+        ...databases.moderationDb.ListGuildTempActions(guildId, 50),
+      ]
+        .map((c) => ({
+          action: c.action,
+          user_id: c.user_id,
+          moderator_id: c.moderator_id,
+          reason: c.reason,
+          created_at: c.created_at,
+        }))
+        .sort((a, b) => b.created_at - a.created_at);
+
+      admin = {
+        openTicketCount: openTickets.length,
+        openTickets: openTickets.slice(0, 4).map((t) => ({
+          id: t.id,
+          category: t.category,
+          user_id: t.user_id,
+          created_at: t.created_at,
+        })),
+        casesLast7d: cases.filter((c) => c.created_at >= weekAgo).length,
+        recentCases: cases.slice(0, 6),
+      };
+    }
+
+    const names = await ResolveUsernames([
+      ...leaderboard.map((e) => e.userId),
+      ...richest.map((e) => e.userId),
+      ...(admin?.openTickets.map((t) => t.user_id) ?? []),
+      ...(admin?.recentCases.flatMap((c) => [c.user_id, c.moderator_id]) ?? []),
+    ]);
+
+    res.json({
+      guild: {
+        id: guild.id,
+        name: guild.name,
+        icon: guild.icon,
+        memberCount: guild.memberCount,
+      },
+      isAdmin,
+      modules: {
+        economy: settings?.economy_enabled ?? true,
+        giveaways: settings?.giveaways_enabled ?? true,
+        spamFilter: settings?.spam_filter_enabled ?? false,
+        verification: settings?.verification_enabled ?? false,
+        starboard: Boolean(settings?.starboard_channel_id),
+        tickets: Boolean(settings?.ticket_category_id),
+      },
+      leaderboard: leaderboard.map((e) => ({
+        ...e,
+        username: names.get(e.userId) ?? e.userId,
+      })),
+      richest: richest.map((e) => ({
+        userId: e.userId,
+        balance: e.balance,
+        username: names.get(e.userId) ?? e.userId,
+      })),
+      usernames: Object.fromEntries(names),
+      admin,
+    });
   });
 
   // --- Admin Endpoints ---

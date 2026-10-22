@@ -1,9 +1,14 @@
-import type { ChatInputCommandInteraction } from "discord.js";
+import type { ChatInputCommandInteraction, User } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
-import { RequireGuild, EmbedFactory } from "@utilities";
+import { CreateCommand, CreateUserMenu } from "@commands";
+import type { RepliableInteraction } from "@responders";
+import {
+  RequireGuild,
+  RequireGuildFromInteraction,
+  EmbedFactory,
+} from "@utilities";
+import { PromptModal } from "@shared/ModalPrompt";
 import { CreateWarnManager } from "@systems/Moderation/WarnManager";
 import type { PaginationPage } from "@shared/Paginator";
 
@@ -22,7 +27,7 @@ async function ExecuteWarn(
   const subcommand = interaction.options.getSubcommand(true);
 
   if (subcommand === "add") {
-    await HandleAdd(interaction, context, warnManager);
+    await HandleAdd(interaction, context);
     return;
   }
 
@@ -40,11 +45,32 @@ async function ExecuteWarn(
 async function HandleAdd(
   interaction: ChatInputCommandInteraction,
   context: CommandContext,
-  warnManager: ReturnType<typeof CreateWarnManager>,
 ): Promise<void> {
+  await WarnUser({
+    interaction,
+    context,
+    targetUser: interaction.options.getUser("user", true),
+    reason: interaction.options.getString("reason") ?? null,
+  });
+}
+
+/**
+ * Records a warning and replies with the user's new total. Shared by `/warn add` and the
+ * Warn right-click menu.
+ */
+async function WarnUser(options: {
+  readonly interaction: RepliableInteraction;
+  readonly context: CommandContext;
+  readonly targetUser: User;
+  readonly reason: string | null;
+}): Promise<void> {
+  const { interaction, context, targetUser, reason } = options;
   const { interactionResponder } = context.responders;
-  const targetUser = interaction.options.getUser("user", true);
-  const reason = interaction.options.getString("reason") ?? null;
+  const warnManager = CreateWarnManager({
+    guildId: RequireGuildFromInteraction(interaction).id,
+    userDb: context.databases.userDb,
+    logger: context.logger,
+  });
 
   const warning = warnManager.AddWarning({
     userId: targetUser.id,
@@ -223,7 +249,7 @@ export const WarnCommand = CreateCommand({
   name: "warn",
   description: "Manage user warnings",
   group: "moderation",
-  config: Config.mod(5).build(),
+  config: { access: "mod", cooldown: "5s" },
   execute: ExecuteWarn,
   configure: (builder) => {
     builder
@@ -276,5 +302,36 @@ export const WarnCommand = CreateCommand({
               .setRequired(false),
           ),
       );
+  },
+});
+
+/** Right-click a user → Apps → Warn: asks for a reason, then warns like `/warn add`. */
+export const WarnUserMenu = CreateUserMenu({
+  name: "Warn",
+  command: WarnCommand,
+  subcommand: "add",
+  execute: async (interaction, context) => {
+    const targetUser = interaction.targetUser;
+    await PromptModal({
+      interaction,
+      modalRouter: context.responders.modalRouter,
+      title: `Warn ${targetUser.username}`,
+      fields: [
+        {
+          id: "reason",
+          label: "Reason",
+          style: "paragraph",
+          required: true,
+          maxLength: 500,
+        },
+      ],
+      onSubmit: (submit, values) =>
+        WarnUser({
+          interaction: submit,
+          context,
+          targetUser,
+          reason: values.reason,
+        }),
+    });
   },
 });

@@ -4,8 +4,6 @@ import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
 
-import { Config } from "@middleware";
-
 import { EmbedFactory } from "@utilities";
 import { CreateAppealManager } from "@systems/Moderation/AppealManager";
 
@@ -143,7 +141,7 @@ export const AppealCommand = CreateCommand({
 
   group: "moderation",
 
-  config: Config.create().guildOnly().cooldownSeconds(10).build(),
+  config: { cooldown: "10s" },
 
   execute: ExecuteAppeal,
 

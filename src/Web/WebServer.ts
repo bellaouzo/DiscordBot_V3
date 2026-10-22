@@ -36,6 +36,11 @@ export class WebServer {
   private Configure(): void {
     const SqliteStore = SQLiteStoreFactory(session);
 
+    // Behind Caddy/nginx: trust the first proxy hop so req.secure reflects HTTPS
+    if (this.config.web.trustProxy) {
+      this.app.set("trust proxy", 1);
+    }
+
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
 
@@ -53,6 +58,9 @@ export class WebServer {
         saveUninitialized: false,
         cookie: {
           maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+          httpOnly: true,
+          sameSite: "lax",
+          secure: "auto", // secure when the request arrived over HTTPS
         },
       }),
     );
@@ -100,6 +108,17 @@ export class WebServer {
   }
 
   private SetupRoutes(): void {
+    // Unauthenticated liveness probe for uptime checks and deploy scripts
+    this.app.get("/api/health", (_req, res) => {
+      const ready = this.client.isReady();
+      res.status(ready ? 200 : 503).json({
+        status: ready ? "ok" : "starting",
+        uptimeSeconds: Math.round(process.uptime()),
+        gatewayPingMs: ready ? this.client.ws.ping : null,
+        guilds: ready ? this.client.guilds.cache.size : 0,
+      });
+    });
+
     // Mount routers
     this.app.use("/auth", createAuthRouter());
     this.app.use("/api", createApiRouter(this.client, this.databases));
@@ -115,12 +134,15 @@ export class WebServer {
   }
 
   public Start(): void {
-    const port = this.config.web.port;
-    this.server = this.app.listen(port, () => {
-      this.logger.Info(`Web server listening on port ${port}`, {
+    const { port, host } = this.config.web;
+    const onListening = (): void => {
+      this.logger.Info(`Web server listening on ${host ?? "*"}:${port}`, {
         phase: "web",
       });
-    });
+    };
+    this.server = host
+      ? this.app.listen(port, host, onListening)
+      : this.app.listen(port, onListening);
   }
 
   public Stop(): void {

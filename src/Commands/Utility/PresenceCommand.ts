@@ -6,7 +6,6 @@ import type {
 import { ActivityType, type ActivitiesOptions, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 
 type ActivityKind =
@@ -248,6 +247,6 @@ export const PresenceCommand = CreateCommand({
         sub.setName("clearactivity").setDescription("Clear the bot's activity"),
       );
   },
-  config: Config.admin(5),
+  config: { access: "admin", cooldown: "5s" },
   execute: ExecutePresence,
 });

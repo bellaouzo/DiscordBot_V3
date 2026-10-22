@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bento Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/reset.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Icon sprite: use with <svg class="i"><use href="#i-name"/></svg> -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.4 8.2 8 9 4.6-.8 8-4.5 8-9V6z"/></symbol>
+      <symbol id="i-inbox" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 14h4l2 3h4l2-3h4"/></symbol>
+      <symbol id="i-trend" viewBox="0 0 24 24"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+      <symbol id="i-coins" viewBox="0 0 24 24"><circle cx="9" cy="9" r="6"/><path d="M15.5 9.3a6 6 0 1 1-6.2 6.2"/></symbol>
+      <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v8h14v-8M12 8v13"/><path d="M12 8C10 4 6 4 6 6.5S9 8 12 8c3 0 6 0 6-1.5S14 4 12 8z"/></symbol>
+      <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M14 7v10" stroke-dasharray="2 2"/></symbol>
+      <symbol id="i-poll" viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></symbol>
+      <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3l-5.5 2.9 1-6.2L3 9.6l6.2-.9z"/></symbol>
+      <symbol id="i-terminal" viewBox="0 0 24 24"><path d="m5 7 5 5-5 5M12 17h7"/></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+      <symbol id="i-collapse" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 10l-2 2 2 2"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
+      <symbol id="i-megaphone" viewBox="0 0 24 24"><path d="M3 10v4h4l8 5V5l-8 5z"/><path d="M19 9a4 4 0 0 1 0 6"/></symbol>
+    </defs>
+  </svg>
+
+  <div class="shell" id="shell">
+
+    <!-- ============ SIDEBAR (expandable) ============ -->
+    <aside class="side" id="side">
+      <div class="side-top">
+        <a class="logo" href="#"><span class="logo-mark">v3</span><span class="nav-text">BotV3</span></a>
+      </div>
+
+      <button class="server" title="Switch server">
+        <span class="server-icon">PH</span>
+        <span class="nav-text server-name">Pixel Haven<small>4,812 members</small></span>
+        <svg class="i nav-text"><use href="#i-chevron"/></svg>
+      </button>
+
+      <nav class="nav">
+        <a class="on" href="#" title="Overview"><svg class="i"><use href="#i-home"/></svg><span class="nav-text">Overview</span></a>
+
+        <p class="nav-label"><span>Safety</span></p>
+        <a href="#" title="Moderation"><svg class="i"><use href="#i-shield"/></svg><span class="nav-text">Moderation</span><em class="count">12</em></a>
+        <a href="#" title="Appeals"><svg class="i"><use href="#i-inbox"/></svg><span class="nav-text">Appeals</span><em class="count hot">3</em></a>
+        <a href="#" title="Tickets"><svg class="i"><use href="#i-ticket"/></svg><span class="nav-text">Tickets</span><em class="count">5</em></a>
+
+        <p class="nav-label"><span>Community</span></p>
+        <a href="#" title="Leveling"><svg class="i"><use href="#i-trend"/></svg><span class="nav-text">Leveling</span></a>
+        <a href="#" title="Economy"><svg class="i"><use href="#i-coins"/></svg><span class="nav-text">Economy</span></a>
+        <a href="#" title="Giveaways"><svg class="i"><use href="#i-gift"/></svg><span class="nav-text">Giveaways</span></a>
+        <a href="#" title="Polls"><svg class="i"><use href="#i-poll"/></svg><span class="nav-text">Polls</span></a>
+        <a href="#" title="Starboard"><svg class="i"><use href="#i-star"/></svg><span class="nav-text">Starboard</span></a>
+
+        <p class="nav-label"><span>Bot</span></p>
+        <a href="#" title="Commands"><svg class="i"><use href="#i-terminal"/></svg><span class="nav-text">Commands</span></a>
+        <a href="#" title="Settings"><svg class="i"><use href="#i-settings"/></svg><span class="nav-text">Settings</span></a>
+      </nav>
+
+      <div class="side-foot">
+        <div class="me" title="bellaouzo">
+          <span class="me-avatar">BO</span>
+          <span class="nav-text">bellaouzo<small>Owner</small></span>
+        </div>
+        <button class="collapse-btn" id="collapse-btn" aria-label="Collapse sidebar" aria-expanded="true">
+          <svg class="i"><use href="#i-collapse"/></svg>
+        </button>
+      </div>
+    </aside>
+    <div class="scrim" id="scrim"></div>
+
+    <!-- ============ MAIN ============ -->
+    <main class="main">
+      <header class="top">
+        <button class="menu-btn" id="menu-btn" aria-label="Open menu"><svg class="i"><use href="#i-menu"/></svg></button>
+        <div class="heading">
+          <p class="crumb">Pixel Haven / Overview</p>
+          <h1>Overview</h1>
+        </div>
+        <label class="search">
+          <svg class="i"><use href="#i-search"/></svg>
+          <input type="search" placeholder="Search members or cases">
+          <kbd>Ctrl K</kbd>
+        </label>
+        <button class="btn"><svg class="i"><use href="#i-megaphone"/></svg>Announce</button>
+      </header>
+
+      <div class="bento">
+
+        <!-- Members -->
+        <section class="tile t-members dark">
+          <header class="tile-head"><h2>Members</h2><span class="meta">7 days</span></header>
+          <p class="huge">4,812</p>
+          <svg class="spark" viewBox="0 0 200 48" preserveAspectRatio="none" aria-hidden="true">
+            <path class="spark-fill" d="M0 40 L28 37 L57 38 L85 30 L114 28 L142 20 L171 18 L200 8 L200 48 L0 48 Z"/>
+            <path class="spark-line" d="M0 40 L28 37 L57 38 L85 30 L114 28 L142 20 L171 18 L200 8"/>
+          </svg>
+          <p class="split"><span><b>+82</b> joined</span><span><b>−18</b> left</span></p>
+        </section>
+
+        <!-- Giveaway -->
+        <section class="tile t-give accent">
+          <header class="tile-head">
+            <h2><svg class="i"><use href="#i-gift"/></svg>Giveaway</h2>
+            <span class="live-pill">Live</span>
+          </header>
+          <div class="give-body">
+            <div>
+              <p class="give-title">Nitro Classic</p>
+              <p class="meta-dark">Hosted by Theo in #giveaways · 1 winner</p>
+            </div>
+            <div class="countdown">
+              <div><b>02</b><small>days</small></div>
+              <div><b>14</b><small>hrs</small></div>
+              <div><b>37</b><small>min</small></div>
+            </div>
+          </div>
+          <footer class="give-foot">
+            <span><b>612</b> entries</span>
+            <span class="give-actions"><button>End early</button><button>Edit</button></span>
+          </footer>
+        </section>
+
+        <!-- Leaderboard -->
+        <section class="tile t-leader">
+          <header class="tile-head"><h2>Top levels</h2><a href="#">View all</a></header>
+          <ol class="leaders">
+            <li><span class="rank">1</span><span class="av">MO</span><span class="who">mossy<small>48,210 XP</small></span><em>Lv 48</em></li>
+            <li><span class="rank">2</span><span class="av">QU</span><span class="who">quill<small>44,905 XP</small></span><em>Lv 45</em></li>
+            <li><span class="rank">3</span><span class="av">JU</span><span class="who">junebug<small>39,120 XP</small></span><em>Lv 41 <i class="up">▲1</i></em></li>
+            <li><span class="rank">4</span><span class="av">OR</span><span class="who">orbit<small>37,860 XP</small></span><em>Lv 39 <i class="down">▼1</i></em></li>
+            <li><span class="rank">5</span><span class="av">TA</span><span class="who">tamarind<small>34,002 XP</small></span><em>Lv 37</em></li>
+            <li><span class="rank">6</span><span class="av">FE</span><span class="who">fern<small>30,778 XP</small></span><em>Lv 35</em></li>
+          </ol>
+          <p class="foot">38 level-ups today</p>
+        </section>
+
+        <!-- Economy -->
+        <section class="tile t-econ">
+          <header class="tile-head"><h2>Economy</h2><span class="meta">Updated 2 min ago</span></header>
+          <div class="econ">
+            <div class="donut" style="--a:31; --b:44"><span>1.2M<small>coins</small></span></div>
+            <ul class="key">
+              <li><i class="k1"></i>Top 1%<b>31%</b></li>
+              <li><i class="k2"></i>Next 9%<b>44%</b></li>
+              <li><i class="k3"></i>Everyone else<b>25%</b></li>
+            </ul>
+            <dl class="econ-stats">
+              <div><dt>Earned today</dt><dd>48.3k</dd></div>
+              <div><dt>Spent in shop</dt><dd>21.9k</dd></div>
+              <div><dt>Most /daily streak</dt><dd>junebug · 64</dd></div>
+            </dl>
+          </div>
+        </section>
+
+        <!-- Emergency actions -->
+        <section class="tile t-actions">
+          <header class="tile-head"><h2>Safety switches</h2></header>
+          <ul class="actions">
+            <li><svg class="i"><use href="#i-lock"/></svg><span>Lockdown<small>Freeze all channels</small></span><button>Enable</button></li>
+            <li><svg class="i"><use href="#i-shield"/></svg><span>Raid mode<small>Kick new joins</small></span><button>Enable</button></li>
+            <li><svg class="i"><use href="#i-clock"/></svg><span>Slowmode<small>#general · 30s</small></span><button class="is-on">On</button></li>
+          </ul>
+        </section>
+
+        <!-- Poll -->
+        <section class="tile t-poll">
+          <header class="tile-head"><h2>Poll</h2><span class="meta">Ends 11 PM</span></header>
+          <p class="question">Next game night?</p>
+          <ul class="poll">
+            <li style="--p:54%"><span>Friday</span><b>54%</b></li>
+            <li style="--p:31%"><span>Saturday</span><b>31%</b></li>
+            <li style="--p:15%"><span>Sunday</span><b>15%</b></li>
+          </ul>
+          <p class="foot">214 votes</p>
+        </section>
+
+        <!-- Tickets -->
+        <section class="tile t-tickets">
+          <header class="tile-head"><h2>Tickets</h2><a href="#">Open queue</a></header>
+          <table class="tickets">
+            <tbody>
+              <tr><td><span class="st new">New</span></td><td>Role request</td><td class="who-cell">fern</td><td class="age">4m</td></tr>
+              <tr><td><span class="st wait">Waiting</span></td><td>Can't verify</td><td class="who-cell">pebble</td><td class="age">22m</td></tr>
+              <tr><td><span class="st wait">Waiting</span></td><td>Ban appeal</td><td class="who-cell">spamlord99</td><td class="age">1h</td></tr>
+              <tr><td><span class="st claimed">Claimed</span></td><td>Bug: /rank image</td><td class="who-cell">orbit</td><td class="age">3h</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Starboard -->
+        <section class="tile t-star">
+          <header class="tile-head"><h2>Starboard</h2><span class="stars"><svg class="i"><use href="#i-star"/></svg>41</span></header>
+          <blockquote>Bring back the trivia nights, they're the best part of the week.</blockquote>
+          <p class="foot">junebug in #general · Tuesday</p>
+        </section>
+
+        <!-- Modules -->
+        <section class="tile t-mods">
+          <header class="tile-head"><h2>Modules</h2><span class="meta">7 of 9 on</span></header>
+          <ul class="mods">
+            <li><span>Leveling</span><label class="switch"><input type="checkbox" checked><span></span></label></li>
+            <li><span>Economy</span><label class="switch"><input type="checkbox" checked><span></span></label></li>
+            <li><span>Spam filter</span><label class="switch"><input type="checkbox" checked><span></span></label></li>
+            <li><span>Link filter</span><label class="switch"><input type="checkbox" checked><span></span></label></li>
+            <li><span>Starboard</span><label class="switch"><input type="checkbox"><span></span></label></li>
+            <li><span>Giveaways</span><label class="switch"><input type="checkbox" checked><span></span></label></li>
+            <li><span>Verification</span><label class="switch"><input type="checkbox" checked><span></span></label></li>
+            <li><span>Roblox link</span><label class="switch"><input type="checkbox"><span></span></label></li>
+            <li><span>Reaction roles</span><label class="switch"><input type="checkbox" checked><span></span></label></li>
+          </ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

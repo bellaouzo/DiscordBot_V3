@@ -4,10 +4,11 @@ import { CreateCommandLoader } from "@bot/CreateCommandLoader";
 import {
   CreateAutocompleteExecutor,
   CreateCommandExecutor,
+  CreateContextMenuExecutor,
 } from "@bot/ExecuteCommand";
 import { CreateEventLoader } from "@bot/CreateEventLoader";
 import { RegisterEvents } from "@bot/RegisterEvents";
-import { ReplaceCommands } from "@commands";
+import { ReplaceCommands, ReplaceContextMenus } from "@commands";
 import { LoadAppConfig } from "@config/AppConfig";
 import {
   ListMissingRequiredFeatureApiKeys,
@@ -113,6 +114,10 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     databases,
     appConfig: config,
   });
+  const executeContextMenu = CreateContextMenuExecutor({
+    databases,
+    appConfig: config,
+  });
   const executeAutocomplete = CreateAutocompleteExecutor({
     databases,
     appConfig: config,
@@ -154,6 +159,7 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
 
   const loadedCommands = await loadCommands();
   ReplaceCommands(loadedCommands.definitions);
+  ReplaceContextMenus(loadedCommands.contextMenus);
   const events = await loadEvents();
 
   RegisterEvents({
@@ -185,6 +191,7 @@ export async function Bootstrap(rootLogger: Logger): Promise<AppResources> {
     client: bot.client,
     executeCommand,
     executeAutocomplete,
+    executeContextMenu,
     responders,
     logger,
   });

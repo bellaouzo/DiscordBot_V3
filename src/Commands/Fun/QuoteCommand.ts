@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { RequestJson } from "@utilities/ApiClient";
 import { LoadApiConfig } from "@config/ApiConfig";
@@ -78,6 +77,6 @@ export const QuoteCommand = CreateCommand({
   name: "quote",
   description: "Get a random inspirational quote",
   group: "fun",
-  config: Config.create().guildOnly().cooldownSeconds(3).autoDefer().build(),
+  config: { cooldown: "3s", autoDefer: true },
   execute: ExecuteQuote,
 });

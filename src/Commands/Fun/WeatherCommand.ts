@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { EmbedFactory, RequestJson, RequireFeatureApiKey } from "@utilities";
 import { LoadApiConfig } from "@config/ApiConfig";
 
@@ -231,6 +230,6 @@ export const WeatherCommand = CreateCommand({
         .setRequired(true),
     );
   },
-  config: Config.utility(5),
+  config: { cooldown: "5s" },
   execute: ExecuteWeather,
 });

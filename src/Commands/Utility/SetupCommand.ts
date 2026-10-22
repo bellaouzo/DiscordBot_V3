@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { ChannelType, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { RequireGuild, CreateChannelManager } from "@utilities";
 import type { StepState } from "@systems/Setup/state";
 import {
@@ -144,6 +143,6 @@ export const SetupCommand = CreateCommand({
   name: "setup",
   description: "Interactive guided setup for roles, features, and channels",
   group: "admin",
-  config: Config.admin(),
+  config: { access: "admin", cooldown: "4s" },
   execute: ExecuteSetup,
 });

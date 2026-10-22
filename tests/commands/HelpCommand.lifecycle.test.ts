@@ -10,7 +10,7 @@ import {
 } from "../helpers";
 
 vi.mock("@commands/registry", () => ({
-  AllCommands: vi.fn(() => [
+  PrimaryCommands: vi.fn(() => [
     {
       data: new SlashCommandBuilder()
         .setName("ping")

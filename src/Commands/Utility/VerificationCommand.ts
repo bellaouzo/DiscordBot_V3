@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import {
   RequireGuild,
   EmbedFactory,
@@ -273,10 +272,11 @@ export const VerificationCommand = CreateCommand({
   name: "verify",
   description: "Configure member verification for this server",
   group: "utility",
-  config: Config.mod(3)
-    .botPermissions("ManageRoles")
-    .skipBotPermissionsFor("disable", "clear")
-    .build(),
+  config: { access: "mod", cooldown: "3s", botPermissions: ["ManageRoles"] },
+  subcommandConfig: {
+    disable: { botPermissions: [] },
+    clear: { botPermissions: [] },
+  },
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

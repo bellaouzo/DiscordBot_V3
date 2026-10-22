@@ -89,13 +89,12 @@ Before opening a PR, see [Quality Checklist](docs/QUALITY_CHECKLIST.md). CI also
 
 ```typescript
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 
 export const PingCommand = CreateCommand({
   name: "ping",
   description: "Check bot latency",
   group: "utility",
-  config: Config.utility(1),
+  config: { cooldown: "1s" },
   execute: async (interaction, { responders }) => {
     await responders.interactionResponder.Reply(interaction, {
       content: `Pong! ${Date.now() - interaction.createdTimestamp}ms`,

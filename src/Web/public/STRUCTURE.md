@@ -10,25 +10,26 @@ so future features are easy to slot in correctly.
 ```
 src/Web/public/
 ├── css/
-│   ├── index.css          ← Entry point (only @import statements)
-│   ├── base.css           ← Design tokens, resets, keyframes, utilities
-│   ├── layout/
-│   │   ├── navbar.css     ← Global navbar (shared)
-│   │   ├── topbar.css     ← Dashboard context topbar (server picker, admin mode, user avatar)
-│   │   └── content.css    ← Main dashboard layouts, ticket slide panels, and chat layout
-│   ├── components/
-│   │   ├── buttons.css    ← Button variants (.btn, icon buttons)
-│   │   ├── badges.css     ← Status pills, Category tags, User/Role badges
-│   │   ├── cards.css      ← Data cards, small info cards, list filters, pagination
-│   │   ├── forms.css      ← Text inputs, select dropdowns, toggle switches
-│   │   ├── toast.css      ← Save toast, unsaved changes banner, field undo button
-│   │   └── widgets/
-│   │       ├── multiselect.css ← Custom multiselect role picker dropdown
-│   │       └── emojipicker.css ← Starboard emoji picker grid popover
-│   └── views/
-│       ├── landing.css    ← Landing / Home page hero & command lists
-│       ├── profile.css    ← User lookup list & profile detail tabs
-│       └── settings.css   ← Settings view layout (split-pane, sub-sidebar)
+│   ├── index.css          ← Landing page entry (base, navbar, buttons, badges, landing)
+│   ├── base.css / layout/navbar.css / components/{buttons,badges}.css / views/landing.css
+│   └── dashboard/         ← Bento dashboard (dashboard.html only)
+│       ├── index.css      ← Entry point (only @import statements)
+│       ├── base.css       ← Design tokens (:root), reset, icon sizing, utilities, keyframes
+│       ├── layout/
+│       │   ├── shell.css  ← Page grid, collapsible sidebar, server picker, mobile drawer
+│       │   └── header.css ← Top bar (breadcrumb, admin mode), view switching, page titles
+│       ├── components/
+│       │   ├── buttons.css  ← .btn variants, icon buttons, link buttons
+│       │   ├── badges.css   ← Status pills, ID badges, role badges, case tags
+│       │   ├── cards.css    ← Tiles, list cards, filter tabs, pagination
+│       │   ├── forms.css    ← Inputs, selects, search bar, toggle switches
+│       │   ├── toast.css    ← Save toast, unsaved changes bar, field undo button
+│       │   └── widgets.css  ← Role multiselect, starboard emoji picker
+│       └── views/
+│           ├── overview.css ← Bento grid (edit grid-template-areas to move tiles)
+│           ├── tickets.css  ← Ticket slide panel and chat transcript
+│           ├── lookup.css   ← Member grid and profile panel
+│           └── settings.css ← Settings sub-nav and form card
 │
 ├── js/
 │   ├── home.js            ← Landing page (command filter, category tabs)
@@ -37,12 +38,14 @@ src/Web/public/
 │       │   ├── main.js    ← entry point — DOMContentLoaded, fetch user/mutual guilds, window bindings
 │       │   ├── state.js   ← global mutable state object
 │       │   ├── api.js     ← thin fetchApi() wrapper with error handling
-│       │   ├── router.js  ← view section switching, updateTitles(), refreshCurrentView()
-│       │   └── topbar.js  ← server picker, admin mode toggle, and state updating
+│       │   ├── router.js  ← view section switching, breadcrumb, updateTitles(), refreshCurrentView()
+│       │   ├── sidebar.js ← collapse/expand (remembered per browser, `[` key) and mobile drawer
+│       │   └── topbar.js  ← server picker, admin mode toggle (adds body.is-admin), and state updating
 │       ├── components/
 │       │   ├── multiselect.js ← CustomMultiSelect widget class
 │       │   └── emojipicker.js ← EmojiPicker widget module
 │       └── views/
+│           ├── overview.js    ← bento tiles from /api/overview (staff tiles in admin mode)
 │           ├── tickets.js     ← tickets list, pagination, and slide-panel viewer
 │           ├── infractions.js ← infractions list and pagination
 │           ├── lookup.js      ← user search and profile detail panel
@@ -68,9 +71,9 @@ src/Web/public/
 
 1. **Create** `js/dashboard/views/giveaways.js` — export `loadGiveaways()` and any sub-functions.
 2. **Import** it in `js/dashboard/core/main.js` to register it to window globals and register view updates in `js/dashboard/core/router.js`.
-3. **Add** the nav button in `dashboard.html` (use `id="nav-giveaways"` pattern).
+3. **Add** the sidebar nav button in `dashboard.html` (use `id="nav-giveaways"`, an icon from the sprite, and a `.nav-text` label).
 4. **Add** the `<section id="view-giveaways">` content block in `dashboard.html`.
-5. **Add** any new styles to a view CSS file (like `css/views/giveaways.css`) and import it in `css/index.css`.
+5. **Add** any new styles to a view CSS file (like `css/dashboard/views/giveaways.css`) and import it in `css/dashboard/index.css`.
 
 ### 2. New Settings Option
 
@@ -82,7 +85,7 @@ src/Web/public/
 
 - Create `js/dashboard/components/<widget-name>.js` and export your widget class or init function.
 - Avoid circular imports by passing an `onChange` callback parameter to let parent forms track changes.
-- Add its CSS to `css/components/widgets/<widget-name>.css` and import it in `css/index.css`.
+- Add its CSS to `css/dashboard/components/widgets.css` (or a new file imported from `css/dashboard/index.css`).
 
 ---
 

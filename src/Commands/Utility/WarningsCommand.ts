@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { RequireGuild, EmbedFactory, ToEmbedData } from "@utilities";
 import { CreateWarnManager } from "@systems/Moderation/WarnManager";
 import type { PaginationPage } from "@shared/Paginator";
@@ -87,6 +86,6 @@ export const WarningsCommand = CreateCommand({
   name: "warnings",
   description: "View your own warnings in this server",
   group: "utility",
-  config: Config.utility(3),
+  config: { cooldown: "3s" },
   execute: ExecuteWarnings,
 });

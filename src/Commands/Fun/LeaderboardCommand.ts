@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { RequireGuild, EmbedFactory } from "@utilities";
 import { LevelManager } from "@systems/Leveling";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
@@ -195,6 +194,6 @@ export const LeaderboardCommand = CreateCommand({
         ),
     );
   },
-  config: Config.create().guildOnly().cooldownSeconds(5).autoDefer().build(),
+  config: { cooldown: "5s", autoDefer: true },
   execute: ExecuteLeaderboard,
 });

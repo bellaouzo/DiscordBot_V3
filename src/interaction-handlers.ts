@@ -2,6 +2,7 @@ import type {
   AutocompleteInteraction,
   ChatInputCommandInteraction,
   Client,
+  ContextMenuCommandInteraction,
   Interaction,
 } from "discord.js";
 import { DiscordAPIError, Events, MessageFlags } from "discord.js";
@@ -11,8 +12,8 @@ import type { SelectMenuRouter } from "@shared/SelectMenuRouter";
 import type { UserSelectMenuRouter } from "@shared/UserSelectMenuRouter";
 import type { ModalRouter } from "@shared/ModalRouter";
 import type { RoutableInteraction } from "@shared/InteractionRouter";
-import type { CommandDefinition } from "@commands";
-import { ResolveCommand } from "@commands";
+import type { CommandDefinition, ContextMenuDefinition } from "@commands";
+import { ResolveCommand, ResolveContextMenu } from "@commands";
 import type { ResponderSet } from "@responders";
 import type { BlocklistMatch } from "@middleware/BlocklistMiddleware";
 import { CreateBlocklistReply } from "@middleware/BlocklistMiddleware";
@@ -196,10 +197,18 @@ export type AutocompleteExecutorFn = (
   commandLogger: Logger,
 ) => Promise<void>;
 
+export type ContextMenuExecutorFn = (
+  menu: ContextMenuDefinition,
+  interaction: ContextMenuCommandInteraction,
+  responders: ResponderSet,
+  commandLogger: Logger,
+) => Promise<void>;
+
 export interface CommandHandlerDependencies {
   readonly client: Client;
   readonly executeCommand: CommandExecutorFn;
   readonly executeAutocomplete?: AutocompleteExecutorFn;
+  readonly executeContextMenu?: ContextMenuExecutorFn;
   readonly responders: ResponderSet;
   readonly logger: Logger;
 }
@@ -210,6 +219,11 @@ export function RegisterCommandHandler(
   dependencies.client.on(Events.InteractionCreate, async (interaction) => {
     if (interaction.isAutocomplete()) {
       await DispatchAutocomplete(interaction, dependencies);
+      return;
+    }
+
+    if (interaction.isContextMenuCommand()) {
+      await DispatchContextMenu(interaction, dependencies);
       return;
     }
 
@@ -243,6 +257,39 @@ export function RegisterCommandHandler(
       });
     }
   });
+}
+
+async function DispatchContextMenu(
+  interaction: ContextMenuCommandInteraction,
+  dependencies: CommandHandlerDependencies,
+): Promise<void> {
+  const menu = ResolveContextMenu(
+    interaction.isUserContextMenuCommand() ? "user" : "message",
+    interaction.commandName,
+  );
+  if (!menu || !dependencies.executeContextMenu) {
+    return;
+  }
+
+  const commandLogger = dependencies.logger.Child({
+    command: menu.linked.command,
+    interactionId: interaction.id,
+    guildId: interaction.guildId ?? undefined,
+    userId: interaction.user.id,
+  });
+
+  try {
+    await dependencies.executeContextMenu(
+      menu,
+      interaction,
+      dependencies.responders,
+      commandLogger,
+    );
+  } catch (error) {
+    commandLogger.Error("Unhandled error while executing context menu", {
+      error,
+    });
+  }
 }
 
 async function DispatchAutocomplete(

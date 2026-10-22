@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { EmbedFactory, RequireFeatureApiKey } from "@utilities";
 import { RequestJson } from "@utilities/ApiClient";
 import { LoadApiConfig } from "@config/ApiConfig";
@@ -200,7 +199,7 @@ export const NewsCommand = CreateCommand({
   name: "news",
   description: "Browse top headlines or search for news articles",
   group: "fun",
-  config: Config.create().guildOnly().cooldownSeconds(3).autoDefer().build(),
+  config: { cooldown: "3s", autoDefer: true },
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

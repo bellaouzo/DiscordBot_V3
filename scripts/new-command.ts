@@ -41,7 +41,6 @@ function CommandSource(options: {
     return `import type { ChatInputCommandInteraction } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 
 async function ExecuteShow(
   interaction: ChatInputCommandInteraction,
@@ -56,7 +55,7 @@ export const ${name}Command = CreateCommand({
   name: "${slashName}",
   description: "TODO: describe /${slashName}",
   group: "${group}",
-  config: Config.utility(3),
+  config: { cooldown: "3s" },
   subcommands: [
     {
       name: "show",
@@ -71,7 +70,6 @@ export const ${name}Command = CreateCommand({
   return `import type { ChatInputCommandInteraction } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 
 async function Execute${name}(
   interaction: ChatInputCommandInteraction,
@@ -86,7 +84,7 @@ export const ${name}Command = CreateCommand({
   name: "${slashName}",
   description: "TODO: describe /${slashName}",
   group: "${group}",
-  config: Config.utility(3),
+  config: { cooldown: "3s" },
   execute: Execute${name},
 });
 `;

@@ -4,7 +4,8 @@
   "description": "A clean Discord bot built with TypeScript",
   "main": "dist/index.js",
   "scripts": {
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsc && npm run build:web",
+    "build:web": "node -e \"require('fs').cpSync('src/Web/public', 'dist/Web/public', { recursive: true })\"",
     "start": "npm run build && node dist/index.js",
     "dev": "cross-env RUN_FROM_SOURCE=1 tsx src/index.ts",
     "build:watch": "tsc --watch",

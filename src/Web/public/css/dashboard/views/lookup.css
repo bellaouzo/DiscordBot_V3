@@ -1,0 +1,70 @@
+/* ============================================================
+   lookup.css — Member search grid and the profile detail panel.
+   ============================================================ */
+
+.user-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.user-card:hover { border-color: var(--ink-2); }
+.user-card-avatar { width: 40px; height: 40px; border-radius: 50%; }
+.user-card-info { min-width: 0; }
+.user-card-info strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Profile */
+.back-btn { margin-bottom: 14px; }
+
+.profile-header-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.profile-header { display: flex; align-items: center; gap: 14px; }
+.profile-avatar-lg { width: 64px; height: 64px; border-radius: 18px; }
+.profile-info h3 { font-size: 22px; font-weight: 800; letter-spacing: -.02em; margin-bottom: 2px; }
+
+.profile-meta-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.meta-item { padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
+.meta-label { display: block; color: var(--muted); font-size: 12px; }
+.meta-value { font-weight: 600; }
+
+.profile-roles-container { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.profile-tabs {
+  display: inline-flex;
+  gap: 2px;
+  margin: 16px 0 12px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.profile-tab-btn { padding: 5px 14px; border-radius: 9px; color: var(--ink-2); font-weight: 500; font-size: 13px; }
+.profile-tab-btn.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
+
+.profile-tab-content { display: none; }
+.profile-tab-content.active { display: block; }
+.profile-data-list { display: flex; flex-direction: column; gap: 8px; }

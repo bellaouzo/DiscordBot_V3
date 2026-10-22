@@ -6,8 +6,10 @@ import type {
   GuildMember,
   CommandInteractionOptionResolver,
 } from "discord.js";
-import type { CommandContext, CommandDefinition } from "@commands";
-import type { MiddlewareContext } from "@middleware";
+import type { CommandContext } from "@commands";
+import type { CommandInvocation, MiddlewareContext } from "@middleware";
+import type { CommandConfig } from "@middleware/CommandConfig";
+import { ResolveConfig } from "@middleware/CommandConfig";
 import type { ResponderSet } from "@responders";
 import type { DatabaseSet } from "@database";
 import type { Logger } from "@shared/Logger";
@@ -363,24 +365,31 @@ export function createMockAppConfig(): AppConfig {
 }
 
 /**
- * Builds a MiddlewareContext for a fake `/test` command. Override any field, e.g. `config`.
+ * Builds a MiddlewareContext for a fake `/test` command. `config` takes the same plain
+ * CommandConfig a command declares and is resolved like the executor does.
  */
 export function createMockMiddlewareContext(
-  overrides: Partial<MiddlewareContext> = {},
+  overrides: Partial<Omit<MiddlewareContext, "config" | "invocation">> & {
+    config?: CommandConfig;
+    invocation?: Partial<CommandInvocation>;
+  } = {},
 ): MiddlewareContext {
   const base = createMockContext();
+  const commandName = overrides.invocation?.commandName ?? "test";
   return {
     interaction:
       overrides.interaction ??
       createMockInteraction({ user: { id: "user-1", username: "TestUser" } }),
-    command: overrides.command ?? {
-      data: { name: "test", description: "Test" } as CommandDefinition["data"],
+    invocation: {
+      commandName,
       group: "utility",
-      execute: vi.fn().mockResolvedValue(undefined),
+      path: commandName,
+      cooldownKey: commandName,
+      ...overrides.invocation,
     },
     logger: overrides.logger ?? createMockLogger(),
     responders: overrides.responders ?? createMockResponderSet(),
-    config: overrides.config ?? {},
+    config: ResolveConfig(overrides.config),
     databases: overrides.databases ?? base.databases,
     appConfig: overrides.appConfig ?? base.appConfig,
     run: overrides.run ?? { startedAt: Date.now(), reachedHandler: false },

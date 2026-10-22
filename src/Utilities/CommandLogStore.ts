@@ -1,7 +1,31 @@
 import fs from "fs";
 import path from "path";
-import type { ChatInputCommandInteraction } from "discord.js";
-import type { CommandDefinition } from "@commands";
+import type {
+  ChatInputCommandInteraction,
+  ContextMenuCommandInteraction,
+} from "discord.js";
+
+type LoggedInteraction =
+  | ChatInputCommandInteraction
+  | ContextMenuCommandInteraction;
+
+/** The command being logged: its slash command name, full path and group. */
+export interface LoggedCommandEntry {
+  readonly commandName: string;
+  readonly path: string;
+  readonly group: string;
+}
+
+/** "economy daily" → "daily"; a context menu's path is kept whole. */
+function ResolveSubcommand(command: LoggedCommandEntry): string | undefined {
+  if (command.path === command.commandName) {
+    return undefined;
+  }
+  const prefix = `${command.commandName} `;
+  return command.path.startsWith(prefix)
+    ? command.path.slice(prefix.length)
+    : command.path;
+}
 import { SafeParseJson, isRecord } from "./SafeJson";
 
 const LOG_DIR = path.resolve(process.cwd(), "logs");
@@ -34,8 +58,8 @@ function EnsureLogDir(): void {
 }
 
 export async function AppendCommandLog(
-  interaction: ChatInputCommandInteraction,
-  command: CommandDefinition,
+  interaction: LoggedInteraction,
+  command: LoggedCommandEntry,
 ): Promise<void> {
   EnsureLogDir();
 
@@ -44,9 +68,9 @@ export async function AppendCommandLog(
     guildId: interaction.guildId ?? null,
     channelId: interaction.channelId ?? null,
     userId: interaction.user.id,
-    command: command.data.name,
+    command: command.commandName,
     group: command.group,
-    subcommand: interaction.options.getSubcommand(false) ?? undefined,
+    subcommand: ResolveSubcommand(command),
     options: BuildOptionMap(interaction),
   };
 
@@ -150,7 +174,7 @@ function EscapeCsv(value: string): string {
   return value;
 }
 function BuildOptionMap(
-  interaction: ChatInputCommandInteraction,
+  interaction: LoggedInteraction,
 ): Record<string, unknown> | undefined {
   const data = interaction.options.data;
   if (!data || data.length === 0) {

@@ -1,0 +1,67 @@
+/* ============================================================
+   badges.css — Status pills, ID badges, role badges, case tags.
+   ============================================================ */
+
+.status-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .03em;
+}
+
+.status-badge.open { background: var(--good-soft); color: var(--good); }
+.status-badge.closed { background: var(--surface-2); color: var(--muted); }
+.status-badge.sm { padding: 0 6px; font-size: 10px; line-height: 1.6; }
+
+.user-id-badge {
+  display: inline-block;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 12px;
+  font-family: ui-monospace, Consolas, monospace;
+}
+
+.clickable-badge { cursor: pointer; }
+.clickable-badge:hover { border-color: var(--ink-2); color: var(--ink); }
+
+/* Role badge: JS sets --role to the role's color */
+.profile-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.profile-role-badge::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--role, var(--muted));
+}
+
+/* Moderation action tag (overview cases) */
+.case-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.case-tag.ban { background: var(--bad-soft); color: var(--bad); }
+.case-tag.kick { background: #ece3f6; color: #7a4fb0; }
+.case-tag.mute,
+.case-tag.timeout { background: var(--info-soft); color: var(--info); }
+.case-tag.warn { background: var(--warn-soft); color: var(--warn); }

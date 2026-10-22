@@ -7,7 +7,7 @@ export const FeatureEnabledMiddleware: CommandMiddleware = {
   name: "feature-enabled",
   execute: async (context, next) => {
     const guild = context.interaction.guild;
-    const requiredFeature = context.config?.requiredFeature;
+    const requiredFeature = context.config.feature;
 
     if (!guild || !requiredFeature) {
       await next();

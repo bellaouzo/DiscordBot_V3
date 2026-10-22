@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Console Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/reset.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="screen">
+
+    <!-- ============ TITLE BAR ============ -->
+    <header class="titlebar">
+      <span class="prompt">botv3@<b>pixel-haven</b>:~/dashboard$</span>
+      <nav class="tabs">
+        <a class="on" href="#">[1] overview</a>
+        <a href="#">[2] moderation</a>
+        <a href="#">[3] community</a>
+        <a href="#">[4] commands</a>
+        <a href="#">[5] config</a>
+      </nav>
+      <span class="clock">● ONLINE 42ms</span>
+    </header>
+
+    <!-- ============ PANES ============ -->
+    <div class="panes">
+
+      <!-- Module tree -->
+      <section class="pane tree">
+        <h2 class="pane-title">modules/</h2>
+        <ul>
+          <li class="dir">moderation/</li>
+          <li class="ok">├── cases <span>214</span></li>
+          <li class="ok">├── appeals <span class="amber">3 open</span></li>
+          <li class="ok">├── spam-filter</li>
+          <li class="ok">├── link-filter</li>
+          <li class="off">├── raid-mode</li>
+          <li class="ok">└── lockdown</li>
+          <li class="dir">community/</li>
+          <li class="ok">├── leveling</li>
+          <li class="ok">├── economy</li>
+          <li class="ok">├── giveaways <span>1 live</span></li>
+          <li class="ok">├── polls</li>
+          <li class="off">├── starboard</li>
+          <li class="ok">└── reaction-roles</li>
+          <li class="dir">support/</li>
+          <li class="ok">├── tickets <span class="amber">5 open</span></li>
+          <li class="ok">└── verification</li>
+          <li class="dir">integrations/</li>
+          <li class="off">└── roblox</li>
+        </ul>
+        <p class="legend"><span class="ok">■</span> enabled <span class="off">■</span> disabled</p>
+      </section>
+
+      <!-- Live log stream -->
+      <section class="pane log">
+        <h2 class="pane-title">tail -f command.log <span class="live">● live</span></h2>
+        <ol id="log-stream" class="stream">
+          <li><time>21:42:07</time><b class="lvl info">INFO</b> /rank invoked by <u>mossy</u> in #general (38ms)</li>
+          <li><time>21:42:01</time><b class="lvl warn">WARN</b> /warn quietfox reason="off-topic spam" by <u>Mira</u> → case #214</li>
+          <li><time>21:41:55</time><b class="lvl info">INFO</b> /economy daily by <u>junebug</u> +250 coins</li>
+          <li><time>21:41:40</time><b class="lvl info">INFO</b> /trivia by <u>orbit</u> category=science</li>
+          <li><time>21:41:12</time><b class="lvl err">DENY</b> /purge by <u>pebble</u>, missing ManageMessages</li>
+          <li><time>21:40:58</time><b class="lvl info">INFO</b> /giveaway enter by <u>tamarind</u> "Nitro Classic"</li>
+          <li><time>21:40:31</time><b class="lvl cd">COOL</b> /meme by <u>quill</u> on cooldown 4s</li>
+          <li><time>21:40:02</time><b class="lvl info">INFO</b> /ticket open by <u>fern</u> topic="role request"</li>
+        </ol>
+      </section>
+
+      <!-- Status meters -->
+      <section class="pane status">
+        <h2 class="pane-title">htop --bot</h2>
+        <dl class="meters">
+          <div><dt>CPU</dt><dd><span class="bar" style="--v:18"></span>18%</dd></div>
+          <div><dt>MEM</dt><dd><span class="bar" style="--v:46"></span>186M</dd></div>
+          <div><dt>PING</dt><dd><span class="bar" style="--v:21"></span>42ms</dd></div>
+          <div><dt>ERR</dt><dd><span class="bar err" style="--v:4"></span>0.4%</dd></div>
+        </dl>
+        <pre class="kv">
+uptime      12d 04h 17m
+guilds      1
+members     4,812
+cmds/today  1,297
+db          24.1 MB sqlite
+node        v20.18.0
+discord.js  14.x</pre>
+      </section>
+
+      <!-- Quick toggles -->
+      <section class="pane quick">
+        <h2 class="pane-title">quick actions</h2>
+        <div class="keys">
+          <button><kbd>L</kbd> lockdown</button>
+          <button><kbd>R</kbd> raid-mode</button>
+          <button><kbd>S</kbd> slowmode</button>
+          <button><kbd>A</kbd> announce</button>
+          <button><kbd>P</kbd> purge</button>
+          <button><kbd>G</kbd> giveaway</button>
+        </div>
+      </section>
+
+      <!-- Recent cases -->
+      <section class="pane cases">
+        <h2 class="pane-title">SELECT * FROM cases ORDER BY id DESC LIMIT 4;</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>id</th><th>user</th><th>action</th><th>mod</th><th>age</th></tr></thead>
+            <tbody>
+              <tr><td>214</td><td>quietfox</td><td class="amber">WARN</td><td>Mira</td><td>12m</td></tr>
+              <tr><td>213</td><td>spamlord99</td><td class="red">BAN</td><td>AutoMod</td><td>1h</td></tr>
+              <tr><td>212</td><td>nightowl</td><td class="cyan">MUTE</td><td>Theo</td><td>3h</td></tr>
+              <tr><td>211</td><td>pebble</td><td class="mag">KICK</td><td>Mira</td><td>1d</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============ COMMAND LINE ============ -->
+    <form class="cmdline" onsubmit="return false">
+      <span class="caret">&gt;</span>
+      <input type="text" placeholder="type a command, e.g. raidmode on --duration 30m" aria-label="Command">
+      <span class="cursor"></span>
+    </form>
+
+    <footer class="hints">
+      <span><kbd>Ctrl</kbd>+<kbd>K</kbd> command palette</span>
+      <span><kbd>1</kbd>–<kbd>5</kbd> switch tabs</span>
+      <span><kbd>/</kbd> search logs</span>
+      <span><kbd>?</kbd> help</span>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

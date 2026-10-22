@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { RequireGuild, EmbedFactory } from "@utilities";
 import { LevelManager } from "@systems/Leveling";
 
@@ -82,6 +81,6 @@ export const RankCommand = CreateCommand({
         .setRequired(false),
     );
   },
-  config: Config.utility(3),
+  config: { cooldown: "3s" },
   execute: ExecuteRank,
 });

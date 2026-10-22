@@ -17,6 +17,7 @@ export type {
   ResponseActionOptions,
   ResponderMessageOptions,
   ResponderEditOptions,
+  RepliableInteraction,
 } from "./ResponseTypes";
 export { ConvertToInteractionFlags } from "./ResponseTypes";
 export { InteractionResponder } from "./InteractionResponder";

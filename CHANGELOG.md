@@ -6,6 +6,11 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Shortcut commands: subcommands marked `alias` are also registered top-level (`/daily`, `/work`, `/fish`, `/balance`, `/slots` for `/economy`), sharing the parent's config, toggles, channel restrictions and cooldown.
+- Right-click (Apps) menus via `CreateUserMenu` / `CreateMessageMenu`: Warn, Mute, Kick, Casefile and View Profile on users; Purge From Here on messages. They inherit the linked command's config and run the same middleware.
+- `PromptModal` helper (`@shared/ModalPrompt`) for one-step modal input.
+- Per-subcommand config overrides (`config` on table-style subcommand entries, `subcommandConfig` for `configure`-style commands), validated at startup.
+- Middleware: `BotPermissionMiddleware`, `AutoDeferMiddleware`, `BlocklistMiddleware` (+ `/blocklist`, `BOT_OWNER_IDS`), `ChannelRestrictionMiddleware` (+ `/command restrict` / `unrestrict`).
 - Custom tags: `/tag` (show, list, info, create, edit, delete, prefix) with modal editing, name autocomplete, `{user}`/`{server}`/`{channel}`/`{membercount}` placeholders, and chat triggers (`!name`, configurable or `off`).
 - Non-gambling economy earning: `/economy work` (answer a quick job task, 1h cooldown) and `/economy fish` (reel in on the bite, 30m cooldown, perfect-reel bonus).
 - Spam filter (`/spamfilter`, `/setup` toggle): detects message floods, repeated messages and mass mentions; deletes them and escalates per active strike (warning, 10m, 1h, 24h timeout) with configurable thresholds, strike decay and exempt channels.
@@ -41,6 +46,12 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- **Breaking:** command `config` is now a plain typed object (`{ access: "mod", cooldown: "5s", botPermissions: [...] }`) instead of the `Config.*` / `CommandConfigBuilder` helpers, which are removed. Commands are server-only by default (`dms: true` opts out).
+- Middleware reads a resolved config and `context.invocation` (`commandName`, `path`, `cooldownKey`) instead of `context.command`.
+- `ErrorMiddleware` now wraps the whole chain; global middleware (error, blocklist, logging, command toggles, channel restrictions, Discord logging) is applied by the executor to every command.
+- Cooldowns are reserved when the check passes and released if the command throws, so repeated clicks can't slip past.
+- `LoggingMiddleware` logs completion with duration, which middleware blocked a command, and slow commands.
+- `InteractionResponder.Reply` fills in a deferred reply instead of doing nothing.
 - Permission middleware allows Discord **Administrator** / **Manage Server** holders to run admin commands before staff roles are configured; others see **Setup Required**.
 - README and doc link labels use human-readable text instead of raw filenames.
 - Vitest coverage excludes register-aliases, barrel `index.ts`, and type-only modules from the denominator.

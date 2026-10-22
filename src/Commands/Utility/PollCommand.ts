@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { ChannelType } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { HandleCreatePoll } from "@commands/Utility/Poll/CreateFlow";
 import { HandleListPolls } from "@commands/Utility/Poll/ListFlow";
 import { HandleEndPoll } from "@commands/Utility/Poll/EndFlow";
@@ -133,6 +132,6 @@ export const PollCommand = CreateCommand({
         .setDescription("Learn what polls are and how to run them"),
     );
   },
-  config: Config.utility(3),
+  config: { cooldown: "3s" },
   execute: ExecutePoll,
 });

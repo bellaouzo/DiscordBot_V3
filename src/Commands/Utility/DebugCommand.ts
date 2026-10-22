@@ -1,9 +1,8 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
-import { AllCommands } from "@commands/registry";
+import { PrimaryCommands } from "@commands/registry";
 import * as path from "path";
 import * as fs from "fs";
 
@@ -55,7 +54,7 @@ async function ExecuteDebug(
   const memory = process.memoryUsage();
   const discordVersion = GetDiscordJsVersion();
   const nodeVersion = process.version;
-  const commandCount = AllCommands().length;
+  const commandCount = PrimaryCommands().length;
 
   const embed = EmbedFactory.Create({
     title: "Bot Debug Information",
@@ -102,6 +101,6 @@ export const DebugCommand = CreateCommand({
   name: "debug",
   description: "Display bot diagnostic and debug information",
   group: "utility",
-  config: Config.admin(5),
+  config: { access: "admin", cooldown: "5s" },
   execute: ExecuteDebug,
 });

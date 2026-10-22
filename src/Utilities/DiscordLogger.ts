@@ -2,12 +2,22 @@ import type {
   Guild,
   EmbedBuilder,
   ChatInputCommandInteraction,
+  ContextMenuCommandInteraction,
   TextChannel,
 } from "discord.js";
 import type { Logger } from "@shared/Logger";
-import type { CommandDefinition } from "@commands";
 import { CreateChannelManager, EmbedFactory } from "./";
 import type { LoggingConfig } from "@config/AppConfig";
+
+/** What a command log entry describes: the full command path and its group. */
+export interface LoggedCommand {
+  readonly path: string;
+  readonly group: string;
+}
+
+type LoggedInteraction =
+  | ChatInputCommandInteraction
+  | ContextMenuCommandInteraction;
 
 export interface DiscordLoggerOptions {
   readonly guild: Guild;
@@ -18,8 +28,8 @@ export interface DiscordLoggerOptions {
 
 export interface DiscordLogger {
   LogCommandExecution(
-    interaction: ChatInputCommandInteraction,
-    command: CommandDefinition,
+    interaction: LoggedInteraction,
+    command: LoggedCommand,
   ): Promise<void>;
 }
 
@@ -33,15 +43,15 @@ export function CreateDiscordLogger(
 
   return {
     LogCommandExecution: async (
-      interaction: ChatInputCommandInteraction,
-      command: CommandDefinition,
+      interaction: LoggedInteraction,
+      command: LoggedCommand,
     ): Promise<void> => {
       if (interaction.guildId && interaction.guildId !== options.guild.id) {
         options.logger.Warn("Skipping command log for mismatched guild", {
           extra: {
             interactionGuildId: interaction.guildId,
             loggerGuildId: options.guild.id,
-            commandName: command.data.name,
+            commandName: command.path,
           },
         });
         return;
@@ -69,7 +79,7 @@ export function CreateDiscordLogger(
         options.logger.Error("Failed to log command to Discord", {
           error,
           extra: {
-            commandName: command.data.name,
+            commandName: command.path,
             userId: interaction.user.id,
             guildId: interaction.guildId,
           },
@@ -109,11 +119,11 @@ async function ResolveCommandLogChannel(
 }
 
 function CreateCommandLogEmbed(
-  interaction: ChatInputCommandInteraction,
-  command: CommandDefinition,
+  interaction: LoggedInteraction,
+  command: LoggedCommand,
 ): EmbedBuilder {
   const embed = EmbedFactory.Create({
-    title: `Command Executed: ${command.data.name}`,
+    title: `Command Executed: ${command.path}`,
     color: 0x00ff00,
     footer: `Command Group: ${command.group}`,
     timestamp: true,

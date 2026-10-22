@@ -1,7 +1,6 @@
 import type {
   APIEmbed,
   ButtonInteraction,
-  ChatInputCommandInteraction,
   MessageFlags,
 } from "discord.js";
 import { ButtonStyle, ComponentType } from "discord.js";
@@ -9,7 +8,10 @@ import type { ComponentRouter, RegisteredButton } from "./ComponentRouter";
 import type { Logger } from "./Logger";
 import type { InteractionResponder } from "@responders/InteractionResponder";
 import type { ButtonResponder } from "@responders/ButtonResponder";
-import type { ResponderMessageOptions } from "@responders";
+import type {
+  RepliableInteraction,
+  ResponderMessageOptions,
+} from "@responders";
 
 export interface PaginationPage {
   readonly embeds?: APIEmbed[];
@@ -18,7 +20,7 @@ export interface PaginationPage {
 }
 
 export interface PaginationOptions {
-  readonly interaction: ChatInputCommandInteraction | ButtonInteraction;
+  readonly interaction: RepliableInteraction;
   readonly pages: PaginationPage[];
   readonly interactionResponder: InteractionResponder;
   readonly buttonResponder: ButtonResponder;

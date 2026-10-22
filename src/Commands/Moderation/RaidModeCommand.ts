@@ -1,7 +1,6 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware/CommandConfig";
 import { HandleActivateRaidMode } from "@commands/Moderation/RaidMode/ActivateFlow";
 import { HandleDeactivateRaidMode } from "@commands/Moderation/RaidMode/DeactivateFlow";
 import { HandleRaidModeStatus } from "@commands/Moderation/RaidMode/StatusFlow";
@@ -37,10 +36,15 @@ export const RaidModeCommand = CreateCommand({
   name: "raidmode",
   description: "Enable or disable raid protection",
   group: "moderation",
-  config: Config.mod()
-    .botPermissions("ManageChannels", "ManageRoles")
-    .skipBotPermissionsFor("status", "about")
-    .build(),
+  config: {
+    access: "mod",
+    cooldown: "5s",
+    botPermissions: ["ManageChannels", "ManageRoles"],
+  },
+  subcommandConfig: {
+    status: { botPermissions: [] },
+    about: { botPermissions: [] },
+  },
   execute: ExecuteRaidMode,
   configure: (builder) => {
     builder

@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { EmbedFactory, RequireGuild } from "@utilities";
 
 async function ExecuteUnban(
@@ -65,7 +64,7 @@ export const UnbanCommand = CreateCommand({
   name: "unban",
   description: "Unban a user from the server",
   group: "moderation",
-  config: Config.mod(5).botPermissions("BanMembers").build(),
+  config: { access: "mod", cooldown: "5s", botPermissions: ["BanMembers"] },
   execute: ExecuteUnban,
   configure: (builder) => {
     builder

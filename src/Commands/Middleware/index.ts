@@ -1,8 +1,10 @@
-import type { ChatInputCommandInteraction } from "discord.js";
-import type { CommandDefinition } from "@commands";
+import type {
+  ChatInputCommandInteraction,
+  ContextMenuCommandInteraction,
+} from "discord.js";
 import type { Logger } from "@shared/Logger";
 import type { ResponderSet } from "@responders";
-import type { CommandConfig } from "@middleware/CommandConfig";
+import type { ResolvedCommandConfig } from "@middleware/CommandConfig";
 import type { DatabaseSet } from "@database";
 import type { AppConfig } from "@config/AppConfig";
 import { PermissionMiddleware } from "@middleware/PermissionMiddleware";
@@ -24,15 +26,37 @@ export interface MiddlewareRunState {
   blockedBy?: string;
 }
 
+/** A slash command or right-click (context menu) command interaction. */
+export type CommandInteractionLike =
+  | ChatInputCommandInteraction
+  | ContextMenuCommandInteraction;
+
 /**
- * Context passed to middleware: interaction, command, logger, responders, config, databases, appConfig, run state.
+ * What is being run. Shortcut aliases and context menus point at the slash command they belong
+ * to, so they share its server toggles, channel restrictions and cooldown.
+ */
+export interface CommandInvocation {
+  /** Slash command name that toggles, channel restrictions and cooldowns are keyed on. */
+  readonly commandName: string;
+  /** Command group, e.g. "moderation". */
+  readonly group: string;
+  /** Full name for logs, e.g. "economy daily", or "Warn (user menu)". */
+  readonly path: string;
+  /** Key the per-user cooldown is stored under. */
+  readonly cooldownKey: string;
+}
+
+/**
+ * Context passed to middleware: interaction, invocation, resolved config, logger, responders,
+ * databases, appConfig and run state.
  */
 export interface MiddlewareContext {
-  readonly interaction: ChatInputCommandInteraction;
-  readonly command: CommandDefinition;
+  readonly interaction: CommandInteractionLike;
+  readonly invocation: CommandInvocation;
   readonly logger: Logger;
   readonly responders: ResponderSet;
-  readonly config: CommandConfig;
+  /** The command's config with its subcommand override applied and defaults filled in. */
+  readonly config: ResolvedCommandConfig;
   readonly databases: DatabaseSet;
   readonly appConfig: AppConfig;
   readonly run: MiddlewareRunState;
@@ -121,56 +145,45 @@ export { AutoDeferMiddleware } from "@middleware/AutoDeferMiddleware";
 export * from "@middleware/CommandConfig";
 
 /**
- * Builds the per-command middleware from config. Global middleware (error handling, blocklist,
- * logging, command toggles, channel restrictions, Discord command logs) is added by the
- * executor for every command, so it is not part of this list.
+ * Picks the per-command middleware for a resolved config. Global middleware (error handling,
+ * blocklist, logging, command toggles, channel restrictions, Discord command logs) is added by
+ * the executor for every command, so it is not part of this list.
  *
  * Order: GuildOnly, Feature, Permission, BotPermission, Cooldown, AutoDefer. Cheap rejections
  * run first; the cooldown is reserved last so a blocked command doesn't use it up.
- *
- * @param config - Optional command config
- * @returns before and after middleware arrays
  */
 export function AutoMiddleware(
-  config?: CommandConfig,
-): MiddlewareConfiguration {
-  const before: CommandMiddleware[] = [];
-
-  if (!config) {
-    return { before, after: [] };
-  }
+  config: ResolvedCommandConfig,
+): CommandMiddleware[] {
+  const middleware: CommandMiddleware[] = [];
 
   if (config.guildOnly) {
-    before.push(GuildMiddleware);
+    middleware.push(GuildMiddleware);
   }
 
-  if (config.requiredFeature) {
-    before.push(FeatureEnabledMiddleware);
+  if (config.feature) {
+    middleware.push(FeatureEnabledMiddleware);
   }
 
-  const needsPermissionCheck =
-    config.permissions?.required?.length ||
-    config.modRole ||
-    config.adminRole ||
-    config.owner ||
-    config.botOwner ||
-    config.role;
-
-  if (needsPermissionCheck) {
-    before.push(PermissionMiddleware);
+  if (
+    config.access !== "everyone" ||
+    config.userPermissions.length > 0 ||
+    config.role
+  ) {
+    middleware.push(PermissionMiddleware);
   }
 
-  if (config.botPermissions?.required.length) {
-    before.push(BotPermissionMiddleware);
+  if (config.botPermissions.length > 0) {
+    middleware.push(BotPermissionMiddleware);
   }
 
-  if (config.cooldown) {
-    before.push(CooldownMiddleware);
+  if (config.cooldownMs > 0) {
+    middleware.push(CooldownMiddleware);
   }
 
   if (config.autoDefer) {
-    before.push(AutoDeferMiddleware);
+    middleware.push(AutoDeferMiddleware);
   }
 
-  return { before, after: [] };
+  return middleware;
 }

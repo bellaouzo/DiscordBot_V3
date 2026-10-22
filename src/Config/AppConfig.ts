@@ -35,6 +35,10 @@ export interface ApiKeysConfig {
 /** Web Server configuration for Dashboard & OAuth. */
 export interface WebConfig {
   readonly port: number;
+  /** Interface to bind (WEB_HOST). Use 127.0.0.1 behind a reverse proxy; undefined binds all interfaces. */
+  readonly host?: string;
+  /** Trust X-Forwarded-* from a reverse proxy (WEB_TRUST_PROXY=true) so secure cookies work over HTTPS. */
+  readonly trustProxy: boolean;
   readonly sessionSecret: string;
   readonly clientSecret: string;
   readonly oauthRedirectUri: string;
@@ -168,6 +172,8 @@ export function LoadAppConfig(): AppConfig {
     },
     web: {
       port: parseInt(process.env.WEB_PORT || "3000", 10),
+      ...(process.env.WEB_HOST ? { host: process.env.WEB_HOST } : {}),
+      trustProxy: process.env.WEB_TRUST_PROXY === "true",
       sessionSecret: RequireEnv("SESSION_SECRET"),
       clientSecret: RequireEnv("CLIENT_SECRET"),
       oauthRedirectUri: RequireEnv("OAUTH_REDIRECT_URI"),

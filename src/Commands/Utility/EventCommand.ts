@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import {
   RequireGuild,
   EmbedFactory,
@@ -289,7 +288,7 @@ export const EventCommand = CreateCommand({
   name: "event",
   description: "Create a scheduled event",
   group: "utility",
-  config: Config.utility(3),
+  config: { cooldown: "3s" },
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

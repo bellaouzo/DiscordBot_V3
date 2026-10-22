@@ -40,6 +40,7 @@ Central index for Discord Bot V3 documentation. Pick the path that matches what 
 | [CONFIGURATION.md](CONFIGURATION.md) | Admin, Dev | Per-guild settings and feature toggles |
 | [ENVIRONMENT.md](ENVIRONMENT.md) | Dev | `.env` variables, API keys, deployment |
 | [DEVELOPER_SETUP.md](DEVELOPER_SETUP.md) | Dev | Local install, run modes, git hooks |
+| [DASHBOARD_HOSTING.md](DASHBOARD_HOSTING.md) | Dev | Serving the web dashboard on a VPS with HTTPS |
 | [EXTENDING.md](EXTENDING.md) | Contributor | Checklists for adding commands, settings, features, buttons, jobs |
 | [WRITING_COMMANDS.md](WRITING_COMMANDS.md) | Contributor | Command structure, middleware, responders |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contributor | Coding standards, migrations, PR process |

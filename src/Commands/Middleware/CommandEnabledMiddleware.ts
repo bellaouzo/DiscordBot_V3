@@ -12,7 +12,7 @@ export const CommandEnabledMiddleware: CommandMiddleware = {
       return;
     }
 
-    const commandName = context.command.data.name;
+    const commandName = context.invocation.commandName;
     if (IsProtectedCommand(commandName)) {
       await next();
       return;

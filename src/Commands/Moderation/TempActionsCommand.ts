@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { RequireGuild, EmbedFactory } from "@utilities";
 import type { PaginationPage } from "@shared/Paginator";
 import type { TempAction } from "@database";
@@ -76,7 +75,7 @@ export const TempActionsCommand = CreateCommand({
   name: "tempactions",
   description: "View active temporary bans and mutes",
   group: "moderation",
-  config: Config.mod(3).build(),
+  config: { access: "mod", cooldown: "3s" },
   execute: ExecuteTempActions,
   configure: (builder) => {
     builder.setDescription("View active temporary bans and mutes");

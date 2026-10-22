@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { RequestJson } from "@utilities/ApiClient";
 import { LoadApiConfig } from "@config/ApiConfig";
@@ -133,7 +132,7 @@ export const TriviaCommand = CreateCommand({
   name: "trivia",
   description: "Get a random multiple-choice trivia question",
   group: "fun",
-  config: Config.create().guildOnly().cooldownSeconds(5).autoDefer().build(),
+  config: { cooldown: "5s", autoDefer: true },
   configure: (builder) => {
     builder
       .addIntegerOption((option) =>

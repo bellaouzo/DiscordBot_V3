@@ -9,7 +9,8 @@ import {
   createMockLogger,
   createMockResponderSet,
 } from "../../helpers";
-import type { MiddlewareContext } from "@middleware";
+import type { CommandConfig, MiddlewareContext } from "@middleware";
+import { ResolveConfig } from "@middleware/CommandConfig";
 
 function createGuildMember(
   roleIds: string[],
@@ -31,7 +32,7 @@ function createGuildMember(
 function createMiddlewareContext(overrides?: {
   roleIds?: string[];
   permissions?: bigint[];
-  config?: MiddlewareContext["config"];
+  config?: CommandConfig;
   guildSettings?: ReturnType<
     ReturnType<typeof createMockDatabaseSet>["serverDb"]["GetGuildSettings"]
   >;
@@ -70,10 +71,15 @@ function createMiddlewareContext(overrides?: {
 
   return {
     interaction,
-    command,
+    invocation: {
+      commandName: command.data.name,
+      group: command.group,
+      path: command.data.name,
+      cooldownKey: command.data.name,
+    },
     logger: createMockLogger(),
     responders: createMockResponderSet(),
-    config: overrides?.config ?? { adminRole: true },
+    config: ResolveConfig(overrides?.config ?? { access: "admin" }),
     databases: context.databases,
     appConfig: context.appConfig,
   } as unknown as MiddlewareContext;
@@ -116,7 +122,7 @@ describe("PermissionMiddleware", () => {
   it("calls next when modRole required and user has configured mod role", async () => {
     const context = createMiddlewareContext({
       roleIds: ["mod-role"],
-      config: { modRole: true },
+      config: { access: "mod" },
     });
     const next = vi.fn().mockResolvedValue(undefined);
 

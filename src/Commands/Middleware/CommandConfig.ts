@@ -1,219 +1,112 @@
 import type { PermissionFlagsBits } from "discord.js";
 import type { ToggleableFeatureKey } from "@shared/Features";
 
-type PermissionName = keyof typeof PermissionFlagsBits;
+/** A Discord permission name, e.g. "BanMembers". */
+export type PermissionName = keyof typeof PermissionFlagsBits;
 
 /**
- * Command configuration: guild-only, permissions, cooldown, role/mod/owner, bot permissions, auto-defer.
- * Used by AutoMiddleware to pick the per-command middleware.
+ * Who may run a command.
+ * - `everyone` (default)
+ * - `mod`: configured mod roles, or Ban/Kick/Moderate Members
+ * - `admin`: configured admin roles, or Administrator/Manage Server
+ * - `serverOwner`: the guild owner
+ * - `botOwner`: users in BOT_OWNER_IDS
+ */
+export type CommandAccess =
+  | "everyone"
+  | "mod"
+  | "admin"
+  | "serverOwner"
+  | "botOwner";
+
+/** A duration such as "500ms", "5s", "2m" or "1h". */
+export type Duration =
+  | `${number}ms`
+  | `${number}s`
+  | `${number}m`
+  | `${number}h`;
+
+/**
+ * How a command is gated and run. Every field is optional; the defaults are a guild-only
+ * command anyone can use, with no cooldown. The same shape is used for per-subcommand
+ * overrides, which replace the command's value field by field.
+ *
+ * @example
+ * config: { access: "mod", cooldown: "5s", botPermissions: ["BanMembers"] }
  */
 export interface CommandConfig {
-  readonly guildOnly?: boolean;
-  readonly permissions?: {
-    readonly required?: PermissionName[];
-    readonly requireAny?: boolean;
-  };
-  readonly cooldown?: {
-    readonly seconds?: number;
-    readonly minutes?: number;
-    readonly milliseconds?: number;
-  };
+  /** Who may run it. Default `"everyone"`. */
+  readonly access?: CommandAccess;
+  /** Also allow the command in DMs. Default `false` (server only). */
+  readonly dms?: boolean;
+  /** Discord permissions the user needs, in addition to `access`. */
+  readonly userPermissions?: readonly PermissionName[];
+  /** With `userPermissions`, one of them is enough instead of all. */
+  readonly anyUserPermission?: boolean;
+  /** A role ID the user must have. */
   readonly role?: string;
-  readonly modRole?: boolean;
-  readonly adminRole?: boolean;
-  readonly owner?: boolean;
-  /** Restricts the command to the user IDs in BOT_OWNER_IDS. */
-  readonly botOwner?: boolean;
-  readonly requiredFeature?: ToggleableFeatureKey;
-  /** Permissions the bot itself needs in the channel the command is used in. */
-  readonly botPermissions?: {
-    readonly required: PermissionName[];
-    /** Subcommands that skip the check (read-only views such as `status`). */
-    readonly exemptSubcommands?: string[];
-  };
-  /** Defers the reply if the handler hasn't responded before Discord's 3s deadline. */
-  readonly autoDefer?: {
-    readonly ephemeral: boolean;
-  };
+  /** Per-user cooldown, e.g. `"5s"`. `false` removes an inherited cooldown. */
+  readonly cooldown?: Duration | false;
+  /** Permissions the bot needs in the channel. `[]` removes inherited ones. */
+  readonly botPermissions?: readonly PermissionName[];
+  /**
+   * Defer the reply if the handler hasn't answered within ~2s. `true` defers publicly,
+   * `"ephemeral"` privately. Don't use on handlers that call showModal().
+   */
+  readonly autoDefer?: boolean | "ephemeral";
+  /** A per-server feature toggle that must be on, e.g. `"economy"`. */
+  readonly feature?: ToggleableFeatureKey;
 }
 
 /**
- * Fluent builder for CommandConfig. Chain methods then call build().
+ * CommandConfig with every default filled in. This is what middleware reads.
  */
-export class CommandConfigBuilder {
-  private config: CommandConfig = {};
+export interface ResolvedCommandConfig {
+  readonly access: CommandAccess;
+  readonly guildOnly: boolean;
+  readonly userPermissions: readonly PermissionName[];
+  readonly anyUserPermission: boolean;
+  readonly role?: string;
+  readonly cooldownMs: number;
+  readonly botPermissions: readonly PermissionName[];
+  readonly autoDefer: false | { readonly ephemeral: boolean };
+  readonly feature?: ToggleableFeatureKey;
+}
 
-  /** Creates a new builder. */
-  static create(): CommandConfigBuilder {
-    return new CommandConfigBuilder();
-  }
+const DURATION_UNITS_MS = { ms: 1, s: 1000, m: 60_000, h: 3_600_000 };
 
-  guildOnly(): this {
-    this.config = { ...this.config, guildOnly: true };
-    return this;
+/**
+ * Converts a Duration such as "5s" to milliseconds.
+ */
+export function DurationToMs(duration: Duration): number {
+  const match = /^(\d+(?:\.\d+)?)(ms|s|m|h)$/.exec(duration);
+  if (!match) {
+    throw new Error(`Invalid duration "${duration}"`);
   }
-
-  permissions(...perms: PermissionName[]): this {
-    this.config = {
-      ...this.config,
-      permissions: { ...this.config.permissions, required: perms },
-    };
-    return this;
-  }
-
-  anyPermission(...perms: PermissionName[]): this {
-    this.config = {
-      ...this.config,
-      permissions: {
-        ...this.config.permissions,
-        required: perms,
-        requireAny: true,
-      },
-    };
-    return this;
-  }
-
-  cooldownSeconds(seconds: number): this {
-    this.config = {
-      ...this.config,
-      cooldown: { ...this.config.cooldown, seconds },
-    };
-    return this;
-  }
-
-  cooldownMinutes(minutes: number): this {
-    this.config = {
-      ...this.config,
-      cooldown: { ...this.config.cooldown, minutes },
-    };
-    return this;
-  }
-
-  cooldownMs(milliseconds: number): this {
-    this.config = {
-      ...this.config,
-      cooldown: { ...this.config.cooldown, milliseconds },
-    };
-    return this;
-  }
-
-  role(roleId: string): this {
-    this.config = { ...this.config, role: roleId };
-    return this;
-  }
-
-  hasModRole(): this {
-    this.config = { ...this.config, modRole: true };
-    return this;
-  }
-
-  hasAdminRole(): this {
-    this.config = { ...this.config, adminRole: true };
-    return this;
-  }
-
-  owner(): this {
-    this.config = { ...this.config, owner: true };
-    return this;
-  }
-
-  botOwner(): this {
-    this.config = { ...this.config, botOwner: true };
-    return this;
-  }
-
-  botPermissions(...perms: PermissionName[]): this {
-    this.config = {
-      ...this.config,
-      botPermissions: { ...this.config.botPermissions, required: perms },
-    };
-    return this;
-  }
-
-  /** Skips the bot permission check for these subcommands. Call after botPermissions(). */
-  skipBotPermissionsFor(...subcommands: string[]): this {
-    this.config = {
-      ...this.config,
-      botPermissions: {
-        required: this.config.botPermissions?.required ?? [],
-        exemptSubcommands: subcommands,
-      },
-    };
-    return this;
-  }
-
-  /** Defers slow handlers automatically. Public by default so the final reply stays visible. */
-  autoDefer(options: { ephemeral?: boolean } = {}): this {
-    this.config = {
-      ...this.config,
-      autoDefer: { ephemeral: options.ephemeral ?? false },
-    };
-    return this;
-  }
-
-  requiredFeature(feature: ToggleableFeatureKey): this {
-    this.config = { ...this.config, requiredFeature: feature };
-    return this;
-  }
-
-  /** Returns the built config. */
-  build(): CommandConfig {
-    return this.config;
-  }
+  const unit = match[2] as keyof typeof DURATION_UNITS_MS;
+  return Math.round(Number(match[1]) * DURATION_UNITS_MS[unit]);
 }
 
 /**
- * Convenience helpers for command config. mod(), admin(), utility() include guildOnly and cooldown.
+ * Merges config layers (command first, then overrides) and fills in defaults.
+ * A field set on a later layer replaces the earlier value.
  */
-export const Config = {
-  create: () => CommandConfigBuilder.create(),
+export function ResolveConfig(
+  ...layers: readonly (CommandConfig | undefined)[]
+): ResolvedCommandConfig {
+  const merged: CommandConfig = Object.assign({}, ...layers.filter(Boolean));
 
-  requirePermissions: (...perms: PermissionName[]) =>
-    CommandConfigBuilder.create()
-      .permissions(...perms)
-      .build(),
-
-  requireAnyPermission: (...perms: PermissionName[]) =>
-    CommandConfigBuilder.create()
-      .anyPermission(...perms)
-      .build(),
-
-  requireRole: (roleId: string) =>
-    CommandConfigBuilder.create().role(roleId).build(),
-
-  requireOwner: () => CommandConfigBuilder.create().owner().build(),
-
-  // Quick cooldown helpers
-  cooldownSeconds: (seconds: number) =>
-    CommandConfigBuilder.create().cooldownSeconds(seconds).build(),
-
-  cooldownMinutes: (minutes: number) =>
-    CommandConfigBuilder.create().cooldownMinutes(minutes).build(),
-
-  // Combined helpers
-  mod: (cooldownSeconds = 5) =>
-    CommandConfigBuilder.create()
-      .guildOnly()
-      .hasModRole()
-      .cooldownSeconds(cooldownSeconds),
-
-  admin: (cooldownSeconds = 4) =>
-    CommandConfigBuilder.create()
-      .guildOnly()
-      .hasAdminRole()
-      .cooldownSeconds(cooldownSeconds)
-      .build(),
-
-  utility: (cooldownSeconds = 1) =>
-    CommandConfigBuilder.create()
-      .guildOnly()
-      .cooldownSeconds(cooldownSeconds)
-      .build(),
-
-  utilityWithFeature: (feature: ToggleableFeatureKey, cooldownSeconds = 1) =>
-    CommandConfigBuilder.create()
-      .guildOnly()
-      .cooldownSeconds(cooldownSeconds)
-      .requiredFeature(feature)
-      .build(),
-};
+  return {
+    access: merged.access ?? "everyone",
+    guildOnly: !merged.dms,
+    userPermissions: merged.userPermissions ?? [],
+    anyUserPermission: merged.anyUserPermission ?? false,
+    role: merged.role,
+    cooldownMs: merged.cooldown ? DurationToMs(merged.cooldown) : 0,
+    botPermissions: merged.botPermissions ?? [],
+    autoDefer: merged.autoDefer
+      ? { ephemeral: merged.autoDefer === "ephemeral" }
+      : false,
+    feature: merged.feature,
+  };
+}

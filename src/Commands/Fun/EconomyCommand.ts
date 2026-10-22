@@ -1,6 +1,5 @@
 import type { SlashCommandSubcommandBuilder } from "discord.js";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { MIN_BET, MAX_BET } from "@systems/Economy/constants";
 import { HandleBalance } from "@systems/Economy/handlers/BalanceHandler";
 import { HandleDaily } from "@systems/Economy/handlers/DailyHandler";
@@ -74,7 +73,7 @@ export const EconomyCommand = CreateCommand({
   name: "economy",
   description: "Check your coins and play economy games",
   group: "fun",
-  config: Config.utilityWithFeature("economy", 5),
+  config: { feature: "economy", cooldown: "5s" },
   subcommands: [
     {
       name: "balance",
@@ -87,23 +86,27 @@ export const EconomyCommand = CreateCommand({
             .setRequired(false),
         ),
       execute: HandleBalance,
+      alias: true,
     },
     {
       name: "daily",
       description: "Claim your daily coins",
       execute: HandleDaily,
+      alias: true,
     },
     {
       name: "work",
       description:
         "Work a quick shift: answer a task to earn coins (no betting)",
       execute: HandleWork,
+      alias: true,
     },
     {
       name: "fish",
       description:
         "Go fishing: reel in when you get a bite to earn coins (no betting)",
       execute: HandleFish,
+      alias: true,
     },
     {
       name: "flip",
@@ -150,6 +153,7 @@ export const EconomyCommand = CreateCommand({
       description: "Spin the slots and test your luck",
       options: AddBetOption,
       execute: HandleSlots,
+      alias: true,
     },
     {
       name: "wheel",

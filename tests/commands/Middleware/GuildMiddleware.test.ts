@@ -8,6 +8,7 @@ import {
   createMockResponderSet,
 } from "../../helpers";
 import type { MiddlewareContext } from "@middleware";
+import { ResolveConfig } from "@middleware/CommandConfig";
 
 function createMiddlewareContext(overrides: {
   guild?: unknown;
@@ -24,10 +25,15 @@ function createMiddlewareContext(overrides: {
   };
   return {
     interaction,
-    command,
+    invocation: {
+      commandName: command.data.name,
+      group: command.group,
+      path: command.data.name,
+      cooldownKey: command.data.name,
+    },
     logger: createMockLogger(),
     responders: createMockResponderSet(),
-    config: { guildOnly: true },
+    config: ResolveConfig(),
     databases: context.databases,
     appConfig: context.appConfig,
   } as unknown as MiddlewareContext;

@@ -51,11 +51,7 @@ function createContext(options: {
   return createMockMiddlewareContext({
     interaction,
     databases,
-    command: {
-      data: { name: options.commandName ?? "meme" },
-      group: "fun",
-      execute: vi.fn(),
-    } as never,
+    invocation: { commandName: options.commandName ?? "meme" },
   });
 }
 

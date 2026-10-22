@@ -4,10 +4,23 @@ import type {
   MessageCreateOptions,
   MessageEditOptions,
   ActionRowComponentData,
+  ButtonInteraction,
+  ContextMenuCommandInteraction,
+  ModalSubmitInteraction,
 } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { Logger } from "@shared/Logger";
 import { CreateConsoleLogger } from "@shared/Logger";
+
+/**
+ * Interactions the responders can answer: slash commands, right-click menus, buttons and
+ * modal submits.
+ */
+export type RepliableInteraction =
+  | ChatInputCommandInteraction
+  | ContextMenuCommandInteraction
+  | ButtonInteraction
+  | ModalSubmitInteraction;
 
 export type ResponderMessageOptions = Pick<
   MessageCreateOptions,
@@ -30,7 +43,7 @@ export interface ResponseResult {
 }
 
 export interface ResponseActionOptions {
-  readonly interaction: ChatInputCommandInteraction;
+  readonly interaction: RepliableInteraction;
   readonly message: string | ResponseOptions;
   readonly followUp?:
     | string

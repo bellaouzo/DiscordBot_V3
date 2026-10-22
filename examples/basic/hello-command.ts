@@ -1,7 +1,6 @@
 import type { ChatInputCommandInteraction } from "discord.js";
-import type { CommandContext} from "@commands";
+import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 
 /**
  * Basic hello command — simple reply and logging via context.
@@ -27,6 +26,6 @@ export const HelloCommand = CreateCommand({
   name: "hello",
   description: "Say hello to the bot",
   group: "utility",
-  config: Config.utility(0),
+  config: {},
   execute: ExecuteHello,
 });

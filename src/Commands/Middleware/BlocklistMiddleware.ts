@@ -85,7 +85,7 @@ export const BlocklistMiddleware: CommandMiddleware = {
     }
 
     context.logger.Debug("Command blocked by blocklist", {
-      command: context.command.data.name,
+      command: context.invocation.path,
       extra: {
         targetType: match.entry.target_type,
         targetId: match.entry.target_id,

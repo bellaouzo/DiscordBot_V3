@@ -78,9 +78,10 @@ describe("CommandLogStore", () => {
     ] as never;
 
     await AppendCommandLog(interaction, {
-      data: { name: "commandlogs" },
+      commandName: "commandlogs",
+      path: "commandlogs export",
       group: "utility",
-    } as never);
+    });
 
     const logs = await GetLogsForUser("user-1", 5);
     expect(logs[0]?.subcommand).toBe("export");

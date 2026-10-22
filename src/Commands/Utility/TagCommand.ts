@@ -12,7 +12,6 @@ import {
 } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import {
   EmbedFactory,
   IsModerator,
@@ -534,7 +533,7 @@ export const TagCommand = CreateCommand({
   name: "tag",
   description: "Post or manage server tags (saved responses)",
   group: "utility",
-  config: Config.utility(2),
+  config: { cooldown: "2s" },
   autocomplete: AutocompleteTagName,
   subcommands: [
     {

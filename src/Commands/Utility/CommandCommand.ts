@@ -1,16 +1,22 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import { ChannelType, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
-import { AllCommands, CreateCommand } from "@commands";
-import { Config } from "@middleware";
+import {
+  AllCommands,
+  CreateCommand,
+  ResolveCanonicalCommandName,
+} from "@commands";
 import { IsProtectedCommand } from "@middleware/ProtectedCommands";
 import { RequireGuild, EmbedFactory } from "@utilities";
 import type { PaginationPage } from "@shared/Paginator";
 
 const DISABLED_LIST_PAGE_SIZE = 10;
 
+/** Reads the `name` option; a shortcut alias (`daily`) resolves to its command (`economy`). */
 function ResolveCommandName(interaction: ChatInputCommandInteraction): string {
-  return interaction.options.getString("name", true).trim().toLowerCase();
+  return ResolveCanonicalCommandName(
+    interaction.options.getString("name", true).trim().toLowerCase(),
+  );
 }
 
 function ValidateCommandName(commandName: string): string | null {
@@ -344,7 +350,7 @@ export const CommandCommand = CreateCommand({
   name: "command",
   description: "Enable, disable, or restrict slash commands in this server",
   group: "utility",
-  config: Config.admin(3),
+  config: { access: "admin", cooldown: "3s" },
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

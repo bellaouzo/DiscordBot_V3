@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 
 function ResolveLatencyStatus(latencyMs: number): {
@@ -75,6 +74,6 @@ export const PingCommand = CreateCommand({
   name: "ping",
   description: "Replies with Pong!",
   group: "utility",
-  config: Config.utility(1),
+  config: { cooldown: "1s" },
   execute: ExecutePing,
 });

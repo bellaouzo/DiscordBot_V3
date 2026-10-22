@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import {
   BuildCategoryViews,
   GetAllCommandsCached,
@@ -60,6 +59,6 @@ export const HelpCommand = CreateCommand({
   name: "help",
   description: "📚 Browse all available bot commands with an interactive menu",
   group: "utility",
-  config: Config.utility(0),
+  config: {},
   execute: ExecuteHelp,
 });

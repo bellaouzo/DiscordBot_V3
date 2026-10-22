@@ -1,14 +1,27 @@
 import type {
   AutocompleteInteraction,
   ChatInputCommandInteraction,
+  ContextMenuCommandInteraction,
 } from "discord.js";
-import type { CommandDefinition, CommandContext } from "@commands";
+import type {
+  CommandDefinition,
+  CommandContext,
+  ContextMenuDefinition,
+} from "@commands";
 import type { Logger } from "@shared/Logger";
 import type { ResponderSet } from "@responders";
 import type { DatabaseSet } from "@database";
 import type { AppConfig } from "@config/AppConfig";
-import type { CommandMiddleware, MiddlewareContext } from "@middleware";
+import type {
+  CommandInteractionLike,
+  CommandInvocation,
+  CommandMiddleware,
+  MiddlewareConfiguration,
+  MiddlewareContext,
+  ResolvedCommandConfig,
+} from "@middleware";
 import {
+  AutoMiddleware,
   BlocklistMiddleware,
   ChannelRestrictionMiddleware,
   CommandEnabledMiddleware,
@@ -16,6 +29,7 @@ import {
   DiscordLoggingMiddleware,
   ErrorMiddleware,
   LoggingMiddleware,
+  ResolveConfig,
   RunMiddlewareChain,
 } from "@middleware";
 
@@ -28,11 +42,21 @@ export interface CommandExecutorDependencies {
 }
 
 /**
- * Runs a command: builds middleware context, runs before/after middleware chain, then command.execute.
+ * Runs a slash command: resolves its config, runs the middleware chain, then command.execute.
  */
 export type CommandExecutor = (
   command: CommandDefinition,
   interaction: ChatInputCommandInteraction,
+  responders: ResponderSet,
+  commandLogger: Logger,
+) => Promise<void>;
+
+/**
+ * Runs a right-click menu through the same middleware chain as slash commands.
+ */
+export type ContextMenuExecutor = (
+  menu: ContextMenuDefinition,
+  interaction: ContextMenuCommandInteraction,
   responders: ResponderSet,
   commandLogger: Logger,
 ) => Promise<void>;
@@ -56,18 +80,117 @@ const GLOBAL_NAMES = new Set(
 );
 
 /**
- * Builds the full chain for a command: global before, the command's own middleware (minus any
- * globals it lists again), then global after.
+ * Builds the full chain: global before, the command's middleware (from config, or its custom
+ * `middleware` minus any globals it lists again), then global after.
  */
 export function BuildMiddlewareChain(
-  command: CommandDefinition,
+  config: ResolvedCommandConfig,
+  custom?: MiddlewareConfiguration,
 ): CommandMiddleware[] {
-  const own = [
-    ...(command.middleware?.before ?? []),
-    ...(command.middleware?.after ?? []),
-  ].filter((middleware) => !GLOBAL_NAMES.has(middleware.name));
+  const own = custom
+    ? [...(custom.before ?? []), ...(custom.after ?? [])].filter(
+        (middleware) => !GLOBAL_NAMES.has(middleware.name),
+      )
+    : AutoMiddleware(config);
 
   return [...GLOBAL_BEFORE, ...own, ...GLOBAL_AFTER];
+}
+
+/**
+ * Works out which command and subcommand an interaction runs and the config that applies.
+ * Shortcut aliases resolve to the command and subcommand they belong to.
+ */
+export function ResolveInvocation(
+  command: CommandDefinition,
+  interaction: ChatInputCommandInteraction,
+): { invocation: CommandInvocation; config: ResolvedCommandConfig } {
+  const commandName = command.aliasOf?.command ?? command.data.name;
+  const subcommand =
+    command.aliasOf?.subcommand ?? ReadSubcommandPath(interaction);
+  const override = subcommand
+    ? command.subcommandConfig?.[subcommand]
+    : undefined;
+  const path = subcommand ? `${commandName} ${subcommand}` : commandName;
+
+  return {
+    invocation: {
+      commandName,
+      group: command.group,
+      path,
+      // A subcommand with its own cooldown gets its own key; otherwise the command shares one.
+      cooldownKey: override?.cooldown !== undefined ? path : commandName,
+    },
+    config: ResolveConfig(command.config, override),
+  };
+}
+
+function ReadSubcommandPath(
+  interaction: ChatInputCommandInteraction,
+): string | undefined {
+  const subcommand = interaction.options.getSubcommand(false);
+  if (!subcommand) {
+    return undefined;
+  }
+  const group = interaction.options.getSubcommandGroup(false);
+  return group ? `${group} ${subcommand}` : subcommand;
+}
+
+/**
+ * Invocation and config for a right-click menu: it shares its linked command's toggles,
+ * channel restrictions and cooldown.
+ */
+export function ResolveContextMenuInvocation(menu: ContextMenuDefinition): {
+  invocation: CommandInvocation;
+  config: ResolvedCommandConfig;
+} {
+  const { command, subcommand } = menu.linked;
+  const ownCooldown = menu.config.cooldown !== undefined && subcommand;
+  return {
+    invocation: {
+      commandName: command,
+      group: menu.group,
+      path: `${menu.data.name} (${menu.kind} menu)`,
+      cooldownKey: ownCooldown ? `${command} ${subcommand}` : command,
+    },
+    config: ResolveConfig(menu.config),
+  };
+}
+
+interface RunOptions {
+  readonly interaction: CommandInteractionLike;
+  readonly invocation: CommandInvocation;
+  readonly config: ResolvedCommandConfig;
+  readonly custom?: MiddlewareConfiguration;
+  readonly responders: ResponderSet;
+  readonly logger: Logger;
+  readonly deps: CommandExecutorDependencies;
+  readonly handler: (context: CommandContext) => Promise<void>;
+}
+
+async function RunWithMiddleware(options: RunOptions): Promise<void> {
+  const context: MiddlewareContext = {
+    interaction: options.interaction,
+    invocation: options.invocation,
+    logger: options.logger,
+    responders: options.responders,
+    config: options.config,
+    databases: options.deps.databases,
+    appConfig: options.deps.appConfig,
+    run: CreateRunState(),
+  };
+
+  const commandContext: CommandContext = {
+    responders: options.responders,
+    logger: options.logger,
+    databases: options.deps.databases,
+    appConfig: options.deps.appConfig,
+  };
+
+  await RunMiddlewareChain(
+    BuildMiddlewareChain(options.config, options.custom),
+    context,
+    () => options.handler(commandContext),
+  );
 }
 
 /**
@@ -79,38 +202,47 @@ export function BuildMiddlewareChain(
 export function CreateCommandExecutor(
   deps: CommandExecutorDependencies,
 ): CommandExecutor {
-  return async (
-    command: CommandDefinition,
-    interaction: ChatInputCommandInteraction,
-    responders: ResponderSet,
-    commandLogger: Logger,
-  ): Promise<void> => {
-    const context: MiddlewareContext = {
+  return async (command, interaction, responders, commandLogger) => {
+    const { invocation, config } = ResolveInvocation(command, interaction);
+    await RunWithMiddleware({
       interaction,
-      command,
-      logger: commandLogger,
+      invocation,
+      config,
+      custom: command.middleware,
       responders,
-      config: command.config ?? {},
-      databases: deps.databases,
-      appConfig: deps.appConfig,
-      run: CreateRunState(),
-    };
+      logger: commandLogger,
+      deps,
+      handler: (context) => command.execute(interaction, context),
+    });
+  };
+}
 
-    const finalHandler = async (): Promise<void> => {
-      const commandContext: CommandContext = {
-        responders,
-        logger: commandLogger,
-        databases: deps.databases,
-        appConfig: deps.appConfig,
-      };
-      await command.execute(interaction, commandContext);
-    };
-
-    await RunMiddlewareChain(
-      BuildMiddlewareChain(command),
-      context,
-      finalHandler,
-    );
+/**
+ * Creates the executor for right-click menus.
+ */
+export function CreateContextMenuExecutor(
+  deps: CommandExecutorDependencies,
+): ContextMenuExecutor {
+  return async (menu, interaction, responders, commandLogger) => {
+    const { invocation, config } = ResolveContextMenuInvocation(menu);
+    await RunWithMiddleware({
+      interaction,
+      invocation,
+      config,
+      responders,
+      logger: commandLogger,
+      deps,
+      handler: async (context) => {
+        if (menu.kind === "user" && interaction.isUserContextMenuCommand()) {
+          await menu.execute(interaction, context);
+        } else if (
+          menu.kind === "message" &&
+          interaction.isMessageContextMenuCommand()
+        ) {
+          await menu.execute(interaction, context);
+        }
+      },
+    });
   };
 }
 

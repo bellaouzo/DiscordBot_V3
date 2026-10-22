@@ -7,6 +7,8 @@ import { state } from './state.js';
 import { fetchApi } from './api.js';
 import { initTopbar, renderServerDropdown } from './topbar.js';
 import { initRouter } from './router.js';
+import { initSidebar } from './sidebar.js';
+import { initOverview } from '../views/overview.js';
 
 import {
   openTicketViewer,
@@ -51,7 +53,7 @@ async function loadDashboard() {
     if (topbarAvatar) topbarAvatar.src = avatarUrl;
     if (topbarUsername) topbarUsername.textContent = state.currentUser.username;
     if (overviewAvatar) overviewAvatar.src = avatarUrl;
-    if (overviewName) overviewName.textContent = `Welcome, ${state.currentUser.username}!`;
+    if (overviewName) overviewName.textContent = `Welcome back, ${state.currentUser.username}`;
 
     state.mutualGuilds = await fetchApi('/api/guilds');
     renderServerDropdown();
@@ -94,7 +96,9 @@ window.triggerSaveSettings  = triggerSaveSettings;
 
 /* ── Init ─────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
+  initSidebar();
   initTopbar();
   initRouter();
+  initOverview();
   loadDashboard();
 });

@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { EmbedFactory, RequestJson } from "@utilities";
 import { LoadApiConfig } from "@config/ApiConfig";
 
@@ -213,6 +212,6 @@ export const TranslateCommand = CreateCommand({
           .setRequired(false),
       );
   },
-  config: Config.utility(3),
+  config: { cooldown: "3s" },
   execute: ExecuteTranslate,
 });

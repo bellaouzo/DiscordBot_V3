@@ -11,6 +11,7 @@ import {
   createMockResponderSet,
   stubInteractionOptions,
 } from "../../helpers";
+import { ResolveConfig } from "@middleware/CommandConfig";
 
 function getEmbedTitle(call: unknown[]): string {
   const payload = call[1] as { embeds: Array<{ title?: string }> };
@@ -128,7 +129,7 @@ describe("AnnouncementCommand behavior", () => {
       command: AnnouncementCommand,
       logger: createMockLogger(),
       responders,
-      config: AnnouncementCommand.config!,
+      config: ResolveConfig(AnnouncementCommand.config),
       databases,
       appConfig: createMockContext().appConfig,
     } as unknown as MiddlewareContext;

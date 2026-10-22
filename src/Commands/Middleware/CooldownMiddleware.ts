@@ -1,26 +1,10 @@
 import { MessageFlags } from "discord.js";
-import type { CommandConfig } from "./CommandConfig";
 import type { CommandMiddleware, MiddlewareContext } from "./index";
 import { CreateErrorMessage } from "@responders/MessageFactory";
 import { GetCooldownStateStore } from "./CooldownState";
 
-export function ResolveCooldownMs(
-  cooldownConfig: NonNullable<CommandConfig["cooldown"]>,
-): number {
-  if (cooldownConfig.milliseconds) {
-    return cooldownConfig.milliseconds;
-  }
-  if (cooldownConfig.seconds) {
-    return cooldownConfig.seconds * 1000;
-  }
-  if (cooldownConfig.minutes) {
-    return cooldownConfig.minutes * 60 * 1000;
-  }
-  return 0;
-}
-
-export function BuildCooldownKey(userId: string, commandName: string): string {
-  return `${userId}:${commandName}`;
+export function BuildCooldownKey(userId: string, cooldownKey: string): string {
+  return `${userId}:${cooldownKey}`;
 }
 
 /**
@@ -30,22 +14,16 @@ export function BuildCooldownKey(userId: string, commandName: string): string {
 export function RecordCooldown(
   context: MiddlewareContext,
 ): { key: string; expiresAt: number } | null {
-  const cooldownConfig = context.config.cooldown;
-  if (!cooldownConfig) {
-    return null;
-  }
-
-  const cooldownMs = ResolveCooldownMs(cooldownConfig);
-  if (cooldownMs === 0) {
+  if (context.config.cooldownMs <= 0) {
     return null;
   }
 
   const key = BuildCooldownKey(
     context.interaction.user.id,
-    context.command.data.name,
+    context.invocation.cooldownKey,
   );
   const now = Date.now();
-  const expiresAt = now + cooldownMs;
+  const expiresAt = now + context.config.cooldownMs;
   const store = GetCooldownStateStore();
   store.Set(key, expiresAt);
   store.Prune(now);
@@ -63,22 +41,14 @@ export function ResetCooldownsForTesting(): void {
 export const CooldownMiddleware: CommandMiddleware = {
   name: "cooldown",
   execute: async (context, next) => {
-    const cooldownConfig = context.config.cooldown;
-
-    if (!cooldownConfig) {
-      await next();
-      return;
-    }
-
-    const cooldownMs = ResolveCooldownMs(cooldownConfig);
-    if (cooldownMs === 0) {
+    if (context.config.cooldownMs <= 0) {
       await next();
       return;
     }
 
     const key = BuildCooldownKey(
       context.interaction.user.id,
-      context.command.data.name,
+      context.invocation.cooldownKey,
     );
     const expiresAt = GetCooldownStateStore().Get(key);
     const now = Date.now();

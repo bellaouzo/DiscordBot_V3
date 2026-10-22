@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harbor Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/reset.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">V3</span>
+        <span class="brand-name">BotV3</span>
+      </div>
+
+      <button class="guild-picker">
+        <span class="guild-icon">PH</span>
+        <span class="guild-meta">
+          <strong>Pixel Haven</strong>
+          <small>4,812 members</small>
+        </span>
+        <span class="chev">▾</span>
+      </button>
+
+      <nav class="nav">
+        <p class="nav-label">General</p>
+        <a class="nav-item active" href="#"><span class="dot"></span>Overview</a>
+        <a class="nav-item" href="#"><span class="dot"></span>Server setup</a>
+
+        <p class="nav-label">Moderation</p>
+        <a class="nav-item" href="#"><span class="dot"></span>Cases <em class="pill">12</em></a>
+        <a class="nav-item" href="#"><span class="dot"></span>Appeals <em class="pill warn">3</em></a>
+        <a class="nav-item" href="#"><span class="dot"></span>Filters</a>
+        <a class="nav-item" href="#"><span class="dot"></span>Raid mode</a>
+
+        <p class="nav-label">Community</p>
+        <a class="nav-item" href="#"><span class="dot"></span>Leveling</a>
+        <a class="nav-item" href="#"><span class="dot"></span>Economy</a>
+        <a class="nav-item" href="#"><span class="dot"></span>Giveaways</a>
+        <a class="nav-item" href="#"><span class="dot"></span>Tickets <em class="pill">5</em></a>
+        <a class="nav-item" href="#"><span class="dot"></span>Reaction roles</a>
+
+        <p class="nav-label">Bot</p>
+        <a class="nav-item" href="#"><span class="dot"></span>Commands</a>
+        <a class="nav-item" href="#"><span class="dot"></span>Command logs</a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <span class="status-dot"></span>
+        Online · 42 ms
+      </div>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Pixel Haven</p>
+          <h1>Overview</h1>
+        </div>
+        <div class="topbar-actions">
+          <label class="search">
+            <input type="search" placeholder="Search members, cases, commands…">
+          </label>
+          <button class="btn ghost">View logs</button>
+          <button class="btn primary">Run /setup</button>
+          <span class="avatar">BO</span>
+        </div>
+      </header>
+
+      <!-- Stat cards -->
+      <section class="stats">
+        <article class="stat">
+          <p class="stat-label">Members</p>
+          <p class="stat-value">4,812</p>
+          <p class="stat-delta up">+64 this week</p>
+          <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points="0,24 14,22 28,23 42,18 56,16 70,12 84,10 100,6"/></svg>
+        </article>
+        <article class="stat">
+          <p class="stat-label">Commands today</p>
+          <p class="stat-value">1,297</p>
+          <p class="stat-delta up">+18% vs. yesterday</p>
+          <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points="0,20 14,16 28,22 42,14 56,18 70,9 84,12 100,4"/></svg>
+        </article>
+        <article class="stat">
+          <p class="stat-label">Open tickets</p>
+          <p class="stat-value">5</p>
+          <p class="stat-delta">2 waiting on staff</p>
+          <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points="0,10 14,14 28,12 42,18 56,16 70,20 84,18 100,22"/></svg>
+        </article>
+        <article class="stat">
+          <p class="stat-label">Mod actions (7d)</p>
+          <p class="stat-value">38</p>
+          <p class="stat-delta down">-9 vs. last week</p>
+          <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points="0,6 14,10 28,8 42,14 56,12 70,18 84,20 100,22"/></svg>
+        </article>
+      </section>
+
+      <!-- Chart + health -->
+      <section class="row two-one">
+        <article class="card">
+          <header class="card-head">
+            <h2>Command usage</h2>
+            <div class="seg">
+              <button class="on">7d</button><button>30d</button><button>90d</button>
+            </div>
+          </header>
+          <div class="bars">
+            <div class="bar" style="--h:48%"><span>Mon</span></div>
+            <div class="bar" style="--h:62%"><span>Tue</span></div>
+            <div class="bar" style="--h:55%"><span>Wed</span></div>
+            <div class="bar" style="--h:71%"><span>Thu</span></div>
+            <div class="bar" style="--h:88%"><span>Fri</span></div>
+            <div class="bar" style="--h:94%"><span>Sat</span></div>
+            <div class="bar today" style="--h:66%"><span>Sun</span></div>
+          </div>
+          <ul class="top-commands">
+            <li><code>/rank</code><span>412</span></li>
+            <li><code>/economy daily</code><span>288</span></li>
+            <li><code>/trivia</code><span>176</span></li>
+            <li><code>/meme</code><span>143</span></li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <header class="card-head"><h2>Bot health</h2></header>
+          <dl class="health">
+            <div><dt>Uptime</dt><dd>12d 4h</dd></div>
+            <div><dt>Gateway ping</dt><dd>42 ms</dd></div>
+            <div><dt>Memory</dt><dd>186 MB</dd></div>
+            <div><dt>DB size</dt><dd>24.1 MB</dd></div>
+          </dl>
+          <div class="meter-group">
+            <p>Command error rate <strong>0.4%</strong></p>
+            <div class="meter"><span style="width:4%"></span></div>
+            <p>Avg. response <strong>180 ms</strong></p>
+            <div class="meter"><span style="width:36%"></span></div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Cases + feature toggles -->
+      <section class="row two-one">
+        <article class="card">
+          <header class="card-head">
+            <h2>Recent cases</h2>
+            <a class="link" href="#">All cases →</a>
+          </header>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr><th>Case</th><th>Member</th><th>Action</th><th>Moderator</th><th>When</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>#214</td><td>quietfox</td><td><span class="tag warn">Warn</span></td><td>Mira</td><td>12m ago</td></tr>
+                <tr><td>#213</td><td>spamlord99</td><td><span class="tag ban">Ban</span></td><td>AutoMod</td><td>1h ago</td></tr>
+                <tr><td>#212</td><td>nightowl</td><td><span class="tag mute">Mute 1h</span></td><td>Theo</td><td>3h ago</td></tr>
+                <tr><td>#211</td><td>pebble</td><td><span class="tag kick">Kick</span></td><td>Mira</td><td>Yesterday</td></tr>
+                <tr><td>#210</td><td>driftwood</td><td><span class="tag warn">Warn</span></td><td>Link filter</td><td>Yesterday</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="card">
+          <header class="card-head"><h2>Modules</h2></header>
+          <ul class="toggles">
+            <li><div><strong>Leveling</strong><small>XP for messages &amp; voice</small></div><label class="switch"><input type="checkbox" checked><span></span></label></li>
+            <li><div><strong>Economy</strong><small>Coins, daily, minigames</small></div><label class="switch"><input type="checkbox" checked><span></span></label></li>
+            <li><div><strong>Spam filter</strong><small>Rate-limit repeat messages</small></div><label class="switch"><input type="checkbox" checked><span></span></label></li>
+            <li><div><strong>Link filter</strong><small>Block unapproved domains</small></div><label class="switch"><input type="checkbox" checked><span></span></label></li>
+            <li><div><strong>Starboard</strong><small>Pin popular messages</small></div><label class="switch"><input type="checkbox"><span></span></label></li>
+            <li><div><strong>Raid mode</strong><small>Lock joins during raids</small></div><label class="switch"><input type="checkbox"><span></span></label></li>
+          </ul>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

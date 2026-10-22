@@ -1,52 +1,77 @@
 import { describe, expect, it } from "vitest";
-import { Config, CommandConfigBuilder } from "@middleware/CommandConfig";
+import { DurationToMs, ResolveConfig } from "@middleware/CommandConfig";
 
-describe("CommandConfig", () => {
-  it("builds configs through the fluent builder", () => {
-    const config = CommandConfigBuilder.create()
-      .guildOnly()
-      .permissions("BanMembers", "KickMembers")
-      .anyPermission("ManageGuild")
-      .cooldownSeconds(5)
-      .cooldownMinutes(1)
-      .cooldownMs(500)
-      .role("role-1")
-      .hasModRole()
-      .hasAdminRole()
-      .owner()
-      .requiredFeature("economy")
-      .build();
-
-    expect(config.guildOnly).toBe(true);
-    expect(config.permissions?.required).toEqual(["ManageGuild"]);
-    expect(config.permissions?.requireAny).toBe(true);
-    expect(config.cooldown?.seconds).toBe(5);
-    expect(config.role).toBe("role-1");
-    expect(config.modRole).toBe(true);
-    expect(config.adminRole).toBe(true);
-    expect(config.owner).toBe(true);
-    expect(config.requiredFeature).toBe("economy");
+describe("DurationToMs", () => {
+  it("converts each unit", () => {
+    expect(DurationToMs("250ms")).toBe(250);
+    expect(DurationToMs("5s")).toBe(5000);
+    expect(DurationToMs("2m")).toBe(120_000);
+    expect(DurationToMs("1h")).toBe(3_600_000);
+    expect(DurationToMs("1.5s")).toBe(1500);
   });
 
-  it("exposes convenience config helpers", () => {
-    expect(Config.requirePermissions("BanMembers")).toEqual({
-      permissions: { required: ["BanMembers"] },
-    });
-    expect(Config.requireAnyPermission("BanMembers", "KickMembers")).toEqual({
-      permissions: {
-        required: ["BanMembers", "KickMembers"],
-        requireAny: true,
-      },
-    });
-    expect(Config.requireRole("role-1")).toEqual({ role: "role-1" });
-    expect(Config.requireOwner()).toEqual({ owner: true });
-    expect(Config.cooldownSeconds(10)).toEqual({
-      cooldown: { seconds: 10 },
-    });
-    expect(Config.utilityWithFeature("giveaways", 2)).toEqual({
+  it("rejects malformed durations", () => {
+    expect(() => DurationToMs("5 seconds" as never)).toThrow(
+      /Invalid duration/,
+    );
+  });
+});
+
+describe("ResolveConfig", () => {
+  it("fills in defaults: guild only, everyone, no cooldown", () => {
+    expect(ResolveConfig()).toEqual({
+      access: "everyone",
       guildOnly: true,
-      cooldown: { seconds: 2 },
-      requiredFeature: "giveaways",
+      userPermissions: [],
+      anyUserPermission: false,
+      role: undefined,
+      cooldownMs: 0,
+      botPermissions: [],
+      autoDefer: false,
+      feature: undefined,
+    });
+  });
+
+  it("resolves every field", () => {
+    const resolved = ResolveConfig({
+      access: "mod",
+      dms: true,
+      userPermissions: ["ManageGuild"],
+      anyUserPermission: true,
+      role: "role-1",
+      cooldown: "5s",
+      botPermissions: ["BanMembers"],
+      autoDefer: "ephemeral",
+      feature: "economy",
+    });
+
+    expect(resolved).toEqual({
+      access: "mod",
+      guildOnly: false,
+      userPermissions: ["ManageGuild"],
+      anyUserPermission: true,
+      role: "role-1",
+      cooldownMs: 5000,
+      botPermissions: ["BanMembers"],
+      autoDefer: { ephemeral: true },
+      feature: "economy",
+    });
+  });
+
+  it("lets later layers override earlier ones field by field", () => {
+    const resolved = ResolveConfig(
+      { access: "mod", cooldown: "5s", botPermissions: ["ManageRoles"] },
+      { botPermissions: [], cooldown: false },
+    );
+
+    expect(resolved.access).toBe("mod");
+    expect(resolved.botPermissions).toEqual([]);
+    expect(resolved.cooldownMs).toBe(0);
+  });
+
+  it("treats autoDefer true as a public defer", () => {
+    expect(ResolveConfig({ autoDefer: true }).autoDefer).toEqual({
+      ephemeral: false,
     });
   });
 });

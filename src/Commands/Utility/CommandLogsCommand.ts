@@ -123,13 +123,7 @@ export const CommandLogsCommand = CreateCommand({
         ),
     );
   },
-  config: {
-    permissions: {
-      required: ["ManageGuild"],
-      requireAny: false,
-    },
-    cooldown: { seconds: 5 },
-  },
+  config: { userPermissions: ["ManageGuild"], cooldown: "5s" },
   execute: async (interaction, context) => {
     const sub = interaction.options.getSubcommand(true);
     if (sub === "export") {

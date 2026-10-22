@@ -13,7 +13,7 @@ export const ChannelRestrictionMiddleware: CommandMiddleware = {
   name: "channel-restriction",
   execute: async (context, next) => {
     const guild = context.interaction.guild;
-    const commandName = context.command.data.name;
+    const commandName = context.invocation.commandName;
 
     if (!guild || IsProtectedCommand(commandName)) {
       await next();

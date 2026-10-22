@@ -7,7 +7,6 @@ import type {
   SlashCommandIntegerOption,
 } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { HandleCreate } from "@commands/Utility/Giveaway/GiveawayCreateFlow";
 import { HandleEnd } from "@commands/Utility/Giveaway/GiveawayEndFlow";
 import { HandleReroll } from "@commands/Utility/Giveaway/GiveawayRerollFlow";
@@ -100,6 +99,6 @@ export const GiveawayCommand = CreateCommand({
           .setDescription("Learn what giveaways are and how to run them"),
       );
   },
-  config: Config.utilityWithFeature("giveaways", 5),
+  config: { feature: "giveaways", cooldown: "5s" },
   execute: ExecuteGiveaway,
 });

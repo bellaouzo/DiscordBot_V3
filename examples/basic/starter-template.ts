@@ -1,7 +1,6 @@
 import type { ChatInputCommandInteraction } from "discord.js";
-import type { CommandContext} from "@commands";
+import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 
 /**
  * STARTER TEMPLATE COMMAND
@@ -37,6 +36,6 @@ export const StarterTemplateCommand = CreateCommand({
   name: "starter-template",
   description: "A working starter template command",
   group: "utility",
-  config: Config.utility(2),
+  config: { cooldown: "2s" },
   execute: ExecuteStarterTemplate,
 });

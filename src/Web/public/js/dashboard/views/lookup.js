@@ -6,7 +6,7 @@ export async function loadUsers(query) {
   document.getElementById('lookup-profile-panel').style.display = 'none';
   const container = document.getElementById('lookup-list-container');
   container.style.display = 'block';
-  container.innerHTML = '<div class="loader"></div> Loading members...';
+  container.innerHTML = '<p class="text-muted"><span class="loader-sm"></span> Loading members...</p>';
   
   try {
     const users = await fetchApi(`/api/admin/users/${state.selectedGuildId}?q=${encodeURIComponent(query)}`);
@@ -18,10 +18,10 @@ export async function loadUsers(query) {
     container.innerHTML = `<div class="user-grid">
       ${users.map(u => `
         <div class="user-card clickable" onclick="viewUserProfile('${u.id}')">
-          <img src="${u.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png'}" class="user-card-avatar" />
+          <img src="${escapeHtml(u.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png')}" alt="" class="user-card-avatar" />
           <div class="user-card-info">
             <strong>${escapeHtml(u.username)}</strong>
-            <span class="user-id-badge mt-1" style="display:inline-block">${u.id}</span>
+            <span class="user-id-badge mt-1">${u.id}</span>
           </div>
         </div>
       `).join('')}
@@ -104,28 +104,29 @@ export async function viewUserProfile(userId) {
     let rolesHtml = '';
     if (data.member && data.member.roles && data.member.roles.length > 0) {
       rolesHtml = data.member.roles.map(r => {
-        const color = r.color === '#000000' ? 'rgba(255,255,255,0.2)' : r.color;
-        return `<span class="profile-role-badge" style="border: 1px solid ${color}; color: ${color}; background-color: ${color}15;">${escapeHtml(r.name)}</span>`;
+        // Discord uses #000000 for "no color"
+        const color = /^#[0-9a-f]{6}$/i.test(r.color) && r.color !== '#000000' ? r.color : '';
+        return `<span class="profile-role-badge"${color ? ` style="--role: ${color}"` : ''}>${escapeHtml(r.name)}</span>`;
       }).join('');
     } else {
-      rolesHtml = '<span class="text-muted" style="font-size: 0.85rem;">No roles assigned</span>';
+      rolesHtml = '<span class="text-muted">No roles assigned</span>';
     }
     document.getElementById('profile-roles-container').innerHTML = rolesHtml;
     
     // Warnings Tab
     const warningsList = data.infractions.warnings || [];
     if (warningsList.length === 0) {
-      document.getElementById('profile-warnings').innerHTML = '<p class="text-muted text-center" style="padding: 2rem 0;">No warnings recorded for this user.</p>';
+      document.getElementById('profile-warnings').innerHTML = '<p class="text-muted text-center empty-pad">No warnings recorded for this user.</p>';
     } else {
       document.getElementById('profile-warnings').innerHTML = warningsList.map(w => `
         <div class="sm-card">
-          <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 0.4rem;">
-            <strong style="color: #FAA81A;">WARNING #${w.id}</strong>
+          <div class="sm-card-head">
+            <strong class="type-warn">WARNING #${w.id}</strong>
             <small>${new Date(w.created_at).toLocaleDateString()}</small>
           </div>
-          <p style="margin:0; font-size:0.85rem;">${escapeHtml(w.reason || 'No reason provided')}</p>
-          <div style="margin-top: 0.4rem; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
-            Moderator: <span class="user-id-badge">${w.moderator_id}</span>
+          <p>${escapeHtml(w.reason || 'No reason provided')}</p>
+          <div class="sm-card-foot">
+            Moderator: <span class="user-id-badge">${escapeHtml(w.moderator_id)}</span>
           </div>
         </div>
       `).join('');
@@ -139,15 +140,15 @@ export async function viewUserProfile(userId) {
     ].sort((a, b) => b.created_at - a.created_at);
 
     if (allInfractions.length === 0) {
-      document.getElementById('profile-infractions').innerHTML = '<p class="text-muted text-center" style="padding: 2rem 0;">Clean moderation record.</p>';
+      document.getElementById('profile-infractions').innerHTML = '<p class="text-muted text-center empty-pad">Clean moderation record.</p>';
     } else {
       document.getElementById('profile-infractions').innerHTML = allInfractions.map(i => `
         <div class="sm-card">
-          <div style="display:flex; justify-content:space-between; margin-bottom: 0.2rem;">
+          <div class="sm-card-head">
             <strong class="type-${i.type.toLowerCase()}">${i.type.toUpperCase()}</strong>
             <small>${new Date(i.created_at).toLocaleDateString()}</small>
           </div>
-          <p style="margin:0; font-size:0.85rem;">${escapeHtml(i.reason || 'No reason')}</p>
+          <p>${escapeHtml(i.reason || 'No reason')}</p>
         </div>
       `).join('');
     }
@@ -168,7 +169,7 @@ export async function viewUserProfile(userId) {
 export function renderProfileTickets() {
   const container = document.getElementById('profile-tickets');
   if (state.loadedProfileTickets.length === 0) {
-    container.innerHTML = '<p class="text-muted text-center" style="padding: 2rem 0;">No tickets created.</p>';
+    container.innerHTML = '<p class="text-muted text-center empty-pad">No tickets created.</p>';
     return;
   }
 
@@ -181,21 +182,21 @@ export function renderProfileTickets() {
   let html = `<div class="profile-data-list">
     ${pageTickets.map(t => `
       <div class="sm-card clickable" onclick="openTicketViewer(${t.id})">
-        <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 0.2rem;">
-          <strong>#${t.id} - ${t.category}</strong>
-          <span class="status-badge ${t.status}" style="font-size:0.6rem; padding:0.1rem 0.3rem; line-height: 1;">${t.status.toUpperCase()}</span>
+        <div class="sm-card-head">
+          <strong>#${t.id} - ${escapeHtml(t.category)}</strong>
+          <span class="status-badge sm ${t.status}">${t.status.toUpperCase()}</span>
         </div>
-        <small>${new Date(t.created_at).toLocaleDateString()}</small>
+        <small class="text-muted">${new Date(t.created_at).toLocaleDateString()}</small>
       </div>
     `).join('')}
   </div>`;
 
   if (totalPages > 1) {
     html += `
-      <div class="pagination-controls" style="margin-top: 0.5rem; padding-top: 0.5rem; gap: 0.5rem;">
-        <button class="btn btn-secondary btn-sm" onclick="changeProfileTicketsPage(-1)" ${state.profileTicketsPage === 1 ? 'disabled style="opacity: 0.5; padding: 0.25rem 0.5rem; font-size: 0.75rem; cursor: default;"' : 'style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"'}>&larr;</button>
-        <span class="pagination-info" style="font-size: 0.8rem;">${state.profileTicketsPage}/${totalPages}</span>
-        <button class="btn btn-secondary btn-sm" onclick="changeProfileTicketsPage(1)" ${state.profileTicketsPage === totalPages ? 'disabled style="opacity: 0.5; padding: 0.25rem 0.5rem; font-size: 0.75rem; cursor: default;"' : 'style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"'}>&rarr;</button>
+      <div class="pagination-controls compact">
+        <button class="btn btn-secondary btn-sm" onclick="changeProfileTicketsPage(-1)" ${state.profileTicketsPage === 1 ? 'disabled' : ''}>&larr;</button>
+        <span class="pagination-info">${state.profileTicketsPage}/${totalPages}</span>
+        <button class="btn btn-secondary btn-sm" onclick="changeProfileTicketsPage(1)" ${state.profileTicketsPage === totalPages ? 'disabled' : ''}>&rarr;</button>
       </div>
     `;
   }

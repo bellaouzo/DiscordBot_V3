@@ -1,0 +1,25 @@
+/* ============================================================
+   dashboard/index.css — Entry point for the Bento dashboard.
+   Only @import statements; order matters for the cascade.
+   ============================================================ */
+
+/* ── Base ─────────────────────────────────────────────────── */
+@import url('./base.css');
+
+/* ── Layout ───────────────────────────────────────────────── */
+@import url('./layout/shell.css');
+@import url('./layout/header.css');
+
+/* ── Components ───────────────────────────────────────────── */
+@import url('./components/buttons.css');
+@import url('./components/badges.css');
+@import url('./components/cards.css');
+@import url('./components/forms.css');
+@import url('./components/toast.css');
+@import url('./components/widgets.css');
+
+/* ── Views ────────────────────────────────────────────────── */
+@import url('./views/overview.css');
+@import url('./views/tickets.css');
+@import url('./views/lookup.css');
+@import url('./views/settings.css');

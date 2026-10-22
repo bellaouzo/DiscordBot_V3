@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { RequireGuild, EmbedFactory } from "@utilities";
 import { EconomyManager } from "@systems/Economy/EconomyManager";
 import { ITEM_MAP } from "@systems/Economy/items";
@@ -245,7 +244,7 @@ export const EconomyAdminCommand = CreateCommand({
   name: "economyadmin",
   description: "Administer user balances and items",
   group: "moderation",
-  config: Config.mod(5).requiredFeature("economy").build(),
+  config: { access: "mod", cooldown: "5s", feature: "economy" },
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

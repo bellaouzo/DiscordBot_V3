@@ -1,11 +1,15 @@
-import type { SlashCommandBuilder } from "discord.js";
+import type {
+  ContextMenuCommandBuilder,
+  SlashCommandBuilder,
+} from "discord.js";
 import { REST, Routes } from "discord.js";
 import type { Logger } from "@shared/Logger";
 import type { DeploymentConfig } from "@config/AppConfig";
 
-export type CommandDeployer = (
-  commands: SlashCommandBuilder[],
-) => Promise<void>;
+/** Slash commands and context menus; REST serializes each with toJSON(). */
+export type DeployableCommand = SlashCommandBuilder | ContextMenuCommandBuilder;
+
+export type CommandDeployer = (commands: DeployableCommand[]) => Promise<void>;
 
 export interface CommandDeployerOptions {
   readonly deployment: DeploymentConfig;
@@ -47,7 +51,7 @@ function ResolveOppositeDeployRoute(
 export function CreateCommandDeployer(
   options: CommandDeployerOptions,
 ): CommandDeployer {
-  return async (commands: SlashCommandBuilder[]) => {
+  return async (commands: DeployableCommand[]) => {
     const rest = new REST().setToken(options.token);
     const route = ResolveDeployRoute(options.deployment);
     const oppositeRoute = ResolveOppositeDeployRoute(options.deployment);

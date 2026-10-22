@@ -1,4 +1,8 @@
-import type { ChatInputCommandInteraction } from "discord.js";
+import type {
+  ChatInputCommandInteraction,
+  User,
+  UserContextMenuCommandInteraction,
+} from "discord.js";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -7,7 +11,7 @@ import {
 } from "discord.js";
 import type { CommandContext } from "@commands";
 import {
-  RequireGuild,
+  RequireGuildFromInteraction,
   EmbedFactory,
   CreateGuildResourceLocator,
 } from "@utilities";
@@ -20,16 +24,19 @@ import {
   buildWarningPages,
 } from "@commands/Moderation/Casefile/Formatters";
 
+/**
+ * Shows a user's case file. Used by `/casefile` and the Casefile right-click menu.
+ */
 export async function HandleCasefileQuery(
-  interaction: ChatInputCommandInteraction,
+  interaction: ChatInputCommandInteraction | UserContextMenuCommandInteraction,
   context: CommandContext,
+  targetUser: User,
 ): Promise<void> {
   const { interactionResponder } = context.responders;
   const { buttonResponder, paginatedResponder, componentRouter } =
     context.responders;
 
-  const targetUser = interaction.options.getUser("user", true);
-  const guild = RequireGuild(interaction);
+  const guild = RequireGuildFromInteraction(interaction);
   const warnManager = CreateWarnManager({
     guildId: guild.id,
     userDb: context.databases.userDb,

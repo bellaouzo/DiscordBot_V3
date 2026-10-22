@@ -7,6 +7,7 @@ import { FormatPermissionName } from "./PermissionMiddleware";
  * Checks that the bot has the permissions a command needs in the channel it was used in, so a
  * missing permission produces a clear message instead of a Discord 50013 error mid-command.
  * Uses interaction.appPermissions, which Discord sends with every interaction (no API call).
+ * Read-only subcommands opt out with a per-subcommand `botPermissions: []` override.
  */
 export const BotPermissionMiddleware: CommandMiddleware = {
   name: "bot-permissions",
@@ -15,7 +16,7 @@ export const BotPermissionMiddleware: CommandMiddleware = {
     const appPermissions = context.interaction.appPermissions;
 
     if (
-      !botPermissions?.required.length ||
+      botPermissions.length === 0 ||
       !context.interaction.guild ||
       !appPermissions
     ) {
@@ -23,13 +24,7 @@ export const BotPermissionMiddleware: CommandMiddleware = {
       return;
     }
 
-    const subcommand = context.interaction.options?.getSubcommand?.(false);
-    if (subcommand && botPermissions.exemptSubcommands?.includes(subcommand)) {
-      await next();
-      return;
-    }
-
-    const missing = botPermissions.required.filter(
+    const missing = botPermissions.filter(
       (permission) => !appPermissions.has(PermissionFlagsBits[permission]),
     );
 
@@ -45,7 +40,7 @@ export const BotPermissionMiddleware: CommandMiddleware = {
         : `I need these permissions in this channel to do that:\n• ${formatted.join("\n• ")}`;
 
     context.logger.Info("Command blocked: bot is missing permissions", {
-      command: context.command.data.name,
+      command: context.invocation.path,
       extra: { missing },
     });
 

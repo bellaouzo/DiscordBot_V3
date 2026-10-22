@@ -1,0 +1,8 @@
+# Caddy reverse proxy for the dashboard.
+# Copy to /etc/caddy/Caddyfile, replace the domain, then: sudo systemctl reload caddy
+# Caddy fetches and renews the HTTPS certificate automatically.
+
+dash.example.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:3000
+}

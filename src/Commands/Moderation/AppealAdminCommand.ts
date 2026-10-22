@@ -7,7 +7,6 @@ import type {
   SlashCommandIntegerOption,
 } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import {
   HandleList,
   HandleReview,
@@ -39,7 +38,7 @@ export const AppealAdminCommand = CreateCommand({
   name: "appeal-admin",
   description: "Staff tools for managing moderation appeals",
   group: "moderation",
-  config: Config.mod().build(),
+  config: { access: "mod", cooldown: "5s" },
   execute: ExecuteAppealAdmin,
   configure: (builder: SlashCommandBuilder) => {
     builder

@@ -10,6 +10,7 @@ import {
   createMockLogger,
   createMockResponderSet,
 } from "../../helpers";
+import { ResolveConfig } from "@middleware/CommandConfig";
 
 function createEmptyCollection() {
   const collection = {
@@ -161,7 +162,7 @@ describe("SetupCommand behavior", () => {
       command: SetupCommand,
       logger: createMockLogger(),
       responders,
-      config: SetupCommand.config!,
+      config: ResolveConfig(SetupCommand.config),
       databases,
       appConfig: createMockContext().appConfig,
     } as unknown as MiddlewareContext;

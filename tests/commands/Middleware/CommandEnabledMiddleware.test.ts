@@ -12,6 +12,7 @@ import {
   createMockAppConfig,
 } from "../../helpers";
 import type { MiddlewareContext } from "@middleware";
+import { ResolveConfig } from "@middleware/CommandConfig";
 
 function createMiddlewareContext(options: {
   commandName: string;
@@ -30,10 +31,15 @@ function createMiddlewareContext(options: {
 
   return {
     interaction,
-    command,
+    invocation: {
+      commandName: command.data.name,
+      group: command.group,
+      path: command.data.name,
+      cooldownKey: command.data.name,
+    },
     logger: createMockLogger(),
     responders: createMockResponderSet(),
-    config: { guildOnly: true },
+    config: ResolveConfig(),
     databases: {
       serverDb: options.serverDb,
     },

@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import { FormatUptime } from "@utilities/FormatUptime";
 import { ListMissingRequiredFeatureApiKeys } from "@config/ApiConfig";
@@ -92,6 +91,6 @@ export const HealthCommand = CreateCommand({
   name: "health",
   description: "Check bot health and connectivity",
   group: "utility",
-  config: Config.utility(5),
+  config: { cooldown: "5s" },
   execute: ExecuteHealth,
 });

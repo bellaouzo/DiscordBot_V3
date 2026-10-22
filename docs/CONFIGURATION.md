@@ -45,7 +45,7 @@ Toggles from setup step 3. Stored per guild:
 
 ## Developer reference
 
-Features and their toggles are defined in `src/Shared/Features.ts`; any toggleable feature can gate commands with `Config.utilityWithFeature("<key>")`, which adds `FeatureEnabledMiddleware`. Guild settings are defined in `src/Database/Server/GuildSettingsSchema.ts`. Permission logic lives in `src/Utilities/StaffPermissions.ts` and `PermissionMiddleware`.
+Features and their toggles are defined in `src/Shared/Features.ts`; any toggleable feature can gate commands with `config: { feature: "<key>" }`, which adds `FeatureEnabledMiddleware`. Guild settings are defined in `src/Database/Server/GuildSettingsSchema.ts`. Permission logic lives in `src/Utilities/StaffPermissions.ts` and `PermissionMiddleware`.
 
 To add a setting or a feature toggle, follow [EXTENDING.md](EXTENDING.md#a-guild-setting), then document it here and in [SERVER_SETUP.md](SERVER_SETUP.md).
 

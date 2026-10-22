@@ -2,7 +2,6 @@ import { MessageFlags } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { EmbedFactory } from "@utilities";
 import {
   EnsureRobloxBridgeSettings,
@@ -97,7 +96,7 @@ export const RobloxCommand = CreateCommand({
   name: "roblox",
   description: "Roblox bridge actions",
   group: "moderation",
-  config: Config.admin(),
+  config: { access: "admin", cooldown: "4s" },
   execute: ExecuteRoblox,
   configure: (builder) => {
     builder

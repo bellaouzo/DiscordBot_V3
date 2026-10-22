@@ -8,7 +8,7 @@ import type { CommandMiddleware } from "./index";
 export const AUTO_DEFER_AFTER_MS = 2000;
 
 /**
- * Opt-in (`Config.create().autoDefer()`): if the handler hasn't replied or deferred by the
+ * Opt-in (`autoDefer: true` in the command config): if the handler hasn't replied or deferred by the
  * deadline, defers for it. InteractionResponder.Reply then edits the deferred reply, so handlers
  * keep calling Reply as usual.
  *
@@ -35,7 +35,7 @@ export const AutoDeferMiddleware: CommandMiddleware = {
         return;
       }
       context.logger.Debug("Auto-deferring slow command", {
-        command: context.command.data.name,
+        command: context.invocation.path,
       });
       void context.responders.interactionResponder.Defer(interaction, {
         flags: autoDefer.ephemeral ? MessageFlags.Ephemeral : undefined,

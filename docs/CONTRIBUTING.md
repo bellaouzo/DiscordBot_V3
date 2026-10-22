@@ -41,11 +41,11 @@ CI runs `npm audit --audit-level=high`, `npm run lint`, `npm run lint:examples`,
 Do not import from `@commands/CommandFactory` or use relative `../Commands/` paths outside `src/Commands/`. Use `RequireGuild(interaction)` instead of `interaction.guild!`.
 - **Comments:** Avoid inline comments that restate what the code does. Use comments for section headers or non-obvious behavior only.
 - **Utilities:** Prefer shared utilities (e.g. `EmbedFactory`, `CreateGuildResourceLocator`, responders, config builders) over one-off implementations.
-- **Validation and errors:** Use middleware for cross-cutting checks (e.g. guild-only via `config.guildOnly`, permissions via `Config.mod()` / `Config.utility()`). Let `ErrorMiddleware` handle generic failures; keep try/catch only for partial or domain-specific handling.
+- **Validation and errors:** Use middleware for cross-cutting checks (e.g. `config: { access: "mod", botPermissions: [...] }`). Let `ErrorMiddleware` handle generic failures; keep try/catch only for partial or domain-specific handling.
 
 ## Project structure
 
-- **Commands** – Slash commands in `src/Commands/` (Fun, Moderation, Utility). Use `CreateCommand` with `config: Config.utility()` / `Config.mod().build()` / etc. Middleware is applied via `AutoMiddleware(config)` — avoid hand-wiring `before` / `after` arrays unless you need a custom chain.
+- **Commands** – Slash commands in `src/Commands/` (Fun, Moderation, Utility). Use `CreateCommand` with a `config` object such as `{ access: "mod", cooldown: "5s" }`. Middleware is picked from it automatically; avoid hand-wiring `before` / `after` arrays unless you need a custom chain.
 - **Middleware** – `src/Commands/Middleware/` (logging, permissions, feature gates, command enabled, cooldowns, guild-only, error handling). New built-in middleware should be registered in `AutoMiddleware`; command authors configure behavior through `CommandConfig`.
 - **Systems** – Economy, Giveaway, Leveling, Setup, Ticket in `src/Systems/`.
 - **Tests** – Vitest tests in `tests/`; mirror `src/` layout (e.g. `tests/commands/`, `tests/systems/`). Use helpers and mocks from `tests/helpers/`.

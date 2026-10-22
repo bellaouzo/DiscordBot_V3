@@ -1,7 +1,14 @@
-import type { SlashCommandBuilder } from "discord.js";
+import type {
+  ContextMenuCommandBuilder,
+  SlashCommandBuilder,
+} from "discord.js";
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
-import type { CommandDefinition } from "@commands";
+import type { CommandDefinition, ContextMenuDefinition } from "@commands";
+import {
+  IsContextMenuDefinition,
+  MAX_CONTEXT_MENUS_PER_TYPE,
+} from "@commands/ContextMenuFactory";
 import type { Logger } from "@shared/Logger";
 import { LoadModule, ResolveModulePath } from "./LoadModule";
 
@@ -10,9 +17,16 @@ export interface LoadError {
   readonly error: unknown;
 }
 
+/** Discord's limit on top-level slash commands per app. */
+export const MAX_SLASH_COMMANDS = 100;
+
 export interface LoadedCommands {
+  /** Slash commands, including shortcut aliases. */
   readonly definitions: CommandDefinition[];
-  readonly slashData: SlashCommandBuilder[];
+  /** Right-click menus on users and messages. */
+  readonly contextMenus: ContextMenuDefinition[];
+  /** Everything to deploy to Discord: slash commands, aliases and menus. */
+  readonly slashData: (SlashCommandBuilder | ContextMenuCommandBuilder)[];
   readonly errors: readonly LoadError[];
 }
 
@@ -50,6 +64,23 @@ interface LoadedCommandEntry {
   readonly file: string;
 }
 
+function AssertContextMenus(menus: ContextMenuDefinition[]): void {
+  for (const kind of ["user", "message"] as const) {
+    const names = menus
+      .filter((menu) => menu.kind === kind)
+      .map((menu) => menu.data.name);
+    if (names.length > MAX_CONTEXT_MENUS_PER_TYPE) {
+      throw new Error(
+        `Discord allows ${MAX_CONTEXT_MENUS_PER_TYPE} ${kind} context menus; found ${names.length}: ${names.join(", ")}`,
+      );
+    }
+    const duplicate = names.find((name, i) => names.indexOf(name) !== i);
+    if (duplicate) {
+      throw new Error(`Duplicate ${kind} context menu "${duplicate}"`);
+    }
+  }
+}
+
 function AssertNoDuplicateCommandNames(entries: LoadedCommandEntry[]): void {
   const seen = new Map<string, string>();
 
@@ -82,6 +113,7 @@ function ThrowIfLoadFailed(errors: LoadError[]): void {
 export function CreateCommandLoader(logger: Logger): CommandLoader {
   return async () => {
     const entries: LoadedCommandEntry[] = [];
+    const contextMenus: ContextMenuDefinition[] = [];
     const errors: LoadError[] = [];
     const commandsPath = join(__dirname, "..", "Commands");
 
@@ -95,20 +127,23 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
       try {
         const module = await LoadModule(filePath);
 
-        const commandExports = Object.values(module).filter(
+        const exports = Object.values(module);
+        contextMenus.push(...exports.filter(IsContextMenuDefinition));
+
+        const commandExports = exports.filter(
           (exp) =>
             exp &&
             typeof exp === "object" &&
             "data" in exp &&
             "execute" in exp &&
-            "group" in exp,
-        );
+            "group" in exp &&
+            !IsContextMenuDefinition(exp),
+        ) as CommandDefinition[];
 
         for (const command of commandExports) {
-          entries.push({
-            command: command as CommandDefinition,
-            file: fileLabel,
-          });
+          for (const definition of [command, ...(command.aliases ?? [])]) {
+            entries.push({ command: definition, file: fileLabel });
+          }
         }
       } catch (error) {
         logger.Error("Failed to load command file", {
@@ -126,17 +161,28 @@ export function CreateCommandLoader(logger: Logger): CommandLoader {
     }
 
     AssertNoDuplicateCommandNames(entries);
+    AssertContextMenus(contextMenus);
+
+    if (entries.length > MAX_SLASH_COMMANDS) {
+      throw new Error(
+        `Discord allows ${MAX_SLASH_COMMANDS} slash commands; found ${entries.length} (including shortcut aliases)`,
+      );
+    }
 
     const definitions = entries.map((entry) => entry.command);
-    const slashData = definitions.map((command) => command.data);
+    const slashData = [
+      ...definitions.map((command) => command.data),
+      ...contextMenus.map((menu) => menu.data),
+    ];
 
     logger.Debug("Loaded all commands", {
       timestamp: new Date().toISOString(),
       extra: {
         command_count: definitions.length,
+        context_menu_count: contextMenus.length,
       },
     });
 
-    return { definitions, slashData, errors };
+    return { definitions, contextMenus, slashData, errors };
   };
 }

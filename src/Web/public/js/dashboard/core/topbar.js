@@ -72,6 +72,8 @@ export function closeServerDropdown() {
 export function applyAdminModeState() {
   if (!adminModeBtn) return;
 
+  document.body.classList.toggle('is-admin', state.isAdminMode);
+
   if (state.isAdminMode) {
     adminModeBtn.classList.add('active');
     adminModeBtn.title = 'Exit Admin Mode';

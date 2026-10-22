@@ -1,0 +1,166 @@
+/* ============================================================
+   overview.css — Bento grid for the Overview view.
+   Rearrange tiles by editing the grid-template-areas map.
+   ============================================================ */
+
+.bento {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-areas:
+    "members tickets tickets leader"
+    "cases   cases   econ    leader"
+    "mods    mods    mods    mods";
+}
+
+.t-members { grid-area: members; }
+.t-tickets { grid-area: tickets; }
+.t-leader  { grid-area: leader; }
+.t-cases   { grid-area: cases; }
+.t-econ    { grid-area: econ; }
+.t-mods    { grid-area: mods; }
+
+/* Empty / loading state spans the whole grid */
+.empty-tile {
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.empty-tile .i { width: 28px; height: 28px; }
+
+/* Members */
+.server-line { display: flex; align-items: center; gap: 10px; }
+.server-line img,
+.server-line .server-icon { width: 34px; height: 34px; border-radius: 10px; }
+.server-line .server-icon { background: var(--dark-2); }
+.server-line b { font-weight: 600; }
+.huge { font-size: 44px; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+.tile.dark .tile-foot { color: #b6b2a6; }
+
+/* Tickets (accent tile) */
+.tickets-top { display: flex; align-items: baseline; gap: 10px; }
+.tickets-top .huge { font-size: 40px; }
+
+.mini-list li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(58, 46, 5, .14);
+  cursor: pointer;
+}
+
+.mini-list li:first-child { border-top: 0; }
+.mini-list li:hover .mini-title { text-decoration: underline; }
+.mini-id { font-weight: 700; }
+.mini-title { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mini-age { font-size: 12px; opacity: .7; }
+.accent .tile-foot { color: var(--accent-ink); opacity: .75; }
+
+/* Ranked lists (levels, richest) */
+.rank-list { display: flex; flex-direction: column; }
+
+.rank-list li {
+  display: grid;
+  grid-template-columns: 16px 30px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.rank-list li:first-child { border-top: 0; }
+.rank { color: var(--muted); font-size: 12px; text-align: right; }
+
+.av {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.rank-list li:first-child .av { background: var(--accent); border-color: var(--accent-line); color: var(--accent-ink); }
+.who { min-width: 0; font-weight: 600; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+.rank-list em { font-style: normal; font-weight: 600; font-size: 13px; white-space: nowrap; }
+
+/* Cases table */
+.case-table td {
+  padding: 8px 8px;
+  border-top: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.case-table tr:first-child td { border-top: 0; }
+.case-table td:first-child { padding-left: 0; width: 1%; }
+.case-table td:last-child { padding-right: 0; text-align: right; color: var(--muted); }
+.case-table .reason { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellipsis; color: var(--ink-2); }
+.case-user { font-weight: 600; cursor: pointer; }
+.case-user:hover { text-decoration: underline; }
+
+/* Personal record */
+.record-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.record-grid div { padding: 12px; border-radius: 12px; background: var(--surface-2); }
+.record-grid b { display: block; font-size: 26px; font-weight: 800; line-height: 1.1; }
+.record-grid span { color: var(--muted); font-size: 12px; }
+
+/* Modules */
+.mods {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 4px 22px;
+}
+
+.mods li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--line);
+}
+
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.state.on { color: var(--good); }
+.state.on::before { background: var(--good); }
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "tickets tickets"
+      "members econ"
+      "cases   cases"
+      "leader  leader"
+      "mods    mods";
+  }
+}
+
+@media (max-width: 760px) {
+  .bento {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "tickets" "members" "cases" "leader" "econ" "mods";
+  }
+  .case-table .reason { display: none; }
+}

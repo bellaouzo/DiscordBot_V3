@@ -17,7 +17,7 @@ export const ErrorMiddleware: CommandMiddleware = {
           : error;
 
       context.logger.Error("Command execution failed", {
-        command: context.command.data.name,
+        command: context.invocation.path,
         interactionId: context.interaction.id,
         guildId: context.interaction.guildId ?? undefined,
         userId: context.interaction.user.id,
@@ -49,7 +49,7 @@ export const ErrorMiddleware: CommandMiddleware = {
         );
       } catch (responderError) {
         context.logger.Error("Failed to send command error response", {
-          command: context.command.data.name,
+          command: context.invocation.path,
           interactionId: context.interaction.id,
           userId: context.interaction.user.id,
           error: responderError,

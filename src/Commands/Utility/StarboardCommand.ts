@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { ChannelType, MessageFlags } from "discord.js";
 import type { CommandContext } from "@commands";
 import { CreateCommand } from "@commands";
-import { Config } from "@middleware";
 import { RequireGuild, EmbedFactory, AppendFeatureGuideHint } from "@utilities";
 import { ReplyWithFeatureAbout } from "@commands/Utility/FeatureAbout";
 
@@ -125,7 +124,7 @@ export const StarboardCommand = CreateCommand({
   name: "starboard",
   description: "Configure the server starboard",
   group: "utility",
-  config: Config.mod(3).build(),
+  config: { access: "mod", cooldown: "3s" },
   configure: (builder) => {
     builder
       .addSubcommand((sub) =>

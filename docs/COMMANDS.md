@@ -80,11 +80,36 @@ Some commands require staff roles (configured in `/setup`) or enabled feature mo
 | `/quote` | Inspirational quote |
 | `/insult` | Playful insult generator |
 
+## Shortcuts
+
+These run the same thing as the full command, with the same options, permissions and cooldown. Disabling or restricting `/economy` also covers its shortcuts.
+
+| Shortcut | Same as |
+|----------|---------|
+| `/balance` | `/economy balance` |
+| `/daily` | `/economy daily` |
+| `/work` | `/economy work` |
+| `/fish` | `/economy fish` |
+| `/slots` | `/economy slots` |
+
+## Right-click actions
+
+Right-click a user or message → **Apps**. Each uses the permissions of the command it belongs to, and disabling that command disables the action too.
+
+| Action | On | Same as |
+|--------|----|---------|
+| Warn | User | `/warn add` (asks for a reason) |
+| Mute | User | `/mute set` (asks for a duration like `10m` and a reason) |
+| Kick | User | `/kick` (asks for a reason, which also confirms) |
+| Casefile | User | `/casefile` |
+| View Profile | User | `/profile` |
+| Purge From Here | Message | Deletes that message and everything after it (asks to confirm) |
+
 ## Feature gates
 
 | Module | Commands affected | Enable in |
 |--------|-------------------|-----------|
-| Economy | `/economy`, `/economyadmin` | `/setup` step 3 |
+| Economy | `/economy` (and its shortcuts), `/economyadmin` | `/setup` step 3 |
 | Giveaways | `/giveaway` | `/setup` step 3 |
 | Leveling | `/rank`, `/leaderboard` (XP), chat XP | `/setup` step 3 |
 | Starboard | Starboard messages | `/setup` steps 3 and 5 |

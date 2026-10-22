@@ -3,6 +3,7 @@ import type {
   SlashCommandSubcommandBuilder,
 } from "discord.js";
 import type { CommandExecutor } from "./CommandFactory";
+import type { CommandConfig } from "@middleware/CommandConfig";
 
 /**
  * One subcommand: its slash definition and the handler that runs it, side by side.
@@ -13,6 +14,13 @@ export interface SubcommandDefinition {
   /** Adds the subcommand's options. */
   readonly options?: (sub: SlashCommandSubcommandBuilder) => void;
   readonly execute: CommandExecutor;
+  /** Overrides the command's config for this subcommand only, field by field. */
+  readonly config?: CommandConfig;
+  /**
+   * Also register this subcommand as a top-level shortcut command: `true` uses the subcommand
+   * name (`/economy daily` → `/daily`), a string picks the shortcut's name.
+   */
+  readonly alias?: true | string;
 }
 
 /**
@@ -96,4 +104,26 @@ export function RouteSubcommands(
 
     await execute(interaction, context);
   };
+}
+
+/** One subcommand with its full path, e.g. "daily" or "market buy". */
+export interface SubcommandWithPath {
+  readonly path: string;
+  readonly definition: SubcommandDefinition;
+}
+
+/**
+ * Flattens subcommands and groups into their full paths.
+ */
+export function ListSubcommands(
+  entries: readonly SubcommandEntry[],
+): SubcommandWithPath[] {
+  return entries.flatMap((entry) =>
+    IsGroup(entry)
+      ? entry.subcommands.map((definition) => ({
+          path: `${entry.name} ${definition.name}`,
+          definition,
+        }))
+      : [{ path: entry.name, definition: entry }],
+  );
 }

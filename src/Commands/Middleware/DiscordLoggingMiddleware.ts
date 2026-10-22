@@ -24,15 +24,15 @@ export const DiscordLoggingMiddleware: CommandMiddleware = {
 
       await discordLogger.LogCommandExecution(
         context.interaction,
-        context.command,
+        context.invocation,
       );
 
-      await AppendCommandLog(context.interaction, context.command);
+      await AppendCommandLog(context.interaction, context.invocation);
     } catch (error) {
       context.logger.Error("Discord logging middleware failed", {
         error,
         extra: {
-          commandName: context.command.data.name,
+          commandName: context.invocation.path,
           userId: context.interaction.user.id,
           guildId: context.interaction.guildId,
         },
